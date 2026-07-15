@@ -81,3 +81,21 @@ export function useSubmitAttempt() {
     },
   });
 }
+
+export function useClassPosts(classId: string) {
+  return useQuery({
+    queryKey: ['posts', classId],
+    queryFn: () => api.posts.list(classId),
+    enabled: !!classId,
+  });
+}
+
+export function useCreatePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ classId, content }: { classId: string, content: string }) => api.posts.create(classId, content),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['posts', variables.classId] });
+    },
+  });
+}

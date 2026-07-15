@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useStudentDashboard, useAssignments, useJoinClass, useClasses } from '@/lib/hooks';
 import { Card, Button, Badge, Input, Label } from '@/components/ui';
-import { Flame, Star, Trophy, Map as MapIcon, Play, CheckCircle2, History, Plus } from 'lucide-react';
+import { Flame, Star, Trophy, Map as MapIcon, Play, CheckCircle2, History, Plus, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import type { StudentClassSummary } from '@/lib/api';
+import { useClassPosts } from '@/lib/hooks';
 import { allTopics } from '@/data';
 
 export function StudentDashboard() {
@@ -177,7 +178,11 @@ export function StudentDashboard() {
             {myClasses.length > 0 ? (
               <ul className="space-y-3">
                 {myClasses.map(c => (
-                  <li key={c.id} className="p-3 bg-muted/30 rounded-xl border border-border">
+                  <li 
+                    key={c.id} 
+                    className="p-3 bg-muted/30 rounded-xl border border-border cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => setLocation(`/student/classes/${c.id}`)}
+                  >
                     <p className="font-bold">{c.name}</p>
                     <p className="text-xs text-muted-foreground font-bold">Teacher: {c.teacherName}</p>
                   </li>
@@ -293,3 +298,95 @@ export function StudentLessons() {
   );
 }
 
+export function StudentClassDetail({ classId }: { classId: string }) {
+  const { data: classesData, isLoading: classLoading } = useClasses();
+  const { data: postsData, isLoading: postsLoading } = useClassPosts(classId);
+  const { data: assignmentsData, isLoading: assignLoading } = useAssignments();
+  const [, setLocation] = useLocation();
+
+  if (classLoading || postsLoading || assignLoading) {
+    return <div className="p-8 text-center font-bold">Loading class details...</div>;
+  }
+
+  const classes = (classesData?.classes || []) as StudentClassSummary[];
+  const cls = classes.find(c => c.id === classId);
+
+  if (!cls) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <p className="font-bold text-muted-foreground">Class not found.</p>
+        <Button variant="outline" onClick={() => setLocation('/student')}>Back to Dashboard</Button>
+      </div>
+    );
+  }
+
+  const posts = postsData?.posts || [];
+  const assignments = ((assignmentsData?.assignments || []) as import('@/lib/api').AssignmentForStudent[])
+    .filter(a => !a.completed); 
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <header className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => setLocation('/student')}>
+          <ArrowLeft className="h-6 w-6 text-foreground" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-display font-extrabold text-foreground">{cls.name}</h1>
+          <p className="text-muted-foreground font-bold">Teacher: {cls.teacherName}</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-2xl font-display font-bold flex items-center gap-2 text-blue-600">
+            <MessageSquare className="h-6 w-6" /> Announcements
+          </h2>
+          
+          {posts.length > 0 ? (
+            <div className="space-y-4">
+              {posts.map((post: any) => (
+                <Card key={post.id} className="p-5 border-l-4 border-l-blue-500 bg-blue-50/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="font-bold text-blue-800">{post.authorName}</p>
+                    <p className="text-sm font-bold text-muted-foreground">{new Date(post.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <p className="text-lg font-bold leading-relaxed">{post.content}</p>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="p-8 text-center bg-muted/30 border-dashed border-2">
+              <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+              <p className="font-bold text-muted-foreground">No announcements from your teacher yet.</p>
+            </Card>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <Card className="p-6">
+            <h2 className="text-xl font-display font-bold flex items-center gap-2 mb-4 text-primary">
+              <BookOpen className="h-5 w-5" /> Your Pending Quests
+            </h2>
+            {assignments.length > 0 ? (
+              <div className="space-y-3">
+                {assignments.map(a => (
+                  <div key={a.id} className="p-3 bg-muted/30 rounded-xl border border-border flex justify-between items-center">
+                    <div>
+                      <Badge variant="jungle" className="mb-1 capitalize">{a.lessonId}</Badge>
+                      <p className="text-xs font-bold text-muted-foreground">Pending</p>
+                    </div>
+                    <Button size="sm" variant="jungle" onClick={() => setLocation(`/student/lessons/${a.lessonId}?assignmentId=${a.id}`)}>
+                      Play
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-bold text-muted-foreground text-center py-4">No pending assignments!</p>
+            )}
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

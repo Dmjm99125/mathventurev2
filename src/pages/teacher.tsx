@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
-import { useTeacherDashboard, useClasses, useCreateClass, useClassRoster, useAssignments, useCreateAssignment } from '@/lib/hooks';
+import { useTeacherDashboard, useClasses, useCreateClass, useClassRoster, useAssignments, useCreateAssignment, useClassPosts, useCreatePost } from '@/lib/hooks';
 import { Card, Button, Input, Label, Badge } from '@/components/ui';
-import { Users, BookOpen, AlertTriangle, Plus, ArrowRight, UserPlus, CheckCircle2 } from 'lucide-react';
+import { Users, BookOpen, AlertTriangle, Plus, ArrowRight, UserPlus, CheckCircle2, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { allTopics } from '@/data';
 
@@ -194,10 +194,14 @@ export function TeacherClasses() {
 export function TeacherClassDetail({ classId }: { classId: string }) {
   const { data: classesData } = useClasses();
   const { data: rosterData, isLoading } = useClassRoster(classId);
+  const { data: postsData } = useClassPosts(classId);
   const createAssignment = useCreateAssignment();
+  const createPost = useCreatePost();
   
   const [assignLessonId, setAssignLessonId] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
 
   const classes = (classesData?.classes || []) as import('@/lib/api').TeacherClassSummary[];
   const cls = classes.find(c => c.id === classId);
@@ -212,7 +216,16 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
     alert('Assignment sent to class!'); // simple feedback
   };
 
+  const handlePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostContent.trim()) return;
+    await createPost.mutateAsync({ classId, content: newPostContent });
+    setIsPosting(false);
+    setNewPostContent('');
+  };
+
   if (isLoading || !cls) return <div className="p-8 text-center font-bold">Loading class...</div>;
+  const posts = postsData?.posts || [];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -232,7 +245,33 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
         <Button onClick={() => setIsAssigning(!isAssigning)} variant={isAssigning ? "outline" : "jungle"} className="gap-2">
           <BookOpen className="h-4 w-4" /> Assign Lesson to Class
         </Button>
+        <Button onClick={() => setIsPosting(!isPosting)} variant={isPosting ? "outline" : "default"} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+          <MessageSquare className="h-4 w-4" /> Post Announcement
+        </Button>
       </div>
+
+      {isPosting && (
+        <Card className="p-6 bg-blue-50 border-blue-200">
+          <form onSubmit={handlePost} className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <Label>Announcement Message</Label>
+              <textarea 
+                className="flex min-h-[80px] w-full rounded-xl border-2 border-input bg-background px-4 py-2 text-base font-bold text-foreground focus-visible:outline-none focus-visible:border-blue-500"
+                placeholder="Write a message to your students..."
+                value={newPostContent}
+                onChange={e => setNewPostContent(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setIsPosting(false)}>Cancel</Button>
+              <Button type="submit" disabled={createPost.isPending || !newPostContent.trim()} className="bg-blue-600 hover:bg-blue-700">
+                {createPost.isPending ? 'Posting...' : 'Post Message'}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       {isAssigning && (
         <Card className="p-6 bg-primary/5 border-primary/20">
@@ -256,6 +295,25 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
             </Button>
           </form>
         </Card>
+      )}
+
+      {posts.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-display font-bold flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-blue-500" /> Recent Announcements
+          </h2>
+          <div className="grid gap-4">
+            {posts.map((post: any) => (
+              <Card key={post.id} className="p-4 border-l-4 border-l-blue-500 bg-blue-50/50">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="font-bold text-sm text-blue-800">{post.authorName}</p>
+                  <p className="text-xs text-muted-foreground font-bold">{new Date(post.createdAt).toLocaleDateString()}</p>
+                </div>
+                <p className="font-bold">{post.content}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
 
       <Card className="overflow-hidden">

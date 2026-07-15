@@ -7,7 +7,7 @@ import { LanguageProvider } from '@/lib/useLanguage';
 import { Landing } from '@/pages/landing';
 import { Login, Signup } from '@/pages/auth';
 import { TeacherDashboard, TeacherClasses, TeacherClassDetail, TeacherAssignments } from '@/pages/teacher';
-import { StudentDashboard, StudentLessons } from '@/pages/student';
+import { StudentDashboard, StudentLessons, StudentClassDetail } from '@/pages/student';
 import { QuizPage } from '@/pages/QuizPage';
 import NotFound from '@/pages/not-found';
 
@@ -37,6 +37,9 @@ function AppRoutes() {
       </Route>
       <Route path="/student/lessons/:topic">
         {() => <QuizPage />}
+      </Route>
+      <Route path="/student/classes/:classId">
+        {params => <AppLayout><StudentClassDetail classId={params.classId} /></AppLayout>}
       </Route>
       
       <Route path="/teacher">

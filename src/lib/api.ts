@@ -44,6 +44,14 @@ export interface AssignmentForTeacher {
   createdAt: string;
 }
 
+export interface ClassPost {
+  id: string;
+  classId: string;
+  content: string;
+  createdAt: string;
+  authorName: string;
+}
+
 export interface StudentDashboard {
   completedLessons: number;
   streakDays: number;
@@ -124,6 +132,10 @@ export const api = {
   dashboard: {
     student: () => callFunction<StudentDashboard>('dashboard-student'),
     teacher: () => callFunction<TeacherDashboard>('dashboard-teacher'),
+  },
+  posts: {
+    list: (classId: string) => callFunction<{ posts: ClassPost[] }>('posts-list', { searchParams: { classId } }),
+    create: (classId: string, content: string) => callFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
   },
 };
 
