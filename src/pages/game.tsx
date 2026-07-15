@@ -12,10 +12,10 @@ function IdentifyGame({ config, onComplete, onAudioPlay }: any) {
   const { lang } = useLanguage();
   const [selected, setSelected] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  
+
   // Resolve labels based on language
   const promptLabel = config.label?.[lang] || config.label?.en || 'Find the item';
-  
+
   // Resolve option assets based on itemType
   const getAssetPath = (val: string) => {
     if (config.itemType === 'color') return `/assets/colors/${val}.png`;
@@ -29,7 +29,7 @@ function IdentifyGame({ config, onComplete, onAudioPlay }: any) {
     setSelected(val);
     const correct = val === config.target;
     setIsCorrect(correct);
-    
+
     // Auto-advance after delay
     setTimeout(() => {
       onComplete(correct ? 1 : 0, 1);
@@ -53,7 +53,7 @@ function IdentifyGame({ config, onComplete, onAudioPlay }: any) {
         {config.optionsPool.map((opt: string) => {
           const isSelected = selected === opt;
           const isTarget = opt === config.target;
-          
+
           let stateClass = "border-border hover:-translate-y-2 hover:border-primary";
           if (selected) {
             if (isTarget) stateClass = isSelected ? "border-primary bg-primary/10 scale-110" : "opacity-50 grayscale";
@@ -61,7 +61,7 @@ function IdentifyGame({ config, onComplete, onAudioPlay }: any) {
           }
 
           return (
-            <Card 
+            <Card
               key={opt}
               className={`p-6 cursor-pointer border-4 transition-all duration-300 flex items-center justify-center ${stateClass}`}
               onClick={() => handleSelect(opt)}
@@ -78,7 +78,7 @@ function IdentifyGame({ config, onComplete, onAudioPlay }: any) {
 }
 
 function MatchPairsGame({ config, onComplete }: any) {
-  const [cards, setCards] = useState<{id: number, val: string, flipped: boolean, matched: boolean}[]>([]);
+  const [cards, setCards] = useState<{ id: number, val: string, flipped: boolean, matched: boolean }[]>([]);
   const [flippedIds, setFlippedIds] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [matches, setMatches] = useState(0);
@@ -97,7 +97,7 @@ function MatchPairsGame({ config, onComplete }: any) {
       const [id1, id2] = flippedIds;
       const c1 = cards.find(c => c.id === id1);
       const c2 = cards.find(c => c.id === id2);
-      
+
       if (c1?.val === c2?.val) {
         setMatches(m => m + 1);
         setCards(prev => prev.map(c => c.id === id1 || c.id === id2 ? { ...c, matched: true } : c));
@@ -135,7 +135,7 @@ function MatchPairsGame({ config, onComplete }: any) {
     <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in zoom-in-95 duration-300">
       <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-w-3xl">
         {cards.map(card => (
-          <div 
+          <div
             key={card.id}
             className={`relative w-24 h-24 md:w-32 md:h-32 perspective-1000 cursor-pointer ${card.matched ? 'opacity-50' : ''}`}
             onClick={() => handleFlip(card.id)}
@@ -158,24 +158,24 @@ function MatchPairsGame({ config, onComplete }: any) {
 }
 
 function SequenceGame({ config, onComplete }: any) {
-  const [items, setItems] = useState<{id: string, val: string, correctIndex: number, currentPos: number | null}[]>([]);
-  const [slots, setSlots] = useState<{val: string | null}[]>([]);
+  const [items, setItems] = useState<{ id: string, val: string, correctIndex: number, currentPos: number | null }[]>([]);
+  const [slots, setSlots] = useState<{ val: string | null }[]>([]);
   const [score, setScore] = useState(0);
 
   useEffect(() => {
     const shuffled = [...config.items].sort(() => Math.random() - 0.5);
-    setItems(shuffled.map((val, i) => ({ 
-      id: Math.random().toString(), 
-      val, 
+    setItems(shuffled.map((val, i) => ({
+      id: Math.random().toString(),
+      val,
       correctIndex: config.items.indexOf(val),
-      currentPos: null 
+      currentPos: null
     })));
     setSlots(config.items.map(() => ({ val: null })));
   }, [config.items]);
 
   const handleItemClick = (item: any) => {
     if (item.currentPos !== null) return; // already placed
-    
+
     // Find first empty slot
     const firstEmpty = slots.findIndex(s => s.val === null);
     if (firstEmpty === -1) return;
@@ -216,7 +216,7 @@ function SequenceGame({ config, onComplete }: any) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in zoom-in-95 duration-300">
       <h2 className="text-3xl font-display font-bold text-foreground mb-8 text-center">Tap the items in order!</h2>
-      
+
       {/* Slots */}
       <div className="flex flex-wrap justify-center gap-4 mb-12 bg-black/5 p-6 rounded-3xl w-full max-w-4xl">
         {slots.map((slot, i) => (
@@ -231,7 +231,7 @@ function SequenceGame({ config, onComplete }: any) {
         {items.map((item) => {
           if (item.currentPos !== null) return <div key={item.id} className="w-20 h-20 md:w-28 md:h-28" />; // Placeholder
           return (
-            <Card 
+            <Card
               key={item.id}
               id={`item-${item.id}`}
               className="w-20 h-20 md:w-28 md:h-28 p-2 cursor-pointer hover:-translate-y-2 transition-transform border-4 border-border flex items-center justify-center bg-white"
@@ -254,12 +254,12 @@ export function LessonGame() {
   const searchStr = useSearch();
   const searchParams = new URLSearchParams(searchStr);
   const assignmentId = searchParams.get('assignmentId') || undefined;
-  
+
   const { data, isLoading } = useLessons();
   const submitAttempt = useSubmitAttempt();
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  
+
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'completed'>('intro');
   const [finalScore, setFinalScore] = useState(0);
   const [finalMaxScore, setFinalMaxScore] = useState(0);
@@ -297,7 +297,7 @@ export function LessonGame() {
     setFinalScore(score);
     setFinalMaxScore(maxScore);
     setGameState('completed');
-    
+
     // Celebrate!
     const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
     confetti({
@@ -323,7 +323,7 @@ export function LessonGame() {
   // Full-screen game layout overlaying the AppLayout container
   return (
     <div className="absolute inset-0 bg-background z-50 flex flex-col pt-16">
-      
+
       {/* Top Game Bar */}
       <div className="h-16 border-b-2 border-border bg-white flex items-center px-4 justify-between shrink-0">
         <Button variant="ghost" size="sm" onClick={() => setLocation('/student')} className="gap-2 font-bold text-muted-foreground">
@@ -338,9 +338,9 @@ export function LessonGame() {
 
       <div className="flex-1 overflow-auto bg-[url('/assets/jungle-bg.png')] bg-cover bg-center bg-fixed relative">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
-        
+
         <div className="relative z-10 h-full container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[600px]">
-          
+
           {gameState === 'intro' && (
             <Card className="max-w-md w-full p-8 text-center animate-in zoom-in-95 duration-500 shadow-2xl border-4 border-primary">
               <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-3">
@@ -365,16 +365,16 @@ export function LessonGame() {
           {gameState === 'completed' && (
             <Card className="max-w-md w-full p-8 text-center animate-in zoom-in duration-500 shadow-2xl border-4 border-jungle-yellow relative overflow-hidden">
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-jungle-yellow/20 rounded-full blur-2xl" />
-              
+
               <div className="w-24 h-24 bg-jungle-yellow text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-jungle-yellow/30">
                 <Trophy className="h-12 w-12" />
               </div>
-              
+
               <h1 className="text-4xl font-display font-extrabold mb-2 text-foreground">Excellent!</h1>
               <p className="text-xl font-bold text-muted-foreground mb-8">
                 You scored {Math.round((finalScore / finalMaxScore) * 100)}%
               </p>
-              
+
               <div className="flex flex-col gap-3">
                 <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => setLocation('/student/lessons')}>
                   Continue Adventure

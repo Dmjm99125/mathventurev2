@@ -110,7 +110,7 @@ export function QuizPage() {
           <div className="mb-12 text-center flex flex-col items-center gap-4">
             <h2 className="text-3xl md:text-5xl font-display font-extrabold text-foreground" dangerouslySetInnerHTML={{ __html: question.prompt || 'Choose the correct answer' }} />
             {/* If audio file mapped to this topic exists, play it. Using dummy for now as no audio is extracted cleanly */}
-            {topic === 'colors' && currentIndex === 0 && <AudioButton src={`/assets/audio/1red.mp3`} />}
+            {topic === 'colors' && currentIndex === 0 && <AudioButton src={`/assets/audio/audio/1red.MP3`} />}
           </div>
 
           {/* Options Grid */}

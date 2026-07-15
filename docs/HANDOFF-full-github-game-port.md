@@ -177,3 +177,34 @@ Per the user's explicit direction, the lesson catalog going forward has
    dashboard.
 6. Re-run the end-to-end smoke test (signup → play a lesson from each new
    chapter → dashboards) after the catalog expands.
+
+Suggested architecture:
+src/
+├── assets/
+│   ├── audio/
+│   └── images/
+├── components/
+│   ├── GameLayout.tsx
+│   ├── LessonCard.tsx
+│   ├── QuestionCard.tsx
+│   ├── AnswerOption.tsx
+│   ├── FeedbackModal.tsx
+│   └── AudioButton.tsx
+├── data/
+│   ├── counting.ts
+│   ├── shapes.ts
+│   ├── sequencing.ts
+│   ├── addition.ts
+│   ├── subtraction.ts
+│   ├── numbers.ts
+│   ├── measurement.ts
+│   ├── comparison.ts
+│   └── clock.ts
+├── pages/
+│   ├── HomePage.tsx
+│   ├── TopicsPage.tsx
+│   ├── LessonPage.tsx
+│   └── QuizPage.tsx
+├── router/
+│   └── AppRouter.tsx
+└── App.tsx
