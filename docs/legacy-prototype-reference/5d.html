@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+ 
+
+
+	<table>
+	<tr>
+		<td>
+		<a href="5.html"><img src="1SUB.png" width="250" length="600"></a>
+
+		</td>
+	
+	</tr>
+	</table>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruit Subtraction Game</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: linear-gradient(to top, #fddb92, #d1fdff);
+    margin: 0;
+}
+
+h1 {
+    margin-top: 20px;
+}
+
+#question {
+    font-size: 26px;
+    margin: 15px;
+}
+
+#visual {
+    font-size: 40px;
+    margin: 20px;
+}
+
+.answers {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn {
+    padding: 15px 20px;
+    font-size: 20px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: scale(0.9);
+}
+
+#score, #stars {
+    font-size: 18px;
+    margin: 10px;
+}
+
+/* Mobile */
+@media (max-width:600px) {
+    #visual { font-size: 30px; }
+    .btn { font-size: 16px; padding: 10px; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>🍎 Count & Subtract Fruits</h1>
+
+<div id="question"></div>
+<div id="visual"></div>
+
+<div class="answers" id="answers"></div>
+
+<div id="score">Score: 0</div>
+<div id="stars">⭐</div>
+
+<script>
+let score = 0;
+let stars = "⭐";
+let correctAnswer = 0;
+
+const fruits = ["🍎","🍌","🍇","🍓","🍍"];
+
+function randomFruit() {
+    return fruits[Math.floor(Math.random()*fruits.length)];
+}
+
+function generateQuestion() {
+    let num1 = Math.floor(Math.random()*5)+3; // 3–7
+    let num2 = Math.floor(Math.random()*num1);
+
+    correctAnswer = num1 - num2;
+
+    document.getElementById("question").innerText =
+        `${num1} - ${num2} = ?`;
+
+    // VISUAL FRUITS
+    let fruit = randomFruit();
+    let group1 = fruit.repeat(num1);
+    let group2 = fruit.repeat(num2);
+
+    document.getElementById("visual").innerText =
+        group1 + "  ➖  " + group2;
+
+    generateAnswers();
+}
+
+function generateAnswers() {
+    let container = document.getElementById("answers");
+    container.innerHTML = "";
+
+    let options = new Set();
+    options.add(correctAnswer);
+
+    while(options.size < 3) {
+        options.add(Math.floor(Math.random()*8));
+    }
+
+    let shuffled = Array.from(options).sort(() => Math.random()-0.5);
+
+    shuffled.forEach(num => {
+        let btn = document.createElement("button");
+        btn.className = "btn";
+        btn.innerText = num;
+
+        btn.onclick = () => checkAnswer(num);
+
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected) {
+    if(selected === correctAnswer){
+        score++;
+        stars += "⭐";
+        alert("🎉 Correct! Great job!");
+    } else {
+        alert("❌ Try again!");
+    }
+
+    document.getElementById("score").innerText = "Score: " + score;
+    document.getElementById("stars").innerText = stars;
+
+    generateQuestion();
+}
+
+generateQuestion();
+</script>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="5b.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+
+
+
+
+</body>
+</html>

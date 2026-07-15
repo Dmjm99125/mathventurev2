@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruit Pop Math!</title>
+    <style>
+        body { font-family: 'Comic Sans MS', cursive, sans-serif; text-align: center; background-color: #f0f8ff; color: #333; padding: 20px; }
+        #game-container { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: inline-block; min-width: 350px; }
+        .equation { font-size: 40px; margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .visuals { font-size: 30px; min-height: 40px; margin-bottom: 10px; }
+        input { width: 60px; font-size: 30px; text-align: center; border: 3px solid #ffcc00; border-radius: 10px; }
+        button { font-size: 20px; padding: 10px 25px; background-color: #4caf50; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; }
+        button:hover { background-color: #45a049; }
+        #feedback { font-size: 24px; margin-top: 20px; font-weight: bold; height: 30px; }
+        .score { font-size: 20px; color: #ff6600; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>🍎 Fruit Pop Math! 🍌</h1>
+    <div id="game-container">
+        <div class="score">Stars Collected: <span id="score">0</span> ⭐</div>
+        
+        <div class="visuals" id="visual-a"></div>
+        <div class="equation">
+            <span id="num-a"></span> + <span id="num-b"></span> = 
+            <input type="number" id="answer" min="0" max="20" autofocus>
+        </div>
+        <div class="visuals" id="visual-b"></div>
+
+        <br>
+        <button onclick="checkAnswer()">Check My Answer!</button>
+        <div id="feedback"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let valA, valB;
+        const fruits = ['🍎', '🍌', '🍓', '🍊', '🍇', '🍒'];
+
+        function nextQuestion() {
+            // Keep numbers small for Kindergarten (sum <= 10)
+            valA = Math.floor(Math.random() * 6); 
+            valB = Math.floor(Math.random() * (11 - valA)); 
+            
+            const fruit = fruits[Math.floor(Math.random() * fruits.length)];
+            
+            document.getElementById('num-a').innerText = valA;
+            document.getElementById('num-b').innerText = valB;
+            document.getElementById('visual-a').innerText = fruit.repeat(valA);
+            document.getElementById('visual-b').innerText = fruit.repeat(valB);
+            document.getElementById('answer').value = '';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('answer').focus();
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer').value);
+            const feedback = document.getElementById('feedback');
+            
+            if (userAnswer === (valA + valB)) {
+                feedback.innerText = "Great Job! 🎉";
+                feedback.style.color = "green";
+                score++;
+                document.getElementById('score').innerText = score;
+                setTimeout(nextQuestion, 1500);
+            } else {
+                feedback.innerText = "Try again! You can count the fruit! 🍎";
+                feedback.style.color = "red";
+            }
+        }
+
+        // Start the first question
+        nextQuestion();
+    </script>
+
+</body>
+</html>
+
+
+<br>
+<br>
+<br>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="4d.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+<hr width=100% size="5">
+
+<center><a name="DOWN"></center>
+<center><a href="#top">Page Up</center>
+
+</body>
+</html>

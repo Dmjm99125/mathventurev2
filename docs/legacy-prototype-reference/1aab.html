@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Color Pop Adventure!</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial Rounded MT Bold', 'Helvetica', sans-serif;
+            background-color: #e0f4ff;
+            touch-action: manipulation;
+        }
+
+        /* Top Header Area */
+        #header {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        #instruction {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        #score-board {
+            font-size: 24px;
+            color: #ff4500;
+            font-weight: bold;
+        }
+
+        /* Game Area */
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: calc(100vh - 120px);
+            overflow: hidden;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 85px;
+            height: 105px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: floatUp 6s linear infinite;
+        }
+
+        .balloon::after {
+            content: "";
+            position: absolute;
+            bottom: -25px;
+            width: 2px;
+            height: 25px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        @keyframes floatUp {
+            from { transform: translateY(100vh); }
+            to { transform: translateY(-20vh); }
+        }
+
+        /* Congratulatory Star Screen */
+        #star-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 200;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .big-star {
+            font-size: 150px;
+            color: #FFD700;
+            animation: bounce 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        .game-btn {
+            padding: 15px 40px;
+            font-size: 24px;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 5px rgba(0,0,0,0.2);
+            font-family: inherit;
+        }
+
+        .play-again { background: #4CAF50; }
+        .next-page { background: #FF9800; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        .game-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Floating Next Button for Top Corner */
+        #top-next-btn {
+            position: fixed; 
+            top: 15px; 
+            right: 15px; 
+            z-index: 1001; 
+            padding: 12px 24px; 
+            border-radius: 15px; 
+            background: #FF9800; 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 4px #e68a00;
+        }
+    </style>
+</head>
+<body>
+
+
+<div id="header">
+    <div id="instruction">Find the <span id="target-color-name">...</span> balloon!</div>
+    <div id="score-board">Stars: <span id="score">0</span> / 10</div>
+</div>
+
+<div id="game-area"></div>
+
+<div id="star-overlay">
+    <div class="big-star">⭐</div>
+    <h1 style="font-size: 50px; color: #ff4500;">YOU DID IT!</h1>
+    <p style="font-size: 24px;">You are so smart!</p>
+    <button class="game-btn play-again" onclick="resetGame()">Play Again</button>
+    <button class="game-btn next-page" onclick="window.location.href='rcc.html'">Next Game ➡️</button>
+</div>
+
+<script>
+    const colors = [
+        { name: 'RED', hex: '#FF0000' },
+        { name: 'BLUE', hex: '#0000FF' },
+        { name: 'GREEN', hex: '#228B22' },
+        { name: 'YELLOW', hex: '#FFD700' },
+        { name: 'PINK', hex: '#FF69B4' },
+        { name: 'ORANGE', hex: '#FFA500' },
+        { name: 'PURPLE', hex: '#800080' }
+    ];
+
+    let score = 0;
+    let targetColor = {};
+    const gameArea = document.getElementById('game-area');
+    const scoreDisplay = document.getElementById('score');
+    const targetNameDisplay = document.getElementById('target-color-name');
+    const starOverlay = document.getElementById('star-overlay');
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playPop(isCorrect) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = isCorrect ? 'sine' : 'square';
+        osc.frequency.setValueAtTime(isCorrect ? 600 : 150, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function initRound() {
+        targetColor = colors[Math.floor(Math.random() * colors.length)];
+        targetNameDisplay.innerText = targetColor.name;
+        targetNameDisplay.style.color = targetColor.hex;
+        
+        for(let i=0; i<6; i++) {
+            setTimeout(() => createBalloon(i === 0), i * 500);
+        }
+    }
+
+    function createBalloon(isCorrect) {
+        if (score >= 10) return;
+
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        const colorData = isCorrect ? targetColor : colors[Math.floor(Math.random() * colors.length)];
+        balloon.style.backgroundColor = colorData.hex;
+        balloon.style.left = Math.random() * 80 + 5 + 'vw';
+        balloon.style.animationDuration = (Math.random() * 3 + 5) + 's';
+
+        const handleInteraction = (e) => {
+            if (e) e.preventDefault();
+            if (colorData.name === targetColor.name) {
+                playPop(true);
+                score++;
+                scoreDisplay.innerText = score;
+                balloon.remove();
+                if (score >= 10) {
+                    showWin();
+                } else {
+                    createBalloon(true);
+                }
+            } else {
+                playPop(false);
+                balloon.style.opacity = '0.4';
+            }
+        };
+
+        balloon.addEventListener('mousedown', handleInteraction);
+        balloon.addEventListener('touchstart', handleInteraction);
+        
+        balloon.addEventListener('animationiteration', () => {
+            balloon.remove();
+            createBalloon(Math.random() > 0.6);
+        });
+
+        gameArea.appendChild(balloon);
+    }
+
+    function showWin() {
+        starOverlay.style.display = 'flex';
+        gameArea.innerHTML = '';
+    }
+
+    function resetGame() {
+        score = 0;
+        scoreDisplay.innerText = score;
+        starOverlay.style.display = 'none';
+        initRound();
+    }
+
+    initRound();
+</script>
+
+</body>
+</html>

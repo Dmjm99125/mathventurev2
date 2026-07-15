@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<body background="1kbk.jpg">
+
+<table align="left">
+	<tr>
+		<td>
+		<a href="2.html"><img src="1sha.png" width="250" length="600"></a>
+
+		</td>
+	
+	</tr>
+</table>
+<br>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindergarten Shape Matcher</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #fdf5e6;
+            text-align: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        h1 { color: #ff4500; font-size: 2.5rem; text-shadow: 2px 2px #ffcc00; }
+        .instructions { font-size: 1.2rem; color: #333; margin-bottom: 20px; }
+        
+        .game-container {
+            display: flex;
+            justify-content: center;
+            gap: 100px;
+            margin-top: 20px;
+            min-height: 500px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 150px;
+        }
+        .item {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border: 4px solid #4da6ff;
+            border-radius: 15px;
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .item:active { transform: scale(1.1); cursor: grabbing; }
+
+        .target {
+            width: 120px;
+            height: 120px;
+            border: 4px dashed #ff9900;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff9ef;
+            font-weight: bold;
+            color: #d2691e;
+        }
+        .target.success { background-color: #bfffbf !important; border-style: solid; border-color: #008000; }
+
+        #message { margin-top: 20px; font-size: 28px; font-weight: bold; height: 40px; }
+        
+        #btn-restart {
+            display: none;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #ff4500;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px #a02d00;
+        }
+        #btn-restart:active { transform: translateY(4px); box-shadow: 0 2px #a02d00; }
+    </style>
+</head>
+<body>
+
+    <h1>Shape Matcher!</h1>
+    <p class="instructions">Drag the toy to the matching shape box!</p>
+
+    <div class="game-container">
+        <div class="column" id="objects-column">
+            <div class="item" draggable="true" id="dice" data-match="cube">🎲</div>
+            <div class="item" draggable="true" id="drum" data-match="cylinder">🥁</div>
+            <div class="item" draggable="true" id="ball" data-match="sphere">🏀</div>
+            <div class="item" draggable="true" id="cone" data-match="cone">🍦</div>
+            <div class="item" draggable="true" id="earth" data-match="sphere">🌍</div>
+        </div>
+
+        <div class="column" id="targets-column">
+            <div class="target" data-shape="cube">CUBE<br>🟩</div>
+            <div class="target" data-shape="cone">CONE<br>📐</div>
+            <div class="target" data-shape="cylinder">CYLINDER<br>🏮</div>
+            <div class="target" data-shape="sphere">SPHERE<br>🔵</div>
+        </div>
+    </div>
+
+    <div id="message"></div>
+    <button id="btn-restart" onclick="initGame()">Play Again! 🔄</button>
+
+    <script>
+        const objectsColumn = document.getElementById('objects-column');
+        const targetsColumn = document.getElementById('targets-column');
+        const message = document.getElementById('message');
+        const restartBtn = document.getElementById('btn-restart');
+        
+        let totalItems = 0;
+        let matches = 0;
+
+        function shuffleElements(container) {
+            const elements = Array.from(container.children);
+            for (let i = elements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                container.appendChild(elements[j]);
+            }
+        }
+
+        function initGame() {
+            // Reset state
+            matches = 0;
+            message.innerText = "";
+            message.style.color = "#008000";
+            restartBtn.style.display = "none";
+
+            // Shuffle both columns
+            shuffleElements(objectsColumn);
+            shuffleElements(targetsColumn);
+
+            // Clean up target styles and move items back to start if needed
+            const items = document.querySelectorAll('.item');
+            items.forEach(item => {
+                item.draggable = true;
+                item.style.opacity = "1";
+                objectsColumn.appendChild(item); // Move back to left column
+            });
+
+            const targets = document.querySelectorAll('.target');
+            targets.forEach(target => {
+                target.classList.remove('success');
+            });
+            
+            totalItems = items.length;
+        }
+
+        // Drag and Drop Logic
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('item')) {
+                e.dataTransfer.setData('text/plain', e.target.id);
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const targetBox = e.target.closest('.target');
+            const id = e.dataTransfer.getData('text');
+            const draggableElement = document.getElementById(id);
+
+            if (targetBox && draggableElement) {
+                if (draggableElement.dataset.match === targetBox.dataset.shape) {
+                    targetBox.appendChild(draggableElement);
+                    targetBox.classList.add('success');
+                    draggableElement.draggable = false;
+                    matches++;
+                    message.innerText = "Correct! 🌟";
+                    
+                    if (matches === totalItems) {
+                        message.innerText = "HOORAY! You matched them all! 🎉";
+                        restartBtn.style.display = "block";
+                    }
+                } else {
+                    message.innerText = "Try another one! ❌";
+                    message.style.color = "red";
+                    setTimeout(() => { message.innerText = ""; message.style.color = "#008000"; }, 800);
+                }
+            }
+        });
+
+        // Start the game for the first time
+        initGame();
+    </script>
+
+<br>
+
+<center>
+<table alighn="right">
+<tr>
+	<td>
+	 <center><a href="shapeg.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

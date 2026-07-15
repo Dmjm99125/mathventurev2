@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+	<table align="left">
+	<tr>
+		<td>
+		<a href="5.html"><img src="1SUB.png" width="250" length="600"></a>
+
+		</td>
+	
+	</tr>
+	</table>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gentle Math Drift</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #d1f2ff 0%, #d1f2ff 70%, #c1f0c1 70%, #c1f0c1 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #ui-layer {
+            z-index: 20;
+            text-align: center;
+            width: 100%;
+        }
+
+        #score-board {
+            font-size: 1.5rem;
+            color: #2e7d32;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 25px;
+            border-radius: 0 0 25px 25px;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #problem-card {
+            background: white;
+            border: 5px solid #ffcc00;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px auto;
+            width: fit-content;
+            font-size: 3rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .game-area {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 100px;
+            height: 130px;
+            border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: inset -8px -8px rgba(0,0,0,0.1);
+            /* Slower float up (10-12 seconds) */
+            animation: floatUp 11s linear forwards, wobble 3s ease-in-out infinite;
+        }
+
+        .balloon-icon { font-size: 2.2rem; margin-bottom: 5px; }
+        .balloon-text { color: white; font-size: 2rem; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
+
+        /* The Main Upward Movement */
+        @keyframes floatUp {
+            from { transform: translateY(100vh); }
+            to { transform: translateY(-130vh); }
+        }
+
+        /* Added a gentle swaying "wobble" */
+        @keyframes wobble {
+            0%, 100% { margin-left: 0px; }
+            50% { margin-left: 25px; }
+        }
+
+        @media (max-width: 480px) {
+            #problem-card { font-size: 2rem; padding: 15px; }
+            .balloon { width: 85px; height: 110px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="score-board">Score: <span id="score">0</span></div>
+        <div id="problem-card">
+            <span id="n1">0</span> - <span id="n2">0</span> = ?
+        </div>
+    </div>
+
+    <div class="game-area" id="game-area"></div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const scoreDisplay = document.getElementById('score');
+        const colors = ['#FF6B6B', '#4ECDC4', '#FF9F43', '#A29BFE', '#FF85A2', '#74B9FF'];
+        const icons = ['🐶', '🐰', '🦒', '🐘', '🦋', '🎈', '🌻', '🍎', '🍰', '🍪'];
+        
+        let score = 0;
+        let correctAnswer = 0;
+
+        function nextRound() {
+            let num1 = Math.floor(Math.random() * 10) + 5;
+            let num2 = Math.floor(Math.random() * (num1 + 1));
+            correctAnswer = num1 - num2;
+
+            document.getElementById('n1').innerText = num1;
+            document.getElementById('n2').innerText = num2;
+
+            gameArea.innerHTML = '';
+            spawnBalloons();
+        }
+
+        function spawnBalloons() {
+            let answers = [correctAnswer];
+            while(answers.length < 3) {
+                let wrong = Math.floor(Math.random() * 15);
+                if(!answers.includes(wrong)) answers.push(wrong);
+            }
+            answers.sort(() => Math.random() - 0.5);
+
+            answers.forEach((val, i) => {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                
+                // Randomly staggered start times so they don't all rise perfectly together
+                balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                balloon.style.left = (15 + (i * 25)) + '%';
+                balloon.style.animationDelay = (Math.random() * 2) + 's'; 
+
+                const icon = icons[Math.floor(Math.random() * icons.length)];
+                balloon.innerHTML = `
+                    <div class="balloon-icon">${icon}</div>
+                    <div class="balloon-text">${val}</div>
+                `;
+
+                balloon.onclick = () => {
+                    if(val === correctAnswer) {
+                        score += 10;
+                        scoreDisplay.innerText = score;
+                        balloon.style.opacity = '0'; // Disappear
+                        setTimeout(nextRound, 500); 
+                    } else {
+                        balloon.style.backgroundColor = '#d1d1d1';
+                        balloon.style.transform = 'scale(0.9)';
+                    }
+                };
+
+                gameArea.appendChild(balloon);
+            });
+        }
+
+        nextRound();
+    </script>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="5c.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+
+
+
+
+</body>
+</html>

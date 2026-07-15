@@ -1,0 +1,178 @@
+<html>
+<body background="6back.jpg">
+<center><a href="#DOWN">Page Down</center>
+<center><a name="top"></center>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fun Math Game</title>
+<style>
+  body {
+    font-family: Arial;
+    text-align: center;
+    background: linear-gradient(to bottom, #a8e6cf, #dcedc1);
+  }
+
+  h1 {
+    font-size: 40px;
+  }
+
+  .number {
+    font-size: 70px;
+    margin: 20px;
+  }
+
+  .choices {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .choice {
+    width: 90px;
+    height: 90px;
+    margin: 10px;
+    background-color: #ffaaa5;
+    line-height: 90px;
+    font-size: 35px;
+    border-radius: 20px;
+    cursor: grab;
+  }
+
+  .dropzone {
+    width: 150px;
+    height: 150px;
+    margin: 20px auto;
+    border: 5px dashed #333;
+    line-height: 150px;
+    font-size: 20px;
+    border-radius: 20px;
+    background-color: white;
+  }
+
+  .score, .stars {
+    font-size: 22px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>🎈 Drag the Correct Number 🎈</h1>
+
+<div class="number" id="question">?</div>
+
+<div class="dropzone" id="dropzone">Drop Here 👇</div>
+
+<div class="choices" id="choices"></div>
+
+<div class="score">Score: <span id="score">0</span></div>
+<div class="stars">Stars: <span id="stars">⭐</span></div>
+
+<!-- Sounds -->
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+let correctAnswer;
+let score = 0;
+let stars = "";
+
+function generateGame() {
+  const choicesContainer = document.getElementById("choices");
+  choicesContainer.innerHTML = "";
+
+  correctAnswer = Math.floor(Math.random() * 10) + 1;
+
+  // Show apples instead of number 🍎
+  document.getElementById("question").innerText = "🍎".repeat(correctAnswer);
+
+  let options = new Set();
+  options.add(correctAnswer);
+
+  while (options.size < 4) {
+    options.add(Math.floor(Math.random() * 10) + 1);
+  }
+
+  let shuffled = Array.from(options).sort(() => Math.random() - 0.5);
+
+  shuffled.forEach(num => {
+    const div = document.createElement("div");
+    div.classList.add("choice");
+    div.innerText = num;
+    div.setAttribute("draggable", true);
+
+    div.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text", num);
+    });
+
+    // TOUCH SUPPORT
+    div.addEventListener("click", () => handleAnswer(num));
+
+    choicesContainer.appendChild(div);
+  });
+}
+
+function handleAnswer(selected) {
+  if (selected === correctAnswer) {
+    score++;
+    stars += "⭐";
+    document.getElementById("score").innerText = score;
+    document.getElementById("stars").innerText = stars;
+
+    document.getElementById("correctSound").play();
+    alert("Great job! 🎉");
+  } else {
+    document.getElementById("wrongSound").play();
+    alert("Try again 😊");
+  }
+
+  generateGame();
+}
+
+const dropzone = document.getElementById("dropzone");
+
+dropzone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+});
+
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  const selected = parseInt(e.dataTransfer.getData("text"));
+  handleAnswer(selected);
+});
+
+// Start game
+generateGame();
+</script>
+
+
+
+<br>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="6a.html"><img src="np.png" width="100" length="100"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="100" length="100"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+<hr width=100% size="5">
+
+<center><a name="DOWN"></center>
+<center><a href="#top">Page Up</center>
+
+</body>
+</html>

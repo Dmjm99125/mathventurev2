@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shape Wizard Adventure</title>
+    <style>
+        :root {
+            --jungle-green: #2ecc71;
+            --wizard-purple: #9b59b6;
+            --gold: #f1c40f;
+        }
+
+        body {
+            margin: 0;
+            background: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* NEW FIXED BOX LAYOUT FOR MOBILE */
+        #game-container {
+            position: relative;
+            width: 95%;
+            max-width: 500px; /* Better for phone portrait */
+            height: 400px;    /* Fixed height ensures it NEVER collapses */
+            background: var(--jungle-green);
+            border: 4px solid #34495e;
+            border-radius: 15px;
+            margin-top: 20px;
+            overflow: hidden;
+            transition: background 0.5s;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: none; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .active { display: flex !important; }
+
+        #hud {
+            position: absolute;
+            top: 5px; width: 100%;
+            display: flex; justify-content: space-around;
+            font-size: 14px; font-weight: bold; z-index: 10;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        button {
+            padding: 12px 20px; 
+            font-size: 16px;
+            cursor: pointer; 
+            background: var(--wizard-purple);
+            color: white; border: none; border-radius: 50px;
+            box-shadow: 0 4px #7d3c98; margin: 10px;
+        }
+
+        .char-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .char-card { background: rgba(255,255,255,0.2); padding: 5px; border-radius: 10px; border: 2px solid transparent; }
+        .char-card.selected { border-color: var(--gold); background: rgba(255,255,255,0.4); }
+
+        #shape-stage { 
+            display: flex; 
+            gap: 15px; 
+            margin-top: 20px; 
+            justify-content: center; 
+            width: 100%; 
+        }
+
+        .game-shape { 
+            width: 70px; height: 70px; 
+            cursor: pointer; 
+            filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3)); 
+        }
+
+        #timer-container {
+            position: absolute;
+            bottom: 15px; width: 80%;
+            height: 12px; background: rgba(0,0,0,0.3);
+            border-radius: 10px; overflow: hidden;
+        }
+
+        #timer-bar { width: 100%; height: 100%; background: #e74c3c; }
+
+        #reward-box { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 10px; margin-bottom: 10px; width: 80%; }
+
+        .bg-obj { position: absolute; font-size: 20px; opacity: 0.3; pointer-events: none; }
+
+        .nav-links { margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="bg-layer"></div>
+
+    <div id="hud">
+        <div id="stats-stars">⭐: 0</div>
+        <div id="stats-level">🏆: 1</div>
+        <div id="stats-lives">❤️: 3</div>
+    </div>
+
+    <div id="start-menu" class="screen active">
+        <h1>Shape Wizard</h1>
+        <button onclick="showScreen('char-select')">PLAY</button>
+    </div>
+
+    <div id="char-select" class="screen">
+        <h3>Pick a Buddy</h3>
+        <div class="char-grid">
+            <div class="char-card" onclick="selectChar('🐰', event)"><h1>🐰</h1></div>
+            <div class="char-card" onclick="selectChar('🐼', event)"><h1>🐼</h1></div>
+            <div class="char-card" onclick="selectChar('🦕', event)"><h1>🦕</h1></div>
+            <div class="char-card" onclick="selectChar('🦄', event)"><h1>🦄</h1></div>
+        </div>
+        <button onclick="showScreen('world-map')" id="to-map-btn" style="display:none;">GO!</button>
+    </div>
+
+    <div id="world-map" class="screen">
+        <div id="reward-box">
+            <small>REWARDS</small>
+            <div id="reward-list">🎁</div>
+        </div>
+        <h3>Select World</h3>
+        <div id="world-buttons"></div>
+    </div>
+
+    <div id="reward-screen" class="screen">
+        <h1 style="color:var(--gold)">LEVEL UP!</h1>
+        <div id="reward-emoji" style="font-size:50px">🎁</div>
+        <button onclick="startGame()">NEXT LEVEL</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <h3 id="instruction">Find the Shape</h3>
+        <div id="shape-stage"></div>
+        <div id="timer-container"><div id="timer-bar"></div></div>
+    </div>
+</div>
+
+<div class="nav-links">
+    <table align="center">
+        <tr>
+            <td>
+                <a href="sha2.html"><img src="np.png" width="60"></a><br>
+                <a href="1.html"><img src="ACT.png" width="60"></a>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+    let gameState = JSON.parse(localStorage.getItem('wizardData')) || {
+        stars: 0, lives: 3, character: '🐰', world: 'jungle', level: 1, rewards: []
+    };
+    
+    let timer;
+    let timeLeft = 30;
+    const shapes = ['circle', 'square', 'triangle', 'star'];
+    const gifts = ["🍦", "🚁", "🚲", "🎨", "🎮", "🎸", "🏆", "💎", "👑", "🍕"];
+
+    function showScreen(id) {
+        const screens = document.getElementsByClassName('screen');
+        for(let s of screens) s.classList.remove('active');
+        document.getElementById(id).classList.add('active');
+        if(id === 'world-map') renderMap();
+    }
+
+    function renderMap() {
+        document.getElementById('reward-list').innerText = gameState.rewards.length ? gameState.rewards.join(" ") : "---";
+        const container = document.getElementById('world-buttons');
+        container.innerHTML = '';
+        
+        const worlds = [
+            {id:'jungle', name:'🌴 Jungle', cost:0, color:'#27ae60'},
+            {id:'space', name:'🚀 Space', cost:100, color:'#2c3e50'}
+        ];
+
+        worlds.forEach(w => {
+            const b = document.createElement('button');
+            b.innerText = gameState.stars >= w.cost ? w.name : `🔒 ${w.cost}`;
+            b.onclick = () => {
+                if(gameState.stars >= w.cost) {
+                    gameState.world = w.id;
+                    document.getElementById('game-container').style.background = w.color;
+                    startGame();
+                }
+            };
+            container.appendChild(b);
+        });
+    }
+
+    function selectChar(emoji, e) {
+        gameState.character = emoji;
+        const cards = document.getElementsByClassName('char-card');
+        for(let c of cards) c.classList.remove('selected');
+        e.currentTarget.classList.add('selected');
+        document.getElementById('to-map-btn').style.display = 'block';
+    }
+
+    function startGame() {
+        showScreen('game-screen');
+        timeLeft = 30;
+        nextLevel();
+        clearInterval(timer);
+        timer = setInterval(() => {
+            timeLeft -= 0.2;
+            document.getElementById('timer-bar').style.width = (timeLeft/30*100) + "%";
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                alert("Time's Up!");
+                showScreen('world-map');
+            }
+        }, 100);
+    }
+
+    function nextLevel() {
+        const stage = document.getElementById('shape-stage');
+        stage.innerHTML = '';
+        const target = shapes[Math.floor(Math.random() * shapes.length)];
+        gameState.current = target;
+        document.getElementById('instruction').innerHTML = `${gameState.character}: Find the <b>${target}</b>`;
+
+        let options = [...shapes].sort(() => Math.random() - 0.5).slice(0,3);
+        if(!options.includes(target)) options[0] = target;
+        
+        options.sort(() => Math.random() - 0.5).forEach(s => {
+            const d = document.createElement('div');
+            d.className = 'game-shape';
+            d.innerHTML = getSVG(s);
+            d.onclick = () => check(s);
+            stage.appendChild(d);
+        });
+    }
+
+    function check(s) {
+        if(s === gameState.current) {
+            let old = gameState.stars;
+            gameState.stars += 10;
+            timeLeft = Math.min(timeLeft + 3, 30);
+            if(Math.floor(gameState.stars/100) > Math.floor(old/100)) {
+                gameState.level++;
+                const r = gifts[Math.floor(Math.random()*gifts.length)];
+                gameState.rewards.push(r);
+                document.getElementById('reward-emoji').innerText = r;
+                showScreen('reward-screen');
+            } else {
+                updateHUD();
+                nextLevel();
+            }
+        } else {
+            gameState.lives--;
+            if(gameState.lives <= 0) {
+                alert("Game Over!");
+                gameState.lives = 3;
+                showScreen('start-menu');
+            }
+            updateHUD();
+        }
+    }
+
+    function updateHUD() {
+        document.getElementById('stats-stars').innerText = `⭐: ${gameState.stars}`;
+        document.getElementById('stats-level').innerText = `🏆: ${gameState.level}`;
+        document.getElementById('stats-lives').innerText = `❤️: ${gameState.lives}`;
+        localStorage.setItem('wizardData', JSON.stringify(gameState));
+    }
+
+    function getSVG(t) {
+        const c = {circle:'#e74c3c', square:'#fff', triangle:'#2ecc71', star:'#f1c40f'};
+        if(t==='circle') return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="${c.circle}"/></svg>`;
+        if(t==='square') return `<svg viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" fill="${c.square}"/></svg>`;
+        if(t==='triangle') return `<svg viewBox="0 0 100 100"><polygon points="50,15 85,85 15,85" fill="${c.triangle}"/></svg>`;
+        if(t==='star') return `<svg viewBox="0 0 100 100"><polygon points="50,5 63,35 95,35 70,55 80,85 50,70 20,85 30,55 5,35 37,35" fill="${c.star}"/></svg>`;
+    }
+
+    updateHUD();
+</script>
+
+</body>
+</html>

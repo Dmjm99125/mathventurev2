@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Count & Match Adventure</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f9eec1 0%, #fff2d9 100%);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* The Main Game Box */
+        .game-container {
+            max-width: 600px; /* Limits size on computer so it's not too big */
+            width: 100%;
+            background: #ffeacb;
+            border-radius: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border: 6px solid #b57c4a;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #5e3a1c;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            display: block;
+            text-align: center;
+            font-size: 1rem;
+            color: #7b4b2a;
+            background: #feeac2;
+            padding: 5px 15px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            border: 2px solid #b68b5c;
+        }
+
+        /* The Board - Side by Side */
+        .matching-board {
+            display: flex;
+            gap: 10px;
+            background: #fbe2b1;
+            border-radius: 20px;
+            padding: 10px;
+            border: 3px dashed #c29a6b;
+        }
+
+        .panel {
+            flex: 1;
+            background: #fcf2dd;
+            border-radius: 15px;
+            padding: 10px 5px;
+            box-shadow: 0 4px 0 #b48754;
+            border: 2px solid #fadbad;
+        }
+
+        .panel h2 {
+            font-size: 1rem;
+            text-align: center;
+            margin: 0 0 10px 0;
+            color: #442f18;
+            background: #ffe3b7;
+            border-radius: 10px;
+        }
+
+        /* Cards */
+        .number-card, .quantity-card {
+            background: #f4cda6;
+            border: 3px solid #a5663a;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 4px 0 #8b572a;
+        }
+
+        .number-card {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .quantity-card {
+            background: #b6d8b6;
+            border-color: #3f7940;
+            box-shadow: 0 4px 0 #256125;
+            padding: 10px 5px;
+            min-height: 65px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 18px;
+            height: 18px;
+            background: #f55c5c;
+            border-radius: 50%;
+            border: 1px solid white;
+            box-shadow: 0 2px 0 #942828;
+        }
+
+        /* Success Colors */
+        .matched-number { background: #c8e6b5 !important; border-color: #1f7a1f !important; box-shadow: none !important; transform: scale(0.95); opacity: 0.7; }
+        .matched-quantity { background: #b3e0b3 !important; border-color: #1f7a1f !important; box-shadow: none !important; transform: scale(0.95); opacity: 0.7; }
+
+        /* Message and Buttons */
+        .message-area {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1rem;
+            background: #d9b382;
+            border-radius: 15px;
+            padding: 10px;
+            border: 3px solid #ad6d3d;
+            min-height: 45px;
+        }
+
+        .reset-button {
+            width: 100%;
+            background: #ffb156;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            padding: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #a06730;
+            cursor: pointer;
+        }
+
+        .reset-button:active { transform: translateY(2px); box-shadow: 0 2px 0 #a06730; }
+
+        .nav-table { width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div style="text-align: center; margin-bottom: 10px;">
+        <a href="6.html"><img src="1NUM.png" style="max-width: 200px; width: 100%;" alt="Numbers"></a>
+    </div>
+
+    <div class="game-container">
+        <h1>Hanapin ang tamang bilang</h1>
+        <span class="subtitle">Tap number → Tap dots</span>
+
+        <div class="matching-board">
+            <div class="panel">
+                <h2>Numbers</h2>
+                <div id="numbersPanel"></div>
+            </div>
+            <div class="panel">
+                <h2>Dots</h2>
+                <div id="quantityPanel"></div>
+            </div>
+        </div>
+
+        <div class="message-area" id="messageDisplay">Ready?</div>
+        <button class="reset-button" id="resetBtn">🔄 Bagong Round</button>
+    </div>
+<center>
+    <table class="nav-table">
+        <tr>
+            <td align="center">
+                <a href="1.html"><img src="ACT.png" width="100"></a>
+            </td>
+            <td align="center">
+                <a href="6b.html"><img src="np.png" width="100"></a>
+            </td>
+        </tr>
+    </table>
+</center>
+    <script>
+        const NUMBER_VALUES = [1, 2, 3, 4, 5];
+        let selectedNumber = null;
+        let matches = {};
+
+        function initGame() {
+            matches = {};
+            selectedNumber = null;
+            document.getElementById('messageDisplay').innerText = "Simulan na natin!";
+            render();
+        }
+
+        function render() {
+            const numPanel = document.getElementById('numbersPanel');
+            const qPanel = document.getElementById('quantityPanel');
+            numPanel.innerHTML = '';
+            qPanel.innerHTML = '';
+
+            // Left side stays in order
+            NUMBER_VALUES.forEach(num => {
+                const card = document.createElement('div');
+                card.className = 'number-card' + (matches[num] ? ' matched-number' : '');
+                card.innerText = num;
+                card.onclick = () => {
+                    if(!matches[num]) {
+                        selectedNumber = num;
+                        document.getElementById('messageDisplay').innerText = "Nahanap mo ba ang " + num + " dots?";
+                    }
+                };
+                numPanel.appendChild(card);
+            });
+
+            // Right side is shuffled
+            const shuffled = [...NUMBER_VALUES].sort(() => Math.random() - 0.5);
+            shuffled.forEach(num => {
+                const card = document.createElement('div');
+                card.className = 'quantity-card' + (matches[num] ? ' matched-quantity' : '');
+                for(let i=0; i<num; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    card.appendChild(dot);
+                }
+                card.onclick = () => {
+                    if(!matches[num] && selectedNumber) {
+                        if(selectedNumber === num) {
+                            matches[num] = true;
+                            selectedNumber = null;
+                            document.getElementById('messageDisplay').innerText = "Tama! Ang galing! 🌟";
+                            render();
+                        } else {
+                            document.getElementById('messageDisplay').innerText = "Mali, subukan muli! 🤔";
+                        }
+                    } else if (!selectedNumber) {
+                        document.getElementById('messageDisplay').innerText = "Pindutin muna ang numero sa kaliwa!";
+                    }
+                };
+                qPanel.appendChild(card);
+            });
+
+            if(Object.keys(matches).length === 5) {
+                document.getElementById('messageDisplay').innerText = "🎉 WOW! TAPOS NA! 🎉";
+            }
+        }
+
+        document.getElementById('resetBtn').onclick = initGame;
+        initGame();
+    </script>
+</body>
+</html>

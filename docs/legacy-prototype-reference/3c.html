@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+ 
+<body background="3bg.jpg">
+
+<table>
+	<tr>
+		<td>
+		<a href="3.html"><img src="1seq.png" width="250" length="600"></a>
+
+		</td>
+	
+	</tr>
+	</table>
+
+
+<head>
+  <title>Size Sorting Game</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background-color: #fff8dc;
+    }
+
+    h1 {
+      color: #ff7f50;
+    }
+
+    .game-container {
+      margin-top: 30px;
+    }
+
+    .circle {
+      display: inline-block;
+      border-radius: 50%;
+      margin: 15px;
+      cursor: pointer;
+      background-color: #87cefa;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎈 Size Sorting Game</h1>
+<p id="instruction"></p>
+
+<div class="game-container" id="game"></div>
+
+<div id="message"></div>
+
+<button onclick="startGame()">🔄 Restart</button>
+
+<script>
+  let sizes = [50, 80, 110, 140, 170]; // circle sizes
+  let order = [];
+  let current = 0;
+  let mode = "smallToBig";
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function startGame() {
+    current = 0;
+    document.getElementById("message").textContent = "";
+
+    // randomly choose mode
+    mode = Math.random() > 0.5 ? "smallToBig" : "bigToSmall";
+
+    let instruction = mode === "smallToBig"
+      ? "Click from SMALLEST to BIGGEST"
+      : "Click from BIGGEST to SMALLEST";
+
+    document.getElementById("instruction").textContent = instruction;
+
+    let gameDiv = document.getElementById("game");
+    gameDiv.innerHTML = "";
+
+    let shuffled = [...sizes];
+    shuffle(shuffled);
+
+    // set correct order
+    order = [...sizes];
+    if (mode === "bigToSmall") {
+      order.reverse();
+    }
+
+    shuffled.forEach(size => {
+      let div = document.createElement("div");
+      div.className = "circle";
+      div.style.width = size + "px";
+      div.style.height = size + "px";
+
+      div.onclick = function() {
+        if (size === order[current]) {
+          div.style.backgroundColor = "#90ee90";
+          current++;
+
+          if (current === order.length) {
+            document.getElementById("message").textContent = "🎉 Great job!";
+          }
+        } else {
+          document.getElementById("message").textContent = "❌ Try again!";
+        }
+      };
+
+      gameDiv.appendChild(div);
+    });
+  }
+
+  startGame();
+</script>
+ 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="3d.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

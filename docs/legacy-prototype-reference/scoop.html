@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Monster Scoop Capacity Game</title>
+    <style>
+        :root {
+            --monster-color: #4dd0e1; /* Default Teal */
+            --juice-color: #ff4081;   /* Pink Juice */
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background-color: #fce4ec; /* Light pink background */
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden; /* Prevent scrolling on mobile */
+            touch-action: manipulation; /* Faster taps */
+        }
+
+        h1 {
+            color: #880e4f;
+            font-size: 1.6rem;
+            margin: 5px 0;
+        }
+
+        /* The Game Area */
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 70vh; /* Responsive height */
+            background: white;
+            border-radius: 20px;
+            border: 4px solid #f8bbd0;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* 1. Instruction Banner */
+        #instruction-banner {
+            font-size: 1.2rem;
+            color: #880e4f;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: #f8bbd0;
+            padding: 5px 15px;
+            border-radius: 10px;
+        }
+
+        /* 2. The Monster */
+        #monster-container {
+            position: relative;
+            width: 160px;
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+
+        #monster-body {
+            position: absolute;
+            bottom: 0;
+            width: 150px;
+            height: 150px;
+            background-color: var(--monster-color);
+            border-radius: 30px;
+            transition: background-color 0.5s, transform 0.2s;
+            border: 5px solid #006064;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            overflow: hidden; /* For juice filling */
+        }
+
+        /* The Juice Inside (Capacity Meter) */
+        #monster-juice {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%; /* Fills from 0% to 100% */
+            background-color: var(--juice-color);
+            transition: height 0.3s ease-out;
+        }
+
+        #monster-face {
+            position: absolute;
+            top: 20px;
+            font-size: 2.5rem;
+            user-select: none;
+        }
+
+        /* Special Effects */
+        .glow {
+            box-shadow: 0 0 25px #ffeb3b;
+        }
+
+        .bumpy {
+            animation: bump 0.3s infinite;
+        }
+
+        @keyframes bump {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(3px, -3px) rotate(2deg); }
+            100% { transform: translate(-3px, 3px) rotate(-2deg); }
+        }
+
+        /* 3. The Measuring Tools (The Scoops) */
+        #tools-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .tool {
+            width: 70px;
+            height: 70px;
+            background: #4fc3f7;
+            border-radius: 15px;
+            border: 4px solid #01579b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 0 #01579b;
+            user-select: none;
+        }
+
+        .tool:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #01579b;
+        }
+
+        /* 4. Feedback Area */
+        #feedback-msg {
+            font-size: 1.3rem;
+            font-weight: bold;
+            height: 35px;
+            margin: 5px 0;
+        }
+
+        /* Score & Goal */
+        #score-board {
+            font-size: 1.1rem;
+            color: #01579b;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>📏 Monster Scoop! 📏</h1>
+
+    <div id="game-container">
+        <div id="instruction-banner">Give me <span id="goal-text">?</span> scoops!</div>
+
+        <div id="monster-container">
+            <div id="monster-body">
+                <div id="monster-juice"></div>
+                <div id="monster-face">👀<br>👄</div>
+            </div>
+        </div>
+
+        <div id="feedback-msg"></div>
+
+        <div id="tools-container">
+            <!-- Clicking the scoop adds one measurement unit -->
+            <div class="tool" id="scoop-tool" onclick="addScoop()">🥄</div>
+        </div>
+
+        <div id="score-board">
+            Scoops Added: <span id="current-scoops">0</span> / <span id="target-scoops-display">0</span><br>
+            Stars: <span id="score">0</span>
+        </div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let currentScoops = 0;
+        let targetScoops = 0;
+        let score = 0;
+        let isPlaying = true;
+
+        const monsterBody = document.getElementById('monster-body');
+        const monsterJuice = document.getElementById('monster-juice');
+        const monsterFace = document.getElementById('monster-face');
+        const feedbackMsg = document.getElementById('feedback-msg');
+
+        // Sounds (Using simple Web Audio API to avoid external files)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(f, d, t) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.value = f; osc.type = t; osc.connect(gain);
+            gain.connect(audioCtx.destination); gain.gain.value = 0.1;
+            osc.start(); osc.stop(audioCtx.currentTime + d);
+        }
+
+        function startRound() {
+            isPlaying = true;
+            currentScoops = 0;
+            
+            // Generate a random goal (1 to 5 scoops)
+            targetScoops = Math.floor(Math.random() * 5) + 1;
+
+            // Reset UI
+            document.getElementById('goal-text').innerText = targetScoops;
+            document.getElementById('target-scoops-display').innerText = targetScoops;
+            document.getElementById('current-scoops').innerText = currentScoops;
+            feedbackMsg.innerText = "";
+            monsterJuice.style.height = "0%";
+            monsterFace.innerHTML = "👀<br>👄";
+            
+            // Reset Monster appearance (Teal)
+            monsterBody.style.setProperty('--monster-color', '#4dd0e1');
+            monsterBody.classList.remove('glow', 'bumpy');
+        }
+
+        function addScoop() {
+            if (!isPlaying || currentScoops >= 10) return; // Prevent infinite filling
+
+            playSound(300, 0.1, 'sine'); // Scoop sound
+            currentScoops++;
+            document.getElementById('current-scoops').innerText = currentScoops;
+
+            // Update Juice Visual (Percentage of Target)
+            // (Max visual fill is set slightly higher than target for the 'oops' state)
+            let fillPercentage = (currentScoops / targetScoops) * 80; // Target is 80% full
+            if (fillPercentage > 100) fillPercentage = 100;
+            monsterJuice.style.height = fillPercentage + "%";
+
+            // Instant Check for Kindergartners
+            if (currentScoops === targetScoops) {
+                checkAnswer(); // They hit the target!
+            } else if (currentScoops > targetScoops) {
+                // Surprise! They overfilled!
+                feedbackMsg.innerText = "Oh no! Too much juice!";
+                feedbackMsg.style.color = "#c62828";
+                monsterFace.innerHTML = "😵<br>🤮";
+                monsterBody.classList.add('bumpy');
+                playSound(150, 0.4, 'triangle'); // Oops sound
+                
+                isPlaying = false;
+                setTimeout(startRound, 2500); // Wait longer on error
+            }
+        }
+
+        function checkAnswer() {
+            isPlaying = false; // Stop further scoops
+
+            if (currentScoops === targetScoops) {
+                // THE SURPRISE REWARD: COLOR CHANGE
+                feedbackMsg.innerText = "⭐ PERFECT MEASURE! ⭐";
+                feedbackMsg.style.color = "#2e7d32";
+                
+                // Set Happy Face
+                monsterFace.innerHTML = "🤩<br>😋";
+                
+                // CHANGE MONSTER COLOR TO GOLD/YELLOW
+                monsterBody.style.setProperty('--monster-color', '#ffeb3b');
+                monsterBody.classList.add('glow');
+                
+                playSound(600, 0.1, 'sine'); setTimeout(()=>playSound(800, 0.2, 'sine'), 100);
+
+                score++;
+                document.getElementById('score').innerText = score;
+
+                // Wait, then start next round
+                setTimeout(startRound, 2000);
+            }
+        }
+
+        // Start the first round
+        window.onload = startRound;
+    </script>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="magic.html"><img src="np.png" width="150" length="200"></a></center>
+<br>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

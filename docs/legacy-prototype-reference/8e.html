@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Pairing Game</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(to bottom, #cce7ff, #ffffff);
+    margin: 0;
+    padding: 10px;
+    overflow-x: hidden;
+    transition: background 1s;
+}
+
+.rainbow {
+    background: linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet);
+    background-size: 1400% 1400%;
+    animation: rainbowMove 6s ease infinite;
+}
+
+@keyframes rainbowMove {
+    0% { background-position: 0% }
+    50% { background-position: 100% }
+    100% { background-position: 0% }
+}
+
+h1 { color: #333; }
+
+#game {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    max-width: 400px;
+    margin: auto;
+}
+
+.card {
+    background: #4CAF50;
+    color: white;
+    font-size: 28px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.card.flipped {
+    background: white;
+    color: #333;
+    border: 2px solid #4CAF50;
+}
+
+.card.matched {
+    background: gold;
+    color: #333;
+}
+
+#message {
+    margin-top: 20px;
+    font-size: 24px;
+    color: #ff6600;
+}
+
+#star {
+    font-size: 80px;
+    display: none;
+    animation: pop 1s ease;
+}
+
+#playAgain {
+    display: none;
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    background: #ff6600;
+    color: white;
+    cursor: pointer;
+}
+
+/* 🎁 Gift */
+#giftBox {
+    font-size: 60px;
+    display: none;
+    cursor: pointer;
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.opened { animation: pop 0.5s ease; }
+
+/* 🧸 Animals */
+#animals {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    pointer-events: none;
+}
+
+.animal {
+    position: absolute;
+    font-size: 40px;
+    animation: floatUp 3s ease forwards;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(50px); opacity: 0; }
+    100% { transform: translateY(-200px); opacity: 1; }
+}
+
+/* 🎊 Confetti */
+.confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    animation: fall linear forwards;
+}
+
+@keyframes fall {
+    to { transform: translateY(100vh) rotate(360deg); }
+}
+
+@keyframes pop {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 500px) {
+    .card { height: 60px; font-size: 22px; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>Match Big & Small Letters</h1>
+
+<div id="game"></div>
+
+<div id="message"></div>
+<div id="star">⭐</div>
+<div id="giftBox">🎁</div>
+<button id="playAgain">Play Again</button>
+
+<div id="animals"></div>
+
+<script>
+// 🔤 FULL alphabet
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+const animalList = ["🐶","🐱","🐰","🐼","🐸","🐵","🐯","🦁","🐨"];
+const rewards = ["🍭","🍩","🍪","🧁","🍫","🍬","🍦"];
+
+let firstCard, secondCard, lock, matches;
+
+// 🎲 Get random letters
+function getRandomLetters(count) {
+    let shuffled = [...alphabet].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+}
+
+// Start game
+function startGame() {
+    const game = document.getElementById("game");
+    game.innerHTML = "";
+
+    firstCard = null;
+    secondCard = null;
+    lock = false;
+    matches = 0;
+
+    document.body.classList.remove("rainbow");
+
+    document.getElementById("message").innerText = "";
+    document.getElementById("star").style.display = "none";
+    document.getElementById("playAgain").style.display = "none";
+    document.getElementById("giftBox").style.display = "none";
+    document.getElementById("giftBox").innerText = "🎁";
+    document.getElementById("animals").innerHTML = "";
+
+    // 🎲 Pick 6 random letters
+    const letters = getRandomLetters(6);
+
+    let cards = [];
+
+    letters.forEach(letter => {
+        cards.push({value: letter, pair: letter.toLowerCase()});
+        cards.push({value: letter.toLowerCase(), pair: letter});
+    });
+
+    cards.sort(() => Math.random() - 0.5);
+
+    cards.forEach(item => {
+        const div = document.createElement("div");
+        div.classList.add("card");
+        div.dataset.value = item.value;
+        div.dataset.pair = item.pair;
+        div.innerText = "?";
+
+        div.addEventListener("click", () => flipCard(div));
+        game.appendChild(div);
+    });
+}
+
+function flipCard(card) {
+    if (lock || card.classList.contains("flipped") || card.classList.contains("matched")) return;
+
+    card.classList.add("flipped");
+    card.innerText = card.dataset.value;
+
+    if (!firstCard) {
+        firstCard = card;
+    } else {
+        secondCard = card;
+        lock = true;
+        checkMatch();
+    }
+}
+
+function checkMatch() {
+    if (firstCard.dataset.pair === secondCard.dataset.value) {
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+        matches++;
+
+        if (matches % 2 === 0) showAnimal();
+
+        resetTurn();
+
+        if (matches === 6) {
+            document.getElementById("message").innerText = "Great job!";
+            document.getElementById("star").style.display = "block";
+            document.getElementById("giftBox").style.display = "block";
+            document.getElementById("playAgain").style.display = "inline-block";
+            document.body.classList.add("rainbow");
+            launchConfetti();
+        }
+
+    } else {
+        setTimeout(() => {
+            firstCard.classList.remove("flipped");
+            secondCard.classList.remove("flipped");
+            firstCard.innerText = "?";
+            secondCard.innerText = "?";
+            resetTurn();
+        }, 800);
+    }
+}
+
+function resetTurn() {
+    firstCard = null;
+    secondCard = null;
+    lock = false;
+}
+
+// 🧸 Animals
+function showAnimal() {
+    const animal = document.createElement("div");
+    animal.classList.add("animal");
+    animal.innerText = animalList[Math.floor(Math.random() * animalList.length)];
+    animal.style.left = Math.random() * 90 + "%";
+    document.getElementById("animals").appendChild(animal);
+}
+
+// 🎁 Gift
+document.getElementById("giftBox").addEventListener("click", () => {
+    const gift = document.getElementById("giftBox");
+    gift.classList.add("opened");
+    gift.innerText = rewards[Math.floor(Math.random() * rewards.length)];
+});
+
+// 🎊 Confetti
+function launchConfetti() {
+    for (let i = 0; i < 80; i++) {
+        const c = document.createElement("div");
+        c.classList.add("confetti");
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.backgroundColor = randomColor();
+        c.style.animationDuration = (Math.random() * 2 + 2) + "s";
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4000);
+    }
+}
+
+function randomColor() {
+    const colors = ["red","blue","green","yellow","purple","orange"];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// Play Again
+document.getElementById("playAgain").addEventListener("click", startGame);
+
+// Start
+startGame();
+</script>
+
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	<br>
+	 <center><a href="labr.html"><img src="np.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

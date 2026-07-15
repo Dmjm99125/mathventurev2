@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Animal Safari Addition Game!</title>
+    <style>
+        :root {
+            --primary-color: #22c55e;
+            --secondary-color: #eab308;
+            --accent-color: #ff7849;
+            --text-color: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            background: linear-gradient(180deg, #dcfce7 0%, #bbf7d0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            overflow-x: hidden;
+            padding: 15px;
+        }
+
+        #game-container {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border: 6px solid #22c55e;
+            position: relative;
+        }
+
+        .header-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .score-box {
+            background: #fef08a;
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 2px solid #fde047;
+        }
+
+        .instruction-text {
+            font-size: 1.1rem;
+            color: #15803d;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* Safari field area */
+        .safari-field {
+            background: #f0fdf4;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 3px dashed #4ade80;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .animal-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 5px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 12px;
+        }
+
+        /* Tappable Animal Styles */
+        .animal-btn {
+            font-size: 2.5rem;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.1s ease;
+            position: relative;
+            background: none;
+            border: none;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .animal-btn:active {
+            transform: scale(1.3);
+        }
+
+        /* Visually marking an animal as counted */
+        .animal-btn.counted {
+            filter: drop-shadow(0 0 8px #eab308);
+            transform: scale(1.1);
+        }
+
+        .animal-btn.counted::after {
+            content: "✅";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 1rem;
+        }
+
+        .plus-divider {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #166534;
+            align-self: center;
+        }
+
+        /* Answer Buttons Layout */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        .btn-choice {
+            color: white;
+            font-size: 2.2rem;
+            font-weight: bold;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        .btn-choice:active {
+            transform: translateY(4px);
+        }
+
+        /* Theme colors for choice buttons */
+        .btn-choice:nth-child(1) { background: #eab308; box-shadow: 0 8px 0 #ca8a04; }
+        .btn-choice:nth-child(2) { background: #22c55e; box-shadow: 0 8px 0 #16a34a; }
+        .btn-choice:nth-child(3) { background: #3b82f6; box-shadow: 0 8px 0 #2563eb; }
+        .btn-choice:nth-child(4) { background: #ec4899; box-shadow: 0 8px 0 #db2777; }
+
+        .btn-choice:nth-child(1):active { box-shadow: 0 4px 0 #ca8a04; }
+        .btn-choice:nth-child(2):active { box-shadow: 0 4px 0 #16a34a; }
+        .btn-choice:nth-child(3):active { box-shadow: 0 4px 0 #2563eb; }
+        .btn-choice:nth-child(4):active { box-shadow: 0 4px 0 #db2777; }
+
+        /* Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            display: none;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #22c55e;
+            margin-bottom: 10px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .reward-star {
+            font-size: 5rem;
+            animation: spin 1s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes spin {
+            0% { transform: scale(0) rotate(0deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: fall 1.5s linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(400px) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div class="header-status">
+            <span>Question: <span id="question-num">1</span>/5</span>
+            <div class="score-box">⭐ Stars: <span id="score">0</span></div>
+        </div>
+
+        <div class="instruction-text">Tap and count all the animals! 🦁🐘</div>
+
+        <div class="safari-field">
+            <div class="animal-group" id="group-1"></div>
+            <div class="plus-divider">➕</div>
+            <div class="animal-group" id="group-2"></div>
+        </div>
+
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <div class="overlay" id="feedback-overlay">
+            <div class="reward-star" id="feedback-icon">🦁</div>
+            <h2 id="feedback-text">Correct!</h2>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'tap') {
+                // Short, cute little "pop" sound when an animal is counted
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.1));
+                    g.gain.setValueAtTime(0.2, audioCtx.currentTime + (index * 0.1));
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (index * 0.1) + 0.4);
+                    o.start(audioCtx.currentTime + (index * 0.1));
+                    o.stop(audioCtx.currentTime + (index * 0.1) + 0.4);
+                });
+            }
+        }
+
+        let currentQuestion = 1;
+        const totalQuestions = 5;
+        let score = 0;
+        let correctAnswer = 0;
+
+        const animalPool1 = ['🦁', '🐯', '🐒', '🦓'];
+        const animalPool2 = ['🐘', '🦒', '🦛', '🦘'];
+
+        const group1El = document.getElementById('group-1');
+        const group2El = document.getElementById('group-2');
+        const optionsContainer = document.getElementById('options-container');
+        const overlay = document.getElementById('feedback-overlay');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const scoreEl = document.getElementById('score');
+        const questionNumEl = document.getElementById('question-num');
+
+        function generateProblem() {
+            // Safe sums for kindergarten level (e.g., 2+3, 4+1, total under 10)
+            const n1 = Math.floor(Math.random() * 4) + 1; // 1 to 4
+            const n2 = Math.floor(Math.random() * 4) + 1; // 1 to 4
+            correctAnswer = n1 + n2;
+
+            group1El.innerHTML = '';
+            group2El.innerHTML = '';
+
+            // Pick a random animal type for each group
+            const animal1 = animalPool1[Math.floor(Math.random() * animalPool1.length)];
+            const animal2 = animalPool2[Math.floor(Math.random() * animalPool2.length)];
+
+            // Create Group 1 animals
+            for (let i = 0; i < n1; i++) {
+                createAnimalElement(group1El, animal1);
+            }
+
+            // Create Group 2 animals
+            for (let i = 0; i < n2; i++) {
+                createAnimalElement(group2El, animal2);
+            }
+
+            generateChoices(correctAnswer);
+        }
+
+        function createAnimalElement(container, animalIcon) {
+            const btn = document.createElement('button');
+            btn.className = 'animal-btn';
+            btn.textContent = animalIcon;
+            
+            // Interactive tapping feature
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                playSound('tap');
+                btn.classList.toggle('counted');
+            });
+            container.appendChild(btn);
+        }
+
+        function generateChoices(correct) {
+            optionsContainer.innerHTML = '';
+            let choices = [correct];
+            
+            while(choices.length < 4) {
+                let wrong = correct + (Math.floor(Math.random() * 5) - 2);
+                if(wrong > 0 && wrong <= 10 && !choices.includes(wrong)) {
+                    choices.push(wrong);
+                }
+            }
+
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-choice';
+                btn.textContent = choice;
+                btn.addEventListener('pointerdown', () => checkAnswer(choice));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected) {
+            overlay.style.display = 'flex';
+            
+            if(selected === correctAnswer) {
+                playSound('correct');
+                score++;
+                scoreEl.textContent = score;
+                feedbackIcon.textContent = '🥳';
+                feedbackText.textContent = 'Spectacular!';
+                feedbackText.style.color = '#22c55e';
+                createConfetti();
+            } else {
+                playSound('wrong');
+                feedbackIcon.textContent = '💡';
+                feedbackText.textContent = `The answer is ${correctAnswer}`;
+                feedbackText.style.color = '#ef4444';
+            }
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                if(currentQuestion < totalQuestions) {
+                    currentQuestion++;
+                    questionNumEl.textContent = currentQuestion;
+                    generateProblem();
+                } else {
+                    showEndGame();
+                }
+            }, 2000);
+        }
+
+        function createConfetti() {
+            for(let i=0; i<20; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + '%';
+                conf.style.backgroundColor = `hsl(${Math.random() * 360}deg, 100%, 60%)`;
+                conf.style.animationDelay = Math.random() * 0.5 + 's';
+                overlay.appendChild(conf);
+                setTimeout(() => conf.remove(), 1500);
+            }
+        }
+
+        function showEndGame() {
+            overlay.style.display = 'flex';
+            playSound('win');
+            feedbackIcon.textContent = '👑';
+            feedbackText.innerHTML = `Safari Complete!<br>Score: ${score}/${totalQuestions}`;
+            feedbackText.style.color = '#1e3a8a';
+            
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Explore Again';
+            restartBtn.style.cssText = 'margin-top:20px; padding:12px 25px; font-size:1.5rem; background:#22c55e; color:white; border:none; border-radius:20px; box-shadow:0 5px 0 #16a34a; cursor:pointer; font-family: inherit;';
+            
+            restartBtn.addEventListener('pointerdown', () => {
+                currentQuestion = 1;
+                score = 0;
+                scoreEl.textContent = score;
+                questionNumEl.textContent = currentQuestion;
+                restartBtn.remove();
+                overlay.style.display = 'none';
+                generateProblem();
+            });
+            overlay.appendChild(restartBtn);
+        }
+
+        generateProblem();
+    </script>
+
+<br>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="4dn2.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

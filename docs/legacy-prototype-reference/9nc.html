@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Drag & Drop Clock Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #fff3e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; 
+        }
+
+        h1 {
+            color: #e65100;
+            font-size: 1.8rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        /* --- Reward Bar --- */
+        .reward-bar {
+            background-color: #ffe082;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            color: #ff8f00;
+            font-weight: bold;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .star {
+            color: #fbc02d;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        /* --- Drop Zone --- */
+        .drop-zone {
+            width: 220px;
+            height: 140px; /* Made slightly taller to fit the new clocks */
+            border: 4px dashed #ffb74d;
+            border-radius: 20px;
+            background-color: #fff9c4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #e65100;
+            margin-bottom: 30px;
+            transition: background-color 0.3s;
+        }
+
+        .drop-zone.hovered {
+            background-color: #c8e6c9; 
+            border-color: #4caf50;
+        }
+
+        /* --- Clocks Container --- */
+        .clocks-area {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* --- Miniature Clock Design --- */
+        .clock {
+            width: 120px; /* Increased size to fit numbers comfortably */
+            height: 120px;
+            border: 5px solid #29b6f6;
+            border-radius: 50%;
+            background-color: white;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: grab;
+            touch-action: none; 
+            z-index: 10;
+        }
+
+        .clock:active {
+            cursor: grabbing;
+        }
+
+        .clock::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* --- Clock Numbers --- */
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            padding-top: 2px;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #00838f;
+            pointer-events: none; /* Crucial so numbers don't block dragging */
+            z-index: 1;
+        }
+
+        .number span {
+            display: inline-block;
+        }
+
+        /* --- Clock Hands --- */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background-color: #333;
+            border-radius: 10px;
+            z-index: 5;
+        }
+
+        .hour-hand { width: 4px; height: 30px; margin-left: -2px; background-color: #d32f2f; }
+        .minute-hand { width: 3px; height: 45px; margin-left: -1.5px; }
+
+        /* Full Screen Celebration */
+        #celebration {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #4caf50;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #playAgainBtn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Drag the matching clock!</h1>
+    
+    <div class="reward-bar" id="rewardBar">Rewards: </div>
+
+    <div class="drop-zone" id="dropZone">3:00</div>
+
+    <div class="clocks-area" id="clocksArea"></div>
+
+    <div id="celebration">
+        🎉 YOU WIN! 🎉
+        <button id="playAgainBtn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        let currentCorrectHour = 0;
+        let starsCollected = 0;
+        const maxStars = 5;
+
+        let draggedClock = null;
+        let startX = 0, startY = 0;
+
+        function buildClockElement(hour) {
+            const clock = document.createElement('div');
+            clock.className = 'clock';
+            clock.dataset.hour = hour; 
+
+            // --- Draw the Numbers 1 to 12 ---
+            for (let i = 1; i <= 12; i++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'number';
+                numberDiv.style.transform = `rotate(${i * 30}deg)`;
+                
+                const span = document.createElement('span');
+                span.textContent = i;
+                span.style.transform = `rotate(${-i * 30}deg)`;
+                
+                numberDiv.appendChild(span);
+                clock.appendChild(numberDiv);
+            }
+
+            // --- Draw the Hands ---
+            const hourHand = document.createElement('div');
+            hourHand.className = 'hand hour-hand';
+            hourHand.style.transform = `rotate(${hour * 30}deg)`;
+
+            const minuteHand = document.createElement('div');
+            minuteHand.className = 'hand minute-hand';
+            minuteHand.style.transform = `rotate(0deg)`;
+
+            clock.appendChild(hourHand);
+            clock.appendChild(minuteHand);
+
+            clock.addEventListener('pointerdown', dragStart);
+
+            return clock;
+        }
+
+        function generateLevel() {
+            currentCorrectHour = Math.floor(Math.random() * 12) + 1;
+            document.getElementById('dropZone').textContent = `${currentCorrectHour}:00`;
+
+            let options = [currentCorrectHour];
+            while (options.length < 3) {
+                let wrongHour = Math.floor(Math.random() * 12) + 1;
+                if (!options.includes(wrongHour)) {
+                    options.push(wrongHour);
+                }
+            }
+            options.sort(() => Math.random() - 0.5); 
+
+            const clocksArea = document.getElementById('clocksArea');
+            clocksArea.innerHTML = ''; 
+            
+            options.forEach(hour => {
+                clocksArea.appendChild(buildClockElement(hour));
+            });
+        }
+
+        function dragStart(e) {
+            draggedClock = e.target.closest('.clock');
+            if (!draggedClock) return;
+
+            draggedClock.style.transition = 'none';
+            draggedClock.style.zIndex = '100'; 
+
+            startX = e.clientX;
+            startY = e.clientY;
+
+            window.addEventListener('pointermove', dragMove);
+            window.addEventListener('pointerup', dragEnd);
+        }
+
+        function dragMove(e) {
+            if (!draggedClock) return;
+            e.preventDefault();
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            draggedClock.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            if (isOverlapping(draggedClock, document.getElementById('dropZone'))) {
+                document.getElementById('dropZone').classList.add('hovered');
+            } else {
+                document.getElementById('dropZone').classList.remove('hovered');
+            }
+        }
+
+        function dragEnd(e) {
+            window.removeEventListener('pointermove', dragMove);
+            window.removeEventListener('pointerup', dragEnd);
+            
+            if (!draggedClock) return;
+
+            const dropZone = document.getElementById('dropZone');
+            dropZone.classList.remove('hovered');
+
+            if (isOverlapping(draggedClock, dropZone)) {
+                checkMatch(parseInt(draggedClock.dataset.hour));
+            } else {
+                snapBack();
+            }
+        }
+
+        function snapBack() {
+            draggedClock.style.transition = 'transform 0.3s ease';
+            draggedClock.style.transform = 'translate(0px, 0px)';
+            draggedClock.style.zIndex = '10';
+            draggedClock = null;
+        }
+
+        function isOverlapping(el1, el2) {
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+            // Added a small buffer so they don't have to be perfectly inside
+            return !(rect1.right < rect2.left + 20 || 
+                     rect1.left > rect2.right - 20 || 
+                     rect1.bottom < rect2.top + 20 || 
+                     rect1.top > rect2.bottom - 20);
+        }
+
+        function checkMatch(selectedHour) {
+            if (selectedHour === currentCorrectHour) {
+                starsCollected++;
+                updateRewardBar();
+                
+                if (starsCollected >= maxStars) {
+                    document.getElementById('celebration').style.display = 'flex';
+                } else {
+                    generateLevel();
+                }
+            } else {
+                snapBack();
+            }
+        }
+
+        function updateRewardBar() {
+            let starsHtml = 'Rewards: ';
+            for (let i = 0; i < starsCollected; i++) {
+                starsHtml += '<span class="star">⭐</span>';
+            }
+            document.getElementById('rewardBar').innerHTML = starsHtml;
+        }
+
+        function resetGame() {
+            starsCollected = 0;
+            updateRewardBar();
+            document.getElementById('celebration').style.display = 'none';
+            generateLevel();
+        }
+
+        updateRewardBar();
+        generateLevel();
+    </script>
+ 
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="200"></a></center>
+	</td>
+	<td>
+	 <center><a href="9nd.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+
+</tr>
+</table>
+</center>
+
+</body>
+</html>

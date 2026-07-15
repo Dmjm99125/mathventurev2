@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmyard Hide & Seek Subtraction</title>
+    <style>
+        :root {
+            --sky: #bae6fd;
+            --grass: #4ad66d;
+            --barn-red: #ef4444;
+            --wood: #b45309;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px; 
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: #f0fdf4;
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column; 
+            justify-content: flex-start; /* Safely starts content at the top on small screens */
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh; /* Accounts for mobile browser address bars */
+            gap: 25px; 
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+
+        #game-box {
+            width: 100%; 
+            max-width: 480px;
+            margin-top: auto; /* Pushes the box down to center when there is space */
+            background: linear-gradient(to bottom, var(--sky) 0%, #e0f2fe 40%, #f0fdf4 40%, #dcfce7 100%);
+            border: 6px solid var(--wood);
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0369a1;
+            margin-bottom: 5px;
+        }
+
+        /* The Meadow and Barn Animation Stage */
+        #stage {
+            height: 160px;
+            background: linear-gradient(to bottom, #7dd3fc 0%, #bae6fd 50%, var(--grass) 50%, #22c55e 100%);
+            border-radius: 20px;
+            position: relative;
+            margin: 15px 0;
+            border: 2px solid #16a34a;
+            overflow: hidden;
+        }
+
+        #barn {
+            font-size: 4.5rem;
+            position: absolute;
+            right: 10px;
+            top: 15px;
+            z-index: 2;
+        }
+
+        #pasture {
+            position: absolute;
+            left: 10px;
+            top: 75px;
+            width: 280px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            z-index: 1;
+        }
+
+        .animal {
+            font-size: 2.2rem;
+            display: inline-block;
+            transition: transform 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 2.5s;
+        }
+
+        /* Trigger state for sliding away */
+        .animal.walk-away {
+            transform: translate(280px, -35px) scale(0.6);
+            opacity: 0.5;
+        }
+
+        #math-problem {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 10px 0;
+            color: #b91c1c;
+            text-shadow: 2px 2px 0px #fef08a;
+        }
+
+        /* Buttons layout */
+        #choices-box {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .farm-btn {
+            background-color: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 2.3rem;
+            font-weight: bold;
+            padding: 12px 0;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b45309;
+            font-family: inherit;
+            transition: transform 0.1s;
+        }
+
+        .farm-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b45309;
+        }
+
+        /* Reward shelf */
+        #trophy-shelf {
+            background: rgba(0,0,0,0.06);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 15px;
+            border-top: 3px solid var(--wood);
+        }
+
+        #shelf-items {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.6rem;
+            min-height: 30px;
+        }
+
+        /* Reward Modal Overlay */
+        #reward-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #reward-screen.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .big-trophy {
+            font-size: 6rem;
+            animation: awardPop 1s infinite alternate ease-in-out;
+        }
+
+        @keyframes awardPop {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        .close-reward-btn {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #15803d;
+            font-family: inherit;
+        }
+
+        /* Modern layout for bottom navigation images */
+        .nav-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; 
+            gap: 20px;
+            margin-bottom: auto; /* Pushes the buttons up to balance the centering */
+        }
+
+        .nav-buttons img {
+            transition: transform 0.2s;
+            border-radius: 15px;
+        }
+
+        @media (hover: hover) {
+            .nav-buttons img:hover {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-box">
+        <div id="reward-screen">
+            <h2 style="color: #eab308; margin: 0; font-size: 2.2rem;">🏆 Farm Master! 🏆</h2>
+            <p style="font-size: 1.2rem; margin: 5px 0; color: #475569;">Amazing! You unlocked a Golden Trophy!</p>
+            <div class="big-trophy">🏆</div>
+            <button class="close-reward-btn" onclick="hidePrize()">Keep Farming!</button>
+        </div>
+
+        <div class="stats">
+            <div>Score: <span id="score-num" style="color: #22c55e;">0</span></div>
+            <div>Next Reward: <span id="target-num" style="color: #ef4444;">10</span></div>
+        </div>
+
+        <div id="stage">
+            <div id="barn">🏡</div>
+            <div id="pasture"></div>
+        </div>
+
+        <p style="margin: 0; font-weight: bold; color: #475569;">Count how many stay in the grass!</p>
+        <div id="math-problem">5 - 2</div>
+
+        <div id="choices-box">
+            <button class="farm-btn" onclick="tapAnswer(this)">?</button>
+            <button class="farm-btn" onclick="tapAnswer(this)">?</button>
+            <button class="farm-btn" onclick="tapAnswer(this)">?</button>
+        </div>
+
+        <div id="trophy-shelf">
+            <div style="font-size: 0.75rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Your Trophies</div>
+            <div id="shelf-items"></div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="hip.html"><img src="np.png" width="80" height="50" alt="Next Page"></a>
+        <a href="1.html"><img src="ACT.png" width="80" height="50" alt="Activity"></a>
+    </div>
+
+    <script>
+        let score = 0;
+        let correctAnswer = 0;
+        let milestoneGoal = 10;
+
+        const farmAnimals = ['🐄', '🐖', '🐑', '🐓', '🦆', '🐎'];
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSoundEffect(style) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (style === 'slide') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(300, now + 1.8);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 1.8);
+                osc.start(now);
+                osc.stop(now + 1.8);
+            } else if (style === 'win') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (style === 'lose') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (style === 'fanfare') {
+                const scale = [523.25, 659.25, 783.99, 1046.50];
+                scale.forEach((pitch, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(pitch, now + (i * 0.08));
+                    g.gain.setValueAtTime(0.2, now + (i * 0.08));
+                    g.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.08) + 0.3);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(now + (i * 0.08)); o.stop(now + (i * 0.08) + 0.3);
+                });
+            }
+        }
+
+        function createLevel() {
+            const activeAnimal = farmAnimals[Math.floor(Math.random() * farmAnimals.length)];
+
+            const num1 = Math.floor(Math.random() * 5) + 4; 
+            const num2 = Math.floor(Math.random() * num1) + 1; 
+            correctAnswer = num1 - num2;
+
+            document.getElementById('math-problem').textContent = `${num1} - ${num2}`;
+
+            const pasture = document.getElementById('pasture');
+            pasture.innerHTML = '';
+
+            for(let i = 0; i < num1; i++) {
+                const item = document.createElement('span');
+                item.className = 'animal';
+                item.textContent = activeAnimal;
+                pasture.appendChild(item);
+            }
+
+            setTimeout(() => {
+                const children = document.querySelectorAll('.animal');
+                playSoundEffect('slide'); 
+                for(let j = 0; j < num2; j++) {
+                    children[j].classList.add('walk-away');
+                }
+            }, 600);
+
+            let choices = [correctAnswer];
+            while(choices.length < 3) {
+                let fake = Math.floor(Math.random() * 8);
+                if(!choices.includes(fake)) choices.push(fake);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const buttons = document.querySelectorAll('.farm-btn');
+            buttons.forEach((btn, idx) => {
+                btn.textContent = choices[idx];
+                btn.disabled = false;
+                btn.style.backgroundColor = '#f59e0b';
+                btn.style.boxShadow = '0 6px 0 #b45309';
+            });
+        }
+
+        function tapAnswer(button) {
+            const selectedValue = parseInt(button.textContent);
+            const buttons = document.querySelectorAll('.farm-btn');
+
+            if (selectedValue === correctAnswer) {
+                score++;
+                document.getElementById('score-num').textContent = score;
+                playSoundEffect('win');
+
+                button.style.backgroundColor = '#22c55e';
+                button.style.boxShadow = '0 6px 0 #16a34a';
+                buttons.forEach(btn => btn.disabled = true);
+
+                if (score === milestoneGoal) {
+                    setTimeout(showPrizeShelfAlert, 1200);
+                } else {
+                    setTimeout(createLevel, 1500);
+                }
+            } else {
+                playSoundEffect('lose');
+                button.style.backgroundColor = '#94a3b8'; 
+                button.style.boxShadow = '0 6px 0 #475569';
+                button.disabled = true;
+            }
+        }
+
+        function showPrizeShelfAlert() {
+            playSoundEffect('fanfare');
+            
+            const shelf = document.getElementById('shelf-items');
+            const trophy = document.createElement('span');
+            trophy.textContent = '🏆';
+            shelf.appendChild(trophy);
+
+            document.getElementById('reward-screen').classList.add('show');
+            milestoneGoal += 10;
+        }
+
+        function hidePrize() {
+            document.getElementById('reward-screen').classList.remove('show');
+            document.getElementById('target-num').textContent = milestoneGoal;
+            createLevel();
+        }
+
+        createLevel();
+    </script>
+</body>
+</html>

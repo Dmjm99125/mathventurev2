@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mataas o Mababa?</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        h1 { color: #2c3e50; font-size: 20px; margin: 10px 0; }
+        #score-board { font-weight: bold; font-size: 18px; color: #2c3e50; margin-bottom: 5px; }
+
+        #instruction-box {
+            background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 15px;
+            margin: 10px auto; width: 85%; max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #3498db;
+        }
+        #instruction-text { font-size: 24px; font-weight: bold; color: #2980b9; }
+
+        .sky-area {
+            display: flex; justify-content: center; gap: 40px;
+            margin-top: 30px; height: 300px; position: relative;
+        }
+
+        .platform-container {
+            display: flex; flex-direction: column; align-items: center;
+            width: 120px; height: 100%; justify-content: space-between;
+        }
+
+        .character {
+            font-size: 50px; cursor: pointer; transition: transform 0.3s;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+            user-select: none;
+        }
+        
+        /* Floating animation */
+        .floating {
+            animation: float 2s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .cloud-base {
+            font-size: 40px; opacity: 0.7; pointer-events: none;
+        }
+
+        #feedback { height: 40px; margin-top: 20px; font-size: 22px; font-weight: bold; }
+
+        .btn-home {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 10px;
+        }
+
+        .star { position: fixed; font-size: 40px; animation: burst 1s forwards; pointer-events: none; }
+        @keyframes burst { 0% { transform: scale(0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.2); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <h1>Laro: Mataas o Mababa? ☁️</h1>
+    <div id="score-board">Puntos: <span id="points">0</span> / 10</div>
+
+    <div id="instruction-box">
+        <div id="instruction-text">Hanapin ang MATAAS</div>
+    </div>
+
+    <div class="sky-area">
+        <div class="platform-container">
+            <div id="char-left" class="character floating" onclick="checkAnswer('left')"></div>
+            <div class="cloud-base">☁️</div>
+        </div>
+        <div class="platform-container">
+            <div id="char-right" class="character floating" onclick="checkAnswer('right')"></div>
+            <div class="cloud-base">☁️</div>
+        </div>
+    </div>
+
+    <div id="feedback"></div>
+
+    <button class="btn-home" onclick="window.location.href='1.html'">Bumalik sa Menu</button>
+
+    <script>
+        let score = 0;
+        let targetSide = "";
+        const pointsDisplay = document.getElementById('points');
+        const instructionText = document.getElementById('instruction-text');
+        const feedback = document.getElementById('feedback');
+        const charLeft = document.getElementById('char-left');
+        const charRight = document.getElementById('char-right');
+
+        const friends = ['🕊️', '🎈', '🪁', '🚁', '🐝', '🦸'];
+
+        function initLevel() {
+            if (score >= 10) {
+                showWinner();
+                return;
+            }
+
+            feedback.innerText = "";
+            const isLookingForHigh = Math.random() > 0.5;
+            instructionText.innerText = isLookingForHigh ? "Hanapin ang MATAAS" : "Hanapin ang MABABA";
+            instructionText.style.color = isLookingForHigh ? "#2980b9" : "#e67e22";
+
+            const currentFriend = friends[Math.floor(Math.random() * friends.length)];
+            charLeft.innerText = currentFriend;
+            charRight.innerText = currentFriend;
+
+            // Randomly set heights
+            const leftIsHigh = Math.random() > 0.5;
+            
+            // Apply positions
+            charLeft.parentElement.style.justifyContent = leftIsMore(leftIsHigh, true);
+            charRight.parentElement.style.justifyContent = leftIsMore(leftIsHigh, false);
+
+            if (isLookingForHigh) {
+                targetSide = leftIsHigh ? 'left' : 'right';
+            } else {
+                targetSide = leftIsHigh ? 'right' : 'left';
+            }
+        }
+
+        function leftIsMore(leftHigh, isLeft) {
+            if (isLeft) {
+                return leftHigh ? "flex-start" : "flex-end";
+            } else {
+                return leftHigh ? "flex-end" : "flex-start";
+            }
+        }
+
+        function checkAnswer(clicked) {
+            if (clicked === targetSide) {
+                score++;
+                pointsDisplay.innerText = score;
+                feedback.innerText = "Ang galing! ⭐";
+                feedback.style.color = "#27ae60";
+                
+                // Victory Jump
+                const el = clicked === 'left' ? charLeft : charRight;
+                el.style.transform = "scale(1.5) translateY(-30px)";
+                
+                burstStars();
+                setTimeout(() => {
+                    el.style.transform = "scale(1) translateY(0)";
+                    initLevel();
+                }, 1200);
+            } else {
+                feedback.innerText = "Subukan muli! 💪";
+                feedback.style.color = "#c0392b";
+            }
+        }
+
+        function burstStars() {
+            for (let i = 0; i < 10; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.innerHTML = '⭐';
+                star.style.left = '50%'; star.style.top = '50%';
+                star.style.setProperty('--x', (Math.random() * 400 - 200) + 'px');
+                star.style.setProperty('--y', (Math.random() * 400 - 200) + 'px');
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 1000);
+            }
+        }
+
+        function showWinner() {
+            document.body.innerHTML = `
+                <div style="margin-top: 100px; padding: 20px;">
+                    <h1 style="font-size: 35px;">🎉 NAPAKAHUSAY! 🎉</h1>
+                    <p style="font-size: 20px; font-weight:bold;">Abot-langit ang iyong galing!</p>
+                    <button onclick="location.reload()" style="padding: 15px 30px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 20px; cursor: pointer; box-shadow: 0 4px #1e8449;">Maglaro Muli 🔄</button>
+                    <br><br>
+                    <button onclick="window.location.href='1.html'" style="background:none; border:none; color:#2c3e50; font-weight:bold; cursor:pointer;">Back to Activities</button>
+                </div>
+            `;
+            setInterval(burstStars, 300);
+        }
+
+        initLevel();
+    </script>
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="8e.html"><img src="np.png" width="100" length="150"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

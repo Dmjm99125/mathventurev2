@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Game</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f0f8ff;
+}
+
+h1 { margin-top: 10px; }
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* DROP ZONES */
+.colors {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.dropzone {
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    border-radius: 12px;
+    line-height: 100px;
+    font-weight: bold;
+    color: white;
+}
+
+.red { background: red; }
+.blue { background: blue; }
+.yellow { background: gold; }
+.green { background: green; }
+
+/* OBJECTS AREA (ALWAYS SEPARATE) */
+.objects {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+    min-height: 120px;
+    border-top: 2px dashed #ccc;
+    padding-top: 10px;
+}
+
+.item {
+    width: 80px;
+    height: 80px;
+    margin: 10px;
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    cursor: grab;
+    touch-action: none;
+    background: white;
+}
+
+/* CORRECT STYLE */
+.correct {
+    background: lightgreen;
+    pointer-events: none;
+}
+
+#message {
+    font-size: 20px;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎨 Color Matching Game</h1>
+<p>Drag or touch the object to the correct color!</p>
+
+<div class="container">
+
+    <!-- DROP ZONES -->
+    <div class="colors">
+        <div class="dropzone red" data-color="red">RED</div>
+        <div class="dropzone blue" data-color="blue">BLUE</div>
+        <div class="dropzone yellow" data-color="yellow">YELLOW</div>
+        <div class="dropzone green" data-color="green">GREEN</div>
+    </div>
+
+    <!-- OBJECTS -->
+    <div class="objects" id="objects"></div>
+
+</div>
+
+<div id="message"></div>
+
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+const objectsDiv = document.getElementById("objects");
+const message = document.getElementById("message");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+const itemsData = [
+    {emoji:"🍎", color:"red"},
+    {emoji:"🍓", color:"red"},
+    {emoji:"🌞", color:"yellow"},
+    {emoji:"🍌", color:"yellow"},
+    {emoji:"🌊", color:"blue"},
+    {emoji:"🐟", color:"blue"},
+    {emoji:"🍏", color:"green"},
+    {emoji:"🌳", color:"green"}
+];
+
+let dragged = null;
+let correctCount = 0;
+
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+function startGame() {
+    objectsDiv.innerHTML = "";
+    message.textContent = "";
+    correctCount = 0;
+
+    let selected = shuffle([...itemsData]).slice(0,4);
+
+    selected.forEach(data => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = data.emoji;
+        div.dataset.color = data.color;
+
+        div.setAttribute("draggable", true);
+
+        // Desktop
+        div.addEventListener("dragstart", () => dragged = div);
+
+        // Mobile
+        div.addEventListener("touchstart", () => dragged = div);
+
+        div.addEventListener("touchend", (e) => {
+            const touch = e.changedTouches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (el && el.classList.contains("dropzone")) checkDrop(el);
+        });
+
+        objectsDiv.appendChild(div);
+    });
+}
+
+document.querySelectorAll(".dropzone").forEach(zone => {
+    zone.addEventListener("dragover", e => e.preventDefault());
+    zone.addEventListener("drop", () => checkDrop(zone));
+});
+
+function checkDrop(zone) {
+    if (!dragged || dragged.classList.contains("correct")) return;
+
+    if (dragged.dataset.color === zone.dataset.color) {
+        correctSound.play();
+        dragged.classList.add("correct");
+        dragged.textContent += " ✔";
+        correctCount++;
+
+        if (correctCount === 4) {
+            message.textContent = "🎉 Excellent! Next round...";
+            setTimeout(startGame, 2000);
+        }
+    } else {
+        wrongSound.play();
+        message.textContent = "❌ Try again!";
+    }
+}
+startGame();
+</script>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="1aab.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

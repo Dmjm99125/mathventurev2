@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shape Game</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #fce2b4;
+    text-align: center;
+}
+
+/* GAME */
+.game-box {
+    max-width: 900px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.choices-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.shape-btn {
+    padding: 15px;
+    background: #ffe0a3;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 25px;
+}
+
+.shape-btn:active {
+    transform: scale(0.95);
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 20px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    background: #86cb92;
+    cursor: pointer;
+}
+
+/* MOBILE */
+@media (max-width:600px) {
+    .choices-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game-box">
+
+<h2>Find the Shape</h2>
+
+<div id="question" style="font-size:60px;">⬛</div>
+
+<div class="choices-grid" id="choices"></div>
+
+<div class="message" id="message">Tap the correct shape!</div>
+
+<button onclick="nextGame()">Next</button>
+
+</div>
+
+<script>
+const shapes = ["⬛","⭕","🔺","⭐","🟩","🔶"];
+
+let answer = "";
+
+function startGame() {
+    document.getElementById("message").innerText = "Tap the correct shape!";
+    
+    answer = shapes[Math.floor(Math.random()*shapes.length)];
+    document.getElementById("question").innerText = answer;
+
+    let choices = [...shapes].sort(()=>Math.random()-0.5);
+
+    const container = document.getElementById("choices");
+    container.innerHTML = "";
+
+    choices.forEach(shape=>{
+        const btn = document.createElement("div");
+        btn.className = "shape-btn";
+        btn.innerText = shape;
+
+        btn.onclick = ()=>{
+            if(shape === answer){
+                document.getElementById("message").innerText = "🎉 Correct!";
+            } else {
+                document.getElementById("message").innerText = "❌ Try again!";
+            }
+        };
+
+        container.appendChild(btn);
+    });
+}
+
+function nextGame(){
+    startGame();
+}
+
+startGame();
+</script>
+
+ 
+ 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="2c.html"><img src="np.png" width="200" length="250"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="180" length="180"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

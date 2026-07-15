@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindergarten Subtraction Pop!</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --background-color: #f7fff7;
+            --text-color: #2f3e46;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        #score-board {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #777;
+        }
+
+        #equation {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 15px 0;
+            letter-spacing: 2px;
+        }
+
+        /* Visual representation area */
+        #visual-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 100px;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0fdf4;
+            border-radius: 16px;
+            border: 2px dashed var(--secondary-color);
+        }
+
+        .item {
+            font-size: 2.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .item.crossed {
+            opacity: 0.2;
+            transform: scale(0.8);
+            position: relative;
+        }
+
+        /* Answer choices grid */
+        #choices {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .choice-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 15px 0;
+            cursor: pointer;
+            box-shadow: 0 6px #38b2ac;
+            transition: all 0.1s ease;
+            font-family: inherit;
+        }
+
+        .choice-btn:active {
+            box-shadow: 0 2px #38b2ac;
+            transform: translateY(4px);
+        }
+
+        /* Feedback overlay */
+        #feedback {
+            font-size: 1.5rem;
+            font-weight: bold;
+            height: 30px;
+            margin-top: 15px;
+            transition: color 0.2s;
+        }
+
+        .correct { color: #2ecc71; }
+        .wrong { color: #e74c3c; }
+
+        /* Responsive adjustments for tiny screens */
+        @media (max-width: 360px) {
+            #equation { font-size: 2.5rem; }
+            .choice-btn { font-size: 1.6rem; padding: 10px 0; }
+            .item { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🎈 Subtraction Pop! 🎈</h1>
+        <div id="score-board">Score: <span id="score">0</span></div>
+        
+        <div id="equation">5 - 2 = ?</div>
+        
+        <div id="visual-area"></div>
+        
+        <div id="feedback"></div>
+
+        <div id="choices">
+            <button class="choice-btn" onclick="checkAnswer(this)">?</button>
+            <button class="choice-btn" onclick="checkAnswer(this)">?</button>
+            <button class="choice-btn" onclick="checkAnswer(this)">?</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let correctAnswer = 0;
+        const emojis = ['🎈', '🍎', '⭐', '🐻', '🚗', '🦆']; // Fun items to count
+
+        function generateQuestion() {
+            // Clear past feedback
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = '';
+
+            // Kindergarten math usually stays within 5 or 10
+            const num1 = Math.floor(Math.random() * 6) + 4; // Top number (4 to 9)
+            const num2 = Math.floor(Math.random() * (num1 + 1)); // Bottom number (0 to num1)
+            correctAnswer = num1 - num2;
+
+            // Update equation text
+            document.getElementById('equation').textContent = `${num1} - ${num2} = ?`;
+
+            // Generate visuals
+            const visualArea = document.getElementById('visual-area');
+            visualArea.innerHTML = '';
+            const chosenEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+            // Create the total items, and "cross out" the subtracted ones
+            for (let i = 0; i < num1; i++) {
+                const span = document.createElement('span');
+                span.classList.add('item');
+                span.textContent = chosenEmoji;
+                if (i >= num1 - num2) {
+                    span.classList.add('crossed'); // These represent the items taken away
+                }
+                visualArea.appendChild(span);
+            }
+
+            // Generate answer buttons (1 correct, 2 random fakes)
+            const choices = [correctAnswer];
+            while (choices.length < 3) {
+                const fake = Math.floor(Math.random() * 10);
+                if (!choices.includes(fake)) {
+                    choices.push(fake);
+                }
+            }
+
+            // Shuffle choices so the correct answer isn't always first
+            choices.sort(() => Math.random() - 0.5);
+
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach((btn, index) => {
+                btn.textContent = choices[index];
+                btn.disabled = false; // re-enable buttons
+                btn.style.opacity = '1';
+            });
+        }
+
+        function checkAnswer(button) {
+            const userAnswer = parseInt(button.textContent);
+            const feedbackEl = document.getElementById('feedback');
+            const buttons = document.querySelectorAll('.choice-btn');
+
+            // Disable buttons temporarily so they can't spam click
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (userAnswer === correctAnswer) {
+                score++;
+                document.getElementById('score').textContent = score;
+                feedbackEl.textContent = "🎉 Great Job! 🎉";
+                feedbackEl.className = "correct";
+                
+                // Move to next question after 1.5 seconds
+                setTimeout(generateQuestion, 1500);
+            } else {
+                feedbackEl.textContent = "❌ Try again! ❌";
+                feedbackEl.className = "wrong";
+                button.style.opacity = '0.3'; // Fade out wrong answer
+                
+                // Re-enable remaining buttons so they can try again
+                buttons.forEach(btn => {
+                    if(parseInt(btn.textContent) !== userAnswer) btn.disabled = false;
+                });
+            }
+        }
+
+        // Start the game on load
+        generateQuestion();
+    </script>
+<br>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="dino.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

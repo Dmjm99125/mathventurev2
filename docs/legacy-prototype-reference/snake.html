@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Growing Inchworm Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background-color: #e8f5e9; /* Light green */
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none; /* Prevents zooming/scrolling on mobile */
+        }
+
+        h1 {
+            color: #2e7d32;
+            font-size: 1.8rem;
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        .stats {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #1b5e20;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* The Game Board */
+        #game-container {
+            position: relative;
+            background-color: #a5d6a7;
+            border: 6px solid #4caf50;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Game Over Screen */
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        #game-over button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background-color: #ffeb3b;
+            color: #333;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Mobile-Friendly D-Pad Controls */
+        #d-pad {
+            display: grid;
+            grid-template-columns: 70px 70px 70px;
+            grid-template-rows: 70px 70px;
+            gap: 8px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .dir-btn {
+            background-color: #4caf50;
+            color: white;
+            font-size: 2rem;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 6px 0 #2e7d32;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dir-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #2e7d32;
+        }
+
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+    </style>
+</head>
+<body>
+
+    <h1>🐛 Growing Inchworm! 🐛</h1>
+    
+    <div class="stats">
+        <span>Length: <span id="score">1</span> unit</span>
+        <span>Speed: Level <span id="speed-level">1</span></span>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
+        <div id="game-over">
+            Oh no! Bumped!
+            <div style="font-size: 1.2rem; margin-top: 5px;">Your worm grew to <span id="final-score"></span> units!</div>
+            <button onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+    <div id="d-pad">
+        <button class="dir-btn" id="btn-up" onpointerdown="setDirection(0, -1)">⬆️</button>
+        <button class="dir-btn" id="btn-left" onpointerdown="setDirection(-1, 0)">⬅️</button>
+        <button class="dir-btn" id="btn-down" onpointerdown="setDirection(0, 1)">⬇️</button>
+        <button class="dir-btn" id="btn-right" onpointerdown="setDirection(1, 0)">➡️</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const speedLevelDisplay = document.getElementById('speed-level');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+
+        // Game Settings
+        const gridSize = 20; // Size of each block
+        const tileCount = canvas.width / gridSize; // 15x15 grid
+        
+        let snake = [];
+        let food = { x: 0, y: 0 };
+        let dx = 0;
+        let dy = 0;
+        let score = 1;
+        let baseSpeed = 400; // Milliseconds per move (Higher = slower)
+        let gameLoop;
+        let isGameOver = false;
+
+        function resetGame() {
+            // Start the snake in the middle
+            snake = [{ x: 7, y: 7 }];
+            // Start moving right
+            dx = 1; 
+            dy = 0;
+            score = 1;
+            baseSpeed = 400; // Reset to slow speed
+            isGameOver = false;
+            
+            scoreDisplay.innerText = score;
+            speedLevelDisplay.innerText = "1";
+            gameOverScreen.style.display = "none";
+            
+            placeFood();
+            clearTimeout(gameLoop);
+            tick();
+        }
+
+        // The main game loop
+        function tick() {
+            if (isGameOver) return;
+            
+            moveSnake();
+            checkCollision();
+            
+            if (isGameOver) {
+                showGameOver();
+                return;
+            }
+            
+            drawGame();
+            
+            // Loop runs based on current baseSpeed
+            gameLoop = setTimeout(tick, baseSpeed);
+        }
+
+        function setDirection(newDx, newDy) {
+            // Prevent the snake from reversing directly into itself
+            if (newDx === -dx && dx !== 0) return;
+            if (newDy === -dy && dy !== 0) return;
+            
+            dx = newDx;
+            dy = newDy;
+        }
+
+        function moveSnake() {
+            // Calculate new head position
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            
+            // Add new head
+            snake.unshift(head);
+            
+            // Check if ate food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                scoreDisplay.innerText = score;
+                placeFood();
+                
+                // Increase speed every 5 units
+                if (score % 5 === 0) {
+                    let level = (score / 5) + 1;
+                    speedLevelDisplay.innerText = level;
+                    baseSpeed = Math.max(150, baseSpeed - 50); // Gets faster, but has a limit
+                }
+            } else {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            
+            // Hit walls
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                isGameOver = true;
+            }
+            
+            // Hit itself (skip the head)
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    isGameOver = true;
+                }
+            }
+        }
+
+        function placeFood() {
+            let valid = false;
+            while (!valid) {
+                food.x = Math.floor(Math.random() * tileCount);
+                food.y = Math.floor(Math.random() * tileCount);
+                
+                // Make sure food doesn't spawn ON the snake
+                valid = true;
+                for (let part of snake) {
+                    if (part.x === food.x && part.y === food.y) valid = false;
+                }
+            }
+        }
+
+        function drawGame() {
+            // Clear canvas
+            ctx.fillStyle = '#a5d6a7';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw food (A green leaf/dot)
+            ctx.fillStyle = '#ff5252'; // Red apple/berry
+            ctx.beginPath();
+            ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw snake
+            for (let i = 0; i < snake.length; i++) {
+                // Head is darker green, body is lighter
+                ctx.fillStyle = i === 0 ? '#1b5e20' : '#4caf50';
+                
+                // Draw rounded rectangles for the worm body
+                ctx.beginPath();
+                ctx.roundRect(snake[i].x * gridSize + 1, snake[i].y * gridSize + 1, gridSize - 2, gridSize - 2, 5);
+                ctx.fill();
+            }
+        }
+
+        function showGameOver() {
+            finalScoreDisplay.innerText = score;
+            gameOverScreen.style.display = "flex";
+        }
+
+        // Keyboard controls for computer testing
+        window.addEventListener('keydown', e => {
+            switch(e.key) {
+                case 'ArrowUp': setDirection(0, -1); break;
+                case 'ArrowDown': setDirection(0, 1); break;
+                case 'ArrowLeft': setDirection(-1, 0); break;
+                case 'ArrowRight': setDirection(1, 0); break;
+            }
+        });
+
+        // Start the game for the first time
+        window.onload = resetGame;
+    </script>
+<br>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="7c.html"><img src="np.png" width="150" length="200"></a></center>
+<br>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

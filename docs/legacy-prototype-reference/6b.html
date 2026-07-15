@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Animal Match 6-10 Adventure</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #b8e1d4;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .header-img {
+            max-width: 180px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .game-box {
+            max-width: 550px;
+            width: 100%;
+            background: #fef9e7;
+            border-radius: 40px;
+            border: 6px solid #e5b45b;
+            box-shadow: 0 10px 0 #b47d44;
+            padding: 15px;
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.4rem;
+            color: #2e4c3c;
+            margin: 0 0 10px;
+        }
+
+        .subhead {
+            display: block;
+            text-align: center;
+            font-size: 0.9rem;
+            background: #ffdcb5;
+            padding: 5px 15px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            border: 2px solid #ab7b44;
+        }
+
+        .board {
+            display: flex;
+            gap: 10px;
+            background: #ebd5b3;
+            border-radius: 20px;
+            padding: 10px;
+            border: 3px dashed #c48f5a;
+        }
+
+        .panel {
+            flex: 1;
+            background: #fffae9;
+            border-radius: 15px;
+            padding: 10px 5px;
+            border: 2px solid #d6a469;
+        }
+
+        .panel h2 {
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 0 0 10px;
+            background: #fbdea4;
+            border-radius: 10px;
+        }
+
+        .num-card {
+            background: #facc6f;
+            border: 3px solid #b27226;
+            border-radius: 20px;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 0 #8f5827;
+            cursor: pointer;
+        }
+
+        .animal-card {
+            background: #b6d9c7;
+            border: 3px solid #42855e;
+            border-radius: 20px;
+            padding: 10px 5px;
+            margin-bottom: 10px;
+            min-height: 85px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 0 #246b3a;
+            cursor: pointer;
+        }
+
+        .animal-face {
+            width: 24px;
+            height: 24px;
+            background: #fbe176;
+            border-radius: 50%;
+            border: 1px solid #8b5a2b;
+            position: relative;
+        }
+
+        .animal-face::before, .animal-face::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            width: 8px;
+            height: 8px;
+            background: inherit;
+            border-radius: 50%;
+            border: 1px solid #8b5a2b;
+        }
+        .animal-face::before { left: -3px; }
+        .animal-face::after { right: -3px; }
+
+        .matched-num, .matched-animal {
+            background: #c7e7c7 !important;
+            border-color: #1b7530 !important;
+            box-shadow: none !important;
+            opacity: 0.5;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1rem;
+            background: #fbeab6;
+            border-radius: 15px;
+            padding: 10px;
+            border: 3px solid #ca9a5a;
+            min-height: 50px;
+        }
+
+        /* Congratulations Star Screen */
+        #star-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .big-star {
+            font-size: 120px;
+            color: #FFD700;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            to { transform: rotate(360deg) scale(1); }
+        }
+
+        .next-btn {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px #e68a00;
+            margin-top: 20px;
+            font-family: inherit;
+        }
+
+        .nav-table { width: 100%; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <img src="1NUM.png" class="header-img" alt="Numbers">
+
+    <div class="game-box">
+        <div class="title">🐼 6 7 8 9 10 🐨</div>
+        <span class="subhead">Tap number → Tap animals</span>
+
+        <div class="board">
+            <div class="panel">
+                <h2>Numbers</h2>
+                <div id="numbersPanel"></div>
+            </div>
+            <div class="panel">
+                <h2>Animals</h2>
+                <div id="quantityPanel"></div>
+            </div>
+        </div>
+
+        <div id="messageDisplay" class="feedback">Ready?</div>
+    </div>
+
+    <div id="star-overlay">
+        <div class="big-star">⭐</div>
+        <h1 style="color: #ff4500; font-size: 40px;">ANG GALING!</h1>
+        <p style="font-size: 20px;">Natapos mo na ang 6 hanggang 10!</p>
+        <button class="next-btn" onclick="window.location.href='6c.html'">Next Game ➔</button>
+        <p onclick="location.reload()" style="cursor:pointer; text-decoration: underline; margin-top: 20px; color: #666;">Play Again</p>
+    </div>
+<center>
+    <table class="nav-table">
+        <tr>
+            <td align="center"><a href="1.html"><img src="ACT.png" width="100"></a></td>
+            <td align="center"><a href="6c.html"><img src="np.png" width="100"></a></td>
+        </tr>
+    </table>
+</center>
+<script>
+    const NUMBER_VALUES = [6, 7, 8, 9, 10];
+    let selectedNumber = null;
+    let matches = {};
+
+    // Sound generator
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(isCorrect) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = isCorrect ? 'sine' : 'square';
+        osc.frequency.setValueAtTime(isCorrect ? 600 : 150, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+        osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function render() {
+        const numPanel = document.getElementById('numbersPanel');
+        const qPanel = document.getElementById('quantityPanel');
+        numPanel.innerHTML = '';
+        qPanel.innerHTML = '';
+
+        NUMBER_VALUES.forEach(num => {
+            const card = document.createElement('div');
+            card.className = 'num-card' + (matches[num] ? ' matched-num' : '');
+            card.innerText = num;
+            card.onclick = () => {
+                selectedNumber = num;
+                document.getElementById('messageDisplay').innerText = "Hanapin ang " + num + " na hayop!";
+            };
+            numPanel.appendChild(card);
+        });
+
+        // Use a fixed shuffle per render to avoid jumping
+        if(!window.shuffledList || Object.keys(matches).length === 0) {
+            window.shuffledList = [...NUMBER_VALUES].sort(() => Math.random() - 0.5);
+        }
+
+        window.shuffledList.forEach(num => {
+            const card = document.createElement('div');
+            card.className = 'animal-card' + (matches[num] ? ' matched-animal' : '');
+            for(let i=0; i<num; i++) {
+                const face = document.createElement('div');
+                face.className = 'animal-face';
+                if(i % 2 === 0) face.style.background = "#b3ddf2";
+                if(i % 3 === 0) face.style.background = "#f8b88b";
+                card.appendChild(face);
+            }
+            card.onclick = () => {
+                if(!matches[num] && selectedNumber) {
+                    if(selectedNumber === num) {
+                        matches[num] = true;
+                        selectedNumber = null;
+                        playSound(true);
+                        document.getElementById('messageDisplay').innerText = "Tama! Ang galing! 🏆";
+                        render();
+                        if(Object.keys(matches).length === 5) {
+                            setTimeout(() => { document.getElementById('star-overlay').style.display = 'flex'; }, 500);
+                        }
+                    } else {
+                        playSound(false);
+                        document.getElementById('messageDisplay').innerText = "Mali, bilangin muli! 🙈";
+                    }
+                } else if (!selectedNumber) {
+                    document.getElementById('messageDisplay').innerText = "Pindutin muna ang numero!";
+                }
+            };
+            qPanel.appendChild(card);
+        });
+    }
+
+    render();
+</script>
+</body>
+</html>

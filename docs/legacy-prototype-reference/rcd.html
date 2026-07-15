@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rainbow Color Adventure Deluxe</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      overflow-x: hidden;
+      background: linear-gradient(to bottom, #87CEEB, #E0F7FF, #FFF9D6);
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    /* Clouds */
+    .cloud {
+      position: absolute;
+      font-size: 70px;
+      opacity: .8;
+      pointer-events: none;
+      animation: floatCloud 40s linear infinite;
+    }
+    .cloud::before { content: "☁️"; }
+    .cloud2 { top: 120px; animation-duration: 55s; }
+    .cloud3 { top: 220px; animation-duration: 70s; }
+
+    @keyframes floatCloud {
+      from { left: -200px; }
+      to { left: 110%; }
+    }
+
+    /* Screens */
+    .screen { display: none; padding: 20px; }
+    .active { display: block; }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 2.2em;
+      color: #444;
+    }
+
+    /* Pet buttons */
+    .petGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      max-width: 700px;
+      margin: 30px auto;
+    }
+    .petBtn {
+      font-size: 60px;
+      padding: 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      background: white;
+      transition: .2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .petBtn:hover { transform: scale(1.08); background: #f0f0f0; }
+
+    /* Difficulty buttons */
+    .diffBtn {
+      padding: 18px;
+      margin: 10px;
+      width: 260px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .diffBtn:hover { transform: scale(1.05); background: #f9f9f9; }
+
+    /* Top bar */
+    #topBar {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    .card {
+      background: white;
+      padding: 10px 18px;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.15);
+    }
+
+    #selectedPet {
+      font-size: 80px;
+      margin-top: 20px;
+      transition: font-size .3s;
+    }
+
+    #targetColor {
+      font-size: 2em;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 180px));
+      gap: 15px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .colorBtn {
+      height: 120px;
+      border: 8px solid white;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    #message {
+      height: 40px;
+      font-size: 1.4em;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    /* Flying star */
+    .flyStar {
+      position: fixed;
+      font-size: 40px;
+      z-index: 100;
+      pointer-events: none;
+      animation: starFly .6s ease-in-out forwards;
+    }
+    @keyframes starFly {
+      0% { opacity: 1; transform: scale(1) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.5) rotate(180deg); }
+      100% { opacity: 0; transform: scale(0.3) rotate(360deg); }
+    }
+
+    /* Modal */
+    .modalOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modalOverlay.show { display: flex; }
+
+    .modalBox {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 350px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    }
+    .modalBox h2 { font-size: 2em; margin-bottom: 10px; }
+    .modalBox p {
+      font-size: 1.3em;
+      margin-bottom: 20px;
+      color: #555;
+    }
+    .modalBtn {
+      padding: 12px 30px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 12px;
+      background: #ff7eb3;
+      color: white;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .modalBtn:hover { background: #ff5a9e; }
+    .modalBtn.green { background: #4caf50; }
+    .modalBtn.green:hover { background: #388e3c; }
+
+    @media (max-width: 600px) {
+      .petBtn { font-size: 45px; }
+      #selectedPet { font-size: 60px; }
+      #targetColor { font-size: 1.5em; }
+      .colorBtn { height: 100px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cloud"></div>
+  <div class="cloud cloud2"></div>
+  <div class="cloud cloud3"></div>
+
+  <div id="petScreen" class="screen active">
+    <h1>Choose Your Pet Friend</h1>
+    <div class="petGrid">
+      <button class="petBtn" onclick="petScreen.select('🐶')">🐶</button>
+      <button class="petBtn" onclick="petScreen.select('🐱')">🐱</button>
+      <button class="petBtn" onclick="petScreen.select('🦄')">🦄</button>
+      <button class="petBtn" onclick="petScreen.select('🐼')">🐼</button>
+      <button class="petBtn" onclick="petScreen.select('🐯')">🐯</button>
+    </div>
+  </div>
+
+  <div id="difficultyScreen" class="screen">
+    <h1>Choose Difficulty</h1>
+    <button class="diffBtn" onclick="difficultyScreen.start('easy')">🌟 Preschool Mode</button><br>
+    <button class="diffBtn" onclick="difficultyScreen.start('medium')">🌈 Elementary Mode</button><br>
+    <button class="diffBtn" onclick="difficultyScreen.start('hard')">🚀 Adventure Mode</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div id="topBar">
+      <div class="card">Score: <span id="score">0</span></div>
+      <div class="card">Best: <span id="highScore">0</span></div>
+      <div class="card">Time: <span id="timer">30</span></div>
+    </div>
+    <div id="selectedPet"></div>
+    <div id="targetColor">Find the Color!</div>
+    <div id="message"></div>
+    <div id="board"></div>
+  </div>
+
+  <div id="modalOverlay" class="modalOverlay">
+    <div class="modalBox">
+      <h2 id="modalTitle">Time's Up!</h2>
+      <p id="modalMessage">Score: 0</p>
+      <button class="modalBtn green" onclick="modal.restart()">Play Again</button>
+      <button class="modalBtn" onclick="modal.menu()">Menu</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    const DIFFICULTY_COLORS = {
+      easy: ["red", "blue", "green", "yellow"],
+      medium: ["red", "blue", "green", "yellow", "purple", "orange"],
+      hard: ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown"]
+    };
+
+    const timeConfig = { easy: 45, medium: 30, hard: 20 };
+
+    let state = {
+      pet: "",
+      difficulty: "easy",
+      score: 0,
+      timeLeft: 30,
+      targetColor: "",
+      timer: null,
+      highScore: Number(localStorage.getItem("rainbowHighScore")) || 0
+    };
+
+    const petScreen = {
+      select(pet) {
+        state.pet = pet;
+        showScreen("petScreen", "difficultyScreen");
+      }
+    };
+
+    const difficultyScreen = {
+      start(level) {
+        state.difficulty = level;
+        state.score = 0;
+        state.timeLeft = timeConfig[level];
+        showScreen("difficultyScreen", "gameScreen");
+        game.setup();
+        game.startTimer();
+        game.generateBoard();
+      }
+    };
+
+    const game = {
+      setup() {
+        $("selectedPet").textContent = state.pet;
+        $("selectedPet").style.fontSize = "80px";
+        $("score").textContent = "0";
+        $("timer").textContent = state.timeLeft;
+        $("message").textContent = "";
+        $("highScore").textContent = state.highScore;
+      },
+
+      getColors() {
+        return DIFFICULTY_COLORS[state.difficulty];
+      },
+
+      pickColor(colors) {
+        return colors[Math.floor(Math.random() * colors.length)];
+      },
+
+      shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      },
+
+      generateBoard() {
+        const board = $("board");
+        board.innerHTML = "";
+        const colors = this.getColors();
+        state.targetColor = this.pickColor(colors);
+        
+        // Fixed template literal syntax
+        $("targetColor").innerHTML = `Find: <span style="color:${state.targetColor}">${state.targetColor.toUpperCase()}</span>`;
+        
+        this.shuffle([...colors]).forEach(color => {
+          const btn = document.createElement("button");
+          btn.className = "colorBtn";
+          btn.style.backgroundColor = color;
+          btn.onclick = (e) => this.handleClick(color, e.target);
+          board.appendChild(btn);
+        });
+      },
+
+      handleClick(color, btn) {
+        if (color === state.targetColor) {
+          state.score++;
+          $("score").textContent = state.score;
+          $("message").textContent = "✨ Correct! ✨";
+          $("message").style.color = "green";
+          
+          // Fixed font size calculation
+          $("selectedPet").style.fontSize = (80 + state.score * 2) + "px";
+          
+          this.spawnStar(btn);
+          this.generateBoard();
+        } else {
+          $("message").textContent = "❌ Try Again!";
+          $("message").style.color = "red";
+        }
+      },
+
+      spawnStar(btn) {
+        const star = document.createElement("div");
+        star.className = "flyStar";
+        star.textContent = "⭐";
+        const bRect = btn.getBoundingClientRect();
+        star.style.left = (bRect.left + bRect.width / 2 - 20) + "px";
+        star.style.top = (bRect.top + bRect.height / 2 - 20) + "px";
+        document.body.appendChild(star);
+        star.addEventListener("animationend", () => star.remove());
+      },
+
+      startTimer() {
+        clearInterval(state.timer);
+        state.timer = setInterval(() => {
+          state.timeLeft--;
+          $("timer").textContent = state.timeLeft;
+          if (state.timeLeft <= 0) {
+            clearInterval(state.timer);
+            modal.show(state.score);
+          }
+        }, 1000);
+      }
+    };
+
+    const modal = {
+      show(score) {
+        if (score > state.highScore) {
+          state.highScore = score;
+          localStorage.setItem("rainbowHighScore", score);
+          $("highScore").textContent = score;
+        }
+        $("modalTitle").textContent = "Time's Up!";
+        $("modalMessage").textContent = "Final Score: " + score;
+        $("modalOverlay").classList.add("show");
+      },
+
+      restart() {
+        $("modalOverlay").classList.remove("show");
+        difficultyScreen.start(state.difficulty);
+      },
+
+      menu() {
+        $("modalOverlay").classList.remove("show");
+        showScreen("gameScreen", "petScreen");
+      }
+    };
+
+    function showScreen(hide, show) {
+      $(hide).classList.remove("active");
+      $(show).classList.add("active");
+    }
+
+    // Initial load
+    $("highScore").textContent = state.highScore;
+  </script>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="colgal.html"><img src="np.png" width="150" length="150"></a></center>
+<br>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

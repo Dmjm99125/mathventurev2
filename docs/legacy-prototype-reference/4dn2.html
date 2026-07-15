@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Under the Sea Bubble Addition!</title>
+    <style>
+        :root {
+            --primary-color: #0284c7;
+            --secondary-color: #06b6d4;
+            --accent-color: #fbbf24;
+            --text-color: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            background: linear-gradient(180deg, #7dd3fc 0%, #0284c7 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            overflow-x: hidden;
+            padding: 15px;
+        }
+
+        #game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+            border: 6px solid #38bdf8;
+            position: relative;
+        }
+
+        .header-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0369a1;
+        }
+
+        .score-box {
+            background: #fef08a;
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 2px solid #fde047;
+            color: #854d0e;
+        }
+
+        .instruction-text {
+            font-size: 1.1rem;
+            color: #0369a1;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        /* Ocean Water Box */
+        .ocean-box {
+            background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 3px dashed #0284c7;
+            min-height: 170px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .sea-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 8px;
+            min-height: 55px;
+        }
+
+        /* Tappable Bubble Elements */
+        .bubble-btn {
+            font-size: 2.5rem;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.1s ease;
+            position: relative;
+            background: none;
+            border: none;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            animation: float 2s ease-in-out infinite alternate;
+        }
+
+        /* Give alternate bubbles slightly different floating speeds */
+        .bubble-btn:nth-child(even) {
+            animation-duration: 2.5s;
+        }
+
+        .bubble-btn:active {
+            transform: scale(1.4);
+        }
+
+        /* Visually marking bubble as popped/counted */
+        .bubble-btn.counted {
+            filter: opacity(0.6) drop-shadow(0 0 4px #38bdf8);
+            transform: scale(0.95);
+            animation: none;
+        }
+
+        .bubble-btn.counted::after {
+            content: "✨";
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            font-size: 1.1rem;
+        }
+
+        .wave-divider {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0369a1;
+            align-self: center;
+            line-height: 1;
+        }
+
+        /* Choice Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        .btn-choice {
+            color: white;
+            font-size: 2.2rem;
+            font-weight: bold;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        .btn-choice:active {
+            transform: translateY(4px);
+        }
+
+        /* Ocean Themed Button Colors */
+        .btn-choice:nth-child(1) { background: #06b6d4; box-shadow: 0 8px 0 #0891b2; }
+        .btn-choice:nth-child(2) { background: #0284c7; box-shadow: 0 8px 0 #0369a1; }
+        .btn-choice:nth-child(3) { background: #f43f5e; box-shadow: 0 8px 0 #be123c; }
+        .btn-choice:nth-child(4) { background: #10b981; box-shadow: 0 8px 0 #047857; }
+
+        .btn-choice:nth-child(1):active { box-shadow: 0 4px 0 #0891b2; }
+        .btn-choice:nth-child(2):active { box-shadow: 0 4px 0 #0369a1; }
+        .btn-choice:nth-child(3):active { box-shadow: 0 4px 0 #be123c; }
+        .btn-choice:nth-child(4):active { box-shadow: 0 4px 0 #047857; }
+
+        /* Overlay Reward System */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            display: none;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #0284c7;
+            margin-bottom: 10px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .reward-star {
+            font-size: 5rem;
+            animation: spin 1s ease;
+        }
+
+        /* Float animation to mimic being underwater */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-6px) rotate(3deg); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes spin {
+            0% { transform: scale(0) rotate(0deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .bubble-confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #38bdf8;
+            background: rgba(125, 211, 252, 0.4);
+            border-radius: 50%;
+            animation: floatUp 1.5s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(200px) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div class="header-status">
+            <span>Question: <span id="question-num">1</span>/5</span>
+            <div class="score-box">⭐ Stars: <span id="score">0</span></div>
+        </div>
+
+        <div class="instruction-text">Tap and pop all the ocean bubbles! 🫧🐳</div>
+
+        <!-- Ocean Area -->
+        <div class="ocean-box">
+            <div class="sea-group" id="sea-1"></div>
+            <div class="wave-divider">💧 plus 💧</div>
+            <div class="sea-group" id="sea-2"></div>
+        </div>
+
+        <!-- Selection Grid -->
+        <div class="options-grid" id="options-container"></div>
+
+        <!-- Success Screen Overlay -->
+        <div class="overlay" id="feedback-overlay">
+            <div class="reward-star" id="feedback-icon">🐠</div>
+            <h2 id="feedback-text">Correct!</h2>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'pop') {
+                // High short sine wave for a clean liquid splash or pop sound
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } else if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(130, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, index) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.1));
+                    g.gain.setValueAtTime(0.15, audioCtx.currentTime + (index * 0.1));
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (index * 0.1) + 0.4);
+                    o.start(audioCtx.currentTime + (index * 0.1));
+                    o.stop(audioCtx.currentTime + (index * 0.1) + 0.4);
+                });
+            }
+        }
+
+        let currentQuestion = 1;
+        const totalQuestions = 5;
+        let score = 0;
+        let correctAnswer = 0;
+
+        // Aquatic emoji theme options
+        const oceanItems = ['🫧', '🐠', '🐙', '🦀', '🐳', '🐢'];
+
+        const sea1El = document.getElementById('sea-1');
+        const sea2El = document.getElementById('sea-2');
+        const optionsContainer = document.getElementById('options-container');
+        const overlay = document.getElementById('feedback-overlay');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const scoreEl = document.getElementById('score');
+        const questionNumEl = document.getElementById('question-num');
+
+        function generateProblem() {
+            // Kindergarten friendly math ranges (Sum stays 10 or under)
+            const n1 = Math.floor(Math.random() * 5) + 1; // 1 to 5
+            const n2 = Math.floor(Math.random() * 5) + 1; // 1 to 5
+            correctAnswer = n1 + n2;
+
+            sea1El.innerHTML = '';
+            sea2El.innerHTML = '';
+
+            // Randomize icons per question to keep visuals refreshing
+            const themeIcon1 = oceanItems[Math.floor(Math.random() * oceanItems.length)];
+            let themeIcon2 = oceanItems[Math.floor(Math.random() * oceanItems.length)];
+            if(themeIcon1 === themeIcon2) themeIcon2 = '🫧'; // Ensure a bit of variety
+
+            for (let i = 0; i < n1; i++) {
+                createSeaElement(sea1El, themeIcon1);
+            }
+
+            for (let i = 0; i < n2; i++) {
+                createSeaElement(sea2El, themeIcon2);
+            }
+
+            generateChoices(correctAnswer);
+        }
+
+        function createSeaElement(container, icon) {
+            const btn = document.createElement('button');
+            btn.className = 'bubble-btn';
+            btn.textContent = icon;
+            
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                playSound('pop');
+                btn.classList.toggle('counted');
+            });
+            container.appendChild(btn);
+        }
+
+        function generateChoices(correct) {
+            optionsContainer.innerHTML = '';
+            let choices = [correct];
+            
+            while(choices.length < 4) {
+                let wrong = correct + (Math.floor(Math.random() * 5) - 2);
+                if(wrong > 0 && wrong <= 10 && !choices.includes(wrong)) {
+                    choices.push(wrong);
+                }
+            }
+
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-choice';
+                btn.textContent = choice;
+                btn.addEventListener('pointerdown', () => checkAnswer(choice));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected) {
+            overlay.style.display = 'flex';
+            
+            if(selected === correctAnswer) {
+                playSound('correct');
+                score++;
+                scoreEl.textContent = score;
+                feedbackIcon.textContent = '🧜';
+                feedbackText.textContent = 'Wonderful!';
+                feedbackText.style.color = '#0284c7';
+                createWaterBubbles();
+            } else {
+                playSound('wrong');
+                feedbackIcon.textContent = '🐠';
+                feedbackText.textContent = `Try counting again! It's ${correctAnswer}`;
+                feedbackText.style.color = '#ef4444';
+            }
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                if(currentQuestion < totalQuestions) {
+                    currentQuestion++;
+                    questionNumEl.textContent = currentQuestion;
+                    generateProblem();
+                } else {
+                    showEndGame();
+                }
+            }, 2500);
+        }
+
+        function createWaterBubbles() {
+            for(let i=0; i<15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble-confetti';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 0.4 + 's';
+                overlay.appendChild(bubble);
+                setTimeout(() => bubble.remove(), 1500);
+            }
+        }
+
+        function showEndGame() {
+            overlay.style.display = 'flex';
+            playSound('win');
+            feedbackIcon.textContent = '👑';
+            feedbackText.innerHTML = `Ocean Adventure Clear!<br>Score: ${score}/${totalQuestions}`;
+            feedbackText.style.color = '#0369a1';
+            
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = 'Dive Again';
+            restartBtn.style.cssText = 'margin-top:20px; padding:12px 25px; font-size:1.5rem; background:#0284c7; color:white; border:none; border-radius:20px; box-shadow:0 5px 0 #0369a1; cursor:pointer; font-family: inherit;';
+            
+            restartBtn.addEventListener('pointerdown', () => {
+                currentQuestion = 1;
+                score = 0;
+                scoreEl.textContent = score;
+                questionNumEl.textContent = currentQuestion;
+                restartBtn.remove();
+                overlay.style.display = 'none';
+                generateProblem();
+            });
+            overlay.appendChild(restartBtn);
+        }
+
+        generateProblem();
+    </script>
+
+<br>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="carni.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

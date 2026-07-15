@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+ 
+
+
+	<table>
+	<tr>
+		<td>
+		<a href="5.html"><img src="1SUB.png" width="250" length="600"></a>
+
+		</td>
+	
+	</tr>
+	</table>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtraction Balloon Game</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: linear-gradient(to top, #87CEEB, #ffffff);
+        margin: 0;
+        padding: 0;
+    }
+
+    h1 {
+        margin-top: 20px;
+    }
+
+    #game {
+        padding: 20px;
+    }
+
+    #question {
+        font-size: 28px;
+        margin: 20px 0;
+    }
+
+    .balloons {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .balloon {
+        width: 80px;
+        height: 100px;
+        background: pink;
+        border-radius: 50% 50% 50% 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        user-select: none;
+    }
+
+    .balloon:active {
+        transform: scale(0.9);
+    }
+
+    #score {
+        font-size: 20px;
+        margin-top: 15px;
+    }
+
+    /* Mobile friendly */
+    @media (max-width: 600px) {
+        .balloon {
+            width: 60px;
+            height: 80px;
+            font-size: 18px;
+        }
+
+        #question {
+            font-size: 22px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<h1>🎈 Subtraction Balloon Game</h1>
+
+<div id="game">
+    <div id="question"></div>
+    <div class="balloons" id="answers"></div>
+    <div id="score">Score: 0</div>
+</div>
+
+<script>
+let score = 0;
+let correctAnswer = 0;
+
+function generateQuestion() {
+    let num1 = Math.floor(Math.random() * 10) + 1;
+    let num2 = Math.floor(Math.random() * num1);
+
+    correctAnswer = num1 - num2;
+
+    document.getElementById("question").innerText =
+        `${num1} - ${num2} = ?`;
+
+    generateAnswers();
+}
+
+function generateAnswers() {
+    let answersDiv = document.getElementById("answers");
+    answersDiv.innerHTML = "";
+
+    let options = new Set();
+    options.add(correctAnswer);
+
+    while (options.size < 4) {
+        options.add(Math.floor(Math.random() * 10));
+    }
+
+    let shuffled = Array.from(options).sort(() => Math.random() - 0.5);
+
+    shuffled.forEach(num => {
+        let balloon = document.createElement("div");
+        balloon.className = "balloon";
+        balloon.innerText = num;
+
+        balloon.onclick = () => checkAnswer(num);
+
+        answersDiv.appendChild(balloon);
+    });
+}
+
+function checkAnswer(selected) {
+    if (selected === correctAnswer) {
+        score++;
+        alert("🎉 Correct!");
+    } else {
+        alert("❌ Try again!");
+    }
+
+    document.getElementById("score").innerText = "Score: " + score;
+    generateQuestion();
+}
+
+generateQuestion();
+</script>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="5d.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+
+
+
+
+</body>
+</html>

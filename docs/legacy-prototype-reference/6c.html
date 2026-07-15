@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cupcake Match 11-15</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #fde2c4;
+            background-image: repeating-linear-gradient(45deg, #ffd7a7 0px, #ffd7a7 20px, #ffeac5 20px, #ffeac5 40px);
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .header-img {
+            max-width: 180px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .game-box {
+            max-width: 550px;
+            width: 100%;
+            background: #fff0da;
+            border-radius: 40px;
+            border: 6px solid #f2b279;
+            box-shadow: 0 10px 0 #cb7f4a;
+            padding: 15px;
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.4rem;
+            color: #633c1e;
+            margin: 0 0 10px;
+        }
+
+        .subhead {
+            display: block;
+            text-align: center;
+            font-size: 0.85rem;
+            background: #fee1b9;
+            padding: 5px 15px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            border: 2px solid #cc8b5a;
+            color: #452812;
+        }
+
+        .board {
+            display: flex;
+            gap: 10px;
+            background: #fadbb1;
+            border-radius: 20px;
+            padding: 10px;
+            border: 3px dashed #c0874e;
+        }
+
+        .panel {
+            flex: 1;
+            background: #fffbf0;
+            border-radius: 15px;
+            padding: 10px 5px;
+            border: 2px solid #dfa86a;
+        }
+
+        .panel h2 {
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 0 0 10px;
+            background: #ffd89a;
+            border-radius: 10px;
+            color: #3f2e16;
+        }
+
+        .num-card {
+            background: #ffb26b;
+            border: 3px solid #b05f26;
+            border-radius: 20px;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 0 #8e4d23;
+            cursor: pointer;
+        }
+
+        .cupcake-card {
+            background: #f8cfbc;
+            border: 3px solid #b3544b;
+            border-radius: 20px;
+            padding: 8px 4px;
+            margin-bottom: 10px;
+            min-height: 80px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 3px;
+            box-shadow: 0 4px 0 #943e36;
+            cursor: pointer;
+        }
+
+        /* Tiny CSS Cupcakes */
+        .cupcake {
+            width: 22px;
+            height: 22px;
+            background: #f7c1a4;
+            border-radius: 4px 4px 10px 10px;
+            border: 1px solid #ab5f3f;
+            position: relative;
+        }
+        .cupcake::before {
+            content: '';
+            position: absolute;
+            top: -10px; left: -1px;
+            width: 22px; height: 12px;
+            background: #ffb3c6; /* Frosting */
+            border-radius: 10px 10px 0 0;
+            border: 1px solid #bc5f7a;
+        }
+
+        .matched-num, .matched-cupcake {
+            background: #c8e6b5 !important;
+            border-color: #307530 !important;
+            box-shadow: none !important;
+            opacity: 0.5;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1rem;
+            background: #fff3c9;
+            border-radius: 15px;
+            padding: 10px;
+            border: 3px solid #cc9f64;
+            min-height: 50px;
+        }
+
+        /* Congratulations Star Screen */
+        #star-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .big-star {
+            font-size: 120px;
+            color: #FFD700;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            to { transform: rotate(360deg) scale(1); }
+        }
+
+        .next-btn {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px #e68a00;
+            margin-top: 20px;
+            font-family: inherit;
+        }
+
+        .nav-table { width: 100%; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <img src="1NUM.png" class="header-img" alt="Numbers">
+
+    <div class="game-box">
+        <div class="title">🧁 11 • 12 • 13 • 14 • 15 🧁</div>
+        <span class="subhead">Tap number → Tap cupcakes</span>
+
+        <div class="board">
+            <div class="panel">
+                <h2>Numbers</h2>
+                <div id="numbersPanel"></div>
+            </div>
+            <div class="panel">
+                <h2>Cupcakes</h2>
+                <div id="quantityPanel"></div>
+            </div>
+        </div>
+
+        <div id="messageDisplay" class="feedback">Ready to bake?</div>
+    </div>
+
+    <div id="star-overlay">
+        <div class="big-star">⭐</div>
+        <h1 style="color: #ff4500; font-size: 40px;">ANG GALING!</h1>
+        <p style="font-size: 20px;">Natapos mo na ang 11 hanggang 15!</p>
+        <button class="next-btn" onclick="window.location.href='6d.html'">Next Game ➔</button>
+        <p onclick="location.reload()" style="cursor:pointer; text-decoration: underline; margin-top: 20px; color: #666;">Play Again</p>
+    </div>
+<center>
+    <table class="nav-table">
+        <tr>
+            <td align="center"><a href="1.html"><img src="ACT.png" width="100"></a></td>
+            <td align="center"><a href="6d.html"><img src="np.png" width="100"></a></td>
+        </tr>
+    </table>
+</center>
+<script>
+    const NUMBER_VALUES = [11, 12, 13, 14, 15];
+    let selectedNumber = null;
+    let matches = {};
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(isCorrect) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = isCorrect ? 'sine' : 'square';
+        osc.frequency.setValueAtTime(isCorrect ? 600 : 150, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+        osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function render() {
+        const numPanel = document.getElementById('numbersPanel');
+        const qPanel = document.getElementById('quantityPanel');
+        numPanel.innerHTML = '';
+        qPanel.innerHTML = '';
+
+        NUMBER_VALUES.forEach(num => {
+            const card = document.createElement('div');
+            card.className = 'num-card' + (matches[num] ? ' matched-number' : '');
+            card.innerText = num;
+            card.onclick = () => {
+                selectedNumber = num;
+                document.getElementById('messageDisplay').innerText = "Hanapin ang " + num + " na cupcake!";
+            };
+            numPanel.appendChild(card);
+        });
+
+        if(!window.shuffledList || Object.keys(matches).length === 0) {
+            window.shuffledList = [...NUMBER_VALUES].sort(() => Math.random() - 0.5);
+        }
+
+        window.shuffledList.forEach(num => {
+            const card = document.createElement('div');
+            card.className = 'cupcake-card' + (matches[num] ? ' matched-cupcake' : '');
+            for(let i=0; i<num; i++) {
+                const cupcake = document.createElement('div');
+                cupcake.className = 'cupcake';
+                card.appendChild(cupcake);
+            }
+            card.onclick = () => {
+                if(!matches[num] && selectedNumber) {
+                    if(selectedNumber === num) {
+                        matches[num] = true;
+                        selectedNumber = null;
+                        playSound(true);
+                        document.getElementById('messageDisplay').innerText = "Yum! Tama ka! 🧁";
+                        render();
+                        if(Object.keys(matches).length === 5) {
+                            setTimeout(() => { document.getElementById('star-overlay').style.display = 'flex'; }, 500);
+                        }
+                    } else {
+                        playSound(false);
+                        document.getElementById('messageDisplay').innerText = "Subukan muli ang pagbilang! 🧐";
+                    }
+                } else if (!selectedNumber) {
+                    document.getElementById('messageDisplay').innerText = "Pindutin muna ang numero!";
+                }
+            };
+            qPanel.appendChild(card);
+        });
+    }
+
+    render();
+</script>
+</body>
+</html>

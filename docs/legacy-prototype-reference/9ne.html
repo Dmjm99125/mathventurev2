@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Routine Clock Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #ede7f6; /* Soft purple background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; 
+            text-align: center;
+        }
+
+        h1 {
+            color: #4527a0;
+            font-size: 1.8rem;
+            margin: 10px 0;
+        }
+
+        /* --- Reward Bar --- */
+        .reward-bar {
+            background-color: #d1c4e9;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            color: #311b92;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .star {
+            color: #fbc02d;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        /* --- Routine Display --- */
+        .routine-box {
+            background-color: white;
+            border: 4px solid #7e57c2;
+            border-radius: 15px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: #4527a0;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .routine-emoji {
+            font-size: 3rem;
+            margin-bottom: 5px;
+        }
+
+        .target-time {
+            color: #d32f2f;
+            font-size: 2rem;
+            background-color: #ffcdd2;
+            padding: 5px 15px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+
+        /* --- The Main Clock --- */
+        .clock {
+            width: 180px; 
+            height: 180px;
+            border: 8px solid #ab47bc;
+            border-radius: 50%;
+            background-color: white;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .clock::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* Clock Numbers */
+        .clock-number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            padding-top: 5px;
+            box-sizing: border-box;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #6a1b9a;
+            pointer-events: none; 
+            z-index: 1;
+        }
+
+        .clock-number span { display: inline-block; }
+
+        /* Clock Hands */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background-color: #333;
+            border-radius: 10px;
+            z-index: 5;
+            transition: transform 0.3s cubic-bezier(0.4, 2.08, 0.55, 0.44); /* Bouncy animation! */
+        }
+
+        .hour-hand { width: 6px; height: 50px; margin-left: -3px; background-color: #d32f2f; }
+        .minute-hand { width: 4px; height: 75px; margin-left: -2px; }
+
+        /* --- Controls --- */
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            font-family: inherit;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.1s, filter 0.2s;
+            touch-action: manipulation; /* Makes tapping on phones instant */
+        }
+
+        button:active { transform: scale(0.95); }
+        button:hover { filter: brightness(1.1); }
+
+        .btn-spin {
+            background-color: #29b6f6;
+            font-size: 1.8rem;
+            padding: 15px 25px;
+            border: 3px solid #0288d1;
+        }
+
+        .btn-check {
+            background-color: #66bb6a;
+            font-size: 1.5rem;
+            padding: 15px 20px;
+            border: 3px solid #388e3c;
+        }
+
+        /* Feedback Animation */
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Full Screen Celebration */
+        #celebration {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #6a1b9a;
+            font-weight: bold;
+        }
+
+        #playAgainBtn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            background-color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Daily Routine Time!</h1>
+    
+    <div class="reward-bar" id="rewardBar">Rewards: </div>
+
+    <div class="routine-box" id="routineBox">
+        <div class="routine-emoji" id="routineEmoji">🥞</div>
+        <div id="routineText">Time for Breakfast!</div>
+        <div class="target-time" id="targetTimeText">8:00</div>
+    </div>
+
+    <div class="clock" id="mainClock">
+        <div class="hand hour-hand" id="hourHand"></div>
+        <div class="hand minute-hand" id="minuteHand" style="transform: rotate(0deg);"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-spin" onclick="moveClock()">+1 Hour</button>
+        <button class="btn-check" onclick="checkTime()">Set Alarm!</button>
+    </div>
+
+    <div id="celebration">
+        🎉 PERFECT DAY! 🎉
+        <button id="playAgainBtn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        // The curriculum data!
+        const routines = [
+            { emoji: '🥞', text: 'Time for Breakfast!', hour: 8 },
+            { emoji: '📚', text: 'Story Time!', hour: 10 },
+            { emoji: '🥪', text: 'Lunch Time!', hour: 12 },
+            { emoji: '🧸', text: 'Play Time!', hour: 3 },
+            { emoji: '🧹', text: 'Clean Up Time!', hour: 4 },
+            { emoji: '🌙', text: 'Bed Time!', hour: 8 }
+        ];
+
+        let currentTargetHour = 0;
+        let currentClockHour = 12; // Start the clock at 12
+        let starsCollected = 0;
+        const maxStars = 5;
+
+        // Draw the numbers 1 to 12
+        function initClockFace() {
+            const clock = document.getElementById('mainClock');
+            for (let i = 1; i <= 12; i++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'clock-number';
+                numberDiv.style.transform = `rotate(${i * 30}deg)`;
+                
+                const span = document.createElement('span');
+                span.textContent = i;
+                span.style.transform = `rotate(${-i * 30}deg)`;
+                
+                numberDiv.appendChild(span);
+                clock.appendChild(numberDiv);
+            }
+        }
+
+        function generateLevel() {
+            // Pick a random routine
+            const randomRoutine = routines[Math.floor(Math.random() * routines.length)];
+            currentTargetHour = randomRoutine.hour;
+
+            // Update the UI
+            document.getElementById('routineEmoji').textContent = randomRoutine.emoji;
+            document.getElementById('routineText').textContent = randomRoutine.text;
+            document.getElementById('targetTimeText').textContent = `${currentTargetHour}:00`;
+
+            // Reset clock hand to 12 at the start of each round
+            currentClockHour = 12;
+            updateClockDisplay();
+        }
+
+        function moveClock() {
+            // Add 1 hour. If it goes past 12, loop back to 1.
+            currentClockHour++;
+            if (currentClockHour > 12) {
+                currentClockHour = 1;
+            }
+            updateClockDisplay();
+        }
+
+        function updateClockDisplay() {
+            const hourHand = document.getElementById('hourHand');
+            // Multiplies the hour by 30 degrees
+            hourHand.style.transform = `rotate(${currentClockHour * 30}deg)`;
+        }
+
+        function checkTime() {
+            const clockElement = document.getElementById('mainClock');
+            
+            if (currentClockHour === currentTargetHour) {
+                // They got it right!
+                starsCollected++;
+                updateRewardBar();
+                
+                if (starsCollected >= maxStars) {
+                    document.getElementById('celebration').style.display = 'flex';
+                } else {
+                    generateLevel();
+                }
+            } else {
+                // They got it wrong. Add a CSS shake animation to the clock
+                clockElement.classList.add('shake');
+                setTimeout(() => {
+                    clockElement.classList.remove('shake');
+                }, 500); // Remove the class after the animation finishes
+            }
+        }
+
+        function updateRewardBar() {
+            let starsHtml = 'Rewards: ';
+            for (let i = 0; i < starsCollected; i++) {
+                starsHtml += '<span class="star">⭐</span>';
+            }
+            document.getElementById('rewardBar').innerHTML = starsHtml;
+        }
+
+        function resetGame() {
+            starsCollected = 0;
+            updateRewardBar();
+            document.getElementById('celebration').style.display = 'none';
+            generateLevel();
+        }
+
+        // Start up the game
+        initClockFace();
+        updateRewardBar();
+        generateLevel();
+    </script>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="200"></a></center>
+	</td>
+	<td>
+	 <center><a href="9nf.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+
+</tr>
+</table>
+</center>
+
+</body>
+</html>

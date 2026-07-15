@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rainbow Color Catcher</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    overflow-x:hidden;
+    background:linear-gradient(#dff6ff,#fffde8);
+}
+
+h1{
+    color:#444;
+}
+
+#topBar{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+    font-size:1.2em;
+    margin:10px;
+}
+
+#targetColor{
+    font-size:2em;
+    font-weight:bold;
+    margin:20px;
+}
+
+#board{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(120px,180px));
+    gap:15px;
+    justify-content:center;
+    margin:20px;
+}
+
+.colorBtn{
+    height:120px;
+    border:none;
+    border-radius:20px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.colorBtn:hover{
+    transform:scale(1.05);
+}
+
+#message{
+    font-size:1.4em;
+    height:35px;
+    font-weight:bold;
+}
+
+#animals{
+    font-size:3em;
+    min-height:60px;
+}
+
+#rainbow{
+    position:fixed;
+    top:0;
+    left:-100%;
+    width:100%;
+    font-size:120px;
+    pointer-events:none;
+    opacity:0;
+}
+
+.showRainbow{
+    animation:rainbowMove 3s ease;
+}
+
+@keyframes rainbowMove{
+    0%{
+        left:-100%;
+        opacity:0;
+    }
+    30%{
+        opacity:1;
+    }
+    100%{
+        left:100%;
+        opacity:0;
+    }
+}
+
+.character{
+    position:fixed;
+    bottom:10px;
+    font-size:60px;
+    animation:walk 12s linear forwards;
+    pointer-events:none;
+}
+
+@keyframes walk{
+    from{
+        left:-100px;
+    }
+    to{
+        left:110%;
+    }
+}
+
+#restart{
+    padding:12px 20px;
+    border:none;
+    border-radius:10px;
+    background:#4CAF50;
+    color:white;
+    font-size:1em;
+    display:none;
+}
+
+@media(max-width:600px){
+    .colorBtn{
+        height:100px;
+    }
+
+    #targetColor{
+        font-size:1.5em;
+    }
+
+    .character{
+        font-size:45px;
+    }
+}
+</style>
+</head>
+<body>
+
+<h1>🌈 Rainbow Color Catcher</h1>
+
+<div id="topBar">
+    <div id="score">⭐ Score: 0</div>
+    <div id="highScore">🏆 High Score: 0</div>
+    <div id="timer">⏱️ 30</div>
+    <div id="lives">❤️❤️❤️</div>
+</div>
+
+<div id="targetColor"></div>
+
+<div id="message"></div>
+
+<div id="board"></div>
+
+<div id="animals"></div>
+
+<div id="rainbow">🌈🌈🌈</div>
+
+<button id="restart" onclick="restartGame()">Play Again</button>
+
+<script>
+
+const colors=[
+{name:"RED",value:"red"},
+{name:"BLUE",value:"blue"},
+{name:"GREEN",value:"green"},
+{name:"YELLOW",value:"yellow"},
+{name:"PURPLE",value:"purple"},
+{name:"ORANGE",value:"orange"},
+{name:"PINK",value:"pink"},
+{name:"BROWN",value:"brown"}
+];
+
+const walkers=[
+"🦄","🐶","🐱","🐰","🐼",
+"🦊","🐸","🐵","🦁","🐯",
+"🎈","🚂","🐧","🐨"
+];
+
+let score=0;
+let lives=3;
+let answer;
+let timeLeft=60;
+let gameRunning=true;
+
+let highScore=
+localStorage.getItem("colorHighScore") || 0;
+
+document.getElementById("highScore").textContent=
+"🏆 High Score: "+highScore;
+
+function shuffle(arr){
+    return arr.sort(()=>Math.random()-0.5);
+}
+
+function createWalker(){
+
+    const char=
+    walkers[Math.floor(Math.random()*walkers.length)];
+
+    const div=document.createElement("div");
+    div.className="character";
+    div.innerHTML=char;
+
+    div.style.bottom=
+    Math.random()*120+"px";
+
+    document.body.appendChild(div);
+
+    setTimeout(()=>{
+        div.remove();
+    },12000);
+}
+
+setInterval(()=>{
+    if(gameRunning){
+        createWalker();
+    }
+},4000);
+
+function rainbowCelebrate(){
+
+    const rainbow=
+    document.getElementById("rainbow");
+
+    rainbow.classList.remove("showRainbow");
+
+    void rainbow.offsetWidth;
+
+    rainbow.classList.add("showRainbow");
+}
+
+function updateDisplay(){
+
+    document.getElementById("score").textContent=
+    "⭐ Score: "+score;
+
+    document.getElementById("lives").textContent=
+    "❤️".repeat(lives);
+
+    document.getElementById("timer").textContent=
+    "⏱️ "+timeLeft;
+}
+
+function newRound(){
+
+    const options=
+    shuffle([...colors]).slice(0,4);
+
+    answer=
+    options[Math.floor(Math.random()*4)];
+
+    document.getElementById("targetColor").innerHTML=
+    `Find: <span style="color:${answer.value}">
+    ${answer.name}</span>`;
+
+    const board=
+    document.getElementById("board");
+
+    board.innerHTML="";
+
+    shuffle(options).forEach(color=>{
+
+        const btn=document.createElement("button");
+
+        btn.className="colorBtn";
+        btn.style.background=color.value;
+
+        btn.onclick=()=>checkAnswer(color);
+
+        board.appendChild(btn);
+    });
+}
+
+function checkAnswer(color){
+
+    if(!gameRunning) return;
+
+    if(color.name===answer.name){
+
+        score++;
+
+        document.getElementById("message").textContent=
+        "✅ Great Job!";
+
+        if(score%5===0){
+
+            document.getElementById("animals")
+            .innerHTML +=
+            walkers[Math.floor(Math.random()*10)];
+        }
+
+        if(score%10===0){
+            rainbowCelebrate();
+        }
+
+    }else{
+
+        lives--;
+
+        document.getElementById("message").textContent=
+        "❌ Oops!";
+    }
+
+    if(score>highScore){
+
+        highScore=score;
+
+        localStorage.setItem(
+            "colorHighScore",
+            highScore
+        );
+
+        document.getElementById("highScore")
+        .textContent=
+        "🏆 High Score: "+highScore;
+    }
+
+    updateDisplay();
+
+    if(lives<=0){
+        gameOver();
+        return;
+    }
+
+    setTimeout(newRound,400);
+}
+
+function gameOver(){
+
+    gameRunning=false;
+
+    document.getElementById("board").innerHTML="";
+
+    document.getElementById("targetColor").innerHTML=
+    `🎉 Game Over!<br>Final Score: ${score}`;
+
+    document.getElementById("restart")
+    .style.display="inline-block";
+}
+
+function restartGame(){
+
+    score=0;
+    lives=3;
+    timeLeft=30;
+    gameRunning=true;
+
+    document.getElementById("animals").innerHTML="";
+    document.getElementById("message").innerHTML="";
+
+    document.getElementById("restart")
+    .style.display="none";
+
+    updateDisplay();
+    newRound();
+}
+
+setInterval(()=>{
+
+    if(!gameRunning) return;
+
+    timeLeft--;
+
+    updateDisplay();
+
+    if(timeLeft<=0){
+        gameOver();
+    }
+
+},1000);
+
+updateDisplay();
+newRound();
+
+</script>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="rcd.html"><img src="np.png" width="150" length="150"></a></center>
+<br>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtraction Adventure</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: linear-gradient(to top, #a1c4fd, #c2e9fb);
+    margin: 0;
+}
+
+/* SCREENS */
+.screen { display: none; }
+.active { display: block; }
+
+/* MENU */
+#menu h1 { margin-top: 30px; }
+.character {
+    font-size: 50px;
+    cursor: pointer;
+    margin: 10px;
+}
+.selected {
+    border: 3px solid #333;
+    border-radius: 10px;
+}
+
+/* GAME */
+#characterDisplay {
+    font-size: 60px;
+}
+
+#visual {
+    font-size: 35px;
+    margin: 10px;
+}
+
+.btn {
+    padding: 12px 18px;
+    font-size: 18px;
+    border: none;
+    border-radius: 15px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+/* Mobile */
+@media (max-width:600px) {
+    #visual { font-size: 25px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- MENU SCREEN -->
+<div id="menu" class="screen active">
+    <h1>🎮 Subtraction Adventure</h1>
+    <p>Choose your character:</p>
+
+    <div>
+        <span class="character" onclick="selectCharacter('🐻', this)">🐻</span>
+        <span class="character" onclick="selectCharacter('🐱', this)">🐱</span>
+        <span class="character" onclick="selectCharacter('🐸', this)">🐸</span>
+    </div>
+
+    <br>
+    <button class="btn" onclick="startGame()">▶️ Start Game</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game" class="screen">
+    <h2 id="characterDisplay"></h2>
+    <div id="story"></div>
+    <div id="visual"></div>
+
+    <div id="answers"></div>
+
+    <p>
+        Score: <span id="score">0</span> |
+        Level: <span id="level">1</span>
+    </p>
+
+    <button class="btn" onclick="goMenu()">🔁 Back to Menu</button>
+</div>
+
+<script>
+let character = "🐻";
+let score = 0;
+let level = 1;
+let correctAnswer = 0;
+
+const fruits = ["🍎","🍌","🍇","🍓","🍍"];
+
+// Removed the speak() function
+
+function selectCharacter(char, element){
+    character = char;
+
+    document.querySelectorAll(".character").forEach(c=>{
+        c.classList.remove("selected");
+    });
+
+    element.classList.add("selected");
+}
+
+function startGame(){
+    document.getElementById("menu").classList.remove("active");
+    document.getElementById("game").classList.add("active");
+
+    document.getElementById("characterDisplay").innerText = character;
+
+    score = 0;
+    level = 1;
+
+    generateGame();
+}
+
+function goMenu(){
+    document.getElementById("game").classList.remove("active");
+    document.getElementById("menu").classList.add("active");
+}
+
+function randomFruit(){
+    return fruits[Math.floor(Math.random()*fruits.length)];
+}
+
+function generateGame(){
+    let max = 5 + level;
+    let num1 = Math.floor(Math.random()*max)+2;
+    let num2 = Math.floor(Math.random()*num1);
+
+    correctAnswer = num1 - num2;
+
+    let fruit = randomFruit();
+
+    let story = `${character} ay mayroong ${num1} ${fruit}. Kinain niya ang ${num2}. Ilan ang natira?`;
+
+    document.getElementById("story").innerText = story;
+
+    document.getElementById("visual").innerText =
+        fruit.repeat(num1) + " ➖ " + fruit.repeat(num2);
+
+    generateAnswers();
+}
+
+function generateAnswers(){
+    let container = document.getElementById("answers");
+    container.innerHTML = "";
+
+    let options = new Set();
+    options.add(correctAnswer);
+
+    while(options.size < 4){
+        options.add(Math.floor(Math.random()*10));
+    }
+
+    let shuffled = Array.from(options).sort(()=>Math.random()-0.5);
+
+    shuffled.forEach(num=>{
+        let btn = document.createElement("button");
+        btn.className = "btn";
+        btn.innerText = num;
+
+        btn.onclick = ()=>checkAnswer(num);
+
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected){
+    if(selected === correctAnswer){
+        score++;
+        // Removed speak("Great job!");
+    } else {
+        // Removed speak("Try again!");
+    }
+
+    if(score > 0 && score % 5 === 0){
+        level++;
+        // Removed speak("Level up!");
+    }
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("level").innerText = level;
+
+    setTimeout(generateGame, 600);
+}
+</script>
+
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+ <br>
+ <br>
+ <br>
+ <br>
+ <br>
+
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="su1.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

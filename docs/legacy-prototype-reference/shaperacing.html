@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shape Racing Deluxe</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    text-align:center;
+    overflow-x:hidden;
+    transition:background 1s;
+}
+
+.track-jungle{ background:linear-gradient(#8fd694,#4caf50); }
+.track-space{ background:linear-gradient(#0f172a,#312e81); color:white; }
+.track-ocean{ background:linear-gradient(#87ceeb,#2196f3); }
+.track-desert{ background:linear-gradient(#f4d03f,#e67e22); }
+
+h1{ margin-top:15px; }
+
+.topbar{
+    display:flex;
+    justify-content:center;
+    gap:25px;
+    flex-wrap:wrap;
+    font-size:22px;
+    font-weight:bold;
+    margin:15px;
+}
+
+#question{
+    font-size:28px;
+    margin:15px;
+}
+
+.progress-container{
+    width:90%;
+    height:25px;
+    background:#ddd;
+    margin:auto;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress{
+    height:100%;
+    width:0%;
+    background:limegreen;
+    transition:0.5s;
+}
+
+.race-area{
+    width:95%;
+    margin:auto;
+}
+
+.track{
+    height:90px;
+    background:white;
+    border:3px solid #333;
+    margin:12px 0;
+    position:relative;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.finish{
+    position:absolute;
+    right:0;
+    top:0;
+    width:10px;
+    height:100%;
+    background:red;
+}
+
+.car{
+    position:absolute;
+    left:10px;
+    top:18px;
+    cursor:pointer;
+    transition:transform .2s;
+    /* Center the shapes inside the car div */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.car:hover{ transform:scale(1.1); }
+
+.circle{
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    background:#ff6b6b;
+}
+
+.square{
+    width:55px;
+    height:55px;
+    background:#4ecdc4;
+}
+
+.rectangle{
+    width:80px;
+    height:50px;
+    background:#ffd93d;
+}
+
+/* MOBILE FIX FOR TRIANGLE */
+.triangle{
+    width:0 !important;
+    height:0 !important;
+    background: transparent !important;
+    border-left:30px solid transparent;
+    border-right:30px solid transparent;
+    border-bottom:60px solid #6c5ce7;
+}
+
+.star{
+    font-size:60px;
+    color:#ff9f43;
+    line-height: 1;
+}
+
+#message{
+    font-size:30px;
+    height:45px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+#rewards{
+    font-size:45px;
+    min-height:60px;
+    margin-top:10px;
+}
+
+.confetti{
+    position:fixed;
+    font-size:35px;
+    animation:fall 3s linear forwards;
+    pointer-events:none;
+    z-index: 100;
+}
+
+@keyframes fall{
+    0%{ transform:translateY(-100px); }
+    100%{ transform:translateY(110vh); }
+}
+
+@media(max-width:600px){
+    #question{ font-size:22px; }
+    .track{ height:80px; }
+    .topbar{ font-size:18px; }
+    .triangle {
+        border-left:25px solid transparent;
+        border-right:25px solid transparent;
+        border-bottom:50px solid #6c5ce7;
+    }
+}
+</style>
+</head>
+<body class="track-jungle">
+
+<h1>🏁 Shape Racing Deluxe 🚗</h1>
+
+<div class="topbar">
+    <div>⭐ Score: <span id="score">0</span></div>
+    <div>🏆 Level: <span id="level">1</span></div>
+    <div>🎖️ Trophies: <span id="trophy">0</span></div>
+</div>
+
+<div id="question"></div>
+
+<div class="progress-container">
+    <div class="progress" id="progress"></div>
+</div>
+
+<div class="race-area" id="raceArea"></div>
+
+<div id="message"></div>
+<div id="rewards"></div>
+
+<script>
+const shapes=["Circle","Square","Rectangle","Triangle","Star"];
+const rewards=["🎈","🐰","🦄","🌈","🐱","🎁","⭐","🚀"];
+const tracks=["track-jungle","track-space","track-ocean","track-desert"];
+
+let score=0;
+let level=1;
+let trophies=0;
+let targetShape="";
+let canClick = true;
+
+function createRace(){
+    const area=document.getElementById("raceArea");
+    area.innerHTML="";
+    const shuffled=[...shapes].sort(()=>Math.random()-0.5);
+
+    shuffled.forEach(shape=>{
+        const track=document.createElement("div");
+        track.className="track";
+
+        const finish=document.createElement("div");
+        finish.className="finish";
+
+        const car=document.createElement("div");
+        car.className="car";
+        car.dataset.shape=shape;
+
+        if(shape==="Circle") car.innerHTML='<div class="circle"></div>';
+        if(shape==="Square") car.innerHTML='<div class="square"></div>';
+        if(shape==="Rectangle") car.innerHTML='<div class="rectangle"></div>';
+        if(shape==="Triangle") car.innerHTML='<div class="triangle"></div>';
+        if(shape==="Star") car.innerHTML='<div class="star">★</div>';
+
+        car.onclick=()=> { if(canClick) pickShape(shape); };
+
+        track.appendChild(car);
+        track.appendChild(finish);
+        area.appendChild(track);
+    });
+}
+
+function nextRound(){
+    canClick = true;
+    document.getElementById("message").innerHTML = "";
+    document.body.className= tracks[Math.floor(Math.random()*tracks.length)];
+    targetShape= shapes[Math.floor(Math.random()*shapes.length)];
+    document.getElementById("question").innerHTML= "🎯 Tap the <b>"+targetShape+"</b> racer!";
+    createRace();
+}
+
+function pickShape(choice){
+    canClick = false; // Prevent multiple clicks during race
+    const cars=document.querySelectorAll(".car");
+    const msg = document.getElementById("message");
+
+    cars.forEach(car=>{
+        let duration;
+        // WINNING LOGIC: The target shape is always faster
+        if(car.dataset.shape === targetShape) {
+            duration = 0.7; // Fast
+        } else {
+            duration = 2.0 + Math.random(); // Slow
+        }
+
+        car.style.transition = "left " + duration + "s ease-in-out";
+        car.style.left = "85%";
+    });
+
+    // Determine results after the fast car finishes
+    setTimeout(()=>{
+        if(choice===targetShape){
+            score++;
+            document.getElementById("score").textContent=score;
+            msg.innerHTML="🎉 " + choice + " Wins! Great Job!";
+            msg.style.color = "green";
+            celebrate();
+
+            if(score%5===0){
+                level++;
+                document.getElementById("level").textContent=level;
+                addReward();
+            }
+            if(score%10===0){
+                trophies++;
+                document.getElementById("trophy").textContent=trophies;
+            }
+            updateProgress();
+        } else {
+            msg.innerHTML="❌ Oh no! The " + targetShape + " won.";
+            msg.style.color = "red";
+        }
+
+        // Wait for the slow cars to finish moving before resetting
+        setTimeout(nextRound, 2000);
+    }, 1000);
+}
+
+function updateProgress(){
+    let progress=(score%5)*20;
+    document.getElementById("progress").style.width= progress+"%";
+}
+
+function addReward(){
+    const reward= rewards[Math.floor(Math.random()*rewards.length)];
+    document.getElementById("rewards").innerHTML+= reward+" ";
+}
+
+function celebrate(){
+    for(let i=0;i<15;i++){
+        const c=document.createElement("div");
+        c.className="confetti";
+        c.innerHTML=["🎉","⭐","🎈","✨"][Math.floor(Math.random()*4)];
+        c.style.left=Math.random()*100+"vw";
+        c.style.top = "-50px";
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),3000);
+    }
+}
+
+nextRound();
+</script>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+<center>
+<table alighn="right">
+<tr>
+	<td>
+	 <center><a href="sha1.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

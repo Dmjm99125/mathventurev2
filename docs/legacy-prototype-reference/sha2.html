@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hungry Dragon Shapes</title>
+    <style>
+        :root {
+            --jungle-green: #2ecc71;
+            --boss-red: #e74c3c;
+            --gold: #f1c40f;
+            --wizard-purple: #9b59b6;
+        }
+
+        body {
+            margin: 0; background: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; overflow-x: hidden; touch-action: manipulation;
+            color: white;
+        }
+
+        #game-container {
+            position: relative; 
+            width: 95%; 
+            max-width: 500px; 
+            height: 440px; 
+            background: var(--jungle-green);
+            border: 6px solid #34495e; border-radius: 15px;
+            margin-top: 20px; overflow: hidden;
+        }
+
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
+
+        .active { display: flex !important; }
+
+        #hud {
+            position: absolute; top: 10px; width: 100%;
+            display: flex; justify-content: space-around;
+            font-size: 1.1rem; font-weight: bold; z-index: 10;
+            text-shadow: 2px 2px 4px black;
+        }
+
+        .dragon-icon { font-size: 5rem; animation: float 2s infinite ease-in-out; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        button {
+            padding: 15px 30px; font-size: 1.2rem;
+            cursor: pointer; background: var(--wizard-purple);
+            color: white; border: none; border-radius: 50px;
+            box-shadow: 0 5px #7d3c98; margin: 10px;
+        }
+
+        #shape-grid {
+            display: flex; gap: 12px; flex-wrap: wrap;
+            justify-content: center; margin-top: 10px; width: 100%;
+        }
+
+        .game-shape {
+            width: 65px; height: 65px;
+            cursor: pointer; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
+        }
+
+        #timer-container {
+            position: absolute; bottom: 15px; width: 80%;
+            height: 12px; background: rgba(0,0,0,0.3);
+            border-radius: 10px; overflow: hidden;
+        }
+
+        #timer-bar { width: 100%; height: 100%; background: var(--gold); }
+
+        /* REWARD STYLES */
+        #reward-hoard {
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            min-height: 40px;
+        }
+
+        .nav-links { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="hud">
+        <div id="stats-score">⭐: 0</div>
+        <div id="stats-lives">❤️: 3</div>
+    </div>
+
+    <div id="start-screen" class="screen active">
+        <div id="reward-hoard">Hoard: <span id="hoard-list">💎</span></div>
+        <div class="dragon-icon">🐲</div>
+        <h1>Hungry Dragon</h1>
+        <button onclick="startGame()">START FEEDING</button>
+    </div>
+
+    <div id="reward-screen" class="screen" style="background: var(--wizard-purple);">
+        <h1 style="color: var(--gold);">TREASURE!</h1>
+        <p>The Dragon gave you a gift for 100 points!</p>
+        <div id="new-reward-emoji" style="font-size: 5rem; margin: 20px;">🎁</div>
+        <button onclick="continueGame()">KEEP FEEDING</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="dragon-icon" style="font-size: 3rem;">🐲</div>
+        <h2 id="instruction">Feed me!</h2>
+        <div id="shape-grid"></div>
+        <div id="timer-container"><div id="timer-bar"></div></div>
+    </div>
+</div>
+
+<div class="nav-links">
+    <table align="center">
+        <tr>
+            <td align="center">
+                <a href="2d.html"><img src="np.png" width="70"></a><br><br>
+                <a href="1.html"><img src="ACT.png" width="70"></a>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+    let score = 0;
+    let lives = 3;
+    let timer;
+    let timeLeft = 25;
+    let targetShape = "";
+    let targetAmount = 0;
+    let currentFound = 0;
+    let collectedRewards = JSON.parse(localStorage.getItem('dragonRewards')) || ["💎"];
+
+    const shapes = ['circle', 'square', 'triangle', 'star'];
+    const rewards = ["👑", "💍", "🍦", "🍗", "🍕", "🎮", "🎸", "🚲", "🎨", "🚀", "🛸"];
+
+    function updateHoardDisplay() {
+        document.getElementById('hoard-list').innerText = collectedRewards.join(" ");
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function startGame() {
+        score = 0;
+        lives = 3;
+        updateHUD();
+        showScreen('game-screen');
+        newRound();
+    }
+
+    function continueGame() {
+        showScreen('game-screen');
+        newRound();
+    }
+
+    function newRound() {
+        currentFound = 0;
+        timeLeft = 25; 
+        targetShape = shapes[Math.floor(Math.random() * shapes.length)];
+        targetAmount = Math.floor(Math.random() * 3) + 2; // 2 to 4 shapes
+
+        document.getElementById('instruction').innerHTML = 
+            `Feed me <b>${targetAmount} ${targetShape.toUpperCase()}S</b>!`;
+
+        renderShapes();
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            // Get slightly faster as score increases
+            let difficulty = 0.2 + (Math.floor(score/100) * 0.05);
+            timeLeft -= difficulty;
+            
+            document.getElementById('timer-bar').style.width = (timeLeft / 25 * 100) + "%";
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                lives--;
+                updateHUD();
+                if (lives > 0) {
+                    alert("Grrr! The Dragon is hungry!");
+                    newRound();
+                } else {
+                    alert("Game Over! The Dragon went to sleep.");
+                    showScreen('start-screen');
+                    updateHoardDisplay();
+                }
+            }
+        }, 100);
+    }
+
+    function renderShapes() {
+        const grid = document.getElementById('shape-grid');
+        grid.innerHTML = '';
+        let options = [];
+        for (let i = 0; i < targetAmount; i++) options.push(targetShape);
+        while (options.length < 12) {
+            options.push(shapes[Math.floor(Math.random() * shapes.length)]);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        options.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'game-shape';
+            div.innerHTML = getSVG(s);
+            div.onclick = () => {
+                if (s === targetShape) {
+                    currentFound++;
+                    div.style.visibility = 'hidden';
+                    if (currentFound >= targetAmount) {
+                        let oldScore = score;
+                        score += 10;
+                        updateHUD();
+                        clearInterval(timer);
+                        
+                        // Check for Reward Milestone
+                        if (Math.floor(score/100) > Math.floor(oldScore/100)) {
+                            giveReward();
+                        } else {
+                            setTimeout(newRound, 500);
+                        }
+                    }
+                } else {
+                    timeLeft -= 4; // Penalty
+                    div.style.opacity = '0.3';
+                }
+            };
+            grid.appendChild(div);
+        });
+    }
+
+    function giveReward() {
+        const prize = rewards[Math.floor(Math.random() * rewards.length)];
+        collectedRewards.push(prize);
+        localStorage.setItem('dragonRewards', JSON.stringify(collectedRewards));
+        
+        document.getElementById('new-reward-emoji').innerText = prize;
+        showScreen('reward-screen');
+    }
+
+    function updateHUD() {
+        document.getElementById('stats-score').innerText = `⭐: ${score}`;
+        document.getElementById('stats-lives').innerText = `❤️: ${lives}`;
+    }
+
+    function getSVG(type) {
+        const colors = {circle: '#e74c3c', square: '#ffffff', triangle: '#2ecc71', star: '#f1c40f'};
+        if(type === 'circle') return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="${colors.circle}"/></svg>`;
+        if(type === 'square') return `<svg viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" fill="${colors.square}"/></svg>`;
+        if(type === 'triangle') return `<svg viewBox="0 0 100 100"><polygon points="50,15 85,85 15,85" fill="${colors.triangle}"/></svg>`;
+        if(type === 'star') return `<svg viewBox="0 0 100 100"><polygon points="50,5 63,35 95,35 70,55 80,85 50,70 20,85 30,55 5,35 37,35" fill="${colors.star}"/></svg>`;
+    }
+
+    updateHoardDisplay();
+</script>
+
+</body>
+</html>

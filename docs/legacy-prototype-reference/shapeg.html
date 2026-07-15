@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shape Hunter Game</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(to bottom,#87CEEB,#E0F7FF);
+    text-align:center;
+    overflow-x:hidden;
+}
+
+h1{
+    color:#333;
+    margin-top:15px;
+}
+
+#score{
+    font-size:24px;
+    font-weight:bold;
+    color:#ff5722;
+}
+
+#question{
+    font-size:28px;
+    margin:20px;
+    color:#222;
+}
+
+.game-area{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
+    padding:20px;
+}
+
+.shape{
+    width:120px;
+    height:120px;
+    cursor:pointer;
+    transition:transform 0.2s;
+}
+
+.shape:hover{
+    transform:scale(1.1);
+}
+
+.circle{
+    background:#ff6b6b;
+    border-radius:50%;
+}
+
+.square{
+    background:#4ecdc4;
+}
+
+.rectangle{
+    background:#ffd93d;
+    width:150px;
+    height:100px;
+}
+
+.triangle {
+    width: 0 !important;   /* !important ensures it overrides the .shape 120px */
+    height: 0 !important;
+    background: transparent !important; /* Removes the background color if any */
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 120px solid #6c5ce7;
+}
+.star{
+    font-size:110px;
+    color:#ff9f43;
+    line-height:120px;
+}
+
+.message{
+    font-size:26px;
+    font-weight:bold;
+    height:40px;
+    color:green;
+}
+
+#rewards{
+    font-size:45px;
+    margin-top:10px;
+    min-height:60px;
+}
+
+@media(max-width:600px){
+    .shape{
+        width:90px;
+        height:90px;
+    }
+
+    .rectangle{
+        width:120px;
+        height:80px;
+    }
+
+    .triangle {
+        width: 0 !important;
+        height: 0 !important;
+        border-left: 45px solid transparent;
+        border-right: 45px solid transparent;
+        border-bottom: 90px solid #6c5ce7;
+    }
+
+    .star{
+        font-size:80px;
+    }
+
+    #question{
+        font-size:22px;
+    }
+}
+</style>
+</head>
+<body>
+
+<h1>🎨 Shape Hunter!</h1>
+
+<div id="score">Score: 0</div>
+
+<div id="question">Find the Circle!</div>
+
+<div class="message" id="message"></div>
+
+<div class="game-area" id="gameArea"></div>
+
+<div id="rewards"></div>
+
+<script>
+const shapes = [
+    "Circle",
+    "Square",
+    "Rectangle",
+    "Triangle",
+    "Star"
+];
+
+let score = 0;
+let targetShape = "";
+
+const rewards = [
+    "🎈",
+    "🐰",
+    "🦄",
+    "🐶",
+    "⭐",
+    "🎁",
+    "🐱",
+    "🌈"
+];
+
+function createShapes() {
+    const area = document.getElementById("gameArea");
+    area.innerHTML = "";
+
+    const shuffled = [...shapes].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach(shape => {
+        let div = document.createElement("div");
+
+        if(shape === "Circle"){
+            div.className = "shape circle";
+        }
+        else if(shape === "Square"){
+            div.className = "shape square";
+        }
+        else if(shape === "Rectangle"){
+            div.className = "shape rectangle";
+        }
+        else if(shape === "Triangle"){
+            div.className = "shape triangle";
+        }
+        else if(shape === "Star"){
+            div.className = "shape star";
+            div.innerHTML = "★";
+        }
+
+        div.onclick = () => checkAnswer(shape);
+        area.appendChild(div);
+    });
+}
+
+function newRound(){
+    targetShape = shapes[Math.floor(Math.random()*shapes.length)];
+    document.getElementById("question").innerHTML =
+        "Find the <b>" + targetShape + "</b>!";
+    createShapes();
+}
+
+function checkAnswer(shape){
+    const msg = document.getElementById("message");
+
+    if(shape === targetShape){
+        score++;
+        document.getElementById("score").textContent =
+            "Score: " + score;
+
+        msg.textContent = "🎉 Great Job!";
+        msg.style.color = "green";
+
+        if(score % 5 === 0){
+            addReward();
+        }
+
+        newRound();
+    }
+    else{
+        msg.textContent = "❌ Try Again!";
+        msg.style.color = "red";
+    }
+}
+
+function addReward(){
+    const rewardArea = document.getElementById("rewards");
+
+    const reward =
+        rewards[Math.floor(Math.random()*rewards.length)];
+
+    rewardArea.innerHTML += reward + " ";
+}
+
+newRound();
+</script>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+<center>
+<table alighn="right">
+<tr>
+	<td>
+	 <center><a href="shaperacing.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

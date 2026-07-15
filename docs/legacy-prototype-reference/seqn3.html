@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pattern Train Academy!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', sans-serif;
+            background-color: #bae6fd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: none;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-bar { width: 100%; padding: 12px; text-align: center; background: #0ea5e9; color: white; font-weight: bold; font-size: 1.1rem; z-index: 10; }
+        #difficulty-tag { background: #10b981; padding: 2px 8px; border-radius: 10px; margin-left: 10px; font-size: 0.9rem; }
+        h1 { color: #0369a1; margin: 15px 0 5px 0; font-size: 1.6rem; text-align: center; }
+        #instruction { font-size: 1.1rem; color: #0c4a6e; margin-bottom: 10px; font-weight: bold; text-align: center; height: 1.2em;}
+
+        /* MOBILE FIX: Added overflow-x: auto to allow swiping the train */
+        #viewport {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            height: 180px;
+            margin-top: 10px;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 20px;
+        }
+
+        #train-track {
+            display: flex;
+            align-items: flex-end;
+            position: absolute;
+            left: -150%; /* Start off-screen */
+            transition: left 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            padding-right: 50px;
+        }
+
+        .engine { font-size: 4.2rem; margin-right: -5px; z-index: 5; flex-shrink: 0; }
+        
+        .car {
+            width: 55px; height: 55px;
+            background: #ffffff; border: 3px solid #0284c7;
+            border-radius: 12px; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 2.2rem; margin: 0 4px;
+            position: relative; box-shadow: 0 4px 0 #075985;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        /* Responsive sizing for smaller phones */
+        @media (max-width: 400px) {
+            .car { width: 45px; height: 45px; font-size: 1.8rem; }
+            .engine { font-size: 3.5rem; }
+        }
+
+        .car::after { content: '⚫ ⚫'; position: absolute; bottom: -18px; font-size: 0.7rem; width: 100%; text-align: center; }
+
+        .slot-car { background: #fff1f2; border: 3px dashed #ef4444; color: #ef4444; font-size: 1.8rem; cursor: pointer; }
+        .slot-car.active-target { border-color: #f59e0b; background: #fef3c7; }
+
+        #choices-panel {
+            display: flex; justify-content: center; gap: 15px;
+            margin-top: 20px; padding: 15px;
+            background: rgba(255,255,255,0.6); border-radius: 25px;
+            min-height: 80px; width: 90%; max-width: 500px;
+            flex-wrap: wrap;
+        }
+
+        .choice-card {
+            width: 65px; height: 65px; background: #fff;
+            border: 4px solid #fbbf24; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; cursor: grab; box-shadow: 0 5px 0 #d97706;
+            touch-action: none;
+        }
+
+        /* Better entry for mobile screens */
+        .train-enter { left: 10px !important; }
+        .train-exit { left: 120vw !important; }
+
+        #reward-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f0fdf4; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+
+        .sticker {
+            position: absolute; font-size: 2.5rem;
+            animation: popOut 2s forwards;
+            pointer-events: none;
+        }
+        @keyframes popOut {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5) translateY(-200px); opacity: 0; }
+        }
+        button {
+            padding: 15px 35px; font-size: 1.3rem; font-weight: bold; border-radius: 20px;
+            border: none; background: #10b981; color: white; box-shadow: 0 5px 0 #047857; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-bar">Level: <span id="round-num">1</span>/11 <span id="difficulty-tag">Easy Mode</span></div>
+<h1 id="header-text">Pattern Train Academy</h1>
+<div id="instruction">Drag the items up!</div>
+
+<div id="viewport">
+    <div id="train-track">
+        <div class="engine">🚂</div>
+    </div>
+</div>
+
+<div id="choices-panel"></div>
+
+<div id="reward-screen">
+    <div style="font-size: 6rem;">👑🏆👑</div>
+    <h1 style="color: #047857; font-size: 2rem;">GRAND TRAIN MASTER!</h1>
+    <p style="font-size: 1.1rem; color: #065f46;">You beat every pattern!</p>
+    <button onclick="location.reload()">Play Again! 🔄</button>
+</div>
+
+<script>
+    const track = document.getElementById('train-track');
+    const choiceBox = document.getElementById('choices-panel');
+    const roundNum = document.getElementById('round-num');
+    const header = document.getElementById('header-text');
+    const diffTag = document.getElementById('difficulty-tag');
+    const instruction = document.getElementById('instruction');
+
+    let currentRound = 1;
+    let activeSlotIndex = null;
+    
+    const items2D = [{a:"🍰",b:"🧆"}, {a:"🍎",b:"🍐"}, {a:"🍩",b:"🍪"}, {a:"🐱",b:"🐶"}, {a:"🚗",b:"🚁"}];
+    const items3D = [{a:"🔴",b:"🟦",c:"⭐"}, {a:"🦁",b:"🐵",c:"🐘"}, {a:"🍌",b:"🍇",c:"🍓"}];
+    const itemsHard = [{a:"🍦",b:"🍭"}, {a:"🎈",b:"🎁"}, {a:"🐸",b:"🐥"}];
+
+    let session2D, session3D, sessionHard;
+
+    function shuffleSession() {
+        session2D = [...items2D].sort(() => Math.random() - 0.5);
+        session3D = [...items3D].sort(() => Math.random() - 0.5);
+        sessionHard = [...itemsHard].sort(() => Math.random() - 0.5);
+    }
+
+    function initRound() {
+        track.querySelectorAll('.car').forEach(c => c.remove());
+        choiceBox.innerHTML = '';
+        roundNum.textContent = currentRound;
+        track.classList.remove('train-enter', 'train-exit');
+        void track.offsetWidth;
+
+        let pattern = [];
+        let missingIndices = [];
+
+        if (currentRound <= 5) {
+            diffTag.textContent = "Easy Mode";
+            diffTag.style.background = "#10b981";
+            instruction.textContent = "Fill the empty car!";
+            const pair = session2D[currentRound - 1];
+            pattern = [pair.a, pair.b, pair.a, pair.b, pair.a, pair.b];
+            missingIndices = [[2, 4, 5][Math.floor(Math.random() * 3)]];
+        } 
+        else if (currentRound <= 8) {
+            diffTag.textContent = "3 Items!";
+            diffTag.style.background = "#f59e0b";
+            instruction.textContent = "3 different items now!";
+            const trio = session3D[currentRound - 6];
+            pattern = [trio.a, trio.b, trio.c, trio.a, trio.b, trio.c];
+            missingIndices = [[3, 4, 5][Math.floor(Math.random() * 3)]];
+        } 
+        else {
+            diffTag.textContent = "Hard Mode 🧠";
+            diffTag.style.background = "#ef4444";
+            instruction.textContent = "Find both missing items!";
+            const pair = sessionHard[currentRound - 9];
+            pattern = [pair.a, pair.b, pair.a, pair.b, pair.a, pair.b];
+            missingIndices = [2, 4];
+        }
+
+        pattern.forEach((item, idx) => {
+            const car = document.createElement('div');
+            car.classList.add('car');
+            if (missingIndices.includes(idx)) {
+                car.classList.add('slot-car');
+                car.textContent = "?";
+                car.dataset.correct = item;
+                car.dataset.idx = idx;
+                car.onpointerdown = function() {
+                    document.querySelectorAll('.slot-car').forEach(s => s.classList.remove('active-target'));
+                    this.classList.add('active-target');
+                    activeSlotIndex = this.dataset.idx;
+                };
+            } else {
+                car.textContent = item;
+            }
+            track.appendChild(car);
+        });
+
+        const firstSlot = track.querySelector('.slot-car');
+        if(firstSlot) {
+            firstSlot.classList.add('active-target');
+            activeSlotIndex = firstSlot.dataset.idx;
+        }
+
+        let uniqueChoices = [...new Set(pattern)].sort(() => Math.random() - 0.5);
+        uniqueChoices.forEach(icon => {
+            const btn = document.createElement('div');
+            btn.classList.add('choice-card');
+            btn.textContent = icon;
+            btn.onpointerdown = startDrag;
+            choiceBox.appendChild(btn);
+        });
+
+        setTimeout(() => track.classList.add('train-enter'), 100);
+    }
+
+    let activeElem = null;
+    let startX, startY;
+
+    function startDrag(e) {
+        activeElem = e.currentTarget;
+        activeElem.setPointerCapture(e.pointerId);
+        const rect = activeElem.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        activeElem.style.position = 'fixed';
+        activeElem.style.zIndex = '1000';
+        activeElem.onpointermove = (ev) => {
+            activeElem.style.left = (ev.clientX - startX) + 'px';
+            activeElem.style.top = (ev.clientY - startY) + 'px';
+        };
+        activeElem.onpointerup = (ev) => {
+            activeElem.onpointermove = null;
+            activeElem.onpointerup = null;
+            activeElem.style.display = 'none';
+            let target = document.elementFromPoint(ev.clientX, ev.clientY);
+            let slot = target ? target.closest('.slot-car') : null;
+            
+            // Allow tap-to-place if dropped generally near the active slot
+            if(!slot && activeSlotIndex !== null) slot = track.querySelector(`.slot-car[data-idx="${activeSlotIndex}"]`);
+            
+            activeElem.style.display = 'flex';
+            activeElem.style.position = 'static';
+            
+            if (slot && activeElem.textContent === slot.dataset.correct) {
+                slot.textContent = activeElem.textContent;
+                slot.classList.remove('slot-car', 'active-target');
+                slot.style.borderColor = "#22c55e";
+                slot.style.background = "#f0fdf4";
+                slot.onpointerdown = null;
+                const nextSlot = track.querySelector('.slot-car');
+                if(nextSlot) {
+                    nextSlot.classList.add('active-target');
+                    activeSlotIndex = nextSlot.dataset.idx;
+                } else { activeSlotIndex = null; }
+                giveCelebrationStickers();
+                checkRoundComplete();
+            } else { 
+                choiceBox.appendChild(activeElem); 
+            }
+        };
+    }
+
+    function checkRoundComplete() {
+        if (track.querySelectorAll('.slot-car').length === 0) {
+            header.textContent = "Choo Choo! Great Job!";
+            setTimeout(() => {
+                track.classList.add('train-exit');
+                setTimeout(() => {
+                    if (currentRound < 11) { currentRound++; initRound(); }
+                    else { document.getElementById('reward-screen').style.display = 'flex'; }
+                }, 1500);
+            }, 800);
+        }
+    }
+
+    function giveCelebrationStickers() {
+        for (let i = 0; i < 8; i++) {
+            const sticker = document.createElement('div');
+            sticker.className = 'sticker';
+            sticker.textContent = ["⭐", "✨", "🎈", "🎉"][Math.floor(Math.random() * 4)];
+            sticker.style.left = Math.random() * 80 + 10 + "vw";
+            sticker.style.top = "50vh";
+            document.body.appendChild(sticker);
+            setTimeout(() => sticker.remove(), 2000);
+        }
+    }
+
+    shuffleSession();
+    initRound();
+</script>
+
+<br>
+<br>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="sesand.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

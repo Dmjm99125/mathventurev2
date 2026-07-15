@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Addition Fun Game</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, Arial;
+      text-align: center;
+      background-color: #f0f9ff;
+    }
+    h1 {
+      color: #ff6b6b;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      width: 300px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .question {
+      font-size: 30px;
+      margin: 20px 0;
+    }
+    input {
+      font-size: 20px;
+      padding: 5px;
+      width: 80px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      font-size: 20px;
+      margin-top: 15px;
+    }
+    .score {
+      font-size: 18px;
+      margin-top: 10px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎉 Addition Fun Game 🎉</h1>
+
+  <div class="box">
+    <div class="question" id="question">1 + 1 = ?</div>
+
+    <input type="number" id="answer" placeholder="?">
+    <br>
+    <button onclick="checkAnswer()">Check Answer</button>
+
+    <div class="result" id="result"></div>
+    <div class="score" id="score">Score: 0</div>
+  </div>
+
+  <script>
+    let num1, num2;
+    let score = 0;
+
+    function newQuestion() {
+      num1 = Math.floor(Math.random() * 10);
+      num2 = Math.floor(Math.random() * 10);
+      document.getElementById("question").innerText = num1 + " + " + num2 + " = ?";
+      document.getElementById("answer").value = "";
+      document.getElementById("result").innerText = "";
+    }
+
+    function checkAnswer() {
+      let userAnswer = Number(document.getElementById("answer").value);
+      let correctAnswer = num1 + num2;
+
+      if (userAnswer === correctAnswer) {
+        document.getElementById("result").innerText = "✅ Correct! Great job!";
+        score++;
+      } else {
+        document.getElementById("result").innerText = "❌ Oops! Try again!";
+      }
+
+      document.getElementById("score").innerText = "Score: " + score;
+
+      setTimeout(newQuestion, 1500);
+    }
+
+    // Start the game
+    newQuestion();
+  </script>
+
+<br>
+<br>
+<br>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="4b.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+<hr width=100% size="5">
+
+<center><a name="DOWN"></center>
+<center><a href="#top">Page Up</center>
+
+</body>
+</html>

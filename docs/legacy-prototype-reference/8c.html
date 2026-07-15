@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Marami o Kaunti? - Garden Version</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%);
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+            overflow: hidden;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        /* --- MOVING SCENERY --- */
+        .scenery {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .cloud {
+            position: absolute; background: white; border-radius: 50px;
+            opacity: 0.8; animation: moveClouds 25s linear infinite;
+        }
+        .c1 { width: 100px; height: 40px; top: 10%; left: -150px; }
+        .c2 { width: 150px; height: 60px; top: 22%; left: -200px; animation-delay: 7s; }
+        
+        @keyframes moveClouds {
+            from { transform: translateX(-100px); }
+            to { transform: translateX(calc(100vw + 200px)); }
+        }
+
+        /* Fluttering Butterflies */
+        .butterfly {
+            position: fixed; font-size: 25px; z-index: 1;
+            animation: fly 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fly {
+            0% { left: -50px; top: 50%; transform: rotate(0deg); }
+            25% { top: 40%; }
+            50% { top: 60%; transform: rotate(20deg); }
+            75% { top: 45%; }
+            100% { left: 110vw; top: 55%; transform: rotate(-10deg); }
+        }
+
+        .hill {
+            position: absolute; bottom: -50px; left: -10%;
+            width: 120%; height: 200px;
+            background: #2ecc71;
+            border-radius: 50% 50% 0 0;
+        }
+
+        /* --- GAME UI --- */
+        h1 { color: #1b5e20; font-size: 20px; margin: 10px 0; position: relative; }
+        #score-board { font-weight: bold; font-size: 18px; color: #2c3e50; margin-bottom: 5px; position: relative; }
+
+        #instruction-box {
+            background: rgba(255, 255, 255, 0.9); padding: 12px; border-radius: 15px;
+            margin: 5px auto; width: 85%; max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #2ecc71;
+            position: relative;
+        }
+        #instruction-text { font-size: 24px; font-weight: bold; color: #d35400; }
+
+        .garden-area {
+            display: flex; justify-content: center; gap: 20px;
+            margin-top: 20px; height: 260px; align-items: flex-end;
+            position: relative;
+        }
+
+        .patch {
+            width: 145px; height: 195px; border-radius: 20px;
+            background: #795548;
+            cursor: pointer; transition: transform 0.2s;
+            display: flex; flex-wrap: wrap;
+            justify-content: center; 
+            padding: 10px; 
+            border: 6px solid #5d4037;
+            box-shadow: 0 8px 0 #3e2723;
+            overflow-y: auto; 
+            align-content: flex-start;
+        }
+        .patch::-webkit-scrollbar { display: none; }
+        .patch:active { transform: scale(0.95); }
+
+        .flower { font-size: 28px; margin: 2px; animation: grow 0.5s ease-out; }
+        @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
+
+        #feedback { height: 40px; margin-top: 20px; font-size: 22px; font-weight: bold; position: relative; }
+
+        .btn-home {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 10px;
+            z-index: 10;
+        }
+
+        .star { position: fixed; font-size: 40px; animation: burst 1s forwards; pointer-events: none; z-index: 100; }
+        @keyframes burst { 0% { transform: scale(0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.2); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="scenery">
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="hill"></div>
+        <div class="butterfly" style="animation-delay: 0s;">🦋</div>
+        <div class="butterfly" style="animation-delay: 4s; font-size: 20px;">🦋</div>
+    </div>
+
+    <h1>Laro: Marami o Kaunti? 🌸</h1>
+    <div id="score-board">Puntos: <span id="points">0</span> / 10</div>
+
+    <div id="instruction-box">
+        <div id="instruction-text">Hanapin ang MARAMI</div>
+    </div>
+
+    <div class="garden-area">
+        <div class="patch" id="patch-left" onclick="checkAnswer('left')"></div>
+        <div class="patch" id="patch-right" onclick="checkAnswer('right')"></div>
+    </div>
+
+    <div id="feedback"></div>
+
+    <button class="btn-home" onclick="window.location.href='1.html'">Back to Activities</button>
+
+    <script>
+        let score = 0;
+        let targetPatch = "";
+        const pointsDisplay = document.getElementById('points');
+        const instructionText = document.getElementById('instruction-text');
+        const feedback = document.getElementById('feedback');
+        const patchLeft = document.getElementById('patch-left');
+        const patchRight = document.getElementById('patch-right');
+
+        const flowerEmojis = ['🌸', '🌻', '🌷', '🌹', '🌼', '🌺'];
+
+        function createFlowers(patchElement, count) {
+            patchElement.innerHTML = "";
+            const randomFlower = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
+            for (let i = 0; i < count; i++) {
+                const flower = document.createElement('div');
+                flower.className = 'flower';
+                flower.innerText = randomFlower;
+                patchElement.appendChild(flower);
+            }
+        }
+
+        function initLevel() {
+            if (score >= 10) {
+                showWinner();
+                return;
+            }
+            feedback.innerText = "";
+            const isLookingForMore = Math.random() > 0.5;
+            instructionText.innerText = isLookingForMore ? "Hanapin ang MARAMI" : "Hanapin ang KAUNTI";
+            instructionText.style.color = isLookingForMore ? "#d35400" : "#2980b9";
+
+            const countA = Math.floor(Math.random() * 3) + 1;
+            const countB = Math.floor(Math.random() * 6) + 16; 
+
+            const leftIsMore = Math.random() > 0.5;
+            createFlowers(patchLeft, leftIsMore ? countB : countA);
+            createFlowers(patchRight, leftIsMore ? countA : countB);
+
+            targetPatch = isLookingForMore ? (leftIsMore ? 'left' : 'right') : (leftIsMore ? 'right' : 'left');
+        }
+
+        function checkAnswer(clicked) {
+            if (clicked === targetPatch) {
+                score++;
+                pointsDisplay.innerText = score;
+                feedback.innerText = "Ang galing! ⭐";
+                feedback.style.color = "#27ae60";
+                burstStars();
+                setTimeout(initLevel, 1200);
+            } else {
+                feedback.innerText = "Subukan muli! 💪";
+                feedback.style.color = "#c0392b";
+            }
+        }
+
+        function burstStars() {
+            for (let i = 0; i < 10; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.innerHTML = '⭐';
+                star.style.left = '50%'; star.style.top = '50%';
+                star.style.setProperty('--x', (Math.random() * 400 - 200) + 'px');
+                star.style.setProperty('--y', (Math.random() * 400 - 200) + 'px');
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 1000);
+            }
+        }
+
+        function showWinner() {
+            document.body.innerHTML = `
+                <div style="margin-top: 100px; padding: 20px; position:relative; z-index:10;">
+                    <h1>🎉 NAPAKAHUSAY! 🎉</h1>
+                    <p style="font-size: 20px; font-weight:bold;">Matagumpay mong natapos ang laro!</p>
+                    <button onclick="location.reload()" style="padding: 15px 30px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 20px; cursor: pointer;">Maglaro Muli 🔄</button>
+                    <br><br>
+                    <button onclick="window.location.href='1.html'" style="background:none; border:none; color:#2c3e50; font-weight:bold; cursor:pointer;">Bumalik sa Menu</button>
+                </div>
+                <div class="scenery"><div class="hill" style="background:#2ecc71"></div></div>
+            `;
+            setInterval(burstStars, 300);
+        }
+
+        initLevel();
+    </script>
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="8d.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

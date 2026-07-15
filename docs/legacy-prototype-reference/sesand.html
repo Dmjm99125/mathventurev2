@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinder Sandwich Sequencing Adventure</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: #FFFDE7;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Top Bar Info */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 5px;
+        }
+
+        .level-badge {
+            background-color: #FF6F00;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 3px 0 #E65100;
+        }
+
+        h1 {
+            color: #FF6F00;
+            font-size: 1.6rem;
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        .instructions {
+            font-size: 1rem;
+            color: #5D4037;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Pattern Guide at the Top */
+        .pattern-container {
+            background-color: #FFF;
+            border: 3px dashed #FFB300;
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pattern-label {
+            font-weight: bold;
+            color: #FF8F00;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-right: 5px;
+        }
+
+        /* Game Board Layout */
+        .game-board {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 600px;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .game-board {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .shelf, .plate-area {
+            background-color: #FFF;
+            border: 4px solid #4CAF50;
+            border-radius: 20px;
+            padding: 15px;
+            width: 45%;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 500px) {
+            .shelf, .plate-area {
+                width: 95%;
+                min-height: 180px;
+            }
+        }
+
+        .shelf-title, .plate-title {
+            font-size: 1.1rem;
+            color: #2E7D32;
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* Ingredient Items */
+        .item {
+            padding: 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item:active {
+            transform: scale(0.95);
+        }
+
+        .item-emoji { font-size: 1.8rem; }
+        .item-name { font-size: 0.8rem; color: #333; margin-top: 2px; }
+
+        .bread   { background-color: #FFE082; border: 2px solid #FFB300; }
+        .ham     { background-color: #FFCDD2; border: 2px solid #E57373; }
+        .cheese  { background-color: #FFF59D; border: 2px solid #FBC02D; }
+        .lettuce { background-color: #C8E6C9; border: 2px solid #81C784; }
+        .tomato  { background-color: #FFCCBC; border: 2px solid #FF5722; }
+        .egg     { background-color: #F5F5F5; border: 2px solid #BDBDBD; }
+
+        /* Recipe Guide Item Sizes */
+        .guide-item {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .guide-item.done::after {
+            content: "✓";
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            width: 15px;
+            height: 15px;
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Plate Sandwich Stack Container */
+        .plate {
+            width: 150px;
+            height: 150px;
+            background-color: #E0F7FA;
+            border: 6px solid #00ACC1;
+            border-radius: 50%;
+            margin-top: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            padding-bottom: 12px;
+            box-sizing: border-box;
+        }
+
+        /* Built Sandwich Layers */
+        .layer {
+            width: 110px;
+            height: 18px;
+            border-radius: 50px / 10px; /* Gives a slight 3D rounded look */
+            margin-bottom: -5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            animation: dropIn 0.2s ease-out forwards;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+        }
+
+        @keyframes dropIn {
+            0% { transform: translateY(-60px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Celebration Screen Overlay */
+        .reward-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            color: white;
+            text-align: center;
+        }
+
+        .reward-box {
+            background-color: #FF8F00;
+            padding: 25px;
+            border-radius: 25px;
+            border: 5px solid #FFF;
+            max-width: 85%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .star-animation {
+            font-size: 3.5rem;
+            animation: spin 1.5s infinite linear;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .btn-next {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-family: inherit;
+            box-shadow: 0 4px 0 #2E7D32;
+        }
+
+        .btn-next:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        
+        .error-shake { animation: shake 0.3s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <h1>Sandwich Maker! 🥪</h1>
+        <div class="level-badge" id="levelDisplay">Level 1</div>
+    </div>
+    
+    <div class="instructions" id="instructionText">Make a yummy 3-layer sandwich!</div>
+
+    <!-- Dynamic Recipe Pattern Guide -->
+    <div class="pattern-container" id="patternContainer">
+        <span class="pattern-label">Recipe:</span>
+    </div>
+
+    <!-- Game Board -->
+    <div class="game-board">
+        <!-- Expanded Ingredients Pantry -->
+        <div class="shelf">
+            <p class="shelf-title">Pick Items</p>
+            <div class="ingredients-grid">
+                <div class="item bread" onclick="selectIngredient('bread', this)">
+                    <span class="item-emoji">🍞</span><span class="item-name">Bread</span>
+                </div>
+                <div class="item ham" onclick="selectIngredient('ham', this)">
+                    <span class="item-emoji">🍖</span><span class="item-name">Ham</span>
+                </div>
+                <div class="item cheese" onclick="selectIngredient('cheese', this)">
+                    <span class="item-emoji">🧀</span><span class="item-name">Cheese</span>
+                </div>
+                <div class="item lettuce" onclick="selectIngredient('lettuce', this)">
+                    <span class="item-emoji">🥬</span><span class="item-name">Lettuce</span>
+                </div>
+                <div class="item tomato" onclick="selectIngredient('tomato', this)">
+                    <span class="item-emoji">🍅</span><span class="item-name">Tomato</span>
+                </div>
+                <div class="item egg" onclick="selectIngredient('egg', this)">
+                    <span class="item-emoji">🍳</span><span class="item-name">Egg</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assembly Target Plate -->
+        <div class="plate-area">
+            <p class="plate-title">Your Plate</p>
+            <div class="plate" id="plateContainer"></div>
+        </div>
+    </div>
+
+    <!-- Interactive Level Reward Overlay -->
+    <div class="reward-overlay" id="rewardOverlay">
+        <div class="reward-box">
+            <div class="star-animation">⭐🌟⭐</div>
+            <h2 id="rewardTitle">Level Complete! 🎉</h2>
+            <p id="rewardMessage" style="font-size: 1.1rem;">Incredible sequencing skills!</p>
+            <button class="btn-next" id="rewardBtn" onclick="advanceGame()">Next Level ➡️</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State Core
+        let currentLevel = 1;
+        let currentStep = 0;
+        let activePattern = [];
+
+        const itemMetadata = {
+            bread: { emoji: '🍞', styleClass: 'bread' },
+            ham: { emoji: '🍖', styleClass: 'ham' },
+            cheese: { emoji: '🧀', styleClass: 'cheese' },
+            lettuce: { emoji: '🥬', styleClass: 'lettuce' },
+            tomato: { emoji: '🍅', styleClass: 'tomato' },
+            egg: { emoji: '🍳', styleClass: 'egg' }
+        };
+
+        const middleFillings = ['ham', 'cheese', 'lettuce', 'tomato', 'egg'];
+
+        // Helper to grab random items from the fillings pantry array
+        function getRandomFilling() {
+            return middleFillings[Math.floor(Math.random() * middleFillings.length)];
+        }
+
+        // Generate a random dynamic recipe array based on the player's level
+        function generateRecipe() {
+            let pattern = [];
+            
+            if (currentLevel === 1) {
+                // 3-layer simple toast (Bread -> 1 Filling -> Bread)
+                pattern = ['bread', getRandomFilling(), 'bread'];
+                document.getElementById('instructionText').innerText = "Let's build a simple 3-step mini sandwich!";
+            } else if (currentLevel === 2) {
+                // 4 to 5-layer classic sandwich
+                let filling1 = getRandomFilling();
+                let filling2 = getRandomFilling();
+                while(filling1 === filling2) { filling2 = getRandomFilling(); } // Keep varieties unique
+                
+                pattern = ['bread', filling1, filling2, 'bread'];
+                document.getElementById('instructionText').innerText = "Great! Try this 4-step sequence!";
+            } else {
+                // Level 3: Giant Double-Decker Club Sandwich (6 layers!)
+                let f1 = getRandomFilling();
+                let f2 = getRandomFilling();
+                let f3 = getRandomFilling();
+                pattern = ['bread', f1, 'bread', f2, f3, 'bread'];
+                document.getElementById('instructionText').innerText = "Ultimate Challenge: Make a massive 6-layer Club Sandwich!";
+            }
+            return pattern;
+        }
+
+        // Render the pattern target reference UI elements
+        function renderPatternGuide() {
+            const container = document.getElementById('patternContainer');
+            container.innerHTML = '<span class="pattern-label">Recipe Target:</span>';
+
+            activePattern.forEach((step, index) => {
+                const guideItem = document.createElement('div');
+                guideItem.className = `guide-item ${itemMetadata[step].styleClass}`;
+                guideItem.id = `guide-step-${index}`;
+                guideItem.innerHTML = itemMetadata[step].emoji;
+                container.appendChild(guideItem);
+            });
+        }
+
+        // Match monitoring selection algorithm logic
+        function selectIngredient(type, element) {
+            const expectedType = activePattern[currentStep];
+
+            if (type === expectedType) {
+                // Match verification pass
+                document.getElementById(`guide-step-${currentStep}`).classList.add('done');
+                addLayerToPlate(type);
+                currentStep++;
+
+                if (currentStep === activePattern.length) {
+                    setTimeout(triggerLevelResolution, 600);
+                }
+            } else {
+                // Selection violation handle logic
+                element.classList.add('error-shake');
+                setTimeout(() => element.classList.remove('error-shake'), 300);
+            }
+        }
+
+        function addLayerToPlate(type) {
+            const plate = document.getElementById('plateContainer');
+            const layer = document.createElement('div');
+            layer.className = `layer ${itemMetadata[type].styleClass}`;
+            layer.innerHTML = itemMetadata[type].emoji;
+            plate.appendChild(layer);
+        }
+
+        // Manage state resolutions
+        function triggerLevelResolution() {
+            const title = document.getElementById('rewardTitle');
+            const msg = document.getElementById('rewardMessage');
+            const btn = document.getElementById('rewardBtn');
+
+            if (currentLevel < 3) {
+                title.innerText = "Fantastic Work! 🌟";
+                msg.innerText = `You completed Level ${currentLevel}! Ready for a bigger recipe?`;
+                btn.innerText = "Go to Next Level ➡️";
+            } else {
+                title.innerText = "Master Chef Status! 👑🏆";
+                msg.innerText = "You successfully constructed the Giant Double-Decker Club Sandwich!";
+                btn.innerText = "Good Job!!! Mahusay!!! 🔄";
+            }
+            document.getElementById('rewardOverlay').style.display = 'flex';
+        }
+
+        // State change tracking engines
+        function advanceGame() {
+            if (currentLevel < 3) {
+                currentLevel++;
+            } else {
+                currentLevel = 1; // Loop sequence refresh safely
+            }
+            
+            document.getElementById('levelDisplay').innerText = `Level ${currentLevel}`;
+            document.getElementById('rewardOverlay').style.display = 'none';
+            startNewRound();
+        }
+
+        function startNewRound() {
+            currentStep = 0;
+            document.getElementById('plateContainer').innerHTML = '';
+            activePattern = generateRecipe();
+            renderPatternGuide();
+        }
+
+        // Game boot initialization properties
+        window.onload = () => {
+            startNewRound();
+        };
+    </script>
+
+<br>
+<br>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="3f.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

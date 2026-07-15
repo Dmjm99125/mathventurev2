@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Catch & Measure Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background-color: #282c34; /* Dark background to make items pop */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling on mobile */
+            touch-action: none; /* Crucial for custom drag/drop */
+        }
+
+        #header {
+            background-color: #ffca28;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            color: #d84315;
+            font-size: 1.5rem;
+        }
+
+        #stats {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            justify-content: space-around;
+            margin-top: 5px;
+        }
+
+        #game-area {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            background: linear-gradient(to bottom, #87ceeb 0%, #e0f7fa 100%);
+            overflow: hidden;
+        }
+
+        /* The Bins at the bottom */
+        #bins-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: 20px;
+        }
+
+        .bin {
+            width: 40%;
+            height: 100px;
+            border-radius: 15px;
+            border: 5px solid #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+        }
+
+        #bin-short {
+            background-color: #4caf50; /* Green */
+        }
+
+        #bin-tall {
+            background-color: #f44336; /* Red */
+        }
+
+        /* The falling item */
+        .falling-item {
+            position: absolute;
+            font-size: 3.5rem;
+            cursor: grab;
+            user-select: none;
+            /* Center the text anchor */
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+        
+        .falling-item:active {
+            cursor: grabbing;
+        }
+
+        /* Game Over Screen */
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        #game-over-title {
+            font-size: 2.5rem;
+            color: #ff5252;
+            margin-bottom: 10px;
+        }
+
+        #game-over-reason {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background-color: #ffeb3b;
+            color: #d84315;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #fbc02d;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h1>🌠 Catch & Measure! 🌠</h1>
+        <div id="stats">
+            <span>Score: <span id="score-display">0</span></span>
+            <span>Speed: Level <span id="speed-display">1</span></span>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div id="bins-container">
+            <div class="bin" id="bin-short">
+                🐜 SHORT
+            </div>
+            <div class="bin" id="bin-tall">
+                🦒 TALL
+            </div>
+        </div>
+
+        <div id="game-over-screen">
+            <div id="game-over-title">Game Over!</div>
+            <div id="game-over-reason"></div>
+            <div style="font-size: 1.5rem; margin-bottom: 20px;">Final Score: <span id="final-score">0</span></div>
+            <button onclick="startGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const scoreDisplay = document.getElementById('score-display');
+        const speedDisplay = document.getElementById('speed-display');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const gameOverReason = document.getElementById('game-over-reason');
+        const finalScore = document.getElementById('final-score');
+        
+        const binShort = document.getElementById('bin-short');
+        const binTall = document.getElementById('bin-tall');
+
+        const itemsDatabase = [
+            { emoji: '🐜', type: 'short' },
+            { emoji: '🐁', type: 'short' },
+            { emoji: '🍓', type: 'short' },
+            { emoji: '🪙', type: 'short' },
+            { emoji: '🐌', type: 'short' },
+            { emoji: '🦒', type: 'tall' },
+            { emoji: '🏢', type: 'tall' },
+            { emoji: '🌲', type: 'tall' },
+            { emoji: '🦕', type: 'tall' },
+            { emoji: '🗼', type: 'tall' }
+        ];
+
+        let score = 0;
+        let baseSpeed = 2; // Pixels per frame
+        let currentItem = null;
+        let isGameOver = true;
+        let animationFrameId;
+
+        // Item State
+        let itemY = 0;
+        let itemX = 0;
+        let isDragging = false;
+        let currentType = '';
+
+        function startGame() {
+            score = 0;
+            baseSpeed = 2;
+            isGameOver = false;
+            
+            scoreDisplay.innerText = score;
+            speedDisplay.innerText = "1";
+            gameOverScreen.style.display = 'none';
+
+            if (currentItem) {
+                currentItem.remove();
+                currentItem = null;
+            }
+
+            spawnItem();
+            updateGameLoop();
+        }
+
+        function spawnItem() {
+            if (isGameOver) return;
+
+            const randomData = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
+            currentType = randomData.type;
+
+            currentItem = document.createElement('div');
+            currentItem.className = 'falling-item';
+            currentItem.innerText = randomData.emoji;
+
+            // Start position (Top center-ish)
+            itemY = -50;
+            itemX = gameArea.clientWidth / 2;
+            
+            currentItem.style.top = itemY + 'px';
+            currentItem.style.left = itemX + 'px';
+
+            gameArea.appendChild(currentItem);
+            setupDragEvents(currentItem);
+        }
+
+        // Handles the dragging logic for both Touch and Mouse
+        function setupDragEvents(element) {
+            element.addEventListener('pointerdown', (e) => {
+                if (isGameOver) return;
+                isDragging = true;
+                element.style.transform = 'translate(-50%, -50%) scale(1.2)'; // Enlarge slightly while holding
+                element.setPointerCapture(e.pointerId);
+            });
+
+            element.addEventListener('pointermove', (e) => {
+                if (!isDragging || isGameOver) return;
+                
+                // Get coordinates relative to the game area
+                const rect = gameArea.getBoundingClientRect();
+                itemX = e.clientX - rect.left;
+                itemY = e.clientY - rect.top;
+                
+                element.style.left = itemX + 'px';
+                element.style.top = itemY + 'px';
+            });
+
+            element.addEventListener('pointerup', (e) => {
+                if (!isDragging || isGameOver) return;
+                isDragging = false;
+                element.style.transform = 'translate(-50%, -50%) scale(1)';
+                element.releasePointerCapture(e.pointerId);
+                
+                checkDrop(e.clientX, e.clientY);
+            });
+        }
+
+        function checkDrop(pointerX, pointerY) {
+            const shortRect = binShort.getBoundingClientRect();
+            const tallRect = binTall.getBoundingClientRect();
+
+            // Check if dropped inside SHORT bin
+            if (pointerX >= shortRect.left && pointerX <= shortRect.right && 
+                pointerY >= shortRect.top && pointerY <= shortRect.bottom) {
+                
+                if (currentType === 'short') handleCorrect();
+                else triggerGameOver("Oops! That goes in the TALL bin.");
+                return;
+            }
+
+            // Check if dropped inside TALL bin
+            if (pointerX >= tallRect.left && pointerX <= tallRect.right && 
+                pointerY >= tallRect.top && pointerY <= tallRect.bottom) {
+                
+                if (currentType === 'tall') handleCorrect();
+                else triggerGameOver("Oops! That goes in the SHORT bin.");
+                return;
+            }
+            
+            // If dropped outside bins, it will just resume falling from that spot
+        }
+
+        function handleCorrect() {
+            score++;
+            scoreDisplay.innerText = score;
+
+            // Increase speed every 10 correct drops
+            if (score > 0 && score % 10 === 0) {
+                baseSpeed += 1.5;
+                speedDisplay.innerText = (score / 10) + 1;
+                // Add a little visual flash for leveling up
+                document.getElementById('header').style.backgroundColor = '#64dd17';
+                setTimeout(() => { document.getElementById('header').style.backgroundColor = '#ffca28'; }, 500);
+            }
+
+            // Destroy current and spawn next
+            currentItem.remove();
+            currentItem = null;
+            spawnItem();
+        }
+
+        function triggerGameOver(reasonText) {
+            isGameOver = true;
+            cancelAnimationFrame(animationFrameId);
+            
+            if (currentItem) {
+                currentItem.remove();
+                currentItem = null;
+            }
+
+            gameOverReason.innerText = reasonText;
+            finalScore.innerText = score;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function updateGameLoop() {
+            if (isGameOver) return;
+
+            // Only make it fall automatically if the child isn't actively holding it
+            if (currentItem && !isDragging) {
+                itemY += baseSpeed;
+                currentItem.style.top = itemY + 'px';
+
+                // Check if it hit the floor (fell past the bottom of the game area)
+                if (itemY > gameArea.clientHeight) {
+                    triggerGameOver("Oh no! It fell on the floor!");
+                    return;
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(updateGameLoop);
+        }
+
+        // Start the game initially
+        window.onload = startGame;
+    </script>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

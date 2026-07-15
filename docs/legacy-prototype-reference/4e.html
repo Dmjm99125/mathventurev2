@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Drawing App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevents scrolling */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            background: white; 
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #555;
+        }
+
+        /* Styling for the redirect button to make it stand out */
+        .btn-redirect {
+            background: #007bff; /* Blue color */
+        }
+        
+        .btn-redirect:hover {
+            background: #0056b3;
+        }
+
+        input[type="range"] {
+            width: 150px;
+        }
+
+        label {
+            color: #333;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="drawCanvas"></canvas>
+
+    <div class="controls">
+        <button class="btn-redirect" onclick="window.location.href='1.html'">Back to Activities</button>
+        
+        <button onclick="clearCanvas()">Clear</button>
+        <button onclick="setColor('black')">Black</button>
+        <button onclick="setColor('blue')">Blue</button>
+        <button onclick="setColor('red')">Red</button>
+        
+        <input type="range" id="lineWidth" min="1" max="20" value="2">
+        <label for="lineWidth">Line Width</label>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let currentColor = 'black';
+
+        // Function to resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Restore context state after resize
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = document.getElementById('lineWidth').value;
+        }
+
+        // Initial resize
+        resizeCanvas();
+
+        // Resize canvas when window size changes
+        window.addEventListener('resize', resizeCanvas);
+
+        // Set up drawing
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = currentColor;
+
+        // Start drawing
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        // Touch support for mobile (Great for kids on tablets!)
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
+            drawing = true;
+            ctx.beginPath();
+            
+            const pos = getCoordinates(e);
+            ctx.moveTo(pos.x, pos.y);
+            
+            if(e.cancelable) e.preventDefault();
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            
+            const pos = getCoordinates(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            
+            if(e.cancelable) e.preventDefault();
+        }
+
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        function getCoordinates(e) {
+            if (e.touches && e.touches.length > 0) {
+                return {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+            } else {
+                return {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            }
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function setColor(color) {
+            currentColor = color;
+            ctx.strokeStyle = color;
+        }
+
+        document.getElementById('lineWidth').addEventListener('input', function(e) {
+            ctx.lineWidth = e.target.value;
+        });
+    </script>
+</body>
+</html>

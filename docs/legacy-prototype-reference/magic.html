@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Magic Rainbow Bridge</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background-color: #e0f2f1;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #6a1b9a;
+            font-size: 1.6rem;
+            margin: 5px 0 15px 0;
+            text-align: center;
+        }
+
+        #game-board {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            background: linear-gradient(to bottom, #81d4fa 0%, #b3e5fc 100%);
+            border-radius: 20px;
+            border: 4px solid #4fc3f7;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* The Clouds and Scenery */
+        .platform {
+            position: absolute;
+            bottom: 20px;
+            font-size: 4rem;
+            line-height: 1;
+            z-index: 1;
+        }
+
+        #left-platform {
+            left: 10px;
+        }
+
+        #right-platform {
+            /* Left position changes every round via JavaScript */
+            left: 200px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #castle {
+            font-size: 3rem;
+            margin-bottom: -15px; /* Sits on the cloud */
+            z-index: 2;
+        }
+
+        /* The Unicorn */
+        #unicorn {
+            position: absolute;
+            bottom: 40px;
+            left: 25px;
+            font-size: 2.5rem;
+            z-index: 10;
+        }
+
+        /* The Growing Measurement Tool */
+        #rainbow {
+            position: absolute;
+            bottom: 45px;
+            left: 70px;
+            height: 15px;
+            width: 0px; /* Starts at 0 */
+            background: linear-gradient(to bottom, #ff5252 20%, #ffeb3b 40%, #4caf50 60%, #2196f3 80%);
+            border-radius: 7px;
+            z-index: 5;
+        }
+
+        /* The Surprise Bouncy Mushroom (Hidden by default) */
+        #mushroom {
+            position: absolute;
+            bottom: -5px;
+            font-size: 3rem;
+            display: none;
+            z-index: 3;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        /* Controls and UI */
+        #feedback-msg {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1565c0;
+            height: 30px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #action-btn {
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 6px 0 #c2185b;
+            cursor: pointer;
+            touch-action: none; /* Prevents mobile scrolling while holding */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #action-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🦄 Magic Rainbow Bridge! 🦄</h1>
+    
+    <div id="feedback-msg">Press and HOLD the button to build!</div>
+
+    <div id="game-board">
+        <div class="platform" id="left-platform">☁️</div>
+        <div id="unicorn">🦄</div>
+        
+        <div id="rainbow"></div>
+        
+        <div class="platform" id="right-platform">
+            <div id="castle">🏰</div>
+            <div>☁️</div>
+        </div>
+
+        <div id="mushroom">🍄</div>
+    </div>
+
+    <!-- pointer events work universally for both touch screens and computer mice -->
+    <button id="action-btn" 
+            onpointerdown="startBuilding(event)" 
+            onpointerup="stopBuilding()" 
+            onpointercancel="stopBuilding()" 
+            onpointerleave="stopBuilding()">
+        HOLD TO BUILD!
+    </button>
+
+    <script>
+        const rainbow = document.getElementById('rainbow');
+        const unicorn = document.getElementById('unicorn');
+        const rightPlatform = document.getElementById('right-platform');
+        const mushroom = document.getElementById('mushroom');
+        const feedbackMsg = document.getElementById('feedback-msg');
+
+        const BRIDGE_START_X = 70; // Where the rainbow starts growing from
+
+        let isBuilding = false;
+        let isTesting = false;
+        let rainbowWidth = 0;
+        let targetX = 0;
+        let animationFrame;
+
+        function startRound() {
+            isTesting = false;
+            isBuilding = false;
+            rainbowWidth = 0;
+            
+            // Instantly reset visuals without animation
+            rainbow.style.width = '0px';
+            unicorn.style.transition = 'none';
+            unicorn.style.transform = 'translate(0px, 0px)';
+            rightPlatform.style.transition = 'none';
+            rightPlatform.style.transform = 'translate(0px, 0px)';
+            mushroom.style.display = 'none';
+
+            // Randomize the distance of the castle (between 160px and 300px away)
+            targetX = Math.floor(Math.random() * 140) + 160;
+            rightPlatform.style.left = targetX + 'px';
+
+            feedbackMsg.innerText = "Press and HOLD to build the bridge!";
+            feedbackMsg.style.color = "#1565c0";
+        }
+
+        function startBuilding(e) {
+            if (isTesting) return;
+            e.preventDefault(); // Prevents right-click menus on long presses
+            isBuilding = true;
+            feedbackMsg.innerText = "Building... let go when it reaches!";
+            buildLoop();
+        }
+
+        function buildLoop() {
+            if (!isBuilding) return;
+            
+            rainbowWidth += 4; // Growing speed
+            rainbow.style.width = rainbowWidth + 'px';
+
+            // Auto-stop if it goes off screen
+            if (rainbowWidth > 350) {
+                stopBuilding();
+            } else {
+                animationFrame = requestAnimationFrame(buildLoop);
+            }
+        }
+
+        function stopBuilding() {
+            if (!isBuilding) return;
+            isBuilding = false;
+            isTesting = true; // Locks controls while animating
+            cancelAnimationFrame(animationFrame);
+            testMeasurement();
+        }
+
+        function testMeasurement() {
+            // Calculate the exact pixel gap
+            let gapStart = targetX - BRIDGE_START_X; 
+            let gapEnd = gapStart + 60; // The safe "landing zone" width
+
+            if (rainbowWidth < gapStart) {
+                // FAILED: TOO SHORT
+                feedbackMsg.innerText = "Oh no! It's too short!";
+                feedbackMsg.style.color = "#c62828";
+                
+                // 1. Unicorn walks to the edge of the broken bridge
+                unicorn.style.transition = 'transform 1s linear';
+                unicorn.style.transform = `translate(${rainbowWidth}px, 0px)`;
+                
+                setTimeout(() => {
+                    // 2. Position the bouncy mushroom right below where they fall
+                    mushroom.style.left = (BRIDGE_START_X + rainbowWidth - 15) + 'px';
+                    mushroom.style.display = 'block';
+
+                    // 3. Unicorn falls down!
+                    unicorn.style.transition = 'transform 0.4s ease-in';
+                    unicorn.style.transform = `translate(${rainbowWidth + 10}px, 180px) rotate(45deg)`;
+                    
+                    // 4. Unicorn bounces back up!
+                    setTimeout(() => {
+                        unicorn.style.transition = 'transform 0.4s ease-out';
+                        unicorn.style.transform = `translate(${rainbowWidth + 30}px, 120px) rotate(90deg)`;
+                        setTimeout(startRound, 2000); // Reset game
+                    }, 400);
+                }, 1000);
+
+            } else if (rainbowWidth > gapEnd) {
+                // FAILED: TOO LONG
+                feedbackMsg.innerText = "Whoops! Too long! You bumped the castle!";
+                feedbackMsg.style.color = "#e65100";
+                
+                // Castle gets physically knocked away by the rainbow!
+                rightPlatform.style.transition = 'transform 0.3s ease-out';
+                rightPlatform.style.transform = `translate(40px, -10px) rotate(15deg)`;
+                
+                // Unicorn walks to the end and stops
+                unicorn.style.transition = 'transform 1.2s linear';
+                unicorn.style.transform = `translate(${gapEnd - 10}px, 0px)`;
+                
+                setTimeout(startRound, 2500);
+
+            } else {
+                // SUCCESS: PERFECT MEASUREMENT
+                feedbackMsg.innerText = "⭐ PERFECT MEASUREMENT! ⭐";
+                feedbackMsg.style.color = "#2e7d32";
+                
+                // Unicorn walks across safely
+                unicorn.style.transition = 'transform 1.5s linear';
+                unicorn.style.transform = `translate(${gapStart + 20}px, 0px)`;
+                
+                // Castle does a happy dance!
+                setTimeout(() => {
+                    rightPlatform.style.transition = 'transform 0.2s infinite alternate';
+                    rightPlatform.style.transform = `translate(0px, -10px)`;
+                    setTimeout(startRound, 2500);
+                }, 1500);
+            }
+        }
+
+        // Initialize the first round
+        window.onload = startRound;
+    </script>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="snake.html"><img src="np.png" width="150" length="200"></a></center>
+<br>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>

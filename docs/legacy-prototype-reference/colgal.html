@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rainbow Galaxy Explorer</title>
+  <style>
+    :root {
+      --space-bg: #0b0e1e;
+      --neon-blue: #00f2ff;
+      --neon-pink: #ff00ff;
+    }
+
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--space-bg);
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Stars Background */
+    #stars-container {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+      background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+    }
+
+    /* Screens */
+    .screen {
+      display: none; flex: 1; flex-direction: column;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .active { display: flex; }
+
+    /* UI Elements */
+    h1 { font-size: 2rem; text-shadow: 0 0 10px var(--neon-blue); margin-bottom: 20px; text-align: center; }
+    
+    .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 400px; }
+    
+    .big-btn {
+      background: rgba(255, 255, 255, 0.1); border: 2px solid var(--neon-blue);
+      border-radius: 20px; padding: 20px; color: white; font-size: 1.2rem; cursor: pointer;
+    }
+
+    /* Game HUD */
+    #hud {
+      position: absolute; top: 10px; width: 95%; display: flex;
+      justify-content: space-between; z-index: 10;
+    }
+    .hud-item { background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 15px; border: 1px solid #444; }
+
+    /* Spaceship & Pet */
+    #ship-container {
+      position: relative; margin: 20px 0;
+      transition: transform 0.3s ease;
+    }
+    #spaceship { font-size: 50px; position: relative; z-index: 2; }
+    #pet-pilot {
+      position: absolute; top: -10px; left: 15px; font-size: 30px;
+      transition: all 0.5s;
+    }
+
+    /* Crystals Tray */
+    #crystals { display: flex; gap: 5px; margin-top: 10px; min-height: 30px; }
+    .crystal { font-size: 20px; opacity: 0.3; filter: grayscale(1); }
+    .crystal.collected { opacity: 1; filter: grayscale(0); }
+
+    /* The Galaxy Board */
+    #mission-text { font-size: 1.5rem; margin: 15px 0; font-weight: bold; }
+    #game-board {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 15px; width: 100%; max-width: 350px;
+    }
+    .asteroid {
+      height: 80px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3);
+      cursor: pointer; position: relative; transition: transform 0.1s;
+    }
+    .asteroid:active { transform: scale(0.9); }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      width: 100%;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top: 1px solid rgba(0, 242, 255, 0.3);
+      z-index: 110;
+    }
+
+    .nav-item {
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .nav-item img {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      border: 2px solid var(--neon-blue);
+      box-shadow: 0 0 10px var(--neon-blue);
+    }
+
+    .nav-item:active { transform: scale(0.9); }
+    
+    .nav-label {
+      font-size: 0.7rem;
+      margin-top: 5px;
+      color: var(--neon-blue);
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    /* Animations */
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+    .floating { animation: float 3s ease-in-out infinite; }
+
+    /* Celebration */
+    #victory-layer {
+      position: fixed; top:0; left:0; width: 100%; height:100%;
+      background: rgba(0,0,0,0.8); display: none; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<div id="stars-container"></div>
+
+<div id="start-screen" class="screen active">
+  <h1>🚀 RAINBOW GALAXY</h1>
+  <p>Pick your Pilot:</p>
+  <div class="btn-grid" style="margin-top:20px;">
+    <button class="big-btn" onclick="startGame('🐰')">🐰 Bunny</button>
+    <button class="big-btn" onclick="startGame('🐱')">🐱 Kitty</button>
+    <button class="big-btn" onclick="startGame('🐼')">🐼 Panda</button>
+    <button class="big-btn" onclick="startGame('🦄')">🦄 Uni</button>
+  </div>
+</div>
+
+<div id="game-screen" class="screen">
+  <div id="hud">
+    <div class="hud-item">✨ <span id="score">0</span></div>
+    <div class="hud-item">🌍 <span id="planet-name">Red Planet</span></div>
+    <div class="hud-item">⏳ <span id="timer">30</span></div>
+  </div>
+
+  <div id="ship-container" class="floating">
+    <div id="pet-pilot">🐰</div>
+    <div id="spaceship">🚀</div>
+  </div>
+
+  <div id="crystals">
+    <span class="crystal" id="c-red">❤️</span>
+    <span class="crystal" id="c-orange">🟠</span>
+    <span class="crystal" id="c-yellow">⭐</span>
+    <span class="crystal" id="c-green">🟢</span>
+    <span class="crystal" id="c-blue">💎</span>
+    <span class="crystal" id="c-purple">🔮</span>
+  </div>
+
+  <div id="mission-text">Find the RED energy!</div>
+
+  <div id="game-board"></div>
+</div>
+
+<div id="victory-layer">
+  <h1 id="vic-title">GALAXY RESTORED! 🌈</h1>
+  <div id="vic-pet" style="font-size: 80px;">🐰👑</div>
+  <p id="vic-msg" style="margin: 20px; font-size: 1.2rem;"></p>
+  <button class="big-btn" onclick="location.reload()">Play Again</button>
+</div>
+
+<nav class="bottom-nav">
+  <a href="1.html" class="nav-item">
+    <div class="nav-label">Activities</div>
+  </a>
+  <a href="1b.html" class="nav-item">
+    <div class="nav-label">Next Page</div>
+  </a>
+</nav>
+
+<script>
+  // ... (All your existing JavaScript remains exactly the same) ...
+  const colors = [
+    { name: 'red', emoji: '❤️', planet: 'Mars Red' },
+    { name: 'orange', emoji: '🟠', planet: 'Citrus Orbit' },
+    { name: 'yellow', emoji: '⭐', planet: 'Solar Base' },
+    { name: 'green', emoji: '🟢', planet: 'Emerald Moon' },
+    { name: 'blue', emoji: '💎', planet: 'Oceanus' },
+    { name: 'purple', emoji: '🔮', planet: 'Nebula-9' }
+  ];
+
+  let state = {
+    score: 0,
+    currentPilot: '🐰',
+    targetColor: '',
+    level: 0,
+    timer: 30,
+    interval: null
+  };
+
+  function startGame(pilot) {
+    state.currentPilot = pilot;
+    document.getElementById('pet-pilot').innerText = pilot;
+    document.getElementById('start-screen').classList.remove('active');
+    document.getElementById('game-screen').classList.add('active');
+    nextLevel();
+    startTimer();
+  }
+
+  function startTimer() {
+    state.interval = setInterval(() => {
+      state.timer--;
+      document.getElementById('timer').innerText = state.timer;
+      if (state.timer <= 0) {
+        endGame("Time ran out! But you explored well!");
+      }
+    }, 1000);
+  }
+
+  function nextLevel() {
+    const colorIdx = state.level % colors.length;
+    const target = colors[colorIdx];
+    state.targetColor = target.name;
+    document.getElementById('planet-name').innerText = target.planet;
+    document.getElementById('mission-text').innerHTML = `Collect <span style="color:${target.name}">${target.name.toUpperCase()}</span>`;
+    generateAsteroids();
+  }
+
+  function generateAsteroids() {
+    const board = document.getElementById('game-board');
+    board.innerHTML = '';
+    let choices = [state.targetColor];
+    while(choices.length < 4) {
+      let randomColor = colors[Math.floor(Math.random() * colors.length)].name;
+      if (!choices.includes(randomColor)) choices.push(randomColor);
+    }
+    choices.sort(() => Math.random() - 0.5);
+    choices.forEach(color => {
+      const btn = document.createElement('div');
+      btn.className = 'asteroid';
+      btn.style.backgroundColor = color;
+      btn.onclick = () => handleChoice(color);
+      board.appendChild(btn);
+    });
+  }
+
+  function handleChoice(chosenColor) {
+    if (chosenColor === state.targetColor) {
+      state.score += 10;
+      document.getElementById('score').innerText = state.score;
+      const crystalId = `c-${state.targetColor}`;
+      document.getElementById(crystalId).classList.add('collected');
+      updatePetEvolution();
+      if (state.level < colors.length - 1) {
+        state.level++;
+        nextLevel();
+      } else {
+        endGame("You restored the Rainbow Galaxy!");
+      }
+    } else {
+      state.score = Math.max(0, state.score - 2);
+      document.getElementById('score').innerText = state.score;
+      document.getElementById('ship-container').style.transform = 'translateX(10px)';
+      setTimeout(() => document.getElementById('ship-container').style.transform = 'translateX(0)', 100);
+    }
+  }
+
+  function updatePetEvolution() {
+    let aura = "";
+    if (state.score >= 60) aura = "👑";
+    else if (state.score >= 40) aura = "🌟";
+    else if (state.score >= 20) aura = "✨";
+    document.getElementById('pet-pilot').innerText = state.currentPilot + aura;
+  }
+
+  function endGame(message) {
+    clearInterval(state.interval);
+    document.getElementById('victory-layer').style.display = 'flex';
+    document.getElementById('vic-msg').innerText = message;
+    document.getElementById('vic-pet').innerText = document.getElementById('pet-pilot').innerText;
+  }
+
+  for (let i = 0; i < 50; i++) {
+    const star = document.createElement('div');
+    star.style.position = 'absolute';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.width = '2px';
+    star.style.height = '2px';
+    star.style.backgroundColor = 'white';
+    star.style.opacity = Math.random();
+    document.getElementById('stars-container').appendChild(star);
+  }
+</script>
+
+</body>
+</html>

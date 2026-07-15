@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ayusin ang Laki</title>
+    <style>
+        :root { --bg-color: #fdfefe; --box-border: #95a5a6; }
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); text-align: center; margin: 0; padding: 10px; overflow: hidden; touch-action: none; }
+        
+        h1 { color: #2980b9; font-size: 20px; margin: 5px; }
+        #score-board { font-weight: bold; margin-bottom: 5px; color: #2c3e50; font-size: 18px; }
+
+        #instruction-box {
+            background: #fff; padding: 10px; border-radius: 10px; margin: 10px auto;
+            width: 90%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #instruction-text { font-size: 22px; font-weight: bold; color: #e67e22; }
+
+        .drop-zone-container { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+        .drop-zone {
+            width: 95px; height: 110px; border: 3px dashed var(--box-border);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.6); position: relative;
+        }
+
+        .items-container { display: flex; justify-content: center; gap: 20px; margin-top: 30px; height: 110px; align-items: center; }
+        .draggable {
+            cursor: grab; transition: transform 0.2s; user-select: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .small { font-size: 35px; }
+        .medium { font-size: 55px; }
+        .large { font-size: 80px; }
+
+        #feedback-area { height: 100px; margin-top: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #feedback-text { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+
+        .btn-try-again {
+            padding: 10px 20px; background-color: #e74c3c; color: white;
+            border: none; border-radius: 10px; font-size: 18px; font-weight: bold;
+            cursor: pointer; display: none; /* Hidden by default */
+        }
+
+        .btn-home {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            padding: 8px 16px; background: #34495e; color: white; border: none; border-radius: 8px;
+        }
+
+        .reward-star { position: fixed; font-size: 40px; animation: floatUp 2s linear forwards; z-index: 100; pointer-events: none; }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-100vh); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <h1>Laro: Pag-aayos ng Laki</h1>
+    <div id="score-board">Puntos: <span id="points">0</span> / 10</div>
+    
+    <div id="instruction-box">
+        <div id="instruction-text">Maliit patungong Malaki</div>
+    </div>
+
+    <div class="drop-zone-container">
+        <div class="drop-zone" id="zone-1"></div>
+        <div class="drop-zone" id="zone-2"></div>
+        <div class="drop-zone" id="zone-3"></div>
+    </div>
+
+    <div class="items-container" id="itemsArea"></div>
+
+    <div id="feedback-area">
+        <div id="feedback-text"></div>
+        <button id="tryAgainBtn" class="btn-try-again" onclick="resetSameLevel()">Subukan Muli 🔄</button>
+    </div>
+
+    <button class="btn-home" onclick="window.location.href='1.html'">Back to Activities</button>
+
+    <script>
+        let score = 0;
+        let isSmallToBig = true;
+        const emojiSet = ["🍎", "🐘", "🚗", "🧸", "🐱", "🍦", "🌸", "🍔", "🦁"];
+        const itemsArea = document.getElementById('itemsArea');
+        const instructionText = document.getElementById('instruction-text');
+        const pointsDisplay = document.getElementById('points');
+        const feedbackText = document.getElementById('feedback-text');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const zones = [document.getElementById('zone-1'), document.getElementById('zone-2'), document.getElementById('zone-3')];
+
+        let draggedItem = null;
+        let currentEmoji = "";
+
+        function initLevel() {
+            if (score >= 10) {
+                showFinalCelebration();
+                return;
+            }
+            
+            tryAgainBtn.style.display = "none";
+            feedbackText.innerText = "";
+            currentEmoji = emojiSet[Math.floor(Math.random() * emojiSet.length)];
+            isSmallToBig = Math.random() > 0.5;
+            
+            resetPositions();
+        }
+
+        function resetSameLevel() {
+            tryAgainBtn.style.display = "none";
+            feedbackText.innerText = "";
+            resetPositions();
+        }
+
+        function resetPositions() {
+            itemsArea.innerHTML = "";
+            zones.forEach(z => {
+                const item = z.querySelector('.draggable');
+                if(item) item.remove();
+                z.style.borderColor = "#95a5a6";
+            });
+
+            instructionText.innerText = isSmallToBig ? "Maliit ➡️ Malaki" : "Malaki ➡️ Maliit";
+            instructionText.style.color = isSmallToBig ? "#2980b9" : "#e67e22";
+
+            const sizes = [
+                { class: 'small', id: 'small' },
+                { class: 'medium', id: 'medium' },
+                { class: 'large', id: 'large' }
+            ];
+
+            sizes.sort(() => Math.random() - 0.5).forEach(s => {
+                const el = document.createElement('div');
+                el.className = `draggable ${s.class}`;
+                el.innerText = currentEmoji;
+                el.dataset.size = s.id;
+                el.draggable = true;
+                
+                el.addEventListener('dragstart', () => { draggedItem = el; });
+                el.addEventListener('touchstart', (e) => { draggedItem = e.target; }, {passive: false});
+                el.addEventListener('touchmove', handleTouchMove, {passive: false});
+                el.addEventListener('touchend', handleTouchEnd);
+                itemsArea.appendChild(el);
+            });
+        }
+
+        function checkWin() {
+            const placed = [
+                zones[0].querySelector('.draggable')?.dataset.size,
+                zones[1].querySelector('.draggable')?.dataset.size,
+                zones[2].querySelector('.draggable')?.dataset.size
+            ];
+
+            if (placed.every(p => p !== undefined)) {
+                let correct = false;
+                if (isSmallToBig) {
+                    correct = (placed[0] === 'small' && placed[1] === 'medium' && placed[2] === 'large');
+                } else {
+                    correct = (placed[0] === 'large' && placed[1] === 'medium' && placed[2] === 'small');
+                }
+
+                if (correct) {
+                    score++;
+                    pointsDisplay.innerText = score;
+                    feedbackText.innerText = "Ang galing! Tama! ⭐";
+                    feedbackText.style.color = "#27ae60";
+                    createStars();
+                    setTimeout(initLevel, 1500);
+                } else {
+                    feedbackText.innerText = "Mali ang pagkakasunod-sunod...";
+                    feedbackText.style.color = "#e74c3c";
+                    tryAgainBtn.style.display = "block"; // Show the button!
+                }
+            }
+        }
+
+        zones.forEach(z => {
+            z.addEventListener('dragover', e => e.preventDefault());
+            z.addEventListener('drop', () => {
+                if(!z.querySelector('.draggable')) {
+                    z.appendChild(draggedItem);
+                    checkWin();
+                }
+            });
+        });
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const t = e.touches[0];
+            draggedItem.style.position = 'fixed';
+            draggedItem.style.left = (t.clientX - 30) + 'px';
+            draggedItem.style.top = (t.clientY - 30) + 'px';
+        }
+
+        function handleTouchEnd(e) {
+            draggedItem.style.position = 'static';
+            const t = e.changedTouches[0];
+            const dropTarget = document.elementFromPoint(t.clientX, t.clientY);
+            const zone = dropTarget?.closest('.drop-zone');
+            if (zone && !zone.querySelector('.draggable')) {
+                zone.appendChild(draggedItem);
+                checkWin();
+            }
+        }
+
+        function createStars() {
+            for(let i=0; i<8; i++) {
+                const s = document.createElement('div');
+                s.className = 'reward-star';
+                s.innerText = "⭐";
+                s.style.left = Math.random() * 90 + "vw";
+                s.style.top = "90vh";
+                document.body.appendChild(s);
+                setTimeout(() => s.remove(), 2000);
+            }
+        }
+
+        function showFinalCelebration() {
+            document.body.innerHTML = `
+                <div style="margin-top: 80px; padding: 20px;">
+                    <h1>🌟 NAPAKAHUSAY! 🌟</h1>
+                    <p>Ikaw ay isang dalubhasa sa paghahambing!</p>
+                    <button onclick="location.reload()" style="padding: 15px 30px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 20px;">Maglaro Muli 🔄</button>
+                </div>`;
+            setInterval(createStars, 400);
+        }
+
+        initLevel();
+    </script>
+
+<hr width=100% size="5">
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="8c.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+</body>
+</html>

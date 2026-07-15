@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laro ng Paghahambing</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #fef9e7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 { color: #d35400; font-size: 22px; margin-bottom: 5px; }
+        
+        #score-board {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #instruction {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2e86c1;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 100%;
+            align-items: flex-start;
+            padding: 20px;
+            max-width: 600px;
+        }
+
+        .object-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .item-bar {
+            height: 45px;
+            border-radius: 0 25px 25px 0;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        .label { font-size: 30px; margin-right: 10px; }
+
+        .color-1 { background-color: #f39c12; }
+        .color-2 { background-color: #e67e22; }
+        .color-3 { background-color: #d35400; }
+
+        #feedback {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            min-height: 35px;
+        }
+
+        .star {
+            position: fixed;
+            font-size: 40px;
+            pointer-events: none;
+            animation: burst 1s ease-out forwards;
+            z-index: 2000;
+        }
+
+        @keyframes burst {
+            0% { transform: scale(0) translate(0, 0); opacity: 1; }
+            100% { transform: scale(1.5) translate(var(--x), var(--y)); opacity: 0; }
+        }
+
+        .btn-action {
+            padding: 15px 30px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e8449;
+            margin-top: 20px;
+        }
+
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .btn-home {
+            margin-top: auto;
+            padding: 12px 25px;
+            background-color: #34495e;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Laro: Paghahambing ng Mahaba,Mas Mahaba, Pinakamahaba</h1>
+    <div id="score-board">Puntos: <span id="points">0</span> / 10</div>
+    <div id="instruction">Hanapin ang MAHABA</div>
+
+    <div class="game-container" id="gameArea"></div>
+
+    <div id="feedback"></div>
+
+    <button class="btn-home" onclick="window.location.href='1.html'">Back to Activities</button>
+
+    <script>
+        const gameArea = document.getElementById('gameArea');
+        const instructionText = document.getElementById('instruction');
+        const feedback = document.getElementById('feedback');
+        const pointsDisplay = document.getElementById('points');
+        
+        let score = 0;
+        let targetType = "";
+
+        const translations = {
+            'long': 'MAHABA',
+            'longer': 'MAS MAHABA',
+            'longest': 'PINAKAMAHABA'
+        };
+
+        function createStar() {
+            for (let i = 0; i < 12; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.innerHTML = '⭐';
+                star.style.left = '50%';
+                star.style.top = '50%';
+                star.style.setProperty('--x', (Math.random() * 500 - 250) + 'px');
+                star.style.setProperty('--y', (Math.random() * 500 - 250) + 'px');
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 1000);
+            }
+        }
+
+        function restartGame() {
+            score = 0;
+            pointsDisplay.innerText = score;
+            initGame();
+        }
+
+        function initGame() {
+            gameArea.innerHTML = "";
+            feedback.innerText = "";
+            
+            if (score >= 10) {
+                instructionText.innerText = "🎉 Napakahusay! 🎉";
+                gameArea.innerHTML = `
+                    <div style="text-align:center; width:100%;">
+                        <h2 style="color: #2c3e50;">Nakuha mo ang 10 bituin!</h2>
+                        <button class="btn-action" onclick="restartGame()">Maglaro Muli 🔄</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const types = ['long', 'longer', 'longest'];
+            targetType = types[Math.floor(Math.random() * types.length)];
+            instructionText.innerText = `I-click ang ${translations[targetType]}`;
+
+            const lengths = [
+                { id: 'long', width: 100 },
+                { id: 'longer', width: 200 },
+                { id: 'longest', width: 300 }
+            ];
+
+            const shuffled = [...lengths].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'object-row';
+                row.onclick = () => checkAnswer(item.id);
+
+                const label = document.createElement('div');
+                label.className = 'label';
+                label.innerText = "📏";
+
+                const bar = document.createElement('div');
+                bar.className = `item-bar color-${index + 1}`;
+                bar.style.width = item.width + "px";
+                
+                row.appendChild(label);
+                row.appendChild(bar);
+                gameArea.appendChild(row);
+            });
+        }
+
+        function checkAnswer(clickedId) {
+            if (clickedId === targetType) {
+                score++;
+                pointsDisplay.innerText = score;
+                feedback.innerText = "Ang galing! ⭐";
+                feedback.style.color = "#27ae60";
+                createStar();
+                
+                // If it was the 10th point, go to end screen immediately
+                if (score >= 10) {
+                    setTimeout(initGame, 1500);
+                } else {
+                    setTimeout(initGame, 1200);
+                }
+            } else {
+                feedback.innerText = "Subukan muli! 💪";
+                feedback.style.color = "#c0392b";
+            }
+        }
+
+        initGame();
+    </script>
+
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="8b.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+<hr width=100% size="5">
+
+<center><a name="DOWN"></center>
+<center><a href="#top">Page Up</center>
+
+</body>
+</html>

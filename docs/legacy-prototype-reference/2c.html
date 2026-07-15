@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monster Cafe Drag Game</title>
+
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Century Gothic', sans-serif;
+            background: #3b2b22;
+            margin: 0;
+            padding: 20px; /* Added padding to protect phone edges */
+            display: flex;
+            flex-direction: column; /* Forces vertical stacking */
+            justify-content: flex-start; /* Safely starts content at the top on small screens */
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh; /* Accounts for mobile browser address bars */
+            gap: 25px; /* Adds space between game and buttons */
+        }
+
+        .game-card {
+            width: 100%; /* Changed to 100% for safe mobile sizing */
+            max-width: 500px;
+            margin-top: auto; /* Pushes the box down to center when there is space */
+            background: #fdeacb;
+            padding: 15px;
+            border-radius: 25px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* MONSTER */
+        .monster { font-size: 60px; }
+
+        .mouth {
+            margin: 10px auto;
+            width: 120px;
+            height: 60px;
+            background: #000;
+            border-radius: 0 0 60px 60px;
+            position: relative;
+        }
+
+        /* ITEMS */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .item {
+            background: #fee1b5;
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .dragging { opacity: 0.5; }
+
+        /* FEEDBACK */
+        .correct { background: #a5d6a7; }
+        .wrong { background: #ef9a9a; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 15px;
+            border: none;
+            background: #d97706;
+            color: white;
+            cursor: pointer;
+        }
+        
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        /* Modern layout for bottom navigation images */
+        .nav-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; /* Allows safe stacking on narrow screens */
+            gap: 20px;
+            margin-bottom: auto; /* Pushes the buttons up to balance the centering */
+        }
+
+        .nav-buttons img {
+            transition: transform 0.2s;
+            border-radius: 15px;
+        }
+
+        @media (hover: hover) {
+            .nav-buttons img:hover {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="game-card">
+    <h2>👾 Monster Cafe</h2>
+    <p id="instruction">Loading...</p>
+
+    <div class="monster">👀</div>
+    <div class="mouth" id="mouth"></div>
+
+    <div id="menu" class="menu-grid"></div>
+
+    <p id="feedback">Isubo sa bibig!</p>
+
+    <button id="next" disabled>Next</button>
+    <p>Score: <span id="score">0</span></p>
+</div>
+
+<div class="nav-buttons">
+    <a href="2c1.html"><img src="np.png" width="80" height="50" alt="Next Page"></a>
+    <a href="1.html"><img src="ACT.png" width="80" height="50" alt="Activity"></a>
+</div>
+
+<script>
+    const items = [
+        { name: "clock", emoji: "🕒", shape: "circle" },
+        { name: "ball", emoji: "⚽", shape: "circle" },
+        { name: "window", emoji: "🪟", shape: "square" },
+        { name: "box", emoji: "📦", shape: "square" },
+        { name: "triangle", emoji: "🔺", shape: "triangle" },
+        { name: "tent", emoji: "⛺", shape: "triangle" },
+        { name: "star", emoji: "⭐", shape: "star" },
+        { name: "sparkle", emoji: "🌟", shape: "star" }
+    ];
+
+    const shapes = ["circle","square","triangle","star"];
+
+    let currentShape;
+    let score = 0;
+    let draggedItem = null;
+
+    const instruction = document.getElementById("instruction");
+    const menu = document.getElementById("menu");
+    const mouth = document.getElementById("mouth");
+    const feedback = document.getElementById("feedback");
+    const nextBtn = document.getElementById("next");
+    const scoreText = document.getElementById("score");
+
+    function startRound(){
+        nextBtn.disabled = true;
+        const shapeEmoji = {
+            circle:"⚪",
+            square:"🟦",
+            triangle:"🔺",
+            star:"⭐"
+        };
+        currentShape = shapes[Math.floor(Math.random()*shapes.length)];
+        instruction.innerHTML = `<div style="font-size:40px">${shapeEmoji[currentShape]}</div>Feed me this shape`;
+        renderMenu();
+    }
+
+    function renderMenu(){
+        const correct = items.filter(i=>i.shape===currentShape)[0];
+        const wrong = items.filter(i=>i.shape!==currentShape)
+            .sort(()=>Math.random()-0.5)
+            .slice(0,3);
+
+        const choices = [correct, ...wrong].sort(()=>Math.random()-0.5);
+
+        menu.innerHTML = choices.map(i=>`
+            <div class="item" draggable="true" data-shape="${i.shape}">
+                <div style="font-size:40px">${i.emoji}</div>
+                ${i.name}
+            </div>
+        `).join("");
+        addDragEvents();
+    }
+
+    function addDragEvents(){
+        const allItems = document.querySelectorAll(".item");
+        allItems.forEach(item=>{
+            item.addEventListener("dragstart", ()=>{
+                draggedItem = item;
+                item.classList.add("dragging");
+            });
+            item.addEventListener("dragend", ()=> item.classList.remove("dragging"));
+            item.addEventListener("touchstart", ()=> draggedItem = item);
+        });
+    }
+
+    mouth.addEventListener("dragover", e=>e.preventDefault());
+    mouth.addEventListener("drop", handleDrop);
+    mouth.addEventListener("touchend", handleDrop);
+
+    function handleDrop(){
+        if(!draggedItem) return;
+        const shape = draggedItem.getAttribute("data-shape");
+        if(shape === currentShape){
+            score++;
+            scoreText.innerText = score;
+            feedback.innerText = "YUM! 😋";
+            mouth.classList.add("correct");
+        } else {
+            feedback.innerText = "Oops! 😢";
+            mouth.classList.add("wrong");
+        }
+        nextBtn.disabled = false;
+        draggedItem = null;
+    }
+
+    nextBtn.onclick = ()=>{
+        mouth.classList.remove("correct","wrong");
+        startRound();
+    };
+
+    startRound();
+</script>
+
+</body>
+</html>

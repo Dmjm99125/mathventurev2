@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Magic Toy Factory!</title>
+    <style>
+        :root {
+            --conveyor-grey: #64748b;
+            --factory-blue: #3b82f6;
+            --button-gold: #f59e0b;
+            --gear-orange: #f97316;
+            --bg-cream: #fffbeb;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px; /* Added padding to protect phone edges */
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--bg-cream);
+            color: #334155;
+            display: flex;
+            flex-direction: column; /* Forces vertical stacking */
+            justify-content: flex-start; /* Safely starts content at the top on small screens */
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh; /* Accounts for mobile browser address bars */
+            gap: 25px; /* Adds space between game and buttons */
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+
+        #factory-box {
+            width: 100%; /* Changed to 100% for safe mobile sizing */
+            max-width: 460px;
+            margin-top: auto; /* Pushes the box down to center when there is space */
+            background: #ffffff;
+            border: 6px solid var(--factory-blue);
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--factory-blue);
+            margin-bottom: 10px;
+        }
+
+        /* The Assembly Line Conveyor Box */
+        #conveyor-belt {
+            background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+            border: 4px solid var(--conveyor-grey);
+            border-radius: 24px;
+            height: 170px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: inset 0 6px 10px rgba(0,0,0,0.15);
+        }
+
+        /* The Toy Box inside the factory */
+        #toy-box-crate {
+            background: #ffedd5;
+            border: 4px dashed var(--gear-orange);
+            border-radius: 16px;
+            width: 140px;
+            height: 140px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            padding: 8px;
+            box-sizing: border-box;
+            align-items: center;
+            justify-items: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(-200px) rotate(-10deg); opacity: 0; }
+            100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+        }
+
+        .toy-unit {
+            font-size: 1.8rem;
+            line-height: 1;
+        }
+
+        /* Number Tapping Keypad */
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .factory-btn {
+            background-color: var(--button-gold);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            padding: 10px 0;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b45309;
+            font-family: inherit;
+            transition: all 0.1s ease;
+        }
+
+        .factory-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b45309;
+        }
+
+        /* Toy shelf row at bottom */
+        #collection-shelf {
+            background: #f1f5f9;
+            border-top: 4px solid var(--conveyor-grey);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 15px;
+        }
+
+        #shelf-toys {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1.8rem;
+            min-height: 35px;
+            flex-wrap: wrap;
+        }
+
+        /* Unlocked prize splash */
+        #factory-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #factory-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .prize-glow {
+            font-size: 6.5rem;
+            animation: spinToy 2s infinite linear;
+        }
+
+        @keyframes spinToy {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(15deg) scale(1.1); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        .wrap-btn {
+            background-color: var(--factory-blue);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1d4ed8;
+            font-family: inherit;
+        }
+
+        /* Modern layout for bottom navigation images */
+        .nav-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; 
+            gap: 20px;
+            margin-bottom: auto; /* Pushes the buttons up to balance the centering */
+        }
+
+        .nav-buttons img {
+            transition: transform 0.2s;
+            border-radius: 15px;
+        }
+
+        @media (hover: hover) {
+            .nav-buttons img:hover {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="factory-box">
+        <div id="factory-overlay">
+            <h2 style="color: var(--gear-orange); margin: 0; font-size: 2.2rem;">🔑 Toy Unlocked! 🔑</h2>
+            <p style="font-size: 1.2rem; margin: 5px 0; color: #475569;">Your golden key built a special gift:</p>
+            <div class="prize-glow" id="unlocked-toy">🚀</div>
+            <button class="wrap-btn" onclick="closeSurprise()">Keep Making Toys</button>
+        </div>
+
+        <div class="hud">
+            <div>Packed: <span id="score-text" style="color: var(--gear-orange);">0</span></div>
+            <div>Next Key: <span id="target-text" style="color: var(--button-gold);">10</span></div>
+        </div>
+
+        <p style="margin: 0; font-weight: bold; color: var(--conveyor-grey);">How many toys are in the magic box?</p>
+
+        <div id="conveyor-belt">
+            <div id="toy-box-crate"></div>
+        </div>
+
+        <div id="keypad">
+            <button class="factory-btn" onclick="pressNumber(this)">?</button>
+            <button class="factory-btn" onclick="pressNumber(this)">?</button>
+            <button class="factory-btn" onclick="pressNumber(this)">?</button>
+        </div>
+
+        <div id="collection-shelf">
+            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 3px;">Your Unlocked Toy Collection</div>
+            <div id="shelf-toys"></div>
+        </div>
+    </div>
+
+    <div class="nav-buttons">
+        <a href="mons.html"><img src="np.png" width="80" height="50" alt="Next Page"></a>
+        <a href="1.html"><img src="ACT.png" width="80" height="50" alt="Activity"></a>
+    </div>
+
+    <script>
+        let score = 0;
+        let activeCount = 0;
+        let keyMilestone = 10;
+
+        const toyTypes = ['🧸', '🚗', '🚂', '🦆', '⚽', '🎨', '🚀', '🤖', '🦄', '✈️'];
+        const milestonePrizes = ['🏰', '🛹', '🎸', '🎮', '🦕', '🧩', '🥁', '🚲', '🪁'];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playFactorySound(type) {
+            const now = audioCtx.currentTime;
+
+            if (type === 'stamp') {
+                // Happy double-tone chime for a correct package stamp "Ding-Ding!"
+                [0, 0.08].forEach((timeOffset, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25 + (i * 130), now + timeOffset); // C5 then E5
+                    gain.gain.setValueAtTime(0.2, now + timeOffset);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + timeOffset + 0.15);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now + timeOffset); osc.stop(now + timeOffset + 0.15);
+                });
+            } else if (type === 'error') {
+                // Soft springy buzz for incorrect matches
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.18);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.18);
+            } else if (type === 'fanfare') {
+                // Grand mechanical conveyor unlock tune
+                const notes = [261.63, 329.63, 392.00, 523.25, 783.99];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.06));
+                    gain.gain.setValueAtTime(0.15, now + (idx * 0.06));
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.06) + 0.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now + (idx * 0.06)); osc.stop(now + (idx * 0.06) + 0.3);
+                });
+            }
+        }
+
+        function launchBox() {
+            // Pick quantity between 1 and 9
+            activeCount = Math.floor(Math.random() * 9) + 1;
+
+            const crate = document.getElementById('toy-box-crate');
+            crate.innerHTML = ''; // Clear crate grids
+            // Rerender entry sliding key animation trigger
+            crate.style.animation = 'none';
+            crate.offsetHeight; // trigger reflow
+            crate.style.animation = null;
+
+            const selectedToy = toyTypes[Math.floor(Math.random() * toyTypes.length)];
+
+            // Create a placement matrix index map array (0-8 map grid locations)
+            let placements = [];
+            
+            // Layout styling depending on quantity levels for neat structural patterns
+            if (activeCount === 1) placements = [4]; // Middle cell
+            else if (activeCount === 2) placements = [0, 8]; // Diagonal corners
+            else if (activeCount === 3) placements = [0, 4, 8]; // Main diagonal line
+            else if (activeCount === 4) placements = [0, 2, 6, 8]; // Four corners (Dice 4 style)
+            else if (activeCount === 5) placements = [0, 2, 4, 6, 8]; // X shape (Dice 5 style)
+            else {
+                // For high numbers 6-9, scatter them semi-randomly across the 9 spaces
+                while(placements.length < activeCount) {
+                    let randPos = Math.floor(Math.random() * 9);
+                    if(!placements.includes(randPos)) placements.push(randPos);
+                }
+            }
+
+            // Fill out 9 structured spaces
+            for(let cell = 0; cell < 9; cell++) {
+                const spaceDiv = document.createElement('div');
+                if(placements.includes(cell)) {
+                    spaceDiv.className = 'toy-unit';
+                    spaceDiv.textContent = selectedToy;
+                }
+                crate.appendChild(spaceDiv);
+            }
+
+            // Configure Keypad Choices (1 Correct, 2 Fakes)
+            let buttonValues = [activeCount];
+            while (buttonValues.length < 3) {
+                let fakeNumber = Math.floor(Math.random() * 9) + 1;
+                if (!buttonValues.includes(fakeNumber)) buttonValues.push(fakeNumber);
+            }
+            buttonValues.sort(() => Math.random() - 0.5);
+
+            const buttons = document.querySelectorAll('.factory-btn');
+            buttons.forEach((btn, idx) => {
+                btn.textContent = buttonValues[idx];
+                btn.disabled = false;
+                btn.style.backgroundColor = 'var(--button-gold)';
+                btn.style.boxShadow = '0 6px 0 #b45309';
+            });
+        }
+
+        function pressNumber(button) {
+            const typedVal = parseInt(button.textContent);
+            const buttons = document.querySelectorAll('.factory-btn');
+
+            if (typedVal === activeCount) {
+                score++;
+                document.getElementById('score-text').textContent = score;
+                playFactorySound('stamp');
+
+                // Animate box stamp confirmation change green
+                button.style.backgroundColor = '#22c55e';
+                button.style.boxShadow = '0 6px 0 #16a34a';
+                buttons.forEach(btn => btn.disabled = true);
+
+                if (score === keyMilestone) {
+                    setTimeout(triggerKeyUnwrapAlert, 700);
+                } else {
+                    setTimeout(launchBox, 1000);
+                }
+            } else {
+                playFactorySound('error');
+                // Gray out wrong choice lock
+                button.style.backgroundColor = '#94a3b8';
+                button.style.boxShadow = '0 6px 0 #475569';
+                button.disabled = true;
+            }
+        }
+
+        function triggerKeyUnwrapAlert() {
+            playFactorySound('fanfare');
+
+            // Cherrypick a randomized toy machine reward prize
+            const toyReward = milestonePrizes[Math.floor(Math.random() * milestonePrizes.length)];
+            document.getElementById('unlocked-toy').textContent = toyReward;
+
+            // Push miniature item down into collection rack storage display
+            const rack = document.getElementById('shelf-toys');
+            const span = document.createElement('span');
+            span.textContent = toyReward;
+            rack.appendChild(span);
+
+            // Toggle view show screen window open
+            document.getElementById('factory-overlay').classList.add('show');
+            keyMilestone += 10;
+        }
+
+        function closeSurprise() {
+            document.getElementById('factory-overlay').classList.remove('show');
+            document.getElementById('target-text').textContent = keyMilestone;
+            launchBox();
+        }
+
+        // Initialize assembly grid frame loop instantly
+        launchBox();
+    </script>
+</body>
+</html>

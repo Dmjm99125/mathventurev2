@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Addition with Apples</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, Arial;
+      text-align: center;
+      background-color: #fff7e6;
+    }
+    h1 {
+      color: #ff914d;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      width: 350px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .objects {
+      font-size: 40px;
+      margin: 10px 0;
+    }
+    .question {
+      font-size: 25px;
+      margin: 15px 0;
+    }
+    input {
+      font-size: 20px;
+      padding: 5px;
+      width: 80px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ff914d;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff7a26;
+    }
+    .result {
+      font-size: 20px;
+      margin-top: 15px;
+    }
+    .score {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🍎 Count the Apples! 🍎</h1>
+
+  <div class="box">
+    <div class="objects" id="apples1"></div>
+    <div class="objects">+</div>
+    <div class="objects" id="apples2"></div>
+
+    <div class="question">How many apples in total?</div>
+
+    <input type="number" id="answer" placeholder="?">
+    <br>
+    <button onclick="checkAnswer()">Check Answer</button>
+
+    <div class="result" id="result"></div>
+    <div class="score" id="score">Score: 0</div>
+  </div>
+
+  <script>
+    let num1, num2;
+    let score = 0;
+
+    function getApples(num) {
+      let apples = "";
+      for (let i = 0; i < num; i++) {
+        apples += "🍎";
+      }
+      return apples;
+    }
+
+    function newQuestion() {
+      num1 = Math.floor(Math.random() * 6) + 1;
+      num2 = Math.floor(Math.random() * 6) + 1;
+
+      document.getElementById("apples1").innerText = getApples(num1);
+      document.getElementById("apples2").innerText = getApples(num2);
+
+      document.getElementById("answer").value = "";
+      document.getElementById("result").innerText = "";
+    }
+
+    function checkAnswer() {
+      let userAnswer = Number(document.getElementById("answer").value);
+      let correctAnswer = num1 + num2;
+
+      if (userAnswer === correctAnswer) {
+        document.getElementById("result").innerText = "🎉 Correct! You counted well!";
+        score++;
+      } else {
+        document.getElementById("result").innerText = "❌ Try again! Count carefully.";
+      }
+
+      document.getElementById("score").innerText = "Score: " + score;
+
+      setTimeout(newQuestion, 1500);
+    }
+
+    newQuestion();
+  </script>
+
+</body>
+</html>
+
+
+<br>
+<br>
+<br>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="4c.html"><img src="np.png" width="150" length="200"></a></center>
+	</td>
+
+	<td>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+
+
+<hr width=100% size="5">
+
+<center><a name="DOWN"></center>
+<center><a href="#top">Page Up</center>
+
+</body>
+</html>

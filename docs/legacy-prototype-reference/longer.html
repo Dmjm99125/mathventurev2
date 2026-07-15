@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindergarten Measurement Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background-color: #e0f7fa;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #006064;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        .instruction {
+            font-size: 1.2rem;
+            color: #00838f;
+            margin-bottom: 20px;
+        }
+        .game-board {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+        .item-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background-color: #b2ebf2;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            min-height: 70px;
+            overflow: hidden;
+        }
+        /* Hover effect for computers, safe for phones */
+        @media (hover: hover) {
+            .item-container:hover {
+                transform: scale(1.02);
+                background-color: #80deea;
+            }
+        }
+        .caterpillar {
+            font-size: 2.2rem;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .score-board {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff6f00;
+            margin-top: 20px;
+        }
+        .feedback {
+            font-size: 1.4rem;
+            font-weight: bold;
+            height: 30px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🐛 Which is Longer? 🐛</h1>
+    <div class="instruction">Tap or click on the LONGER caterpillar!</div>
+
+    <div class="game-board">
+        <div class="feedback" id="feedbackMsg"></div>
+        
+        <div class="item-container" id="option1" onclick="checkAnswer(1)">
+            <div class="caterpillar" id="cat1"></div>
+        </div>
+        
+        <div class="item-container" id="option2" onclick="checkAnswer(2)">
+            <div class="caterpillar" id="cat2"></div>
+        </div>
+    </div>
+
+    <div class="score-board">Score: <span id="score">0</span></div>
+
+    <script>
+        let score = 0;
+        let length1 = 0;
+        let length2 = 0;
+        let isPlaying = true;
+
+        // Creates a caterpillar string based on the given length
+        function generateCaterpillar(length) {
+            let cat = '🐛'; // Head
+            for(let i = 1; i < length; i++) {
+                cat += '🟢'; // Body segments
+            }
+            return cat;
+        }
+
+        // Sets up a new round with randomized lengths
+        function startRound() {
+            isPlaying = true;
+            document.getElementById('feedbackMsg').innerText = "";
+            document.getElementById('option1').style.backgroundColor = "#b2ebf2";
+            document.getElementById('option2').style.backgroundColor = "#b2ebf2";
+
+            // Generate two different lengths between 2 and 7
+            length1 = Math.floor(Math.random() * 6) + 2;
+            length2 = Math.floor(Math.random() * 6) + 2;
+            
+            // Ensure they are never the exact same length
+            while (length1 === length2) {
+                length2 = Math.floor(Math.random() * 6) + 2;
+            }
+
+            // Display the caterpillars
+            document.getElementById('cat1').innerText = generateCaterpillar(length1);
+            document.getElementById('cat2').innerText = generateCaterpillar(length2);
+        }
+
+        // Validates the student's choice
+        function checkAnswer(selectedOption) {
+            if (!isPlaying) return; // Prevents clicking while waiting for the next round
+            isPlaying = false;
+
+            let isCorrect = false;
+            
+            if (selectedOption === 1 && length1 > length2) isCorrect = true;
+            if (selectedOption === 2 && length2 > length1) isCorrect = true;
+
+            if (isCorrect) {
+                document.getElementById('feedbackMsg').innerText = "⭐ Great Job! ⭐";
+                document.getElementById('feedbackMsg').style.color = "#2e7d32";
+                document.getElementById('option' + selectedOption).style.backgroundColor = "#a5d6a7";
+                score++;
+            } else {
+                document.getElementById('feedbackMsg').innerText = "Oops! Try again.";
+                document.getElementById('feedbackMsg').style.color = "#c62828";
+                document.getElementById('option' + selectedOption).style.backgroundColor = "#ef9a9a";
+            }
+
+            document.getElementById('score').innerText = score;
+
+            // Wait 1.5 seconds, then start the next round automatically
+            setTimeout(startRound, 1500);
+        }
+
+        // Start the first round when the page loads
+        window.onload = startRound;
+    </script>
+<br>
+<center>
+<table>
+<tr>
+	<td>
+	 <center><a href="hol.html"><img src="np.png" width="150" length="200"></a></center>
+<br>
+	 <center><a href="1.html"><img src="ACT.png" width="150" length="150"></a></center>
+	</td>
+</tr>
+</table>
+</center>
+
+</body>
+</html>
