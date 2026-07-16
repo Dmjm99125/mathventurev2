@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRoute, useSearch, useLocation } from 'wouter';
 import { allTopics } from '@/data';
+import { freePlayTopics } from '@/data/freePlay';
 import { GameLayout } from '@/components/GameLayout';
 import { AudioButton } from '@/components/AudioButton';
 import { Card, Button } from '@/components/ui';
@@ -9,7 +10,7 @@ import confetti from 'canvas-confetti';
 import { useSubmitAttempt } from '@/lib/hooks';
 
 export function QuizPage() {
-  const [, params] = useRoute('/student/quiz/:topic');
+  const [, params] = useRoute('/student/lessons/:topic');
   const searchStr = useSearch();
   const searchParams = new URLSearchParams(searchStr);
   const assignmentId = searchParams.get('assignmentId') || undefined;
@@ -17,7 +18,9 @@ export function QuizPage() {
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
 
-  const questions = allTopics[topic as keyof typeof allTopics] || [];
+  const questions = assignmentId 
+    ? (allTopics[topic as keyof typeof allTopics] || [])
+    : (freePlayTopics[topic as keyof typeof freePlayTopics] || []);
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'feedback' | 'completed'>('intro');

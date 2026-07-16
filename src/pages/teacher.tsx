@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useTeacherDashboard, useClasses, useCreateClass, useClassRoster, useAssignments, useCreateAssignment, useClassPosts, useCreatePost } from '@/lib/hooks';
 import { Card, Button, Input, Label, Badge } from '@/components/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, BookOpen, AlertTriangle, Plus, ArrowRight, UserPlus, CheckCircle2, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { allTopics } from '@/data';
@@ -278,17 +279,18 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
           <form onSubmit={handleAssign} className="flex gap-4 items-end">
             <div className="flex-1 space-y-2">
               <Label>Select Chapter</Label>
-              <select 
-                className="flex h-12 w-full rounded-xl border-2 border-input bg-background px-4 py-2 text-base font-bold text-foreground focus-visible:outline-none focus-visible:border-primary capitalize"
-                value={assignLessonId}
-                onChange={e => setAssignLessonId(e.target.value)}
-                required
-              >
-                <option value="">-- Choose a chapter --</option>
-                {Object.keys(allTopics).map(topic => (
-                  <option key={topic} value={topic}>{topic}</option>
-                ))}
-              </select>
+              <Select value={assignLessonId} onValueChange={setAssignLessonId} required>
+                <SelectTrigger className="flex h-12 w-full rounded-xl border-2 border-input bg-background px-4 py-2 text-base font-bold text-foreground focus-visible:outline-none focus-visible:border-primary capitalize">
+                  <SelectValue placeholder="-- Choose a chapter --" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-2 shadow-lg">
+                  {Object.keys(allTopics).map(topic => (
+                    <SelectItem key={topic} value={topic} className="capitalize font-bold text-base py-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      {topic}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button type="submit" disabled={createAssignment.isPending || !assignLessonId}>
               {createAssignment.isPending ? 'Sending...' : 'Send Assignment'}
