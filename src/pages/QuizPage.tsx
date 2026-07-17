@@ -341,7 +341,6 @@ export function QuizPage() {
           <ChooseWhichColor onComplete={() => {
             // Give some points for completing the whole thing
             setScore(s => s + 10);
-            submitAttempt(topic, 'quiz', score + 10);
             setLocation('/');
           }} />
         ) : (
