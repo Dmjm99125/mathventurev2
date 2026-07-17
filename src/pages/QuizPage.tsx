@@ -8,6 +8,7 @@ import { LessonSlideCard } from '@/components/LessonSlideCard';
 import { ColorMatchingGame } from '@/components/games/1-colors/ColorMatchingGame';
 import { BalloonFindingGame } from '@/components/games/1-colors/BalloonFindingGame';
 import { RainbowColorCatcher } from '@/components/games/1-colors/RainbowColorCatcher';
+import { RainbowColorDeluxe } from '@/components/games/1-colors/RainbowColorDeluxe';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -300,6 +301,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'colors' && currentIndex === 2 ? (
           <RainbowColorCatcher onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'colors' && currentIndex === 3 ? (
+          <RainbowColorDeluxe onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
