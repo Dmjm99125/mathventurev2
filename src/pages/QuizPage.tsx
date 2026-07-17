@@ -10,6 +10,7 @@ import { BalloonFindingGame } from '@/components/games/1-colors/BalloonFindingGa
 import { RainbowColorCatcher } from '@/components/games/1-colors/RainbowColorCatcher';
 import { RainbowColorDeluxe } from '@/components/games/1-colors/RainbowColorDeluxe';
 import { RainbowGalaxyExplorer } from '@/components/games/1-colors/RainbowGalaxyExplorer';
+import { ChooseWhichColor } from '@/components/games/1-colors/ChooseWhichColor';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -336,6 +337,13 @@ export function QuizPage() {
               setTimeout(handleNext, 0);
             }
           }} />
+        ) : topic === 'colors' && currentIndex === 5 ? (
+          <ChooseWhichColor onComplete={() => {
+            // Give some points for completing the whole thing
+            setScore(s => s + 10);
+            submitAttempt(topic, 'quiz', score + 10);
+            setLocation('/');
+          }} />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
@@ -413,8 +421,8 @@ export function QuizPage() {
             You scored {score + (selectedOption?.isCorrect ? 1 : 0)} out of {questions.length}
           </p>
           <div className="flex flex-col gap-3">
-            <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => setLocation('/student/lessons')}>
-              Continue Adventure
+            <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => setLocation('/')}>
+              Return to Main Menu
             </Button>
             <Button
               size="lg"

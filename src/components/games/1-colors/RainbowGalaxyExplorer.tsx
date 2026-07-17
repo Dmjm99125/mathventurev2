@@ -115,7 +115,7 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
       {onComplete && (
         <Button 
           variant="outline" 
-          className="absolute top-4 right-4 bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] z-50"
+          className="absolute top-16 right-4 bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] z-50"
           onClick={onComplete}
         >
           Next Game ➡️
