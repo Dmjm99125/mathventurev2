@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/useLanguage';
 import { signIn, signUp } from '@/lib/auth';
 import { Button, Input, Label, Card } from '@/components/ui';
 import type { Role } from '@/lib/api';
-import { Map, Leaf, Compass } from 'lucide-react';
+import { Map, Leaf, Compass, ArrowLeft } from 'lucide-react';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -36,6 +36,13 @@ export function Login() {
       {/* Decorative Jungle Leaves */}
       <Leaf className="absolute top-10 left-10 text-primary/20 h-32 w-32 -rotate-45" />
       <Leaf className="absolute bottom-10 right-10 text-jungle-orange/20 h-40 w-40 rotate-12" />
+      
+      {/* Back Button */}
+      <Link href="/">
+        <Button variant="ghost" className="absolute top-4 left-4 z-50 gap-2 text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-5 w-5" /> Back to Home
+        </Button>
+      </Link>
       
       <Card className="w-full max-w-md p-8 relative z-10">
         <div className="flex justify-center mb-6">
@@ -114,6 +121,13 @@ export function Signup() {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background relative overflow-hidden">
       <Map className="absolute top-1/4 -right-10 text-primary/10 h-64 w-64 rotate-12" />
+      
+      {/* Back Button */}
+      <Link href="/">
+        <Button variant="ghost" className="absolute top-4 left-4 z-50 gap-2 text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-5 w-5" /> Back to Home
+        </Button>
+      </Link>
       
       <Card className="w-full max-w-md p-8 relative z-10">
         <h1 className="text-3xl font-display font-bold text-center mb-2">Join the Expedition</h1>
