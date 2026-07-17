@@ -24,7 +24,7 @@ export function Landing() {
   return (
     <div
       className="min-h-[100dvh] flex flex-col bg-cover bg-center"
-      style={{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('/assets/images/INDBG.jpg')` }}
+      style={{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.47), rgba(255, 255, 255, 0.74)), url('/assets/images/INDBG.jpg')` }}
     >
       <TopNav />
 
