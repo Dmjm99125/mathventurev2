@@ -58,3 +58,23 @@ Deno.test("student-login returns a token hash when the last name matches", async
     verifyType: "email",
   });
 });
+
+Deno.test("student-login returns a JSON 500 with CORS headers when a dependency throws", async () => {
+  const handler = createStudentLoginHandler({
+    findStudentByNormalizedLrn: async () => {
+      throw new Error("boom");
+    },
+    issueStudentSession: async () => {
+      throw new Error("should not issue session");
+    },
+  });
+
+  const response = await handler(new Request("http://local/student-login", {
+    method: "POST",
+    body: JSON.stringify({ lrn: "123456789012", lastName: "Santos" }),
+  }));
+
+  assertEquals(response.status, 500);
+  assertEquals(response.headers.get("Access-Control-Allow-Origin"), "*");
+  assertEquals(await response.json(), { error: "We couldn't sign that student in right now." });
+});

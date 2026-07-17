@@ -59,19 +59,24 @@ export function createStudentLoginHandler(deps: StudentLoginDeps = defaultDeps) 
       return errorResponse("Method not allowed", 405);
     }
 
-    const body = await req.json().catch(() => null);
-    const normalizedLrn = normalizeLrn(typeof body?.lrn === "string" ? body.lrn : "");
-    const normalizedLastName = normalizeLastName(typeof body?.lastName === "string" ? body.lastName : "");
+    try {
+      const body = await req.json().catch(() => null);
+      const normalizedLrn = normalizeLrn(typeof body?.lrn === "string" ? body.lrn : "");
+      const normalizedLastName = normalizeLastName(typeof body?.lastName === "string" ? body.lastName : "");
 
-    if (!isValidNormalizedLrn(normalizedLrn) || !normalizedLastName) {
-      return jsonResponse({ status: "invalid_credentials" }, 401);
+      if (!isValidNormalizedLrn(normalizedLrn) || !normalizedLastName) {
+        return jsonResponse({ status: "invalid_credentials" }, 401);
+      }
+
+      const student = await deps.findStudentByNormalizedLrn(normalizedLrn);
+      if (!student || student.normalizedLastName !== normalizedLastName) {
+        return jsonResponse({ status: "invalid_credentials" }, 401);
+      }
+
+      return jsonResponse(await deps.issueStudentSession(buildStudentEmail(normalizedLrn)));
+    } catch (error) {
+      console.error("student-login failed", error);
+      return errorResponse("We couldn't sign that student in right now.", 500);
     }
-
-    const student = await deps.findStudentByNormalizedLrn(normalizedLrn);
-    if (!student || student.normalizedLastName !== normalizedLastName) {
-      return jsonResponse({ status: "invalid_credentials" }, 401);
-    }
-
-    return jsonResponse(await deps.issueStudentSession(buildStudentEmail(normalizedLrn)));
   };
 }

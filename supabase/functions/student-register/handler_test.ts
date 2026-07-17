@@ -91,3 +91,29 @@ Deno.test("student-register creates a student, enrolls the class, and returns a 
     "issueStudentSession",
   ]);
 });
+
+Deno.test("student-register returns a JSON 500 with CORS headers when a dependency throws", async () => {
+  const handler = createStudentRegisterHandler({
+    findClassByCode: async () => {
+      throw new Error("boom");
+    },
+    findStudentByNormalizedLrn: async () => null,
+    createHiddenStudent: async () => {
+      throw new Error("should not create user");
+    },
+    updateStudentProfile: async () => {},
+    enrollStudent: async () => {},
+    issueStudentSession: async () => {
+      throw new Error("should not issue session");
+    },
+  });
+
+  const response = await handler(new Request("http://local/student-register", {
+    method: "POST",
+    body: JSON.stringify({ lrn: "123456789012", classCode: "abc123", lastName: "Santos" }),
+  }));
+
+  assertEquals(response.status, 500);
+  assertEquals(response.headers.get("Access-Control-Allow-Origin"), "*");
+  assertEquals(await response.json(), { error: "We couldn't register that student right now." });
+});

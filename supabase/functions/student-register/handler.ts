@@ -121,43 +121,48 @@ export function createStudentRegisterHandler(deps: StudentRegisterDeps = default
       return errorResponse("Method not allowed", 405);
     }
 
-    const body = await req.json().catch(() => null);
-    const normalizedLrn = normalizeLrn(typeof body?.lrn === "string" ? body.lrn : "");
-    const normalizedClassCode = normalizeClassCode(typeof body?.classCode === "string" ? body.classCode : "");
-    const rawLastName = typeof body?.lastName === "string" ? body.lastName : "";
-    const normalizedLastName = normalizeLastName(rawLastName);
+    try {
+      const body = await req.json().catch(() => null);
+      const normalizedLrn = normalizeLrn(typeof body?.lrn === "string" ? body.lrn : "");
+      const normalizedClassCode = normalizeClassCode(typeof body?.classCode === "string" ? body.classCode : "");
+      const rawLastName = typeof body?.lastName === "string" ? body.lastName : "";
+      const normalizedLastName = normalizeLastName(rawLastName);
 
-    if (!isValidNormalizedLrn(normalizedLrn)) {
-      return errorResponse("Check your learner number and try again.", 422);
+      if (!isValidNormalizedLrn(normalizedLrn)) {
+        return errorResponse("Check your learner number and try again.", 422);
+      }
+
+      if (!normalizedClassCode) {
+        return errorResponse("We couldn't find that class code.", 422);
+      }
+
+      if (!normalizedLastName) {
+        return errorResponse("We couldn't sign you in right now.", 422);
+      }
+
+      const existingStudent = await deps.findStudentByNormalizedLrn(normalizedLrn);
+      if (existingStudent) {
+        return jsonResponse({ status: "already_registered" }, 409);
+      }
+
+      const klass = await deps.findClassByCode(normalizedClassCode);
+      if (!klass) {
+        return errorResponse("We couldn't find that class code.", 404);
+      }
+
+      const created = await deps.createHiddenStudent({ normalizedLrn, rawLastName });
+      await deps.updateStudentProfile({
+        studentId: created.id,
+        normalizedLrn,
+        rawLastName,
+        normalizedLastName,
+      });
+      await deps.enrollStudent({ classId: klass.id, studentId: created.id });
+
+      return jsonResponse(await deps.issueStudentSession(created.email), 201);
+    } catch (error) {
+      console.error("student-register failed", error);
+      return errorResponse("We couldn't register that student right now.", 500);
     }
-
-    if (!normalizedClassCode) {
-      return errorResponse("We couldn't find that class code.", 422);
-    }
-
-    if (!normalizedLastName) {
-      return errorResponse("We couldn't sign you in right now.", 422);
-    }
-
-    const existingStudent = await deps.findStudentByNormalizedLrn(normalizedLrn);
-    if (existingStudent) {
-      return jsonResponse({ status: "already_registered" }, 409);
-    }
-
-    const klass = await deps.findClassByCode(normalizedClassCode);
-    if (!klass) {
-      return errorResponse("We couldn't find that class code.", 404);
-    }
-
-    const created = await deps.createHiddenStudent({ normalizedLrn, rawLastName });
-    await deps.updateStudentProfile({
-      studentId: created.id,
-      normalizedLrn,
-      rawLastName,
-      normalizedLastName,
-    });
-    await deps.enrollStudent({ classId: klass.id, studentId: created.id });
-
-    return jsonResponse(await deps.issueStudentSession(created.email), 201);
   };
 }
