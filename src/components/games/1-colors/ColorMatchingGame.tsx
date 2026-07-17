@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui';
+import { Card, Button } from '@/components/ui';
 import { CheckCircle2, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -104,11 +104,20 @@ export function ColorMatchingGame({ onComplete }: ColorMatchingGameProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center p-4">
-      <div className="w-full flex justify-end mb-4">
+      <div className="w-full flex justify-between items-center mb-4 px-4">
         <div className="bg-primary/10 text-primary px-4 py-2 rounded-full font-bold flex items-center gap-2">
           <Star className="w-5 h-5 fill-current" />
           Progress: {progress}
         </div>
+        {onComplete && (
+          <Button 
+            variant="default" 
+            className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-6 h-10"
+            onClick={() => onComplete(true)}
+          >
+            Next Game ➡️
+          </Button>
+        )}
       </div>
 
       <div className="text-center mb-8">
