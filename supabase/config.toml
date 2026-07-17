@@ -5,3 +5,9 @@ enabled = true
 
 [db]
 port = 54322
+
+[functions.student-login]
+verify_jwt = false
+
+[functions.student-register]
+verify_jwt = false
