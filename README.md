@@ -106,4 +106,4 @@ mathventure/
 
 MathVenture is backed by active educational research investigating gamified learning efficacy. 
 *   **Thesis Manuscript:** You can find the research paper ["Counting the Uncounted"](file:///public/assets/papers/FIN-GROUP1-RESEARCH-MANUSCRIPT.pdf) in the public assets directory.
-*   **Research Team:** Developed and designed by MR (Main Researcher), GY, ALR, DMM, and GV.
+*   **Research Team:** Developed and designed by DMM (Main Researcher), MR, GY, ALR, and GV.

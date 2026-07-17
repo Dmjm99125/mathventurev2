@@ -108,10 +108,11 @@ GitHub" scope.
 
 ### Explicitly OUT OF SCOPE for this pass (confirmed with user)
 
-The remaining ~35 files are standalone bonus/arcade-style mini-games,
-structurally unlike the curriculum quizzes (some use `<marquee>`, custom
-layouts, or look like they need canvas/drag-drop interaction not visible
-from static markup alone). **Skip these for now:**
+The remaining ~35 files are **additional Lessons** — each follows a structured
+flow of: **video → lesson proper → activities**. They are structurally unlike
+the core curriculum quizzes (some use `<marquee>`, custom layouts, or look
+like they need canvas/drag-drop interaction not visible from static markup
+alone). **Skip these for now:**
 
 ```
 arcade.html carni.html colgal.html dino.html dive.html fall.html farm.html
@@ -122,8 +123,11 @@ shaperacing.html snake.html space.html su1.html tiny.html toy.html
 ```
 (`index.html` and `re.html` are navigation chrome, not games — also excluded.)
 
-If/when these get picked up later, they should become their own lesson
-category (e.g. "Bonus Games"), separate from the core curriculum.
+> **Correction note**: These were previously mislabeled as "Bonus Games" in
+> an earlier draft. They are **Lessons**, each composed of three stages in
+> sequence: (1) a video, (2) the lesson proper, and (3) activities. When
+> these are eventually picked up, implement them as a distinct lesson category
+> under the same Lesson model — NOT as a separate "bonus" classification.
 
 ## 4. Scope decision for "hardcoded" content going forward
 
