@@ -132,7 +132,7 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-gradient-to-b from-slate-100 to-slate-200 p-4 md:p-6 rounded-[3rem] shadow-2xl flex flex-col items-center relative shrink-0 h-[650px] md:h-[750px] border-4 border-slate-300">
+    <div className="fixed inset-0 z-50 w-full h-[100dvh] bg-gradient-to-b from-slate-100 to-slate-200 p-4 md:p-6 flex flex-col items-center">
       
       {/* Header */}
       <div className="w-full flex justify-between items-center mb-4 px-2 md:px-6">
