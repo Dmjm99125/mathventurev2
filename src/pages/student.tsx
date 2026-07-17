@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useStudentDashboard, useAssignments, useJoinClass, useClasses } from '@/lib/hooks';
 import { Card, Button, Badge, Input, Label } from '@/components/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Flame, Star, Trophy, Map as MapIcon, Play, CheckCircle2, History, Plus, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import type { StudentClassSummary } from '@/lib/api';
@@ -15,6 +16,8 @@ export function StudentDashboard() {
   const joinClass = useJoinClass();
   const [joinCode, setJoinCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
   const [, setLocation] = useLocation();
 
   const handleJoinClass = async (e: React.FormEvent) => {
@@ -25,7 +28,8 @@ export function StudentDashboard() {
       setJoinCode('');
       setIsJoining(false);
     } catch (err: any) {
-      alert(err.message || 'Could not join class');
+      setDialogMessage(err.message || 'Could not join class');
+      setDialogOpen(true);
     }
   };
 
@@ -218,6 +222,22 @@ export function StudentDashboard() {
 
         </div>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Notification</DialogTitle>
+            <DialogDescription className="font-bold text-base mt-2">
+              {dialogMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>OK</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

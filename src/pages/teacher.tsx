@@ -3,6 +3,7 @@ import { useLocation, Link } from 'wouter';
 import { useTeacherDashboard, useClasses, useCreateClass, useClassRoster, useAssignments, useCreateAssignment, useClassPosts, useCreatePost } from '@/lib/hooks';
 import { Card, Button, Input, Label, Badge } from '@/components/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Users, BookOpen, AlertTriangle, Plus, ArrowRight, UserPlus, CheckCircle2, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { allTopics } from '@/data';
@@ -203,6 +204,8 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
   const [isAssigning, setIsAssigning] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
   const [isPosting, setIsPosting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
 
   const classes = (classesData?.classes || []) as import('@/lib/api').TeacherClassSummary[];
   const cls = classes.find(c => c.id === classId);
@@ -214,7 +217,8 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
     await createAssignment.mutateAsync({ lessonId: assignLessonId, classId });
     setIsAssigning(false);
     setAssignLessonId('');
-    alert('Assignment sent to class!'); // simple feedback
+    setDialogMessage('Assignment sent to class!');
+    setDialogOpen(true);
   };
 
   const handlePost = async (e: React.FormEvent) => {
@@ -364,6 +368,22 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
           </table>
         </div>
       </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Notification</DialogTitle>
+            <DialogDescription className="font-bold text-base mt-2">
+              {dialogMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button>OK</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
