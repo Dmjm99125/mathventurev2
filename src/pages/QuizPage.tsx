@@ -11,6 +11,7 @@ import { RainbowColorCatcher } from '@/components/games/1-colors/RainbowColorCat
 import { RainbowColorDeluxe } from '@/components/games/1-colors/RainbowColorDeluxe';
 import { RainbowGalaxyExplorer } from '@/components/games/1-colors/RainbowGalaxyExplorer';
 import { ChooseWhichColor } from '@/components/games/1-colors/ChooseWhichColor';
+import { ShapeMatchingGame } from '@/components/games/2-shapes/ShapeMatchingGame';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -342,6 +343,18 @@ export function QuizPage() {
             // Give some points for completing the whole thing
             setScore(s => s + 10);
             setLocation('/');
+          }} />
+        ) : topic === 'shapes' && currentIndex === 0 ? (
+          <ShapeMatchingGame onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
           }} />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
