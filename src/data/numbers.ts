@@ -693,4 +693,3 @@ export const numbersData: Question[] = [
     "wrongFeedback": ""
   }
 ];
-

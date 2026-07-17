@@ -693,4 +693,3 @@ export const measurementData: Question[] = [
     "wrongFeedback": ""
   }
 ];
-

@@ -693,4 +693,3 @@ export const shapesData: Question[] = [
     "wrongFeedback": ""
   }
 ];
-

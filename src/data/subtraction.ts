@@ -693,4 +693,3 @@ export const subtractionData: Question[] = [
     "wrongFeedback": ""
   }
 ];
-

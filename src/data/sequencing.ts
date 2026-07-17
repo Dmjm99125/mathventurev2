@@ -693,4 +693,3 @@ export const sequencingData: Question[] = [
     "wrongFeedback": ""
   }
 ];
-

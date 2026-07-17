@@ -256,4 +256,3 @@ export const colorsData: Question[] = [
     "wrongFeedback": ""
   }
 ];
-
