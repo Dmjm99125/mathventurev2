@@ -13,6 +13,7 @@ import { RainbowGalaxyExplorer } from '@/components/games/1-colors/RainbowGalaxy
 import { ChooseWhichColor } from '@/components/games/1-colors/ChooseWhichColor';
 import { ShapeMatchingGame } from '@/components/games/2-shapes/ShapeMatchingGame';
 import { FindTheShape } from '@/components/games/2-shapes/FindTheShape';
+import { MonsterCafe } from '@/components/games/2-shapes/MonsterCafe';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -359,6 +360,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'shapes' && currentIndex === 1 ? (
           <FindTheShape onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'shapes' && currentIndex === 2 ? (
+          <MonsterCafe onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
