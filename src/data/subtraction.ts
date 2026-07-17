@@ -1,9 +1,5 @@
 // Auto-generated logical synthetic data
-export interface Question {
-  id: string;
-  prompt: string;
-  options: { image: string; isCorrect: boolean; target: string }[];
-}
+import type { Question } from './question';
 
 export const subtractionData: Question[] = [
   {
@@ -697,3 +693,4 @@ export const subtractionData: Question[] = [
     "wrongFeedback": ""
   }
 ];
+

@@ -1,5 +1,5 @@
 // Auto-generated free play questions
-import { Question } from './colors'; // assuming Question interface is exported from colors
+import type { Question } from './question';
 
 export const freePlayTopics: Record<string, Question[]> = {
   "colors": [

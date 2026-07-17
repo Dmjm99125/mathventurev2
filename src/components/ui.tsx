@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'outline' | 'ghost' | 'jungle' | 'danger', size?: 'sm' | 'md' | 'lg' | 'icon' }>(
+export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'outline' | 'ghost' | 'jungle' | 'danger' | 'secondary', size?: 'sm' | 'md' | 'lg' | 'icon' }>(
   ({ className, variant = 'default', size = 'md', ...props }, ref) => {
     return (
       <button
@@ -17,6 +17,7 @@ export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
             'bg-primary text-primary-foreground shadow-md hover:bg-primary/90': variant === 'default',
             'bg-jungle-orange text-white shadow-md hover:bg-jungle-orange/90': variant === 'jungle',
             'border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground': variant === 'outline',
+            'bg-secondary text-secondary-foreground shadow-md hover:bg-secondary/90 border border-secondary-border': variant === 'secondary',
             'hover:bg-accent hover:text-accent-foreground': variant === 'ghost',
             'bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90': variant === 'danger',
             'h-9 px-4 text-sm': size === 'sm',
