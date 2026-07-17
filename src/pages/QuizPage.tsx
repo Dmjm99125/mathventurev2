@@ -17,6 +17,7 @@ import { MonsterCafe } from '@/components/games/2-shapes/MonsterCafe';
 import { ShapeMatcher } from '@/components/games/2-shapes/ShapeMatcher';
 import { ShapeHunter } from '@/components/games/2-shapes/ShapeHunter';
 import { ShapeRacing } from '@/components/games/2-shapes/ShapeRacing';
+import { ShapeWizard } from '@/components/games/2-shapes/ShapeWizard';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -411,6 +412,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'shapes' && currentIndex === 5 ? (
           <ShapeRacing onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'shapes' && currentIndex === 6 ? (
+          <ShapeWizard onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
