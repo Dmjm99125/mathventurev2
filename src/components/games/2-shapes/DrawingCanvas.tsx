@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui';
-import { Eraser, Palette, Paintbrush } from 'lucide-react';
+import { Eraser, Palette, Paintbrush, Save } from 'lucide-react';
 
 const COLORS = [
   { name: 'Black', value: '#1a1a1a' },
@@ -19,6 +19,7 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0].value);
   const [lineWidth, setLineWidth] = useState(5);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -131,6 +132,23 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
     }
   };
 
+  const handleFinish = () => {
+    setShowConfirm(true);
+  };
+
+  const downloadImage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = 'my-masterpiece.png';
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="fixed inset-0 z-50 w-full h-[100dvh] bg-gradient-to-b from-slate-100 to-slate-200 p-4 md:p-6 flex flex-col items-center">
       
@@ -142,7 +160,7 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
         {onComplete && (
           <Button 
             className="font-bold border-2 border-slate-300 rounded-xl shadow-md bg-white hover:bg-slate-50 text-slate-700" 
-            onClick={onComplete}
+            onClick={handleFinish}
           >
              Finish Chapter 🏆
           </Button>
@@ -201,16 +219,55 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
 
         <div className="w-px h-10 bg-slate-300 hidden lg:block" />
 
-        {/* Clear */}
-        <Button 
-          variant="destructive" 
-          className="rounded-2xl font-bold shadow-md flex items-center gap-2 py-6 px-6"
-          onClick={clearCanvas}
-        >
-          <Eraser className="w-5 h-5" /> Clear
-        </Button>
+        {/* Actions */}
+        <div className="flex gap-2 md:gap-4 w-full md:w-auto justify-center">
+          <Button 
+            variant="outline" 
+            className="rounded-2xl font-bold shadow-md flex items-center gap-2 py-6 px-4 md:px-6 bg-white hover:bg-blue-50 text-blue-600 border-blue-200"
+            onClick={downloadImage}
+          >
+            <Save className="w-5 h-5" /> Save
+          </Button>
+          
+          <Button 
+            variant="destructive" 
+            className="rounded-2xl font-bold shadow-md flex items-center gap-2 py-6 px-4 md:px-6"
+            onClick={clearCanvas}
+          >
+            <Eraser className="w-5 h-5" /> Clear
+          </Button>
+        </div>
       </div>
 
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="absolute inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border-4 border-slate-200 text-center animate-in fade-in zoom-in duration-200">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Finish Chapter?</h2>
+            <p className="text-slate-600 mb-8 text-lg">
+              Are you sure you want to leave? Make sure to <span className="font-bold text-blue-500">save your drawing</span> first so you don't lose it!
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button 
+                variant="outline" 
+                className="rounded-xl font-bold border-2 border-slate-300 px-6 py-6"
+                onClick={() => setShowConfirm(false)}
+              >
+                Go Back
+              </Button>
+              <Button 
+                className="rounded-xl font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-md px-6 py-6"
+                onClick={() => {
+                  setShowConfirm(false);
+                  onComplete?.();
+                }}
+              >
+                Yes, I'm Done!
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
