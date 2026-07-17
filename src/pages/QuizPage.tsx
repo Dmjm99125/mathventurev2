@@ -5,6 +5,7 @@ import { freePlayTopics } from '@/data/freePlay';
 import { lessonContent } from '@/data/lessonContent';
 import { GameLayout } from '@/components/GameLayout';
 import { LessonSlideCard } from '@/components/LessonSlideCard';
+import { ColorMatchingGame } from '@/components/games/1-colors/ColorMatchingGame';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -271,6 +272,19 @@ export function QuizPage() {
       )}
 
       {(gameState === 'playing' || gameState === 'feedback') && question && (
+        topic === 'colors' && currentIndex === 0 ? (
+          <ColorMatchingGame onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
           <div className="mb-12 text-center flex flex-col items-center gap-4">
@@ -333,6 +347,7 @@ export function QuizPage() {
             </div>
           )}
         </div>
+        )
       )}
 
       {gameState === 'completed' && (
