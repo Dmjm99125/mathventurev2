@@ -79,7 +79,7 @@ export interface TeacherDashboard {
 // Thin wrapper around supabase.functions.invoke -- every app data operation
 // goes through this, which calls a Supabase Edge Function running with the
 // service role key. The browser never queries app tables directly.
-async function callFunction<T>(
+export async function invokeFunction<T>(
   name: string,
   options?: { method?: 'GET' | 'POST'; body?: Record<string, unknown>; searchParams?: Record<string, string> },
 ): Promise<T> {
@@ -101,24 +101,24 @@ async function callFunction<T>(
 
 export const api = {
   classes: {
-    list: () => callFunction<{ classes: (TeacherClassSummary | StudentClassSummary)[] }>('classes-list'),
+    list: () => invokeFunction<{ classes: (TeacherClassSummary | StudentClassSummary)[] }>('classes-list'),
     create: (name: string) =>
-      callFunction<{ class: TeacherClassSummary }>('classes-create', { method: 'POST', body: { name } }),
+      invokeFunction<{ class: TeacherClassSummary }>('classes-create', { method: 'POST', body: { name } }),
     join: (joinCode: string) =>
-      callFunction<{ class: { id: string; name: string } }>('classes-join', {
+      invokeFunction<{ class: { id: string; name: string } }>('classes-join', {
         method: 'POST',
         body: { joinCode },
       }),
     roster: (classId: string) =>
-      callFunction<{ students: RosterStudent[] }>('classes-roster', { searchParams: { classId } }),
+      invokeFunction<{ students: RosterStudent[] }>('classes-roster', { searchParams: { classId } }),
   },
   assignments: {
     list: (classId?: string) =>
-      callFunction<{ assignments: (AssignmentForStudent | AssignmentForTeacher)[] }>('assignments-list', {
+      invokeFunction<{ assignments: (AssignmentForStudent | AssignmentForTeacher)[] }>('assignments-list', {
         searchParams: classId ? { classId } : undefined,
       }),
     create: (input: { lessonId: string; classId?: string; studentId?: string; dueAt?: string }) =>
-      callFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),
+      invokeFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),
   },
   attempts: {
     submit: (input: {
@@ -127,15 +127,15 @@ export const api = {
       score: number;
       maxScore: number;
       durationSeconds?: number;
-    }) => callFunction<{ attempt: unknown }>('attempts-submit', { method: 'POST', body: input }),
+    }) => invokeFunction<{ attempt: unknown }>('attempts-submit', { method: 'POST', body: input }),
   },
   dashboard: {
-    student: () => callFunction<StudentDashboard>('dashboard-student'),
-    teacher: () => callFunction<TeacherDashboard>('dashboard-teacher'),
+    student: () => invokeFunction<StudentDashboard>('dashboard-student'),
+    teacher: () => invokeFunction<TeacherDashboard>('dashboard-teacher'),
   },
   posts: {
-    list: (classId: string) => callFunction<{ posts: ClassPost[] }>('posts-list', { searchParams: { classId } }),
-    create: (classId: string, content: string) => callFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
+    list: (classId: string) => invokeFunction<{ posts: ClassPost[] }>('posts-list', { searchParams: { classId } }),
+    create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
   },
 };
 
