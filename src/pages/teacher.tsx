@@ -130,13 +130,13 @@ export function TeacherClasses() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <header>
           <h1 className="text-3xl font-display font-bold text-foreground">My Classes</h1>
           <p className="text-muted-foreground font-bold">Manage your class rosters and invite codes.</p>
         </header>
         {!isCreating && (
-          <Button onClick={() => setIsCreating(true)} className="gap-2">
+          <Button onClick={() => setIsCreating(true)} className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" /> New Class
           </Button>
         )}
@@ -144,7 +144,7 @@ export function TeacherClasses() {
 
       {isCreating && (
         <Card className="p-6 bg-primary/5 border-primary/20">
-          <form onSubmit={handleCreate} className="flex gap-4 items-end">
+          <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
             <div className="flex-1 space-y-2">
               <Label htmlFor="className">Class Name</Label>
               <Input 
@@ -155,10 +155,12 @@ export function TeacherClasses() {
                 autoFocus
               />
             </div>
-            <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button>
-            <Button type="submit" disabled={createClass.isPending || !newClassName.trim()} variant="jungle">
-              {createClass.isPending ? 'Saving...' : 'Create'}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" className="flex-1 sm:flex-none" onClick={() => setIsCreating(false)}>Cancel</Button>
+              <Button type="submit" disabled={createClass.isPending || !newClassName.trim()} variant="jungle" className="flex-1 sm:flex-none">
+                {createClass.isPending ? 'Saving...' : 'Create'}
+              </Button>
+            </div>
           </form>
         </Card>
       )}
@@ -246,11 +248,11 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <Button onClick={() => setIsAssigning(!isAssigning)} variant={isAssigning ? "outline" : "jungle"} className="gap-2">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Button onClick={() => setIsAssigning(!isAssigning)} variant={isAssigning ? "outline" : "jungle"} className="gap-2 w-full sm:w-auto">
           <BookOpen className="h-4 w-4" /> Assign Lesson to Class
         </Button>
-        <Button onClick={() => setIsPosting(!isPosting)} variant={isPosting ? "outline" : "default"} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => setIsPosting(!isPosting)} variant={isPosting ? "outline" : "default"} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
           <MessageSquare className="h-4 w-4" /> Post Announcement
         </Button>
       </div>
@@ -280,7 +282,7 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
 
       {isAssigning && (
         <Card className="p-6 bg-primary/5 border-primary/20">
-          <form onSubmit={handleAssign} className="flex gap-4 items-end">
+          <form onSubmit={handleAssign} className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
             <div className="flex-1 space-y-2">
               <Label>Select Chapter</Label>
               <Select value={assignLessonId} onValueChange={setAssignLessonId} required>
@@ -296,7 +298,7 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" disabled={createAssignment.isPending || !assignLessonId}>
+            <Button type="submit" disabled={createAssignment.isPending || !assignLessonId} className="w-full sm:w-auto">
               {createAssignment.isPending ? 'Sending...' : 'Send Assignment'}
             </Button>
           </form>
