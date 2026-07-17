@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/useAuth';
 import { Button } from '@/components/ui';
-import { Compass, Sparkles, Map as MapIcon, GraduationCap } from 'lucide-react';
+import { Compass, Sparkles, Map as MapIcon, GraduationCap, Users } from 'lucide-react';
 import { TopNav } from '@/components/layout';
 
 export function Landing() {
@@ -81,6 +81,13 @@ export function Landing() {
           />
         </div>
 
+        <div className="mt-16 text-center">
+          <Link href="/about">
+            <Button size="lg" variant="outline" className="text-lg gap-2 bg-white">
+              <Users className="w-5 h-5" /> Meet The Researchers
+            </Button>
+          </Link>
+        </div>
       </main>
     </div>
   );
@@ -97,3 +104,4 @@ function FeatureCard({ title, desc, color }: { title: string, desc: string, colo
     </div>
   );
 }
+

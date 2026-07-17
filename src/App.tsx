@@ -5,6 +5,7 @@ import { LanguageProvider } from '@/lib/useLanguage';
 
 // Pages
 import { Landing } from '@/pages/landing';
+import { About } from '@/pages/about';
 import { Login, Signup } from '@/pages/auth';
 import { TeacherDashboard, TeacherClasses, TeacherClassDetail, TeacherAssignments } from '@/pages/teacher';
 import { StudentDashboard, StudentLessons, StudentClassDetail } from '@/pages/student';
@@ -26,6 +27,7 @@ function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/about" component={About} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       
