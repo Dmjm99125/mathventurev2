@@ -237,23 +237,13 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                             🏆
                         </div>
                         
-                        {onComplete ? (
-                            <Button 
-                                size="lg" 
-                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-2xl px-12 py-8 rounded-full shadow-[0_6px_0_0_#2563eb] active:translate-y-2 active:shadow-none transition-all w-full border-none"
-                                onClick={onComplete}
-                            >
-                                Next Game <Play className="ml-2 w-8 h-8 fill-current" />
-                            </Button>
-                        ) : (
-                            <Button 
+                        <Button 
                                 size="lg" 
                                 className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#2563eb] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                                 onClick={() => setGameState('menu')}
                             >
-                                Play Again! <Play className="ml-2 w-6 h-6 fill-current" />
+                                Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                             </Button>
-                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

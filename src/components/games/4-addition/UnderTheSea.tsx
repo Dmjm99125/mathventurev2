@@ -233,16 +233,7 @@ export function UnderTheSea({ onComplete }: { onComplete?: () => void }) {
                     <h1 className="text-4xl md:text-5xl font-bold text-sky-800 drop-shadow-sm">Ocean Adventure Clear!</h1>
                     <p className="text-xl md:text-2xl text-sky-700 font-medium mb-4">Score: {score}/{MAX_SCORE}</p>
                     
-                    {onComplete ? (
-                        <Button 
-                            size="lg" 
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-2xl px-12 py-8 rounded-full shadow-[0_6px_0_0_#047857] active:translate-y-2 active:shadow-none transition-all"
-                            onClick={onComplete}
-                        >
-                            Next Game <Play className="ml-2 w-8 h-8 fill-current" />
-                        </Button>
-                    ) : (
-                        <Button 
+                    <Button 
                             size="lg" 
                             className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#0284c7] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
@@ -251,10 +242,8 @@ export function UnderTheSea({ onComplete }: { onComplete?: () => void }) {
                                 setIsCompleted(false);
                                 generateQuestion();
                             }}
-                        >
-                            Dive Again <Play className="ml-2 w-6 h-6 fill-current" />
+                        > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
-                    )}
                 </motion.div>
             )}
         </div>

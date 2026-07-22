@@ -203,23 +203,13 @@ export function SurpriseSequencing({ onComplete }: { onComplete?: () => void }) 
               <div className="flex items-center gap-3 text-pink-700 font-bold text-2xl md:text-4xl bg-pink-100 px-12 py-6 rounded-[2rem] border-4 border-pink-300 shadow-lg">
                 <Trophy className="w-12 h-12 text-yellow-500" /> GRAND CHAMPION!
               </div>
-              {onComplete ? (
-                 <Button 
-                   size="lg" 
-                   className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#be185d] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={onComplete}
-                 >
-                   Next Game <Play className="ml-2 w-6 h-6 fill-current" />
-                 </Button>
-              ) : (
-                 <Button 
+              <Button 
                    size="lg" 
                    className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#be185d] active:translate-y-1 active:shadow-none transition-all"
                    onClick={() => startLevel(1)}
                  >
-                   Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                   Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
-              )}
             </motion.div>
           ) : null}
         </AnimatePresence>

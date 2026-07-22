@@ -241,16 +241,7 @@ export function IceCreamShop({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
 
-                    {onComplete ? (
-                        <Button
-                            size="lg"
-                            className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl px-12 py-8 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-2 active:shadow-none transition-all w-full"
-                            onClick={onComplete}
-                        >
-                            Next Game <Play className="ml-2 w-8 h-8 fill-current" />
-                        </Button>
-                    ) : (
-                        <Button
+                    <Button
                             size="lg"
                             className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full"
                             onClick={() => {
@@ -260,10 +251,8 @@ export function IceCreamShop({ onComplete }: { onComplete?: () => void }) {
                                 setPrize(SHOP_PRIZES[Math.floor(Math.random() * SHOP_PRIZES.length)]);
                                 generateQuestion();
                             }}
-                        >
-                            Make Next Sundae! <Play className="ml-2 w-6 h-6 fill-current" />
+                        > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
-                    )}
                 </motion.div>
             )}
         </div>

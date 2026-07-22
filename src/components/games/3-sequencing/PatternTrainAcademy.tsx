@@ -233,23 +233,13 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
               <h1 className="text-4xl md:text-5xl font-bold text-emerald-700 drop-shadow-sm">GRAND TRAIN MASTER!</h1>
               <p className="text-xl md:text-2xl text-emerald-600 font-medium mb-4">You beat every pattern!</p>
               
-              {onComplete ? (
-                 <Button 
-                   size="lg" 
-                   className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={onComplete}
-                 >
-                   Finish Module <Play className="ml-2 w-6 h-6 fill-current" />
-                 </Button>
-              ) : (
-                 <Button 
+              <Button 
                    size="lg" 
                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                    onClick={() => startLevel(1)}
                  >
-                   Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                   Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
-              )}
             </motion.div>
           ) : null}
         </AnimatePresence>

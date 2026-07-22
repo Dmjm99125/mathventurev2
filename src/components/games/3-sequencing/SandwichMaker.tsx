@@ -198,23 +198,13 @@ export function SandwichMaker({ onComplete }: { onComplete?: () => void }) {
               <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-md">Master Chef Status! 👑🏆</h1>
               <p className="text-xl md:text-2xl text-amber-200 font-medium mb-4">You built the Giant Double-Decker Club Sandwich!</p>
               
-              {onComplete ? (
-                 <Button 
-                   size="lg" 
-                   className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={onComplete}
-                 >
-                   Good Job!!! Mahusay!!! <Play className="ml-2 w-6 h-6 fill-current" />
-                 </Button>
-              ) : (
-                 <Button 
+              <Button 
                    size="lg" 
                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                    onClick={() => startLevel(1)}
                  >
-                   Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                   Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
-              )}
             </motion.div>
           ) : null}
         </AnimatePresence>

@@ -222,16 +222,7 @@ export function Carnival({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     
-                    {onComplete ? (
-                        <Button 
-                            size="lg" 
-                            className="bg-red-500 hover:bg-red-600 text-white font-bold text-2xl px-12 py-8 rounded-full shadow-[0_6px_0_0_#b91c1c] active:translate-y-2 active:shadow-none transition-all w-full"
-                            onClick={onComplete}
-                        >
-                            Next Game <Play className="ml-2 w-8 h-8 fill-current" />
-                        </Button>
-                    ) : (
-                        <Button 
+                    <Button 
                             size="lg" 
                             className="bg-red-500 hover:bg-red-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#b91c1c] active:translate-y-1 active:shadow-none transition-all w-full"
                             onClick={() => {
@@ -241,10 +232,8 @@ export function Carnival({ onComplete }: { onComplete?: () => void }) {
                                 setPrize(CARNIVAL_PRIZES[Math.floor(Math.random() * CARNIVAL_PRIZES.length)]);
                                 generateQuestion();
                             }}
-                        >
-                            Play More Games! <Play className="ml-2 w-6 h-6 fill-current" />
+                        > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
-                    )}
                 </motion.div>
             )}
         </div>

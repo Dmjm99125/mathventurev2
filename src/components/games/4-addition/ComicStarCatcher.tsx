@@ -250,16 +250,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     
-                    {onComplete ? (
-                        <Button 
-                            size="lg" 
-                            className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-2xl px-12 py-8 rounded-full shadow-[0_6px_0_0_#0891b2] active:translate-y-2 active:shadow-none transition-all w-full uppercase"
-                            onClick={onComplete}
-                        >
-                            Next Mission <Rocket className="ml-2 w-8 h-8" />
-                        </Button>
-                    ) : (
-                        <Button 
+                    <Button 
                             size="lg" 
                             className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0891b2] active:translate-y-1 active:shadow-none transition-all w-full uppercase"
                             onClick={() => {
@@ -272,7 +263,6 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                         >
                             Explore More! <Rocket className="ml-2 w-6 h-6" />
                         </Button>
-                    )}
                 </motion.div>
             )}
         </div>

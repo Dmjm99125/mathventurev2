@@ -245,23 +245,12 @@ export function AnimalVehicleBuilder({ onComplete }: { onComplete?: () => void }
               <div className="flex items-center gap-3 text-sky-700 font-bold text-2xl md:text-4xl bg-white px-12 py-6 rounded-[2rem] border-4 border-sky-200 shadow-xl">
                 <Trophy className="w-12 h-12 text-yellow-500" /> MASTER PUZZLE BUILDER!
               </div>
-              {onComplete ? (
-                 <Button 
-                   size="lg" 
-                   className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#0284c7] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={onComplete}
-                 >
-                   Next Game <Play className="ml-2 w-6 h-6 fill-current" />
-                 </Button>
-              ) : (
-                 <Button 
+              <Button 
                    size="lg" 
                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#0284c7] active:translate-y-1 active:shadow-none transition-all"
                    onClick={setupGame}
-                 >
-                   Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                 > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
-              )}
             </motion.div>
           ) : null}
         </AnimatePresence>
