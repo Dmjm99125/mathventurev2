@@ -3,6 +3,13 @@ import type { Question } from './question';
 
 export const numbersData: Question[] = [
   {
+    id: 'numbers_game_0',
+    prompt: 'DragCorrectNumber',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
     "id": "numbers_1",
     "prompt": "Hanapin ang numerong 0",
     "options": [

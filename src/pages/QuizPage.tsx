@@ -49,6 +49,7 @@ import { DinoEgg } from '@/components/games/5-subtraction/DinoEgg';
 import { FarmHideSeek } from '@/components/games/5-subtraction/FarmHideSeek';
 import { FeedTheHippo } from '@/components/games/5-subtraction/FeedTheHippo';
 import { SpaceBlast } from '@/components/games/5-subtraction/SpaceBlast';
+import { DragCorrectNumber } from '@/components/games/6-numbers/DragCorrectNumber';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -877,6 +878,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'subtraction' && currentIndex === 9 ? (
           <DrawingCanvas onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'numbers' && currentIndex === 0 ? (
+          <DragCorrectNumber onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
