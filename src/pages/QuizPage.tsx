@@ -41,6 +41,7 @@ import { Pizza } from '@/components/games/4-addition/Pizza';
 import { ComicStarCatcher } from '@/components/games/4-addition/ComicStarCatcher';
 import { SubtractionBalloon } from '@/components/games/5-subtraction/SubtractionBalloon';
 import { FruitSubtraction } from '@/components/games/5-subtraction/FruitSubtraction';
+import { GentleMathDrift } from '@/components/games/5-subtraction/GentleMathDrift';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -750,6 +751,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'subtraction' && currentIndex === 1 ? (
           <FruitSubtraction onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'subtraction' && currentIndex === 2 ? (
+          <GentleMathDrift onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
