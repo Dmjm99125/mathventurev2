@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play } from 'lucide-react';
+import { Play, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 // Simple sound synthesis so we don't need external audio files
@@ -128,6 +128,15 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
   return (
     <div className="w-full max-w-4xl flex flex-col items-center p-8 bg-gradient-to-b from-teal-100 to-green-100 rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative overflow-hidden">
       
+      {/* Skip Button */}
+      <div className="absolute top-6 right-6 z-50">
+        {onComplete && (
+          <Button variant="ghost" className="text-teal-700 font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+            Skip <ChevronRight className="ml-1 w-5 h-5" />
+          </Button>
+        )}
+      </div>
+
       {/* Decorative background elements */}
       <div className="absolute top-10 left-10 text-4xl opacity-50 blur-[2px]">🎈</div>
       <div className="absolute bottom-20 right-10 text-5xl opacity-50 blur-[2px]">🎈</div>

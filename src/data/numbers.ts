@@ -10,6 +10,20 @@ export const numbersData: Question[] = [
     wrongFeedback: ''
   },
   {
+    id: 'numbers_game_1',
+    prompt: 'CountMatch',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'numbers_game_2',
+    prompt: 'CountMatch2',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
     "id": "numbers_1",
     "prompt": "Hanapin ang numerong 0",
     "options": [
