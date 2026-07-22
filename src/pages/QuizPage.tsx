@@ -46,6 +46,7 @@ import { SubtractionAdventure } from '@/components/games/5-subtraction/Subtracti
 import { SubtractionPop } from '@/components/games/5-subtraction/SubtractionPop';
 import { DinoEgg } from '@/components/games/5-subtraction/DinoEgg';
 import { FarmHideSeek } from '@/components/games/5-subtraction/FarmHideSeek';
+import { FeedTheHippo } from '@/components/games/5-subtraction/FeedTheHippo';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -815,6 +816,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'subtraction' && currentIndex === 6 ? (
           <FarmHideSeek onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'subtraction' && currentIndex === 7 ? (
+          <FeedTheHippo onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);

@@ -1,352 +1,200 @@
-< !DOCTYPE html >
-    <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Feed the Hippo! Subtraction Game</title>
-                    <style>
-                        :root {
-                            --purple: #9b5de5;
-                        --pink: #f15bb5;
-                        --yellow: #fee440;
-                        --blue: #00bbf9;
-                        --dark: #2b2d42;
-        }
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui';
+import confetti from 'canvas-confetti';
+import { Play, Star, ChevronRight } from 'lucide-react';
 
-                        body {
-                            margin: 0;
-                        padding: 20px;
-                        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-                        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-                        color: var(--dark);
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: flex-start; /* Safely starts content at the top on small screens */
-                        align-items: center;
-                        min-height: 100vh;
-                        min-height: 100dvh; /* Accounts for mobile browser address bars */
-                        gap: 25px;
-                        box-sizing: border-box;
-                        user-select: none;
-                        -webkit-user-select: none;
-        }
+const REWARDS = ['🍩', '🍦', '🍕', '🍟', '🎨', '🚀', '🦖', '🦄', '🏆', '🐼', '🦁', '👑'];
 
-                        #game-board {
-                            width: 100%;
-                        max-width: 480px;
-                        margin-top: auto; /* Pushes the box down to center when there is space */
-                        background: white;
-                        border-radius: 30px;
-                        padding: 25px;
-                        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-                        text-align: center;
-                        position: relative;
-                        overflow: hidden;
-                        box-sizing: border-box;
-        }
+export function FeedTheHippo({ onComplete }: { onComplete?: () => void }) {
+    const [num1, setNum1] = useState(0);
+    const [num2, setNum2] = useState(0);
+    const [options, setOptions] = useState<number[]>([]);
+    const [score, setScore] = useState(0);
+    const [currentQuestion, setCurrentQuestion] = useState(1);
+    const [hippoFace, setHippoFace] = useState('🦛');
+    
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [wrongGuesses, setWrongGuesses] = useState<number[]>([]);
+    const [prize, setPrize] = useState('');
+    
+    const MAX_SCORE = 5;
 
-                        /* Top Bar */
-                        .header-stats {
-                            display: flex;
-                        justify-content: space-between;
-                        font-size: 1.3rem;
-                        font-weight: bold;
-                        color: var(--purple);
-                        margin-bottom: 10px;
-        }
-
-                        /* Animated Character Area */
-                        #character-box {
-                            font - size: 5rem;
-                        margin: 10px 0;
-                        animation: bounce 2s infinite ease-in-out;
-                        height: 100px;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-        }
-
-                        @keyframes bounce {
-                            0 %, 100 % { transform: translateY(0); }
-            50% {transform: translateY(-10px); }
-        }
-
-                        #math-box {
-                            font - size: 3.2rem;
-                        font-weight: 900;
-                        color: var(--dark);
-                        margin: 15px 0;
-                        background: #f8fafc;
-                        border-radius: 20px;
-                        padding: 10px;
-                        box-shadow: inset 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-                        /* Grid for answers */
-                        #answers-grid {
-                            display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 15px;
-                        margin-top: 20px;
-        }
-
-                        .ans-btn {
-                            background - color: var(--blue);
-                        color: white;
-                        border: none;
-                        border-radius: 20px;
-                        font-size: 2.5rem;
-                        font-weight: bold;
-                        padding: 20px 0;
-                        cursor: pointer;
-                        box-shadow: 0 8px 0 #0096cb;
-                        transition: all 0.1s ease;
-                        font-family: inherit;
-        }
-
-                        .ans-btn:active {
-                            box - shadow: 0 2px 0 #0096cb;
-                        transform: translateY(6px);
-        }
-
-                        /* Reward Modal Overlay */
-                        #reward-overlay {
-                            position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(255, 255, 255, 0.95);
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        z-index: 10;
-                        transform: scale(0);
-                        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                        border-radius: 30px;
-        }
-
-                        #reward-overlay.show {
-                            transform: scale(1);
-        }
-
-                        .sticker {
-                            font - size: 7rem;
-                        margin: 20px;
-                        animation: spin 1s ease-out;
-        }
-
-                        @keyframes spin {
-                            0 % { transform: scale(0) rotate(0deg); }
-            100% {transform: scale(1) rotate(360deg); }
-        }
-
-                        .claim-btn {
-                            background - color: var(--pink);
-                        color: white;
-                        border: none;
-                        padding: 12px 30px;
-                        font-size: 1.5rem;
-                        border-radius: 50px;
-                        cursor: pointer;
-                        box-shadow: 0 5px 0 #d946ef;
-                        font-family: inherit;
-                        font-weight: bold;
-        }
-
-                        /* Sticker Book collection display */
-                        #sticker-book {
-                            margin - top: 20px;
-                        padding-top: 15px;
-                        border-top: 2px dashed #cbd5e1;
-                        min-height: 40px;
-        }
-
-                        .sticker-title {
-                            font - size: 0.9rem;
-                        color: #94a3b8;
-                        margin-bottom: 5px;
-                        text-transform: uppercase;
-                        letter-spacing: 1px;
-        }
-
-                        #sticker-container {
-                            display: flex;
-                        justify-content: center;
-                        gap: 8px;
-                        flex-wrap: wrap;
-                        font-size: 1.5rem;
-        }
-
-                        /* Modern layout for bottom navigation images */
-                        .nav-buttons {
-                            display: flex;
-                        flex-direction: row;
-                        justify-content: center;
-                        align-items: center;
-                        flex-wrap: wrap;
-                        gap: 20px;
-                        margin-bottom: auto; /* Pushes the buttons up to balance the centering */
-        }
-
-                        .nav-buttons img {
-                            transition: transform 0.2s;
-                        border-radius: 15px;
-        }
-
-                        @media (hover: hover) {
-            .nav - buttons img:hover {
-                            transform: scale(1.05);
+    const playSound = (type: 'correct' | 'wrong' | 'reward') => {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let utterance = new SpeechSynthesisUtterance();
+            
+            if (type === 'correct') {
+                utterance.text = "Yum!";
+                utterance.pitch = 1.6;
+                utterance.rate = 1.4;
+            } else if (type === 'wrong') {
+                utterance.text = "Uh oh!";
+                utterance.pitch = 1;
+                utterance.rate = 1.3;
+            } else if (type === 'reward') {
+                utterance.text = "Wow! Magnificent! You got a prize!";
+                utterance.pitch = 1.4;
+                utterance.rate = 1.1;
             }
+            window.speechSynthesis.speak(utterance);
         }
-                    </style>
-                </head>
-                <body>
+    };
 
-                    <div id="game-board">
-                        <div id="reward-overlay">
-                            <h2 style="color: var(--pink); margin: 0; font-size: 2rem;">🌟 10 Points Reward! 🌟</h2>
-                            <p style="font-size: 1.2rem; margin: 5px 0;">You earned a new sticker for your book!</p>
-                            <div class="sticker" id="prize-sticker">🍩</div>
-                            <button class="claim-btn" onclick="closeReward()">Yay! Keep Playing</button>
-                        </div>
-
-                        <div class="header-stats">
-                            <div>Score: <span id="score-text" style="color: var(--pink);">0</span></div>
-                            <div>Target: <span id="target-text">10</span></div>
-                        </div>
-
-                        <div id="character-box" id="hippo">🦛</div>
-                        <p style="margin: 0; color: #64748b; font-weight: bold;">Feed the Hippo! Choose the right snack value:</p>
-
-                        <div id="math-box">8 - 3</div>
-
-                        <div id="answers-grid">
-                            <button class="ans-btn" onclick="selectAnswer(this)">?</button>
-                            <button class="ans-btn" onclick="selectAnswer(this)">?</button>
-                            <button class="ans-btn" onclick="selectAnswer(this)">?</button>
-                            <button class="ans-btn" onclick="selectAnswer(this)">?</button>
-                        </div>
-
-                        <div id="sticker-book">
-                            <div class="sticker-title">Your Sticker Book</div>
-                            <div id="sticker-container"></div>
-                        </div>
-                    </div>
-
-                    <div class="nav-buttons">
-                        <a href='/space'><img src="np.png" width="80" height="50" alt="Next Page"></a>
-                        <a href='/1'><img src="ACT.png" width="80" height="50" alt="Activity"></a>
-                    </div>
-
-                    <script>
-                        let score = 0;
-                        let correctAnswer = 0;
-                        let nextRewardMilestone = 10;
-
-                        const rewards = ['🍩', '🍦', '🍕', '🍟', '🎨', '🚀', '🦖', '🦄', '🏆', '🐼', '🦁', '👑'];
-                        const foodEmojis = ['🍏', '🍌', '🍉', '🍓', '🥕', '🍪'];
-
-                        function playSound(type) {
-            if ('speechSynthesis' in window) {
-                            window.speechSynthesis.cancel();
-
-                        let utterance = new SpeechSynthesisUtterance();
-                        if (type === 'correct') {
-                            utterance.text = "Yum!";
-                        utterance.pitch = 1.6;
-                        utterance.rate = 1.4;
-                } else if (type === 'wrong') {
-                            utterance.text = "Uh oh!";
-                        utterance.pitch = 1;
-                        utterance.rate = 1.3;
-                } else if (type === 'reward') {
-                            utterance.text = "Wow! Magnificent! You got a prize!";
-                        utterance.pitch = 1.4;
-                        utterance.rate = 1.1;
-                }
-                        window.speechSynthesis.speak(utterance);
-            }
+    const generateQuestion = () => {
+        const n1 = Math.floor(Math.random() * 6) + 3; // 3 to 8
+        const n2 = Math.floor(Math.random() * (n1 + 1)); // 0 to n1
+        const correctAnswer = n1 - n2;
+        
+        setHippoFace('🦛');
+        setWrongGuesses([]);
+        
+        const opts = new Set<number>();
+        opts.add(correctAnswer);
+        
+        while (opts.size < 4) {
+            let fake = Math.floor(Math.random() * 9); // 0 to 8
+            opts.add(fake);
         }
+        
+        setNum1(n1);
+        setNum2(n2);
+        setOptions(Array.from(opts).sort(() => Math.random() - 0.5));
+    };
 
-                        function buildQuestion() {
-            const hippo = document.getElementById('character-box');
-                        hippo.textContent = '🦛';
+    useEffect(() => {
+        generateQuestion();
+    }, []);
 
-                        const num1 = Math.floor(Math.random() * 6) + 3;
-                        const num2 = Math.floor(Math.random() * (num1 + 1));
-                        correctAnswer = num1 - num2;
-
-                        document.getElementById('math-box').textContent = `${num1} - ${num2}`;
-
-                        let choices = [correctAnswer];
-                        while (choices.length < 4) {
-                            let fake = Math.floor(Math.random() * 9);
-                        if (!choices.includes(fake)) {
-                            choices.push(fake);
-                }
-            }
-            choices.sort(() => Math.random() - 0.5);
-
-                        const buttons = document.querySelectorAll('.ans-btn');
-            buttons.forEach((btn, idx) => {
-                            btn.textContent = choices[idx];
-                        btn.disabled = false;
-                        btn.style.backgroundColor = 'var(--blue)';
-                        btn.style.boxShadow = '0 8px 0 #0096cb';
-            });
-        }
-
-                        function selectAnswer(button) {
-            const chosen = parseInt(button.textContent);
-                        const buttons = document.querySelectorAll('.ans-btn');
-
-                        if (chosen === correctAnswer) {
-                            score++;
-                        document.getElementById('score-text').textContent = score;
-
-                        playSound('correct');
-                        document.getElementById('character-box').textContent = '😋'; 
-
-                buttons.forEach(btn => btn.disabled = true);
-
-                        if (score === nextRewardMilestone) {
-                            setTimeout(triggerRewardScreen, 1000);
-                } else {
-                            setTimeout(buildQuestion, 1200);
-                }
+    const checkAnswer = (selected: number) => {
+        const correctAnswer = num1 - num2;
+        
+        if (selected === correctAnswer) {
+            playSound('correct');
+            setHippoFace('😋');
+            
+            const newScore = score + 1;
+            setScore(newScore);
+            
+            if (currentQuestion >= MAX_SCORE) {
+                setTimeout(() => {
+                    playSound('reward');
+                    setPrize(REWARDS[Math.floor(Math.random() * REWARDS.length)]);
+                    setIsCompleted(true);
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#9b5de5', '#f15bb5', '#fee440', '#00bbf9'] });
+                }, 1000);
             } else {
-                            playSound('wrong');
-                        button.style.backgroundColor = '#ef4444';
-                        button.style.boxShadow = '0 8px 0 #b91c1c';
-                        button.disabled = true; 
+                setCurrentQuestion(q => q + 1);
+                setTimeout(generateQuestion, 1200);
+            }
+        } else {
+            if (!wrongGuesses.includes(selected)) {
+                playSound('wrong');
+                setWrongGuesses(prev => [...prev, selected]);
             }
         }
+    };
 
-                        function triggerRewardScreen() {
-                            playSound('reward');
+    return (
+        <div className="w-full max-w-lg mx-auto bg-gradient-to-br from-sky-100 to-sky-200 p-4 md:p-8 rounded-[2rem] shadow-2xl flex flex-col items-center relative border-8 border-sky-300 min-h-[600px] overflow-hidden text-slate-800">
+            
+            {/* Header / HUD */}
+            <div className="w-full flex justify-between items-center mb-4 bg-white/80 p-3 rounded-2xl shadow-sm border-2 border-sky-100">
+                <div className="text-sm md:text-base font-bold text-pink-500 uppercase tracking-widest flex items-center gap-2">
+                    <span className="text-2xl">⭐</span> Score: {score}
+                </div>
+                <div className="flex gap-4 items-center">
+                    <div className="text-sm md:text-base font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1">
+                        <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
+                    </div>
+                    {onComplete && (
+                        <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl hidden md:flex h-9 px-3" onClick={onComplete}>
+                            Skip <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                    )}
+                </div>
+            </div>
 
-                        const randomSticker = rewards[Math.floor(Math.random() * rewards.length)];
-                        document.getElementById('prize-sticker').textContent = randomSticker;
+            {!isCompleted ? (
+                <div className="flex flex-col items-center w-full max-w-sm flex-1">
+                    
+                    {/* Animated Character Area */}
+                    <motion.div 
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        className="text-7xl md:text-8xl my-4 drop-shadow-md h-24 flex items-center justify-center"
+                    >
+                        {hippoFace}
+                    </motion.div>
 
-                        const container = document.getElementById('sticker-container');
-                        const span = document.createElement('span');
-                        span.textContent = randomSticker;
-                        container.appendChild(span);
+                    <p className="font-bold text-slate-500 mb-2 mt-4 text-center">Feed the Hippo! Choose the right snack value:</p>
 
-                        document.getElementById('reward-overlay').classList.add('show');
+                    {/* Math Box */}
+                    <div className="text-5xl md:text-6xl font-black text-slate-800 mb-8 bg-white/60 px-8 py-4 rounded-3xl shadow-inner border-2 border-slate-200">
+                        {num1} - {num2}
+                    </div>
 
-                        nextRewardMilestone += 10;
-        }
-
-                        function closeReward() {
-                            document.getElementById('reward-overlay').classList.remove('show');
-                        document.getElementById('target-text').textContent = nextRewardMilestone;
-                        buildQuestion();
-        }
-
-                        buildQuestion();
-                    </script>
-                </body>
-            </html>
+                    {/* Answers Grid */}
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                        {options.map((opt, index) => {
+                            const isWrong = wrongGuesses.includes(opt);
+                            const isCorrect = score > 0 && hippoFace === '😋' && opt === num1 - num2; // Briefly correct
+                            
+                            return (
+                                <Button 
+                                    key={`opt-${index}`}
+                                    className={`
+                                        h-20 text-4xl font-bold rounded-[1.5rem] border-none transition-all
+                                        ${isWrong 
+                                            ? 'bg-red-500 text-white shadow-[0_2px_0_0_#b91c1c] opacity-50 cursor-not-allowed transform translate-y-1' 
+                                            : isCorrect
+                                                ? 'bg-green-500 hover:bg-green-400 text-white shadow-[0_2px_0_0_#15803d] transform translate-y-1'
+                                                : 'bg-sky-400 hover:bg-sky-300 text-white shadow-[0_8px_0_0_#0284c7] active:translate-y-2 active:shadow-[0_2px_0_0_#0284c7]'
+                                        }
+                                    `}
+                                    onClick={() => !isWrong && checkAnswer(opt)}
+                                    disabled={isWrong || hippoFace === '😋'}
+                                >
+                                    {opt}
+                                </Button>
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.5 }} 
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", bounce: 0.5 }}
+                    className="flex flex-col items-center justify-center h-full flex-1 gap-6 text-center w-full bg-white/95 p-8 rounded-[2rem] shadow-xl relative z-20 border-4 border-pink-300"
+                >
+                    <h2 className="text-3xl md:text-4xl font-black text-pink-500 drop-shadow-sm uppercase">🌟 10 Points Reward! 🌟</h2>
+                    <p className="text-lg md:text-xl text-slate-600 font-bold mb-4">You earned a new sticker for your book!</p>
+                    
+                    <motion.div 
+                        initial={{ rotate: -180, scale: 0 }}
+                        animate={{ rotate: 0, scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.6, duration: 1 }}
+                        className="text-8xl md:text-9xl my-6 drop-shadow-lg"
+                    >
+                        {prize}
+                    </motion.div>
+                    
+                    <Button 
+                            size="lg" 
+                            className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#be185d] active:translate-y-1 active:shadow-none transition-all w-full border-none"
+                            onClick={() => {
+                                setScore(0);
+                                setCurrentQuestion(1);
+                                setIsCompleted(false);
+                                generateQuestion();
+                            }}
+                        >
+                            Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
+                        </Button>
+                </motion.div>
+            )}
+        </div>
+    );
+}
