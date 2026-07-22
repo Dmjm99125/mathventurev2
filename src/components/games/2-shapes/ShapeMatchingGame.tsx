@@ -31,7 +31,7 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const charRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
     const physicsChars = useRef<Character[]>([]);
-    const requestRef = useRef<number>();
+    const requestRef = useRef<number | undefined>(undefined);
     const audioCtxRef = useRef<AudioContext | null>(null);
 
     const playBeep = (isCorrect: boolean) => {

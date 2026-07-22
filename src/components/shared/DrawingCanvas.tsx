@@ -12,7 +12,15 @@ const COLORS = [
   { name: 'Pink', value: '#fd79a8' },
 ];
 
-export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
+export function DrawingCanvas({ 
+  onComplete,
+  title = "Shape Artist!",
+  icon: Icon = Palette
+}: { 
+  onComplete?: () => void,
+  title?: string,
+  icon?: React.ElementType
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -155,7 +163,7 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
       {/* Header */}
       <div className="w-full flex justify-between items-center mb-4 px-2 md:px-6">
         <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-800 flex items-center gap-3">
-          <Palette className="text-indigo-500 w-8 h-8 drop-shadow-sm" /> Shape Artist!
+          <Icon className="text-indigo-500 w-8 h-8 drop-shadow-sm" /> {title}
         </h1>
         {onComplete && (
           <Button 
@@ -230,7 +238,7 @@ export function DrawingCanvas({ onComplete }: { onComplete?: () => void }) {
           </Button>
           
           <Button 
-            variant="destructive" 
+            variant="danger" 
             className="rounded-2xl font-bold shadow-md flex items-center gap-2 py-6 px-4 md:px-6"
             onClick={clearCanvas}
           >

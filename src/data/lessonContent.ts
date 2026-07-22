@@ -6,7 +6,9 @@ export interface LessonSlide {
   /** Unique key for this slide */
   id: string;
   /** Image to display (relative to /assets/images/) */
-  image: string;
+  image?: string;
+  /** Video to display (relative to /assets/videos/) */
+  video?: string;
   /** English label */
   labelEn: string;
   /** Filipino label */
@@ -107,6 +109,20 @@ export const lessonContent: Record<string, TopicLesson> = {
       { id: 'add-c',       image: '4c.png',  labelEn: 'Sum of objects',         labelFil: 'Kabuuan ng mga bagay' },
       { id: 'add-d',       image: '4d.png',  labelEn: 'Number sentence',        labelFil: 'Pangungusap na bilang' },
       { id: 'add-e',       image: '4e.png',  labelEn: 'Practice problems',      labelFil: 'Pagsasanay' },
+      { id: 'add-f',       image: '4f.png',  labelEn: 'More practice',          labelFil: 'Dagdag na pagsasanay' },
+      { id: 'add-g',       image: '4g.png',  labelEn: 'Keep counting',          labelFil: 'Ipagpatuloy ang pagbilang' },
+      { id: 'add-411',     image: '411.png', labelEn: 'Addition example 1',     labelFil: 'Halimbawa 1' },
+      { id: 'add-412',     image: '412.png', labelEn: 'Addition example 2',     labelFil: 'Halimbawa 2' },
+      { id: 'add-413',     image: '413.png', labelEn: 'Addition example 3',     labelFil: 'Halimbawa 3' },
+      { id: 'add-414',     image: '414.png', labelEn: 'Addition example 4',     labelFil: 'Halimbawa 4' },
+      { id: 'add-415',     image: '415.png', labelEn: 'Addition example 5',     labelFil: 'Halimbawa 5' },
+      { id: 'add-416',     image: '416.png', labelEn: 'Addition example 6',     labelFil: 'Halimbawa 6' },
+      { id: 'add-417',     image: '417.png', labelEn: 'Addition example 7',     labelFil: 'Halimbawa 7' },
+      { id: 'add-418',     image: '418.png', labelEn: 'Addition example 8',     labelFil: 'Halimbawa 8' },
+      { id: 'add-419',     image: '419.png', labelEn: 'Addition example 9',     labelFil: 'Halimbawa 9' },
+      { id: 'add-420',     image: '420.png', labelEn: 'Addition example 10',    labelFil: 'Halimbawa 10' },
+      { id: 'add-v1',      video: '4v1.mp4', labelEn: 'Video Activity 1',       labelFil: 'Bidyo Gawain 1' },
+      { id: 'add-v2',      video: '4v2.mp4', labelEn: 'Video Activity 2',       labelFil: 'Bidyo Gawain 2' },
     ],
   },
 

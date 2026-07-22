@@ -18,14 +18,22 @@ export function LessonSlideCard({ slide, index, total }: LessonSlideProps) {
         {index} of {total}
       </p>
 
-      {/* Main image */}
+      {/* Main media */}
       <Card className="p-6 border-4 border-primary/20 shadow-xl bg-white w-full flex items-center justify-center min-h-48">
-        <img
-          src={`/assets/images/${slide.image}`}
-          alt={slide.labelEn}
-          className="max-h-48 max-w-full object-contain drop-shadow-md"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-        />
+        {slide.video ? (
+          <video
+            src={`/assets/videos/${slide.video}`}
+            controls
+            className="max-h-[380px] max-w-full rounded-xl shadow-md"
+          />
+        ) : (
+          <img
+            src={`/assets/images/${slide.image}`}
+            alt={slide.labelEn}
+            className="max-h-48 max-w-full object-contain drop-shadow-md"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        )}
       </Card>
 
       {/* Bilingual labels + audio */}

@@ -19,7 +19,6 @@ import { ShapeHunter } from '@/components/games/2-shapes/ShapeHunter';
 import { ShapeRacing } from '@/components/games/2-shapes/ShapeRacing';
 import { ShapeWizard } from '@/components/games/2-shapes/ShapeWizard';
 import { HungryDragon } from '@/components/games/2-shapes/HungryDragon';
-import { DrawingCanvas } from '@/components/games/2-shapes/DrawingCanvas';
 import { ArrangeNumbers } from '@/components/games/3-sequencing/ArrangeNumbers';
 import { ArrangeLetters } from '@/components/games/3-sequencing/ArrangeLetters';
 import { SizeSorter } from '@/components/games/3-sequencing/SizeSorter';
@@ -29,8 +28,9 @@ import { SurpriseSequencing } from '@/components/games/3-sequencing/SurpriseSequ
 import { AnimalVehicleBuilder } from '@/components/games/3-sequencing/AnimalVehicleBuilder';
 import { PatternTrainAcademy } from '@/components/games/3-sequencing/PatternTrainAcademy';
 import { SandwichMaker } from '@/components/games/3-sequencing/SandwichMaker';
+import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
-import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useSubmitAttempt } from '@/lib/hooks';
 
@@ -45,9 +45,11 @@ export function QuizPage() {
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
 
-  const questions = assignmentId
+  const rawQuestions = assignmentId
     ? (allTopics[topic as keyof typeof allTopics] || [])
     : (freePlayTopics[topic as keyof typeof freePlayTopics] || []);
+
+  const questions = topic === 'sequencing' ? rawQuestions.slice(0, 10) : rawQuestions;
 
   const lesson = lessonContent[topic];
 
@@ -151,7 +153,7 @@ export function QuizPage() {
             <Card className="w-full overflow-hidden border-4 border-primary/30 shadow-2xl rounded-2xl">
               <video
                 ref={videoRef}
-                src={lesson.videoSrc}
+                src={lesson.videoSrc as string}
                 controls
                 className="w-full rounded-xl"
                 style={{ maxHeight: '380px' }}
@@ -577,6 +579,16 @@ export function QuizPage() {
               setTimeout(handleNext, 0);
             }
           }} />
+        ) : topic === 'sequencing' && currentIndex === 9 ? (
+          <DrawingCanvas 
+            title="Sequencing Canvas"
+            icon={Pencil}
+            onComplete={() => {
+              setScore(s => s + 1);
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }} 
+          />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
