@@ -27,6 +27,8 @@ import { ShortestLongest } from '@/components/games/3-sequencing/ShortestLongest
 import { SmallestLargestCake } from '@/components/games/3-sequencing/SmallestLargestCake';
 import { SurpriseSequencing } from '@/components/games/3-sequencing/SurpriseSequencing';
 import { AnimalVehicleBuilder } from '@/components/games/3-sequencing/AnimalVehicleBuilder';
+import { PatternTrainAcademy } from '@/components/games/3-sequencing/PatternTrainAcademy';
+import { SandwichMaker } from '@/components/games/3-sequencing/SandwichMaker';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -541,6 +543,30 @@ export function QuizPage() {
           }} />
         ) : topic === 'sequencing' && currentIndex === 6 ? (
           <AnimalVehicleBuilder onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'sequencing' && currentIndex === 7 ? (
+          <PatternTrainAcademy onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'sequencing' && currentIndex === 8 ? (
+          <SandwichMaker onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
