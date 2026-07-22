@@ -52,6 +52,7 @@ import { SpaceBlast } from '@/components/games/5-subtraction/SpaceBlast';
 import { DragCorrectNumber } from '@/components/games/6-numbers/DragCorrectNumber';
 import { CountMatch } from '@/components/games/6-numbers/CountMatch';
 import { CountMatch2 } from '@/components/games/6-numbers/CountMatch2';
+import { CountMatch3 } from '@/components/games/6-numbers/CountMatch3';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -916,6 +917,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'numbers' && currentIndex === 2 ? (
           <CountMatch2 onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'numbers' && currentIndex === 3 ? (
+          <CountMatch3 onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
