@@ -56,6 +56,7 @@ import { CountMatch3 } from '@/components/games/6-numbers/CountMatch3';
 import { CountMatch4 } from '@/components/games/6-numbers/CountMatch4';
 import { DeepDive } from '@/components/games/6-numbers/DeepDive';
 import { ToyFactory } from '@/components/games/6-numbers/ToyFactory';
+import { NumberMonster } from '@/components/games/6-numbers/NumberMonster';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -968,6 +969,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'numbers' && currentIndex === 6 ? (
           <ToyFactory onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'numbers' && currentIndex === 7 ? (
+          <NumberMonster onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
