@@ -35,6 +35,7 @@ import { AdditionAdventure } from '@/components/games/4-addition/AdditionAdventu
 import { SecondAdditionRound } from '@/components/games/4-addition/SecondAdditionRound';
 import { AnimalSafari } from '@/components/games/4-addition/AnimalSafari';
 import { UnderTheSea } from '@/components/games/4-addition/UnderTheSea';
+import { Carnival } from '@/components/games/4-addition/Carnival';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -670,6 +671,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'addition' && currentIndex === 6 ? (
           <UnderTheSea onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'addition' && currentIndex === 7 ? (
+          <Carnival onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
