@@ -32,6 +32,7 @@ import { AdditionFunGame } from '@/components/games/4-addition/AdditionFunGame';
 import { AppleAddition } from '@/components/games/4-addition/AppleAddition';
 import { FruitPopMath } from '@/components/games/4-addition/FruitPopMath';
 import { AdditionAdventure } from '@/components/games/4-addition/AdditionAdventure';
+import { SecondAdditionRound } from '@/components/games/4-addition/SecondAdditionRound';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -631,6 +632,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'addition' && currentIndex === 3 ? (
           <AdditionAdventure onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'addition' && currentIndex === 4 ? (
+          <SecondAdditionRound onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
