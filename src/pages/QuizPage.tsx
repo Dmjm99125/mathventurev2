@@ -11,6 +11,7 @@ import { RainbowColorCatcher } from '@/components/games/1-colors/RainbowColorCat
 import { RainbowColorDeluxe } from '@/components/games/1-colors/RainbowColorDeluxe';
 import { RainbowGalaxyExplorer } from '@/components/games/1-colors/RainbowGalaxyExplorer';
 import { ChooseWhichColor } from '@/components/games/1-colors/ChooseWhichColor';
+import { MultipleChoice } from '@/components/games/1-colors/MultipleChoice';
 import { ShapeMatchingGame } from '@/components/games/2-shapes/ShapeMatchingGame';
 import { FindTheShape } from '@/components/games/2-shapes/FindTheShape';
 import { MonsterCafe } from '@/components/games/2-shapes/MonsterCafe';
@@ -67,7 +68,9 @@ export function QuizPage() {
 
   const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
 
-  const questions = topic === 'sequencing' ? rawQuestions.slice(0, 10) : rawQuestions;
+  const questions = topic === 'sequencing' ? rawQuestions.slice(0, 10) 
+    : topic === 'colors' ? Array(7).fill({})
+    : rawQuestions;
 
   const lesson = lessonContent[topic];
 
@@ -377,8 +380,31 @@ export function QuizPage() {
           }} />
         ) : topic === 'colors' && currentIndex === 5 ? (
           <ChooseWhichColor onComplete={() => {
-            // Give some points for completing the whole thing
             setScore(s => s + 10);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'colors' && currentIndex === 6 ? (
+          <MultipleChoice onComplete={async (mcScore) => {
+            const finalScore = score + mcScore;
+            const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+            try {
+              await submitAttempt.mutateAsync({
+                lessonId: topic,
+                assignmentId,
+                score: finalScore,
+                maxScore: 17,
+                durationSeconds,
+              });
+            } catch (e) {
+              console.error(e);
+            }
             setLocation('/');
           }} />
         ) : topic === 'shapes' && currentIndex === 0 ? (
