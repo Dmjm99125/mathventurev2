@@ -39,6 +39,8 @@ import { Carnival } from '@/components/games/4-addition/Carnival';
 import { IceCreamShop } from '@/components/games/4-addition/IceCreamShop';
 import { Pizza } from '@/components/games/4-addition/Pizza';
 import { ComicStarCatcher } from '@/components/games/4-addition/ComicStarCatcher';
+import { SubtractionBalloon } from '@/components/games/5-subtraction/SubtractionBalloon';
+import { FruitSubtraction } from '@/components/games/5-subtraction/FruitSubtraction';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -734,6 +736,30 @@ export function QuizPage() {
           }} />
         ) : topic === 'addition' && currentIndex === 11 ? (
           <DrawingCanvas onComplete={handleNext} />
+        ) : topic === 'subtraction' && currentIndex === 0 ? (
+          <SubtractionBalloon onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'subtraction' && currentIndex === 1 ? (
+          <FruitSubtraction onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
