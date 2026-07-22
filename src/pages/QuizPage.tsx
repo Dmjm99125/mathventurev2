@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRoute, useSearch, useLocation } from 'wouter';
 import { allTopics } from '@/data';
-import { freePlayTopics } from '@/data/freePlay';
+
 import { lessonContent } from '@/data/lessonContent';
 import { GameLayout } from '@/components/GameLayout';
 import { LessonSlideCard } from '@/components/LessonSlideCard';
@@ -65,9 +65,7 @@ export function QuizPage() {
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
 
-  const rawQuestions = assignmentId
-    ? (allTopics[topic as keyof typeof allTopics] || [])
-    : (freePlayTopics[topic as keyof typeof freePlayTopics] || []);
+  const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
 
   const questions = topic === 'sequencing' ? rawQuestions.slice(0, 10) : rawQuestions;
 
