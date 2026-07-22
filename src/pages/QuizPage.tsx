@@ -38,6 +38,7 @@ import { UnderTheSea } from '@/components/games/4-addition/UnderTheSea';
 import { Carnival } from '@/components/games/4-addition/Carnival';
 import { IceCreamShop } from '@/components/games/4-addition/IceCreamShop';
 import { Pizza } from '@/components/games/4-addition/Pizza';
+import { ComicStarCatcher } from '@/components/games/4-addition/ComicStarCatcher';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -709,6 +710,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'addition' && currentIndex === 9 ? (
           <Pizza onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'addition' && currentIndex === 10 ? (
+          <ComicStarCatcher onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);

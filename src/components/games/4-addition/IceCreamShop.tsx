@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, Star, IceCream2, BellRing, CheckCircle2 } from 'lucide-react';
+import { Play, Star, IceCream2, BellRing, CheckCircle2, XCircle } from 'lucide-react';
 
 const SHOP_PRIZES = ['🍒', '🍫', '🍓', '🍌', '🍪', '🧇', '🍯', '✨'];
 
