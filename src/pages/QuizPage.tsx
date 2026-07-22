@@ -24,6 +24,7 @@ import { ArrangeNumbers } from '@/components/games/3-sequencing/ArrangeNumbers';
 import { ArrangeLetters } from '@/components/games/3-sequencing/ArrangeLetters';
 import { SizeSorter } from '@/components/games/3-sequencing/SizeSorter';
 import { ShortestLongest } from '@/components/games/3-sequencing/ShortestLongest';
+import { SmallestLargestCake } from '@/components/games/3-sequencing/SmallestLargestCake';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -502,6 +503,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'sequencing' && currentIndex === 3 ? (
           <ShortestLongest onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'sequencing' && currentIndex === 4 ? (
+          <SmallestLargestCake onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
