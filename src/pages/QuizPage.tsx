@@ -29,6 +29,7 @@ import { AnimalVehicleBuilder } from '@/components/games/3-sequencing/AnimalVehi
 import { PatternTrainAcademy } from '@/components/games/3-sequencing/PatternTrainAcademy';
 import { SandwichMaker } from '@/components/games/3-sequencing/SandwichMaker';
 import { AdditionFunGame } from '@/components/games/4-addition/AdditionFunGame';
+import { AppleAddition } from '@/components/games/4-addition/AppleAddition';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -592,6 +593,18 @@ export function QuizPage() {
           />
         ) : topic === 'addition' && currentIndex === 0 ? (
           <AdditionFunGame onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'addition' && currentIndex === 1 ? (
+          <AppleAddition onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
