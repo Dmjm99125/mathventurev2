@@ -732,6 +732,8 @@ export function QuizPage() {
               setTimeout(handleNext, 0);
             }
           }} />
+        ) : topic === 'addition' && currentIndex === 11 ? (
+          <DrawingCanvas onComplete={handleNext} />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
