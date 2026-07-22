@@ -991,6 +991,18 @@ export function QuizPage() {
               setTimeout(handleNext, 0);
             }
           }} />
+        ) : topic === 'numbers' && currentIndex === 8 ? (
+          <DrawingCanvas onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
