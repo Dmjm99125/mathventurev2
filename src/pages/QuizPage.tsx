@@ -63,6 +63,7 @@ import { LightHeavy } from '@/components/games/7-measurement/LightHeavy';
 import { TinyBuilderRuler } from '@/components/games/7-measurement/TinyBuilderRuler';
 import { MagicRainbowBridge } from '@/components/games/7-measurement/MagicRainbowBridge';
 import { SnakeGame } from '@/components/games/7-measurement/SnakeGame';
+import { Paghahambing1 } from '@/components/games/8-comparison/Paghahambing1';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -1083,6 +1084,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'measurement' && currentIndex === 6 ? (
           <DrawingCanvas onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 0 ? (
+          <Paghahambing1 onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);

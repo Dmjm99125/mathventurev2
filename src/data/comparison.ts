@@ -3,6 +3,13 @@ import type { Question } from './question';
 
 export const comparisonData: Question[] = [
   {
+    id: 'comparison_game_0',
+    prompt: 'Paghahambing1',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
     "id": "comp_1",
     "prompt": "Alin ang pinakamalaking numero?",
     "options": [
