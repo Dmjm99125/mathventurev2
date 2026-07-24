@@ -12,7 +12,7 @@ export interface LessonSlide {
   /** English label */
   labelEn: string;
   /** Filipino label */
-  labelFil: string;
+  labelFil?: string;
   /** Path to English pronunciation audio (relative to /assets/audio/audio/) */
   audioEn?: string;
   /** Path to Filipino pronunciation audio (relative to /assets/audio/audio/) */
@@ -250,19 +250,19 @@ export const lessonContent: Record<string, TopicLesson> = {
     videoTitle: '"Orasan" — Grade 1 Action Song — "Pagsabi at Pagsulat ng Oras gamit ang Orasang Analogo"',
     videoCredit: 'Teacher Glie',
     slides: [
-      { id: 'cl-intro', image: '9ora.png', labelEn: 'Telling Time',    labelFil: 'Pagsasabi ng Oras' },
-      { id: 'cl-1',     image: '21o.png',  labelEn: '1 o\'clock',      labelFil: 'Ika-isa',    audioEn: aud('21v.mp3')  },
-      { id: 'cl-2',     image: '22o.png',  labelEn: '2 o\'clock',      labelFil: 'Ika-dalawa', audioEn: aud('22v.mp3')  },
-      { id: 'cl-3',     image: '23o.png',  labelEn: '3 o\'clock',      labelFil: 'Ika-tatlo',  audioEn: aud('23v.mp3')  },
-      { id: 'cl-4',     image: '24o.png',  labelEn: '4 o\'clock',      labelFil: 'Ika-apat',   audioEn: aud('24v.mp3')  },
-      { id: 'cl-5',     image: '25o.png',  labelEn: '5 o\'clock',      labelFil: 'Ika-lima',   audioEn: aud('25v.mp3')  },
-      { id: 'cl-6',     image: '26o.png',  labelEn: '6 o\'clock',      labelFil: 'Ika-anim',   audioEn: aud('26v.mp3')  },
-      { id: 'cl-7',     image: '27o.png',  labelEn: '7 o\'clock',      labelFil: 'Ika-pito',   audioEn: aud('27v.mp3')  },
-      { id: 'cl-8',     image: '28o.png',  labelEn: '8 o\'clock',      labelFil: 'Ika-walo',   audioEn: aud('28v.mp3')  },
-      { id: 'cl-9',     image: '29o.png',  labelEn: '9 o\'clock',      labelFil: 'Ika-siyam',  audioEn: aud('29v.mp3')  },
-      { id: 'cl-10',    image: '210o.png', labelEn: '10 o\'clock',     labelFil: 'Ika-sampu',  audioEn: aud('210v.mp3') },
-      { id: 'cl-11',    image: '211o.png', labelEn: '11 o\'clock',     labelFil: 'Ika-labing isa', audioEn: aud('211v.mp3') },
-      { id: 'cl-12',    image: '212o.png', labelEn: '12 o\'clock',     labelFil: 'Ika-labindalawa', audioEn: aud('212v.mp3') },
+      { id: 'cl-intro', image: '9ora.png', labelEn: 'Telling Time' },
+      { id: 'cl-1',     image: '21o.png',  labelEn: '1 o\'clock',  audioEn: aud('21v.mp3')  },
+      { id: 'cl-2',     image: '22o.png',  labelEn: '2 o\'clock',  audioEn: aud('22v.mp3')  },
+      { id: 'cl-3',     image: '23o.png',  labelEn: '3 o\'clock',  audioEn: aud('23v.mp3')  },
+      { id: 'cl-4',     image: '24o.png',  labelEn: '4 o\'clock',  audioEn: aud('24v.mp3')  },
+      { id: 'cl-5',     image: '25o.png',  labelEn: '5 o\'clock',  audioEn: aud('25v.mp3')  },
+      { id: 'cl-6',     image: '26o.png',  labelEn: '6 o\'clock',  audioEn: aud('26v.mp3')  },
+      { id: 'cl-7',     image: '27o.png',  labelEn: '7 o\'clock',  audioEn: aud('27v.mp3')  },
+      { id: 'cl-8',     image: '28o.png',  labelEn: '8 o\'clock',  audioEn: aud('28v.mp3')  },
+      { id: 'cl-9',     image: '29o.png',  labelEn: '9 o\'clock',  audioEn: aud('29v.mp3')  },
+      { id: 'cl-10',    image: '210o.png', labelEn: '10 o\'clock', audioEn: aud('210v.mp3') },
+      { id: 'cl-11',    image: '211o.png', labelEn: '11 o\'clock', audioEn: aud('211v.mp3') },
+      { id: 'cl-12',    image: '212o.png', labelEn: '12 o\'clock', audioEn: aud('212v.mp3') },
     ],
   },
 };

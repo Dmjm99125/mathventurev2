@@ -4,7 +4,7 @@ import type { Question } from './question';
 export const clockData: Question[] = [
   {
     "id": "9a",
-    "prompt": "Alin sa mga sumusunod ang (12:00) twelve o'clock?",
+    "prompt": "(12:00) twelve o'clock?",
     "options": [
       {
         "image": "9a12.png",
@@ -27,7 +27,7 @@ export const clockData: Question[] = [
   },
   {
     "id": "9ab",
-    "prompt": "Alin sa mga sumusunod ang (1:00) one o'clock?",
+    "prompt": "(1:00) one o'clock?",
     "options": [
       {
         "image": "9a1.png",
@@ -50,7 +50,7 @@ export const clockData: Question[] = [
   },
   {
     "id": "9ac",
-    "prompt": "Alin sa mga sumusunod ang (5:00) five o'clock?",
+    "prompt": "(5:00) five o'clock?",
     "options": [
       {
         "image": "9a5.png",
@@ -73,7 +73,7 @@ export const clockData: Question[] = [
   },
   {
     "id": "9ad",
-    "prompt": "Alin sa mga sumusunod ang (10:00) ten o'clock?",
+    "prompt": "(10:00) ten o'clock?",
     "options": [
       {
         "image": "9a10.png",
@@ -96,7 +96,7 @@ export const clockData: Question[] = [
   },
   {
     "id": "9ae",
-    "prompt": "Alin sa mga sumusunod ang (3:00) three o'clock?",
+    "prompt": "(3:00) three o'clock?",
     "options": [
       {
         "image": "9a3.png",
@@ -119,7 +119,7 @@ export const clockData: Question[] = [
   },
   {
     "id": "9af",
-    "prompt": "Alin sa mga sumusunod ang (8:00) eight o'clock?",
+    "prompt": "(8:00) eight o'clock?",
     "options": [
       {
         "image": "9a8.png",
@@ -142,7 +142,7 @@ export const clockData: Question[] = [
   },
   {
     "id": "9g",
-    "prompt": "Alin sa mga sumusunod ang (7:00) seven o'clock?",
+    "prompt": "(7:00) seven o'clock?",
     "options": [
       {
         "image": "9a7.png",

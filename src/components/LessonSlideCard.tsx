@@ -37,7 +37,7 @@ export function LessonSlideCard({ slide, index, total }: LessonSlideProps) {
       </Card>
 
       {/* Bilingual labels + audio */}
-      <div className="grid grid-cols-2 gap-4 w-full">
+      <div className={`grid ${slide.labelFil ? 'grid-cols-2' : 'grid-cols-1 max-w-sm mx-auto'} gap-4 w-full`}>
         {/* English */}
         <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
           <div className="flex items-center gap-2">
@@ -51,16 +51,18 @@ export function LessonSlideCard({ slide, index, total }: LessonSlideProps) {
         </div>
 
         {/* Filipino */}
-        <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-yellow-50 border-2 border-yellow-200">
-          <div className="flex items-center gap-2">
-            <img src="/assets/images/1fil.png" alt="Filipino" className="h-7 w-7 object-contain" />
-            <span className="text-sm font-bold text-yellow-700 uppercase tracking-wider">Filipino</span>
+        {slide.labelFil && (
+          <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-yellow-50 border-2 border-yellow-200">
+            <div className="flex items-center gap-2">
+              <img src="/assets/images/1fil.png" alt="Filipino" className="h-7 w-7 object-contain" />
+              <span className="text-sm font-bold text-yellow-700 uppercase tracking-wider">Filipino</span>
+            </div>
+            <p className="text-2xl font-display font-extrabold text-yellow-900 text-center">{slide.labelFil}</p>
+            {slide.audioFil && (
+              <AudioButton src={slide.audioFil} className="h-12 w-12" />
+            )}
           </div>
-          <p className="text-2xl font-display font-extrabold text-yellow-900 text-center">{slide.labelFil}</p>
-          {slide.audioFil && (
-            <AudioButton src={slide.audioFil} className="h-12 w-12" />
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
