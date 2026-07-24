@@ -60,6 +60,9 @@ import { NumberMonster } from '@/components/games/6-numbers/NumberMonster';
 import { SlowFun } from '@/components/games/7-measurement/SlowFun';
 import { SmallShort } from '@/components/games/7-measurement/SmallShort';
 import { LightHeavy } from '@/components/games/7-measurement/LightHeavy';
+import { TinyBuilderRuler } from '@/components/games/7-measurement/TinyBuilderRuler';
+import { MagicRainbowBridge } from '@/components/games/7-measurement/MagicRainbowBridge';
+import { SnakeGame } from '@/components/games/7-measurement/SnakeGame';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -1032,6 +1035,54 @@ export function QuizPage() {
           }} />
         ) : topic === 'measurement' && currentIndex === 2 ? (
           <LightHeavy onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'measurement' && currentIndex === 3 ? (
+          <TinyBuilderRuler onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'measurement' && currentIndex === 4 ? (
+          <MagicRainbowBridge onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'measurement' && currentIndex === 5 ? (
+          <SnakeGame onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'measurement' && currentIndex === 6 ? (
+          <DrawingCanvas onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
