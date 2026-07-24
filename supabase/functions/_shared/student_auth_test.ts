@@ -1,28 +1,24 @@
 import { assert, assertEquals, assertFalse } from "jsr:@std/assert";
 import {
   buildStudentEmail,
-  isValidNormalizedLrn,
   normalizeClassCode,
+  normalizeFirstName,
   normalizeLastName,
-  normalizeLrn,
   studentDisplayName,
 } from "./student_auth.ts";
 
-Deno.test("normalizeLrn strips non-digits", () => {
-  assertEquals(normalizeLrn(" 1234-5678-9012 "), "123456789012");
-});
-
-Deno.test("isValidNormalizedLrn accepts only twelve digits", () => {
-  assert(isValidNormalizedLrn("123456789012"));
-  assertFalse(isValidNormalizedLrn("12345"));
-});
-
-Deno.test("normalizeClassCode and normalizeLastName uppercase trimmed values", () => {
+Deno.test("normalizeClassCode and student names uppercase trimmed values", () => {
   assertEquals(normalizeClassCode(" ab12cd "), "AB12CD");
+  assertEquals(normalizeFirstName(" juan   miguel "), "JUAN MIGUEL");
   assertEquals(normalizeLastName(" dela   Cruz "), "DELA CRUZ");
 });
 
 Deno.test("buildStudentEmail and studentDisplayName stay deterministic", () => {
-  assertEquals(buildStudentEmail("123456789012"), "student.123456789012@auth.mathventure.invalid");
-  assertEquals(studentDisplayName(" dela Cruz "), "dela Cruz");
+  assertEquals(buildStudentEmail("test-key"), "student.test-key@auth.mathventure.invalid");
+  assertEquals(studentDisplayName(" dela Cruz ", " juan "), "dela Cruz, juan");
+});
+
+Deno.test("normalizeFirstName rejects empty values after trimming", () => {
+  assertFalse(Boolean(normalizeFirstName("   ")));
+  assert(Boolean(normalizeFirstName("ana")));
 });

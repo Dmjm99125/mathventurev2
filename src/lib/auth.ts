@@ -34,7 +34,7 @@ async function completeStudentSession(payload: StudentSessionPayload) {
   return data;
 }
 
-export async function studentRegister(input: { lrn: string; classCode: string; lastName: string }) {
+export async function studentRegister(input: { classCode: string; lastName: string; firstName: string }) {
   const response = await invokeFunction<StudentRegisterResponse>('student-register', {
     method: 'POST',
     body: input,
@@ -45,7 +45,7 @@ export async function studentRegister(input: { lrn: string; classCode: string; l
   return completeStudentSession(response);
 }
 
-export async function studentSignIn(input: { lrn: string; lastName: string }) {
+export async function studentSignIn(input: { lastName: string; firstName: string }) {
   const response = await invokeFunction<StudentLoginResponse>('student-login', {
     method: 'POST',
     body: input,
@@ -58,7 +58,7 @@ export async function studentSignIn(input: { lrn: string; lastName: string }) {
 
 export async function signUp(email: string, password: string, role: Role, fullName: string) {
   if (role !== 'teacher') {
-    throw new Error('Student sign up requires the LRN flow.');
+    throw new Error('Student sign up requires the name-based student flow.');
   }
   return teacherSignUp(email, password, fullName);
 }

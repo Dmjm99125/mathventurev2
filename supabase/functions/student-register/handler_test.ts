@@ -1,10 +1,10 @@
 import { assertEquals } from "jsr:@std/assert";
 import { createStudentRegisterHandler } from "./handler.ts";
 
-Deno.test("student-register returns already_registered when the LRN already exists", async () => {
+Deno.test("student-register returns already_registered when the student name already exists", async () => {
   const handler = createStudentRegisterHandler({
     findClassByCode: async () => ({ id: "class-1", name: "Section A" }),
-    findStudentByNormalizedLrn: async () => ({ id: "student-1" }),
+    hasStudentWithNormalizedName: async () => true,
     createHiddenStudent: async () => {
       throw new Error("should not create user");
     },
@@ -17,7 +17,7 @@ Deno.test("student-register returns already_registered when the LRN already exis
 
   const response = await handler(new Request("http://local/student-register", {
     method: "POST",
-    body: JSON.stringify({ lrn: "1234-5678-9012", classCode: "abc123", lastName: "Dela Cruz" }),
+    body: JSON.stringify({ classCode: "abc123", lastName: "Dela Cruz", firstName: "Juan" }),
   }));
 
   assertEquals(response.status, 409);
@@ -27,7 +27,7 @@ Deno.test("student-register returns already_registered when the LRN already exis
 Deno.test("student-register returns 404 when the class code is unknown", async () => {
   const handler = createStudentRegisterHandler({
     findClassByCode: async () => null,
-    findStudentByNormalizedLrn: async () => null,
+    hasStudentWithNormalizedName: async () => false,
     createHiddenStudent: async () => {
       throw new Error("should not create user");
     },
@@ -40,7 +40,7 @@ Deno.test("student-register returns 404 when the class code is unknown", async (
 
   const response = await handler(new Request("http://local/student-register", {
     method: "POST",
-    body: JSON.stringify({ lrn: "123456789012", classCode: "missing", lastName: "Santos" }),
+    body: JSON.stringify({ classCode: "missing", lastName: "Santos", firstName: "Maria" }),
   }));
 
   assertEquals(response.status, 404);
@@ -50,10 +50,10 @@ Deno.test("student-register creates a student, enrolls the class, and returns a 
   const calls: string[] = [];
   const handler = createStudentRegisterHandler({
     findClassByCode: async () => ({ id: "class-1", name: "Section A" }),
-    findStudentByNormalizedLrn: async () => null,
+    hasStudentWithNormalizedName: async () => false,
     createHiddenStudent: async () => {
       calls.push("createHiddenStudent");
-      return { id: "student-1", email: "student.123456789012@auth.mathventure.invalid" };
+      return { id: "student-1", email: "student.test-key@auth.mathventure.invalid" };
     },
     updateStudentProfile: async () => {
       calls.push("updateStudentProfile");
@@ -65,7 +65,7 @@ Deno.test("student-register creates a student, enrolls the class, and returns a 
       calls.push("issueStudentSession");
       return {
         status: "ok" as const,
-        email: "student.123456789012@auth.mathventure.invalid",
+        email: "student.test-key@auth.mathventure.invalid",
         tokenHash: "token-hash",
         verifyType: "email" as const,
       };
@@ -74,13 +74,13 @@ Deno.test("student-register creates a student, enrolls the class, and returns a 
 
   const response = await handler(new Request("http://local/student-register", {
     method: "POST",
-    body: JSON.stringify({ lrn: "1234-5678-9012", classCode: "abc123", lastName: "Santos" }),
+    body: JSON.stringify({ classCode: "abc123", lastName: "Santos", firstName: "Maria" }),
   }));
 
   assertEquals(response.status, 201);
   assertEquals(await response.json(), {
     status: "ok",
-    email: "student.123456789012@auth.mathventure.invalid",
+    email: "student.test-key@auth.mathventure.invalid",
     tokenHash: "token-hash",
     verifyType: "email",
   });
@@ -97,7 +97,7 @@ Deno.test("student-register returns a JSON 500 with CORS headers when a dependen
     findClassByCode: async () => {
       throw new Error("boom");
     },
-    findStudentByNormalizedLrn: async () => null,
+    hasStudentWithNormalizedName: async () => false,
     createHiddenStudent: async () => {
       throw new Error("should not create user");
     },
@@ -110,7 +110,7 @@ Deno.test("student-register returns a JSON 500 with CORS headers when a dependen
 
   const response = await handler(new Request("http://local/student-register", {
     method: "POST",
-    body: JSON.stringify({ lrn: "123456789012", classCode: "abc123", lastName: "Santos" }),
+    body: JSON.stringify({ classCode: "abc123", lastName: "Santos", firstName: "Maria" }),
   }));
 
   assertEquals(response.status, 500);

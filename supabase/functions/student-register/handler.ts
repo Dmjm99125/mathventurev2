@@ -1,10 +1,9 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
   buildStudentEmail,
-  isValidNormalizedLrn,
   normalizeClassCode,
+  normalizeFirstName,
   normalizeLastName,
-  normalizeLrn,
   STUDENT_VERIFY_TYPE,
   studentDisplayName,
 } from "../_shared/student_auth.ts";
@@ -18,13 +17,14 @@ type StudentRegisterSession = {
 
 type StudentRegisterDeps = {
   findClassByCode(joinCode: string): Promise<{ id: string; name: string } | null>;
-  findStudentByNormalizedLrn(normalizedLrn: string): Promise<{ id: string } | null>;
-  createHiddenStudent(input: { normalizedLrn: string; rawLastName: string }): Promise<{ id: string; email: string }>;
+  hasStudentWithNormalizedName(normalizedLastName: string, normalizedFirstName: string): Promise<boolean>;
+  createHiddenStudent(input: { rawLastName: string; rawFirstName: string }): Promise<{ id: string; email: string }>;
   updateStudentProfile(input: {
     studentId: string;
-    normalizedLrn: string;
     rawLastName: string;
     normalizedLastName: string;
+    rawFirstName: string;
+    normalizedFirstName: string;
   }): Promise<void>;
   enrollStudent(input: { classId: string; studentId: string }): Promise<void>;
   issueStudentSession(email: string): Promise<StudentRegisterSession>;
@@ -41,20 +41,21 @@ const defaultDeps: StudentRegisterDeps = {
     if (error) throw error;
     return data;
   },
-  async findStudentByNormalizedLrn(normalizedLrn) {
+  async hasStudentWithNormalizedName(normalizedLastName, normalizedFirstName) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("profiles")
       .select("id")
       .eq("role", "student")
-      .eq("normalized_lrn", normalizedLrn)
-      .maybeSingle();
+      .eq("normalized_last_name", normalizedLastName)
+      .eq("normalized_first_name", normalizedFirstName)
+      .limit(1);
     if (error) throw error;
-    return data;
+    return (data?.length ?? 0) > 0;
   },
-  async createHiddenStudent({ normalizedLrn, rawLastName }) {
+  async createHiddenStudent({ rawLastName, rawFirstName }) {
     const { adminClient } = await import("../_shared/client.ts");
-    const email = buildStudentEmail(normalizedLrn);
+    const email = buildStudentEmail(crypto.randomUUID());
     const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
     const { data, error } = await adminClient.auth.admin.createUser({
       email,
@@ -62,9 +63,9 @@ const defaultDeps: StudentRegisterDeps = {
       email_confirm: true,
       user_metadata: {
         role: "student",
-        full_name: studentDisplayName(rawLastName),
+        full_name: studentDisplayName(rawLastName, rawFirstName),
+        first_name: rawFirstName.trim(),
         last_name: rawLastName.trim(),
-        lrn: normalizedLrn,
       },
     });
     if (error || !data.user) {
@@ -72,14 +73,20 @@ const defaultDeps: StudentRegisterDeps = {
     }
     return { id: data.user.id, email };
   },
-  async updateStudentProfile({ studentId, normalizedLrn, rawLastName, normalizedLastName }) {
+  async updateStudentProfile({
+    studentId,
+    rawLastName,
+    normalizedLastName,
+    rawFirstName,
+    normalizedFirstName,
+  }) {
     const { adminClient } = await import("../_shared/client.ts");
     const { error } = await adminClient
       .from("profiles")
       .update({
-        full_name: studentDisplayName(rawLastName),
-        lrn: normalizedLrn,
-        normalized_lrn: normalizedLrn,
+        full_name: studentDisplayName(rawLastName, rawFirstName),
+        first_name: rawFirstName.trim(),
+        normalized_first_name: normalizedFirstName,
         last_name: rawLastName.trim(),
         normalized_last_name: normalizedLastName,
       })
@@ -123,24 +130,21 @@ export function createStudentRegisterHandler(deps: StudentRegisterDeps = default
 
     try {
       const body = await req.json().catch(() => null);
-      const normalizedLrn = normalizeLrn(typeof body?.lrn === "string" ? body.lrn : "");
       const normalizedClassCode = normalizeClassCode(typeof body?.classCode === "string" ? body.classCode : "");
       const rawLastName = typeof body?.lastName === "string" ? body.lastName : "";
+      const rawFirstName = typeof body?.firstName === "string" ? body.firstName : "";
       const normalizedLastName = normalizeLastName(rawLastName);
-
-      if (!isValidNormalizedLrn(normalizedLrn)) {
-        return errorResponse("Check your learner number and try again.", 422);
-      }
+      const normalizedFirstName = normalizeFirstName(rawFirstName);
 
       if (!normalizedClassCode) {
         return errorResponse("We couldn't find that class code.", 422);
       }
 
-      if (!normalizedLastName) {
-        return errorResponse("We couldn't sign you in right now.", 422);
+      if (!normalizedLastName || !normalizedFirstName) {
+        return errorResponse("Please enter the student's last name and first name.", 422);
       }
 
-      const existingStudent = await deps.findStudentByNormalizedLrn(normalizedLrn);
+      const existingStudent = await deps.hasStudentWithNormalizedName(normalizedLastName, normalizedFirstName);
       if (existingStudent) {
         return jsonResponse({ status: "already_registered" }, 409);
       }
@@ -150,12 +154,13 @@ export function createStudentRegisterHandler(deps: StudentRegisterDeps = default
         return errorResponse("We couldn't find that class code.", 404);
       }
 
-      const created = await deps.createHiddenStudent({ normalizedLrn, rawLastName });
+      const created = await deps.createHiddenStudent({ rawLastName, rawFirstName });
       await deps.updateStudentProfile({
         studentId: created.id,
-        normalizedLrn,
         rawLastName,
         normalizedLastName,
+        rawFirstName,
+        normalizedFirstName,
       });
       await deps.enrollStudent({ classId: klass.id, studentId: created.id });
 

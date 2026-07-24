@@ -11,8 +11,8 @@ export function Login() {
   const [role, setRole] = useState<Role>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [lrn, setLrn] = useState('');
   const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
@@ -27,7 +27,7 @@ export function Login() {
       if (role === 'teacher') {
         await teacherSignIn(email, password);
       } else {
-        await studentSignIn({ lrn, lastName });
+        await studentSignIn({ lastName, firstName });
       }
       await refreshProfile();
       setLocation('/'); // App.tsx will redirect based on role
@@ -109,22 +109,21 @@ export function Login() {
             <>
               <p className="text-center text-sm font-bold text-muted-foreground">{t('auth.studentLoginHelp')}</p>
               <div className="space-y-2">
-                <Label htmlFor="lrn">{t('auth.lrn')}</Label>
-                <Input
-                  id="lrn"
-                  inputMode="numeric"
-                  required
-                  value={lrn}
-                  onChange={(e) => setLrn(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="lastName">{t('auth.lastName')}</Label>
                 <Input
                   id="lastName"
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="firstName">{t('auth.firstName')}</Label>
+                <Input
+                  id="firstName"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
             </>
@@ -150,9 +149,9 @@ export function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [lrn, setLrn] = useState('');
   const [classCode, setClassCode] = useState('');
   const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
@@ -168,7 +167,7 @@ export function Signup() {
         await teacherSignUp(email, password, fullName);
         await teacherSignIn(email, password);
       } else {
-        await studentRegister({ lrn, classCode, lastName });
+        await studentRegister({ classCode, lastName, firstName });
       }
       await refreshProfile();
       setLocation('/'); 
@@ -253,13 +252,21 @@ export function Signup() {
             <>
               <p className="text-center text-sm font-bold text-muted-foreground">{t('auth.studentSignupHelp')}</p>
               <div className="space-y-2">
-                <Label htmlFor="lrn">{t('auth.lrn')}</Label>
+                <Label htmlFor="lastName">{t('auth.lastName')}</Label>
                 <Input
-                  id="lrn"
-                  inputMode="numeric"
+                  id="lastName"
                   required
-                  value={lrn}
-                  onChange={(e) => setLrn(e.target.value)}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="firstName">{t('auth.firstName')}</Label>
+                <Input
+                  id="firstName"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -269,15 +276,6 @@ export function Signup() {
                   required
                   value={classCode}
                   onChange={(e) => setClassCode(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">{t('auth.lastName')}</Label>
-                <Input
-                  id="lastName"
-                  required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
             </>

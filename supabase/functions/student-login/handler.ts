@@ -1,9 +1,7 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
-  buildStudentEmail,
-  isValidNormalizedLrn,
+  normalizeFirstName,
   normalizeLastName,
-  normalizeLrn,
   STUDENT_VERIFY_TYPE,
 } from "../_shared/student_auth.ts";
 
@@ -14,22 +12,39 @@ type StudentLoginSession = {
   verifyType: typeof STUDENT_VERIFY_TYPE;
 };
 
+type StudentEmailLookup = string | null | "ambiguous";
+
 type StudentLoginDeps = {
-  findStudentByNormalizedLrn(normalizedLrn: string): Promise<{ normalizedLastName: string } | null>;
+  findStudentEmailByNormalizedName(
+    normalizedLastName: string,
+    normalizedFirstName: string,
+  ): Promise<StudentEmailLookup>;
   issueStudentSession(email: string): Promise<StudentLoginSession>;
 };
 
 const defaultDeps: StudentLoginDeps = {
-  async findStudentByNormalizedLrn(normalizedLrn) {
+  async findStudentEmailByNormalizedName(normalizedLastName, normalizedFirstName) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("profiles")
-      .select("normalized_last_name")
+      .select("id")
       .eq("role", "student")
-      .eq("normalized_lrn", normalizedLrn)
-      .maybeSingle();
+      .eq("normalized_last_name", normalizedLastName)
+      .eq("normalized_first_name", normalizedFirstName)
+      .limit(2);
     if (error) throw error;
-    return data ? { normalizedLastName: data.normalized_last_name as string } : null;
+    if (!data?.length) {
+      return null;
+    }
+    if (data.length > 1) {
+      return "ambiguous";
+    }
+
+    const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(data[0].id as string);
+    if (userError || !userData.user.email) {
+      throw userError ?? new Error("Failed to load student auth user");
+    }
+    return userData.user.email;
   },
   async issueStudentSession(email) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -61,19 +76,19 @@ export function createStudentLoginHandler(deps: StudentLoginDeps = defaultDeps) 
 
     try {
       const body = await req.json().catch(() => null);
-      const normalizedLrn = normalizeLrn(typeof body?.lrn === "string" ? body.lrn : "");
       const normalizedLastName = normalizeLastName(typeof body?.lastName === "string" ? body.lastName : "");
+      const normalizedFirstName = normalizeFirstName(typeof body?.firstName === "string" ? body.firstName : "");
 
-      if (!isValidNormalizedLrn(normalizedLrn) || !normalizedLastName) {
+      if (!normalizedLastName || !normalizedFirstName) {
         return jsonResponse({ status: "invalid_credentials" }, 401);
       }
 
-      const student = await deps.findStudentByNormalizedLrn(normalizedLrn);
-      if (!student || student.normalizedLastName !== normalizedLastName) {
+      const studentEmail = await deps.findStudentEmailByNormalizedName(normalizedLastName, normalizedFirstName);
+      if (!studentEmail || studentEmail === "ambiguous") {
         return jsonResponse({ status: "invalid_credentials" }, 401);
       }
 
-      return jsonResponse(await deps.issueStudentSession(buildStudentEmail(normalizedLrn)));
+      return jsonResponse(await deps.issueStudentSession(studentEmail));
     } catch (error) {
       console.error("student-login failed", error);
       return errorResponse("We couldn't sign that student in right now.", 500);

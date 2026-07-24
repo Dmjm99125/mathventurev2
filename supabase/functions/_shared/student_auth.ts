@@ -1,25 +1,34 @@
 export const STUDENT_VERIFY_TYPE = "email" as const;
 
-export function normalizeLrn(input: string): string {
-  return input.replace(/\D/g, "");
-}
-
-export function isValidNormalizedLrn(normalizedLrn: string): boolean {
-  return /^\d{12}$/.test(normalizedLrn);
-}
-
 export function normalizeClassCode(input: string): string {
   return input.trim().toUpperCase();
 }
 
-export function normalizeLastName(input: string): string {
+function normalizeStudentName(input: string): string {
   return input.trim().replace(/\s+/g, " ").toUpperCase();
 }
 
-export function studentDisplayName(lastName: string): string {
-  return lastName.trim().replace(/\s+/g, " ") || "Student";
+export function normalizeFirstName(input: string): string {
+  return normalizeStudentName(input);
 }
 
-export function buildStudentEmail(normalizedLrn: string): string {
-  return `student.${normalizedLrn}@auth.mathventure.invalid`;
+export function normalizeLastName(input: string): string {
+  return normalizeStudentName(input);
+}
+
+function cleanStudentName(input: string): string {
+  return input.trim().replace(/\s+/g, " ");
+}
+
+export function studentDisplayName(lastName: string, firstName: string): string {
+  const cleanLastName = cleanStudentName(lastName);
+  const cleanFirstName = cleanStudentName(firstName);
+  if (cleanLastName && cleanFirstName) {
+    return `${cleanLastName}, ${cleanFirstName}`;
+  }
+  return cleanLastName || cleanFirstName || "Student";
+}
+
+export function buildStudentEmail(studentKey: string): string {
+  return `student.${studentKey.trim().toLowerCase()}@auth.mathventure.invalid`;
 }
