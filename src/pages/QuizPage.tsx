@@ -68,6 +68,12 @@ import { AyusinAngLaki } from '@/components/games/8-comparison/AyusinAngLaki';
 import { MaramiKaunti } from '@/components/games/8-comparison/MaramiKaunti';
 import { MataasMababa } from '@/components/games/8-comparison/MataasMababa';
 import { MatchingTypeA } from '@/components/games/8-comparison/MatchingTypeA';
+import { BarnyardBalance } from '@/components/games/8-comparison/BarnyardBalance';
+import { SkyExplorer } from '@/components/games/8-comparison/SkyExplorer';
+import { MadScientist } from '@/components/games/8-comparison/MadScientist';
+import { WhichIsLonger } from '@/components/games/8-comparison/WhichIsLonger';
+import { WhichIsComp } from '@/components/games/8-comparison/WhichIsComp';
+import { CatchFall } from '@/components/games/8-comparison/CatchFall';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -1148,6 +1154,78 @@ export function QuizPage() {
           }} />
         ) : topic === 'comparison' && currentIndex === 4 ? (
           <MatchingTypeA onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 5 ? (
+          <BarnyardBalance onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 6 ? (
+          <SkyExplorer onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 7 ? (
+          <MadScientist onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 8 ? (
+          <WhichIsLonger onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 9 ? (
+          <WhichIsComp onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 10 ? (
+          <CatchFall onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);

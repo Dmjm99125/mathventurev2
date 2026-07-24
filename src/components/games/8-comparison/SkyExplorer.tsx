@@ -52,39 +52,37 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
   }
 };
 
-const farmPairs = [
-  {heavy: {emoji: '🐄', name: 'Cow'}, light: {emoji: '🍓', name: 'Berry'}},
-  {heavy: {emoji: '🚜', name: 'Tractor'}, light: {emoji: '🪶', name: 'Feather'}},
-  {heavy: {emoji: '🐷', name: 'Pig'}, light: {emoji: '🪱', name: 'Worm'}},
-  {heavy: {emoji: '🎃', name: 'Pumpkin'}, light: {emoji: '🍃', name: 'Leaf'}},
-  {heavy: {emoji: '🪵', name: 'Log'}, light: {emoji: '🌸', name: 'Flower'}},
-  {heavy: {emoji: '🐴', name: 'Horse'}, light: {emoji: '🐣', name: 'Chick'}},
-  {heavy: {emoji: '🍉', name: 'Melon'}, light: {emoji: '🍒', name: 'Cherry'}},
-  {heavy: {emoji: '🏠', name: 'Barn'}, light: {emoji: '🎈', name: 'Balloon'}}
+const timePairs = [
+  {day: {emoji: '☀️', name: 'Bright Sun'}, night: {emoji: '🌙', name: 'Glowing Moon'}},
+  {day: {emoji: '🏫', name: 'Go to School'}, night: {emoji: '🛌', name: 'Sleep in Bed'}},
+  {day: {emoji: '🍳', name: 'Eat Breakfast'}, night: {emoji: '🦉', name: 'Hooting Owl'}},
+  {day: {emoji: '🪁', name: 'Fly a Kite'}, night: {emoji: '✨', name: 'Shining Stars'}},
+  {day: {emoji: '🐓', name: 'Rooster Crows'}, night: {emoji: '🦇', name: 'Flying Bat'}},
+  {day: {emoji: '⚽', name: 'Play Outside'}, night: {emoji: '💤', name: 'Dreaming'}}
 ];
 
-const farmPrizes = ['🌻', '🍎', '🌽', '🥚', '🥕', '🍯', '🥛', '🍉'];
+const spacePrizes = ['🪐', '🚀', '⭐', '🛸', '🛰️', '☄️', '🌍', '👽'];
 
-interface BarnyardBalanceProps {
+interface SkyExplorerProps {
   onComplete?: () => void;
 }
 
-export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
+export function SkyExplorer({ onComplete }: SkyExplorerProps) {
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
-  const [isLookingForHeavy, setIsLookingForHeavy] = useState(true);
-  const [currentPair, setCurrentPair] = useState(farmPairs[0]);
-  const [isLeftHeavy, setIsLeftHeavy] = useState(true);
+  const [isLookingForDay, setIsLookingForDay] = useState(true);
+  const [currentPair, setCurrentPair] = useState(timePairs[0]);
+  const [isLeftDay, setIsLeftDay] = useState(true);
   const [shelfItems, setShelfItems] = useState<string[]>([]);
   
   const [isCompleted, setIsCompleted] = useState(false);
   const [canClick, setCanClick] = useState(true);
 
   const setupRound = () => {
-    setIsLookingForHeavy(Math.random() > 0.5);
-    setCurrentPair(farmPairs[Math.floor(Math.random() * farmPairs.length)]);
-    setIsLeftHeavy(Math.random() > 0.5);
+    setIsLookingForDay(Math.random() > 0.5);
+    setCurrentPair(timePairs[Math.floor(Math.random() * timePairs.length)]);
+    setIsLeftDay(Math.random() > 0.5);
     setCanClick(true);
   };
 
@@ -92,19 +90,19 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
     setupRound();
   }, []);
 
-  const handleCardClick = (isHeavy: boolean) => {
+  const handleCardClick = (isDay: boolean) => {
     if (!canClick) return;
     setCanClick(false);
 
-    const isCorrect = isHeavy === isLookingForHeavy;
+    const isCorrect = isDay === isLookingForDay;
 
     if (isCorrect) {
       playSound('correct');
       const newScore = score + 1;
       setScore(newScore);
 
-      // Add a random prize to the shelf every time they get it right
-      const prize = farmPrizes[Math.floor(Math.random() * farmPrizes.length)];
+      // Add a random prize to the shelf
+      const prize = spacePrizes[Math.floor(Math.random() * spacePrizes.length)];
       setShelfItems(prev => [...prev, prize]);
       
       if (newScore >= MAX_SCORE) {
@@ -130,7 +128,7 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-gradient-to-b from-[#f0fdf4] to-[#dcfce7] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
+    <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-gradient-to-b from-[#e0f2fe] to-[#bae6fd] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
       
       {/* Skip Button */}
       <div className="absolute top-6 right-6 z-50">
@@ -141,56 +139,56 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
         )}
       </div>
 
-      <div className="w-full max-w-[440px] mt-4 flex flex-col items-center z-10 flex-grow bg-white border-[6px] border-[#ef4444] rounded-[32px] p-6 shadow-[0_20px_40px_rgba(239,68,68,0.15)] relative">
+      <div className="w-full max-w-[440px] mt-4 flex flex-col items-center z-10 flex-grow bg-white border-[6px] border-[#0ea5e9] rounded-[32px] p-6 shadow-[0_20px_40px_rgba(14,165,233,0.2)] relative">
         
-        <div className="w-full flex justify-between text-xl font-bold text-[#ef4444] mb-2">
-          <div>Items Sorted: <span className="text-[#ef4444]">{score}</span></div>
-          <div>Goal: <span className="text-[#78350f]">{MAX_SCORE}</span></div>
+        <div className="w-full flex justify-between text-xl font-bold text-[#0ea5e9] mb-2">
+          <div>Sky Explored: <span className="text-[#0ea5e9]">{score}</span></div>
+          <div>Goal: <span className="text-[#f97316]">{MAX_SCORE}</span></div>
         </div>
 
-        <div className="text-3xl md:text-4xl font-black my-4 text-[#991b1b] uppercase">
-          Which is <span className={`px-3 py-1 rounded-2xl border-2 border-dashed ${isLookingForHeavy ? 'bg-[#ffedd5] border-[#ea580c] text-[#ea580c]' : 'bg-[#e0f2fe] border-[#0284c7] text-[#0284c7]'}`}>
-            {isLookingForHeavy ? 'HEAVY' : 'LIGHT'}
+        <div className="text-3xl md:text-4xl font-black my-4 text-[#0369a1] uppercase">
+          Done at <span className={`px-3 py-1 rounded-2xl border-2 border-dashed ${isLookingForDay ? 'bg-[#fef08a] border-[#ca8a04] text-[#ca8a04]' : 'bg-[#e0e7ff] border-[#4338ca] text-[#4338ca]'}`}>
+            {isLookingForDay ? 'DAYTIME ☀️' : 'NIGHTTIME 🌙'}
           </span>?
         </div>
-        <p className="m-0 font-bold text-[#64748b] text-sm md:text-base">Tap the card that matches the word!</p>
+        <p className="m-0 font-bold text-[#64748b] text-sm md:text-base">Tap the picture that belongs to the time!</p>
 
-        {/* Barnyard Stage */}
+        {/* Telescope View Bench */}
         <div className="h-[180px] w-full bg-[#f8fafc] border-4 border-[#cbd5e1] rounded-3xl my-6 flex justify-around items-center p-3 shadow-[inset_0_4px_8px_rgba(0,0,0,0.05)] relative">
           <AnimatePresence mode="popLayout">
             {/* Left Card */}
             <motion.div
-              key={`left-${currentPair.heavy.name}-${score}`}
+              key={`left-${currentPair.day.name}-${score}`}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="w-[42%] h-[140px] bg-white border-4 border-[#e2e8f0] rounded-[20px] flex flex-col justify-center items-center cursor-pointer shadow-[0_6px_0_#cbd5e1] hover:shadow-[0_2px_0_#cbd5e1] hover:translate-y-1 transition-all"
-              onClick={() => handleCardClick(isLeftHeavy)}
+              className="w-[44%] h-[140px] bg-white border-4 border-[#e2e8f0] rounded-[20px] flex flex-col justify-center items-center cursor-pointer shadow-[0_6px_0_#cbd5e1] hover:shadow-[0_2px_0_#cbd5e1] hover:translate-y-1 transition-all"
+              onClick={() => handleCardClick(isLeftDay)}
             >
-              <div className="text-[3.8rem] mb-1 leading-none">{isLeftHeavy ? currentPair.heavy.emoji : currentPair.light.emoji}</div>
-              <div className="font-bold text-[#475569] uppercase text-sm">{isLeftHeavy ? currentPair.heavy.name : currentPair.light.name}</div>
+              <div className="text-[3.8rem] mb-1 leading-none">{isLeftDay ? currentPair.day.emoji : currentPair.night.emoji}</div>
+              <div className="font-bold text-[#475569] text-sm md:text-base leading-tight">{isLeftDay ? currentPair.day.name : currentPair.night.name}</div>
             </motion.div>
 
             {/* Right Card */}
             <motion.div
-              key={`right-${currentPair.heavy.name}-${score}`}
+              key={`right-${currentPair.day.name}-${score}`}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-              className="w-[42%] h-[140px] bg-white border-4 border-[#e2e8f0] rounded-[20px] flex flex-col justify-center items-center cursor-pointer shadow-[0_6px_0_#cbd5e1] hover:shadow-[0_2px_0_#cbd5e1] hover:translate-y-1 transition-all"
-              onClick={() => handleCardClick(!isLeftHeavy)}
+              className="w-[44%] h-[140px] bg-white border-4 border-[#e2e8f0] rounded-[20px] flex flex-col justify-center items-center cursor-pointer shadow-[0_6px_0_#cbd5e1] hover:shadow-[0_2px_0_#cbd5e1] hover:translate-y-1 transition-all"
+              onClick={() => handleCardClick(!isLeftDay)}
             >
-              <div className="text-[3.8rem] mb-1 leading-none">{!isLeftHeavy ? currentPair.heavy.emoji : currentPair.light.emoji}</div>
-              <div className="font-bold text-[#475569] uppercase text-sm">{!isLeftHeavy ? currentPair.heavy.name : currentPair.light.name}</div>
+              <div className="text-[3.8rem] mb-1 leading-none">{!isLeftDay ? currentPair.day.emoji : currentPair.night.emoji}</div>
+              <div className="font-bold text-[#475569] text-sm md:text-base leading-tight">{!isLeftDay ? currentPair.day.name : currentPair.night.name}</div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Bottom Trophy Shelf */}
-        <div className="w-full bg-[#f1f5f9] border-t-4 border-[#ef4444] rounded-xl p-3 mt-auto min-h-[80px]">
-          <div className="text-xs text-[#94a3b8] font-bold uppercase mb-2">Harvest Trophy Case</div>
+        {/* Bottom Badge Rack */}
+        <div className="w-full bg-[#f1f5f9] border-t-4 border-[#0ea5e9] rounded-xl p-3 mt-auto min-h-[80px]">
+          <div className="text-xs text-[#94a3b8] font-bold uppercase mb-2">Cosmic Exploration Case</div>
           <div className="flex justify-center flex-wrap gap-2 text-3xl">
             {shelfItems.map((item, idx) => (
               <motion.span 
@@ -220,10 +218,10 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
               transition={{ repeat: Infinity, duration: 1.5 }}
               className="text-[6rem] leading-none mb-4 drop-shadow-lg"
             >
-              🏆
+              🚀
             </motion.div>
-            <h1 className="text-[#ef4444] text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-sm">🚜 Master Farmer! 🚜</h1>
-            <p className="text-2xl text-[#475569] font-bold mb-8">You've mastered heavy and light on the farm!</p>
+            <h1 className="text-[#0ea5e9] text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-sm">Star Explorer!</h1>
+            <p className="text-2xl text-[#475569] font-bold mb-8">You've mastered daytime and nighttime!</p>
             
             <div className="flex gap-4">
               <Button size="lg" onClick={resetGame} className="bg-[#22c55e] hover:bg-[#16a34a] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#16a34a] hover:shadow-[0_2px_0_#16a34a] hover:translate-y-1 transition-all">

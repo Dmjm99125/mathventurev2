@@ -38,6 +38,48 @@ export const comparisonData: Question[] = [
     wrongFeedback: ''
   },
   {
+    id: 'comparison_game_5',
+    prompt: 'BarnyardBalance',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_6',
+    prompt: 'SkyExplorer',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_7',
+    prompt: 'MadScientist',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_8',
+    prompt: 'WhichIsLonger',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_9',
+    prompt: 'WhichIsComp',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_10',
+    prompt: 'CatchFall',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
     "id": "comp_1",
     "prompt": "Alin ang pinakamalaking numero?",
     "options": [
