@@ -10,6 +10,34 @@ export const comparisonData: Question[] = [
     wrongFeedback: ''
   },
   {
+    id: 'comparison_game_1',
+    prompt: 'AyusinAngLaki',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_2',
+    prompt: 'MaramiKaunti',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_3',
+    prompt: 'MataasMababa',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
+    id: 'comparison_game_4',
+    prompt: 'MatchingTypeA',
+    options: [],
+    correctFeedback: '',
+    wrongFeedback: ''
+  },
+  {
     "id": "comp_1",
     "prompt": "Alin ang pinakamalaking numero?",
     "options": [

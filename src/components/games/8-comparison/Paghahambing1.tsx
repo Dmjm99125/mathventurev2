@@ -66,9 +66,19 @@ export function Paghahambing1({ onComplete }: Paghahambing1Props) {
 
   const deckRef = useRef<string[]>([]);
 
+  // Fisher-Yates shuffle for fair randomness
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+  };
+
   const setupRound = () => {
     if (deckRef.current.length === 0) {
-      deckRef.current = ['long', 'longer', 'longest'].sort(() => Math.random() - 0.5);
+      deckRef.current = shuffleArray(['long', 'longer', 'longest']);
     }
     const nextTarget = deckRef.current.pop()!;
     setTargetType(nextTarget);
@@ -81,12 +91,10 @@ export function Paghahambing1({ onComplete }: Paghahambing1Props) {
     ];
     
     // Shuffle lengths and assign colors
-    const shuffled = [...lengths]
-      .sort(() => Math.random() - 0.5)
-      .map((item, index) => ({
-        ...item,
-        color: barColors[index]
-      }));
+    const shuffled = shuffleArray(lengths).map((item, index) => ({
+      ...item,
+      color: barColors[index]
+    }));
       
     setBars(shuffled);
   };

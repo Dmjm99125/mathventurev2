@@ -64,6 +64,10 @@ import { TinyBuilderRuler } from '@/components/games/7-measurement/TinyBuilderRu
 import { MagicRainbowBridge } from '@/components/games/7-measurement/MagicRainbowBridge';
 import { SnakeGame } from '@/components/games/7-measurement/SnakeGame';
 import { Paghahambing1 } from '@/components/games/8-comparison/Paghahambing1';
+import { AyusinAngLaki } from '@/components/games/8-comparison/AyusinAngLaki';
+import { MaramiKaunti } from '@/components/games/8-comparison/MaramiKaunti';
+import { MataasMababa } from '@/components/games/8-comparison/MataasMababa';
+import { MatchingTypeA } from '@/components/games/8-comparison/MatchingTypeA';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -1096,6 +1100,54 @@ export function QuizPage() {
           }} />
         ) : topic === 'comparison' && currentIndex === 0 ? (
           <Paghahambing1 onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 1 ? (
+          <AyusinAngLaki onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 2 ? (
+          <MaramiKaunti onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 3 ? (
+          <MataasMababa onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'comparison' && currentIndex === 4 ? (
+          <MatchingTypeA onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
