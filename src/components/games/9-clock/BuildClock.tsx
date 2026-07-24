@@ -1,358 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Build-A-Clock Workshop</title>
-    <style>
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background-color: #e0f7fa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden; 
-        }
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui';
+import confetti from 'canvas-confetti';
+import { ChevronRight } from 'lucide-react';
 
-        h1 {
-            color: #00838f;
-            font-size: 1.8rem;
-            margin: 15px 0 10px 0;
-            text-align: center;
-        }
+const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pick') => {
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const now = ctx.currentTime;
 
-        /* --- The Giant Blank Clock --- */
-        .clock-board {
-            width: 280px; 
-            height: 280px;
-            border: 10px solid #ffb300;
-            border-radius: 50%;
-            background-color: white;
-            position: relative;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            margin-bottom: 20px;
-        }
+  if (type === 'correct') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(500, now);
+    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.2);
+  } else if (type === 'wrong') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.2);
+  } else if (type === 'fanfare') {
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + (idx * 0.1));
+      gain.gain.setValueAtTime(0.2, now + (idx * 0.1));
+      gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.1) + 0.4);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + (idx * 0.1)); osc.stop(now + (idx * 0.1) + 0.4);
+    });
+  } else if (type === 'pick') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.1);
+  }
+};
 
-        /* The Empty Drop Zones */
-        .slot {
-            position: absolute;
-            width: 44px;
-            height: 44px;
-            border: 3px dashed #b2ebf2;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #b2ebf2;
-            transition: all 0.3s ease;
-        }
+const COLORS = ['#e91e63', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ff9800'];
 
-        .slot.filled {
-            border: 3px solid #4caf50;
-            background-color: #c8e6c9;
-            color: #2e7d32;
-        }
+interface BuildClockProps {
+  onComplete?: () => void;
+}
 
-        /* --- The Magical Spinning Hands (Hidden at first) --- */
-        .hands-container {
-            display: none; /* Hidden until puzzle is solved */
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0; left: 0;
-            z-index: 5;
-        }
+export function BuildClock({ onComplete }: BuildClockProps) {
+  const [placedNumbers, setPlacedNumbers] = useState<number[]>([]);
+  const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [draggedNumber, setDraggedNumber] = useState<number | null>(null);
 
-        .hands-container::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background-color: #333;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
+  const slotRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
-        .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom;
-            background-color: #333;
-            border-radius: 10px;
-        }
+  const initGame = () => {
+    setPlacedNumbers([]);
+    setIsCompleted(false);
+    
+    // Shuffle 1-12
+    const nums = Array.from({ length: 12 }, (_, i) => i + 1);
+    nums.sort(() => Math.random() - 0.5);
+    setAvailableNumbers(nums);
+  };
 
-        .hour-hand { 
-            width: 6px; height: 70px; margin-left: -3px; background-color: #d32f2f; 
-            animation: spinFast 4s linear infinite;
-        }
-        .minute-hand { 
-            width: 4px; height: 100px; margin-left: -2px; 
-            animation: spinFast 0.5s linear infinite;
-        }
+  useEffect(() => {
+    initGame();
+  }, []);
 
-        @keyframes spinFast {
-            100% { transform: rotate(360deg); }
-        }
+  const handleDragStart = (num: number) => {
+    playSound('pick');
+    setDraggedNumber(num);
+  };
 
-        /* --- Draggable Number Tiles --- */
-        .tiles-area {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            width: 90%;
-            max-width: 400px;
-        }
+  const handleDragEnd = (event: any, info: any, num: number) => {
+    const targetSlot = slotRefs.current[num];
+    if (!targetSlot) {
+      setDraggedNumber(null);
+      return;
+    }
 
-        .number-tile {
-            width: 50px; 
-            height: 50px;
-            border-radius: 50%;
-            background-color: #29b6f6;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            cursor: grab;
-            touch-action: none; 
-            z-index: 10;
-            border: 3px solid #0288d1;
-        }
+    const dropRect = targetSlot.getBoundingClientRect();
+    const { x, y } = info.point; // Uses pointer coords from Framer Motion
 
-        .number-tile:active {
-            cursor: grabbing;
-        }
+    const isOverlapping = 
+      x >= dropRect.left - 20 && x <= dropRect.right + 20 &&
+      y >= dropRect.top - 20 && y <= dropRect.bottom + 20;
 
-        /* --- Confetti --- */
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            z-index: 100;
-            animation: fall 3s linear forwards;
-            pointer-events: none;
-        }
+    if (isOverlapping) {
+      placeNumber(num);
+    } else {
+      playSound('wrong');
+    }
+    
+    setDraggedNumber(null);
+  };
 
-        @keyframes fall {
-            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
+  const placeNumber = (num: number) => {
+    playSound('correct');
+    const newPlaced = [...placedNumbers, num];
+    setPlacedNumbers(newPlaced);
+    setAvailableNumbers(prev => prev.filter(n => n !== num));
+
+    if (newPlaced.length === 12) {
+      setTimeout(() => {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
         
-        #resetBtn {
-            display: none;
-            margin-top: 20px;
-            padding: 12px 25px;
-            font-size: 1.2rem;
-            background-color: #ff9800;
-            color: white;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            z-index: 10;
+        // Auto-complete after showing celebration
+        if (onComplete) {
+          setTimeout(() => onComplete(), 4000);
         }
-    </style>
-</head>
-<body>
+      }, 500);
+    }
+  };
 
-    <h1 id="gameTitle">Build the Clock!</h1>
-    
-    <div class="clock-board" id="clockBoard">
-        <div class="hands-container" id="handsContainer">
-            <div class="hand hour-hand"></div>
-            <div class="hand minute-hand"></div>
-        </div>
+  return (
+    <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#e0f7fa] rounded-[3rem] shadow-sm min-h-[700px] border-4 border-white relative font-display select-none overflow-hidden text-center">
+      
+      {/* Skip Button */}
+      <div className="absolute top-6 right-6 z-50">
+        {onComplete && (
+          <Button variant="ghost" className="text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
+            Skip <ChevronRight className="ml-1 w-5 h-5" />
+          </Button>
+        )}
+      </div>
+
+      <div className="w-full flex justify-start text-xl font-bold text-[#00838f] mb-2 px-4 absolute top-6 left-6">
+        Progress: {placedNumbers.length} / 12
+      </div>
+
+      <h1 className="text-[#00838f] text-3xl md:text-4xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
+        {isCompleted ? "You Built the Clock!" : "Build the Clock!"}
+      </h1>
+      
+      {/* The Giant Blank Clock */}
+      <div className="w-[300px] h-[300px] md:w-[360px] md:h-[360px] border-[12px] border-[#ffb300] rounded-full bg-white relative shadow-lg mb-10 flex items-center justify-center">
+        
+        {/* The Slots */}
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => {
+          const radius = 130; // Distance from center
+          const angle = (num * 30 - 90) * (Math.PI / 180);
+          
+          // Calculate percentages so it scales properly
+          const xPercent = 50 + (radius / 150) * 50 * Math.cos(angle);
+          const yPercent = 50 + (radius / 150) * 50 * Math.sin(angle);
+          
+          const isPlaced = placedNumbers.includes(num);
+
+          return (
+            <div 
+              key={`slot-${num}`}
+              ref={(el) => (slotRefs.current[num] = el)}
+              className={`absolute w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl md:text-2xl font-bold transition-all duration-300 font-['Comic_Sans_MS'] transform -translate-x-1/2 -translate-y-1/2
+                ${isPlaced ? 'border-4 border-[#4caf50] bg-[#c8e6c9] text-[#2e7d32] shadow-sm' : 'border-4 border-dashed border-[#b2ebf2] text-[#b2ebf2]'}`}
+              style={{
+                left: `${xPercent}%`,
+                top: `${yPercent}%`
+              }}
+            >
+              {isPlaced ? num : ''}
+            </div>
+          );
+        })}
+
+        {/* The Magical Spinning Hands (Visible on win) */}
+        {isCompleted && (
+          <motion.div 
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="absolute inset-0 z-10 flex justify-center items-center pointer-events-none"
+          >
+            <div className="w-4 h-4 bg-[#333] rounded-full absolute z-20" />
+            
+            <motion.div 
+              className="absolute w-[8px] h-[90px] bg-[#d32f2f] rounded-full origin-bottom"
+              style={{ bottom: '50%' }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.div 
+              className="absolute w-[5px] h-[120px] bg-[#333] rounded-full origin-bottom"
+              style={{ bottom: '50%' }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
+            />
+          </motion.div>
+        )}
+      </div>
+
+      {/* Tiles Area */}
+      <div className="flex flex-wrap justify-center gap-3 w-full max-w-[500px] min-h-[140px] z-20">
+        <AnimatePresence mode="popLayout">
+          {!isCompleted && availableNumbers.map((num, idx) => (
+            <motion.div
+              key={num}
+              initial={{ scale: 0, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              drag
+              dragSnapToOrigin
+              dragElastic={0.2}
+              onDragStart={() => handleDragStart(num)}
+              onDragEnd={(e, info) => handleDragEnd(e, info, num)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className={`w-14 h-14 md:w-16 md:h-16 rounded-full border-4 border-[#0288d1] flex items-center justify-center text-white text-2xl font-bold shadow-md cursor-pointer touch-none hover:z-50 active:z-50 font-['Comic_Sans_MS']
+                ${draggedNumber === num ? 'opacity-50' : 'opacity-100'}
+              `}
+              style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+            >
+              {num}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {isCompleted && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6"
+        >
+          <Button size="lg" onClick={initGame} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
+            Build it again! 🔄
+          </Button>
+        </motion.div>
+      )}
+
     </div>
-
-    <div class="tiles-area" id="tilesArea"></div>
-    
-    <button id="resetBtn" onclick="initGame()">Build it again!</button>
-
-    <script>
-        let draggedTile = null;
-        let startX = 0, startY = 0;
-        let numbersPlaced = 0;
-
-        function initGame() {
-            numbersPlaced = 0;
-            document.getElementById('handsContainer').style.display = 'none';
-            document.getElementById('resetBtn').style.display = 'none';
-            document.getElementById('gameTitle').textContent = "Build the Clock!";
-            
-            buildSlots();
-            buildTiles();
-        }
-
-        function buildSlots() {
-            const board = document.getElementById('clockBoard');
-            // Clear existing slots but keep the hands container
-            const hands = document.getElementById('handsContainer');
-            board.innerHTML = '';
-            board.appendChild(hands);
-
-            const radius = 105; // Distance from center
-            const center = 140; // Half of the 280px board
-            const slotOffset = 25; // Half of the 50px slot (including borders)
-
-            for (let i = 1; i <= 12; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'slot';
-                slot.dataset.target = i;
-                slot.id = 'slot-' + i;
-
-                // Math to position slots in a perfect circle
-                const angle = (i * 30 - 90) * (Math.PI / 180);
-                const x = center + radius * Math.cos(angle) - slotOffset;
-                const y = center + radius * Math.sin(angle) - slotOffset;
-
-                slot.style.left = x + 'px';
-                slot.style.top = y + 'px';
-                
-                board.appendChild(slot);
-            }
-        }
-
-        function buildTiles() {
-            const tilesArea = document.getElementById('tilesArea');
-            tilesArea.innerHTML = ''; 
-
-            // Create numbers 1-12 and shuffle them
-            let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-            numbers.sort(() => Math.random() - 0.5);
-
-            const colors = ['#e91e63', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ff9800'];
-
-            numbers.forEach((num, index) => {
-                const tile = document.createElement('div');
-                tile.className = 'number-tile';
-                tile.textContent = num;
-                tile.dataset.value = num; 
-                
-                // Assign random fun colors to the tiles
-                tile.style.backgroundColor = colors[index % colors.length];
-                tile.style.borderColor = "#333";
-
-                tile.addEventListener('pointerdown', dragStart);
-                tilesArea.appendChild(tile);
-            });
-        }
-
-        // --- Drag and Drop Logic ---
-        function dragStart(e) {
-            draggedTile = e.target.closest('.number-tile');
-            if (!draggedTile) return;
-
-            draggedTile.style.transition = 'none';
-            draggedTile.style.zIndex = '100'; 
-
-            startX = e.clientX;
-            startY = e.clientY;
-
-            window.addEventListener('pointermove', dragMove);
-            window.addEventListener('pointerup', dragEnd);
-        }
-
-        function dragMove(e) {
-            if (!draggedTile) return;
-            e.preventDefault();
-
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-
-            draggedTile.style.transform = `translate(${dx}px, ${dy}px)`;
-        }
-
-        function dragEnd(e) {
-            window.removeEventListener('pointermove', dragMove);
-            window.removeEventListener('pointerup', dragEnd);
-            
-            if (!draggedTile) return;
-
-            const targetValue = draggedTile.dataset.value;
-            const targetSlot = document.getElementById('slot-' + targetValue);
-
-            // Check distance between center of dragged tile and center of correct slot
-            if (isOverlappingCircles(draggedTile, targetSlot)) {
-                // Success!
-                targetSlot.classList.add('filled');
-                targetSlot.textContent = targetValue;
-                draggedTile.style.display = 'none'; // Hide the draggable tile
-                
-                numbersPlaced++;
-                if (numbersPlaced === 12) {
-                    triggerWin();
-                }
-            } else {
-                // Snap back
-                draggedTile.style.transition = 'transform 0.3s ease';
-                draggedTile.style.transform = 'translate(0px, 0px)';
-                draggedTile.style.zIndex = '10';
-            }
-            draggedTile = null;
-        }
-
-        // Uses circle-based distance math for a much smoother drop experience
-        function isOverlappingCircles(el1, el2) {
-            const rect1 = el1.getBoundingClientRect();
-            const rect2 = el2.getBoundingClientRect();
-            
-            const c1x = rect1.left + rect1.width / 2;
-            const c1y = rect1.top + rect1.height / 2;
-            const c2x = rect2.left + rect2.width / 2;
-            const c2y = rect2.top + rect2.height / 2;
-            
-            const distance = Math.sqrt(Math.pow(c1x - c2x, 2) + Math.pow(c1y - c2y, 2));
-            return distance < 40; // If they drop it within 40px of the slot, it snaps in
-        }
-
-        function triggerWin() {
-            document.getElementById('gameTitle').textContent = "You Built the Clock!";
-            document.getElementById('handsContainer').style.display = 'block';
-            document.getElementById('resetBtn').style.display = 'block';
-            
-            // Generate Confetti
-            const colors = ['#ffeb3b', '#e91e63', '#00bcd4', '#4caf50', '#ff9800'];
-            for(let i=0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 2 + 's';
-                document.body.appendChild(confetti);
-                
-                // Cleanup confetti elements after animation
-                setTimeout(() => confetti.remove(), 5000);
-            }
-        }
-
-        // Start Game
-        initGame();
-    </script>
-<br>
-<center>
-<table>
-<tr>
-	<td>
-	 <center><a href='/1'><img src="ACT.png" width="150" length="200"></a></center>
-	</td>
-	<td>
-	 <center><a href='/9ab'><img src="np.png" width="150" length="200"></a></center>
-	</td>
-
-
-</tr>
-</table>
-</center>
-
-</body>
-</html>
+  );
+}
