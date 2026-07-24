@@ -57,6 +57,13 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
     setShuffledCupcakes([...NUMBERS].sort(() => Math.random() - 0.5));
   }, []);
 
+  const resetGame = () => {
+    setMatches([]);
+    setShuffledCupcakes([...NUMBERS].sort(() => Math.random() - 0.5));
+    setMessage("Tap number → Tap cupcakes");
+    setSelectedNumber(null);
+  };
+
   const handleNumberClick = (num: number) => {
     if (matches.includes(num)) return;
     playSound('pop');
@@ -114,11 +121,9 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
             Natapos mo na ang 11 hanggang 15!
           </p>
           <div className="flex gap-4 justify-center">
-            {onComplete && (
-              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
-                Continue <Play className="ml-2 w-6 h-6 fill-current" />
-              </Button>
-            )}
+            <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              Play Again! 🔄
+            </Button>
           </div>
         </motion.div>
       </div>

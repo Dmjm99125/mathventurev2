@@ -100,6 +100,12 @@ export function ToyFactory({ onComplete }: ToyFactoryProps) {
     setIsCorrectlyGuessed(false);
   };
 
+  const resetGame = () => {
+    setScore(0);
+    setToyUnlocked(false);
+    generateLevel();
+  };
+
   useEffect(() => {
     generateLevel();
   }, []);
@@ -248,11 +254,9 @@ export function ToyFactory({ onComplete }: ToyFactoryProps) {
                 {wonToy}
               </motion.div>
               
-              {onComplete && (
-                <Button size="lg" onClick={onComplete} className="bg-[#3b82f6] hover:bg-[#1d4ed8] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#1d4ed8] hover:shadow-[0_2px_0_#1d4ed8] hover:translate-y-1 transition-all">
-                  Keep Making Toys <Play className="ml-2 w-6 h-6 fill-current" />
-                </Button>
-              )}
+              <Button size="lg" onClick={resetGame} className="bg-[#3b82f6] hover:bg-[#1d4ed8] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#1d4ed8] hover:shadow-[0_2px_0_#1d4ed8] hover:translate-y-1 transition-all">
+                Play Again! 🔄
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>

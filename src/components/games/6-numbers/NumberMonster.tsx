@@ -84,6 +84,12 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
     setIsCorrectlyGuessed(false);
   };
 
+  const resetGame = () => {
+    setScore(0);
+    setBadgeUnlocked(false);
+    generateLevel();
+  };
+
   useEffect(() => {
     generateLevel();
   }, []);
@@ -238,11 +244,9 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
                 {wonBadge}
               </motion.div>
               
-              {onComplete && (
-                <Button size="lg" onClick={onComplete} className="bg-[#a855f7] hover:bg-[#7e22ce] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#7e22ce] hover:shadow-[0_2px_0_#7e22ce] hover:translate-y-1 transition-all">
-                  Feed Me More! <Play className="ml-2 w-6 h-6 fill-current" />
-                </Button>
-              )}
+              <Button size="lg" onClick={resetGame} className="bg-[#a855f7] hover:bg-[#7e22ce] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#7e22ce] hover:shadow-[0_2px_0_#7e22ce] hover:translate-y-1 transition-all">
+                Play Again! 🔄
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>

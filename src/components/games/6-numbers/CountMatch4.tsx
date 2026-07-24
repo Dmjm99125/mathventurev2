@@ -59,9 +59,12 @@ export function CountMatch4({ onComplete }: CountMatch4Props) {
   const imgRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const [lines, setLines] = useState<{ x1: number, y1: number, x2: number, y2: number }[]>([]);
 
-  useEffect(() => {
+  const resetGame = () => {
+    setMatches([]);
     setShuffledSmileys([...NUMBERS].sort(() => Math.random() - 0.5));
-  }, []);
+    setMessage("Tap a number, then tap its group!");
+    setSelectedNumber(null);
+  };
 
   const updateLines = () => {
     if (!containerRef.current) return;
@@ -83,6 +86,10 @@ export function CountMatch4({ onComplete }: CountMatch4Props) {
     }).filter(Boolean) as { x1: number, y1: number, x2: number, y2: number }[];
     setLines(newLines);
   };
+
+  useEffect(() => {
+    setShuffledSmileys([...NUMBERS].sort(() => Math.random() - 0.5));
+  }, []);
 
   useEffect(() => {
     updateLines();
@@ -147,11 +154,9 @@ export function CountMatch4({ onComplete }: CountMatch4Props) {
             Natapos mo na ang 16 hanggang 20!
           </p>
           <div className="flex gap-4 justify-center">
-            {onComplete && (
-              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
-                Continue <Play className="ml-2 w-6 h-6 fill-current" />
-              </Button>
-            )}
+            <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              Play Again! 🔄
+            </Button>
           </div>
         </motion.div>
       </div>

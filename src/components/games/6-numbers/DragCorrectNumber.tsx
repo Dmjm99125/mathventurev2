@@ -61,6 +61,13 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
     setOptions(Array.from(opts).sort(() => Math.random() - 0.5));
   };
 
+  const resetGame = () => {
+    setScore(0);
+    setStars(0);
+    setIsCompleted(false);
+    generateGame();
+  };
+
   useEffect(() => {
     generateGame();
   }, []);
@@ -114,11 +121,9 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
             You're a Number Master!
           </h2>
           <div className="flex gap-4 justify-center">
-            {onComplete && (
-              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
-                Continue <Play className="ml-2 w-6 h-6 fill-current" />
-              </Button>
-            )}
+            <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              Play Again! 🔄
+            </Button>
           </div>
         </motion.div>
       </div>

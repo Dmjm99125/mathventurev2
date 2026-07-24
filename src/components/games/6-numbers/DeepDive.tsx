@@ -82,6 +82,12 @@ export function DeepDive({ onComplete }: DeepDiveProps) {
     setPoppedBubble(null);
   };
 
+  const resetGame = () => {
+    setScore(0);
+    setChestUnlocked(false);
+    generateLevel();
+  };
+
   useEffect(() => {
     generateLevel();
   }, []);
@@ -245,11 +251,9 @@ export function DeepDive({ onComplete }: DeepDiveProps) {
                 {wonGem}
               </motion.div>
               
-              {onComplete && (
-                <Button size="lg" onClick={onComplete} className="bg-[#fb7185] hover:bg-[#e11d48] text-white text-2xl font-bold h-16 px-8 rounded-full shadow-[0_6px_0_#be123c] hover:shadow-[0_2px_0_#be123c] hover:translate-y-1 transition-all">
-                  Continue Adventure <Play className="ml-2 w-6 h-6 fill-current" />
-                </Button>
-              )}
+              <Button size="lg" onClick={resetGame} className="bg-[#fb7185] hover:bg-[#e11d48] text-white text-2xl font-bold h-16 px-8 rounded-full shadow-[0_6px_0_#be123c] hover:shadow-[0_2px_0_#be123c] hover:translate-y-1 transition-all">
+                Play Again! 🔄
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>
