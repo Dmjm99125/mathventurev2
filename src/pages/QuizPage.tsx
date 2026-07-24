@@ -80,6 +80,7 @@ import { DragMatchingClock } from '@/components/games/9-clock/DragMatchingClock'
 import { FillMissingTime } from '@/components/games/9-clock/FillMissingTime';
 import { DailyRoutineTime } from '@/components/games/9-clock/DailyRoutineTime';
 import { BuildClock } from '@/components/games/9-clock/BuildClock';
+import { ClockMultiple } from '@/components/games/9-clock/ClockMultiple';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -1304,6 +1305,18 @@ export function QuizPage() {
           }} />
         ) : topic === 'clock' && currentIndex === 5 ? (
           <BuildClock onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'clock' && currentIndex === 6 ? (
+          <ClockMultiple onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
