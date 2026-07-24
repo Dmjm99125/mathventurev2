@@ -74,6 +74,11 @@ import { MadScientist } from '@/components/games/8-comparison/MadScientist';
 import { WhichIsLonger } from '@/components/games/8-comparison/WhichIsLonger';
 import { WhichIsComp } from '@/components/games/8-comparison/WhichIsComp';
 import { CatchFall } from '@/components/games/8-comparison/CatchFall';
+import { TimeAdventure } from '@/components/games/9-clock/TimeAdventure';
+import { TimeMatcher } from '@/components/games/9-clock/TimeMatcher';
+import { DragMatchingClock } from '@/components/games/9-clock/DragMatchingClock';
+import { FillMissingTime } from '@/components/games/9-clock/FillMissingTime';
+import { DailyRoutineTime } from '@/components/games/9-clock/DailyRoutineTime';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
@@ -1226,6 +1231,66 @@ export function QuizPage() {
           }} />
         ) : topic === 'comparison' && currentIndex === 10 ? (
           <CatchFall onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'clock' && currentIndex === 0 ? (
+          <TimeAdventure onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'clock' && currentIndex === 1 ? (
+          <TimeMatcher onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'clock' && currentIndex === 2 ? (
+          <DragMatchingClock onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'clock' && currentIndex === 3 ? (
+          <FillMissingTime onComplete={() => {
+            setScore(s => s + 1);
+            if (currentIndex < questions.length - 1) {
+              setCurrentIndex(c => c + 1);
+              setSelectedOption(null);
+              setGameState('playing');
+            } else {
+              setSelectedOption({ image: '', isCorrect: true });
+              setTimeout(handleNext, 0);
+            }
+          }} />
+        ) : topic === 'clock' && currentIndex === 4 ? (
+          <DailyRoutineTime onComplete={() => {
             setScore(s => s + 1);
             if (currentIndex < questions.length - 1) {
               setCurrentIndex(c => c + 1);
