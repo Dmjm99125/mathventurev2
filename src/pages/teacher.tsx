@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { TeacherAddStudentsDialog } from '@/components/teacher/add-students/TeacherAddStudentsDialog';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
 import { TeacherClassCard } from '@/components/teacher/TeacherClassCard';
 import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentListTable';
@@ -109,6 +110,7 @@ export function TeacherClassWorkspace({ classId }: { classId: string }) {
   const { data: classesData } = useClasses();
   const { data: rosterData, isLoading } = useClassRoster(classId);
   const removeStudent = useRemoveStudentFromClass();
+  const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
 
@@ -128,8 +130,15 @@ export function TeacherClassWorkspace({ classId }: { classId: string }) {
           <p className="mt-2 font-bold text-muted-foreground">Code: {klass.joinCode}</p>
         </>
       )}
-      action={<Button variant="outline" disabled>+ Add</Button>}
+      action={<Button variant="outline" onClick={() => setIsAddStudentsOpen(true)}>+ Add</Button>}
     >
+      <TeacherAddStudentsDialog
+        classId={classId}
+        className={klass.name}
+        open={isAddStudentsOpen}
+        onOpenChange={setIsAddStudentsOpen}
+      />
+
       <div className="mb-5 inline-flex rounded-2xl border-2 border-border bg-white p-1">
         <Button
           variant={activeTab === 'students' ? 'default' : 'ghost'}
