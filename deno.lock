@@ -80,6 +80,7 @@
         "npm:vaul@^1.1.2",
         "npm:vite@^6.0.7",
         "npm:wouter@^3.3.5",
+        "npm:xlsx@~0.18.5",
         "npm:zod@^3.24.1"
       ]
     }
