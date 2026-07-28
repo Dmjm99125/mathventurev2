@@ -10,6 +10,15 @@ export interface TeacherClassSummary {
   studentCount: number;
 }
 
+export interface AttemptGameResultInput {
+  topicId: string;
+  gameId: string;
+  gameOrder: number;
+  score: number;
+  maxScore: number;
+  completedAt?: string;
+}
+
 export interface StudentClassSummary {
   id: string;
   name: string;
@@ -17,13 +26,14 @@ export interface StudentClassSummary {
   joinedAt: string;
 }
 
-export interface RosterStudent {
+export interface TeacherClassStudent {
   id: string;
   fullName: string;
+  firstName: string;
+  lastName: string | null;
   joinedAt: string;
-  lessonsCompleted: number;
-  averageScorePct: number | null;
-  lastActive: string | null;
+  appCompletionPct: number | null;
+  lastPlayedPct: number | null;
 }
 
 export interface AssignmentForStudent {
@@ -110,7 +120,12 @@ export const api = {
         body: { joinCode },
       }),
     roster: (classId: string) =>
-      invokeFunction<{ students: RosterStudent[] }>('classes-roster', { searchParams: { classId } }),
+      invokeFunction<{ students: TeacherClassStudent[] }>('classes-roster', { searchParams: { classId } }),
+    removeStudent: (classId: string, studentId: string) =>
+      invokeFunction<{ removed: true }>('classes-remove-student', {
+        method: 'POST',
+        body: { classId, studentId },
+      }),
   },
   assignments: {
     list: (classId?: string) =>
@@ -127,6 +142,7 @@ export const api = {
       score: number;
       maxScore: number;
       durationSeconds?: number;
+      gameResults?: AttemptGameResultInput[];
     }) => invokeFunction<{ attempt: unknown }>('attempts-submit', { method: 'POST', body: input }),
   },
   dashboard: {

@@ -86,6 +86,11 @@ import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useSubmitAttempt } from '@/lib/hooks';
+import {
+  appendAttemptGameResult,
+  buildAttemptGameResult,
+  type AttemptGameResultInput,
+} from '@/lib/attempt-game-results';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
@@ -116,6 +121,7 @@ export function QuizPage() {
   const [selectedOption, setSelectedOption] = useState<{ image: string; isCorrect: boolean } | null>(null);
   const [score, setScore] = useState(0);
   const [startTime, setStartTime] = useState(0);
+  const [gameResults, setGameResults] = useState<AttemptGameResultInput[]>([]);
 
   const question = questions[currentIndex];
   const slides = lesson?.slides ?? [];
@@ -138,9 +144,22 @@ export function QuizPage() {
 
   // ── Quiz handlers ──────────────────────────────────────────────────────────
   const startGame = () => {
+    setCurrentIndex(0);
+    setSelectedOption(null);
+    setScore(0);
+    setGameResults([]);
     setGameState('playing');
     setStartTime(Date.now());
   };
+
+  const withCurrentGameResult = (
+    current: AttemptGameResultInput[],
+    gameScore: number,
+    gameMaxScore: number,
+  ) => appendAttemptGameResult(
+    current,
+    buildAttemptGameResult(topic, currentIndex, gameScore, gameMaxScore),
+  );
 
   const handleSelect = (option: { image: string; isCorrect: boolean }) => {
     if (gameState !== 'playing') return;
@@ -149,27 +168,60 @@ export function QuizPage() {
     if (option.isCorrect) setScore(s => s + 1);
   };
 
+  const finishAttempt = async (
+    nextResults: AttemptGameResultInput[],
+    finalScore = score,
+  ) => {
+    setGameState('completed');
+    const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+    const maxScore = questions.length;
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#eab308', '#f97316'] });
+    try {
+      await submitAttempt.mutateAsync({
+        lessonId: topic,
+        assignmentId,
+        score: finalScore,
+        maxScore,
+        durationSeconds,
+        gameResults: nextResults,
+      });
+    } catch (e) {
+      console.error('Failed to submit score', e);
+    }
+  };
+
+  const completeStructuredGame = async (gameScore = 1, gameMaxScore = 1) => {
+    const nextResults = withCurrentGameResult(gameResults, gameScore, gameMaxScore);
+    setGameResults(nextResults);
+
+    if (currentIndex < questions.length - 1) {
+      setScore((currentScore) => currentScore + gameScore);
+      setCurrentIndex((value) => value + 1);
+      setSelectedOption(null);
+      setGameState('playing');
+      return;
+    }
+
+    const finalScore = score + gameScore;
+    setScore(finalScore);
+    await finishAttempt(nextResults, finalScore);
+  };
+
+  const handleStructuredGameComplete = () => {
+    void completeStructuredGame();
+  };
+
   const handleNext = async () => {
+    const questionScore = selectedOption?.isCorrect ? 1 : 0;
+    const nextResults = withCurrentGameResult(gameResults, questionScore, 1);
+    setGameResults(nextResults);
+
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(c => c + 1);
       setSelectedOption(null);
       setGameState('playing');
     } else {
-      setGameState('completed');
-      const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-      const maxScore = questions.length;
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#eab308', '#f97316'] });
-      try {
-        await submitAttempt.mutateAsync({
-          lessonId: topic,
-          assignmentId,
-          score: score + (selectedOption?.isCorrect ? 1 : 0),
-          maxScore,
-          durationSeconds,
-        });
-      } catch (e) {
-        console.error('Failed to submit score', e);
-      }
+      await finishAttempt(nextResults);
     }
   };
 
@@ -351,65 +403,15 @@ export function QuizPage() {
 
       {(gameState === 'playing' || gameState === 'feedback') && question && (
         topic === 'colors' && currentIndex === 0 ? (
-          <ColorMatchingGame onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ColorMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 1 ? (
-          <BalloonFindingGame onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <BalloonFindingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 2 ? (
-          <RainbowColorCatcher onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <RainbowColorCatcher onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 3 ? (
-          <RainbowColorDeluxe onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <RainbowColorDeluxe onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 4 ? (
-          <RainbowGalaxyExplorer onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <RainbowGalaxyExplorer onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 5 ? (
           <ChooseWhichColor onComplete={() => {
             setScore(s => s + 10);
@@ -440,221 +442,41 @@ export function QuizPage() {
             setLocation('/');
           }} />
         ) : topic === 'shapes' && currentIndex === 0 ? (
-          <ShapeMatchingGame onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ShapeMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 1 ? (
-          <FindTheShape onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <FindTheShape onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 2 ? (
-          <MonsterCafe onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <MonsterCafe onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 3 ? (
-          <ShapeMatcher onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ShapeMatcher onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 4 ? (
-          <ShapeHunter onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ShapeHunter onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 5 ? (
-          <ShapeRacing onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ShapeRacing onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 6 ? (
-          <ShapeWizard onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ShapeWizard onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 7 ? (
-          <HungryDragon onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <HungryDragon onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 8 ? (
-          <DrawingCanvas onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 0 ? (
-          <ArrangeNumbers onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ArrangeNumbers onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 1 ? (
-          <ArrangeLetters onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ArrangeLetters onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 2 ? (
-          <SizeSorter onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SizeSorter onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 3 ? (
-          <ShortestLongest onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ShortestLongest onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 4 ? (
-          <SmallestLargestCake onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SmallestLargestCake onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 5 ? (
-          <SurpriseSequencing onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SurpriseSequencing onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 6 ? (
-          <AnimalVehicleBuilder onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <AnimalVehicleBuilder onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 7 ? (
-          <PatternTrainAcademy onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <PatternTrainAcademy onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 8 ? (
-          <SandwichMaker onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SandwichMaker onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 9 ? (
           <DrawingCanvas 
             title="Sequencing Canvas"
@@ -666,667 +488,117 @@ export function QuizPage() {
             }} 
           />
         ) : topic === 'addition' && currentIndex === 0 ? (
-          <AdditionFunGame onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <AdditionFunGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 1 ? (
-          <AppleAddition onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <AppleAddition onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 2 ? (
-          <FruitPopMath onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <FruitPopMath onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 3 ? (
-          <AdditionAdventure onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <AdditionAdventure onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 4 ? (
-          <SecondAdditionRound onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SecondAdditionRound onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 5 ? (
-          <AnimalSafari onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <AnimalSafari onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 6 ? (
-          <UnderTheSea onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <UnderTheSea onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 7 ? (
-          <Carnival onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <Carnival onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 8 ? (
-          <IceCreamShop onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <IceCreamShop onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 9 ? (
-          <Pizza onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <Pizza onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 10 ? (
-          <ComicStarCatcher onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ComicStarCatcher onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 11 ? (
           <DrawingCanvas onComplete={handleNext} />
         ) : topic === 'subtraction' && currentIndex === 0 ? (
-          <SubtractionBalloon onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SubtractionBalloon onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 1 ? (
-          <FruitSubtraction onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <FruitSubtraction onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 2 ? (
-          <GentleMathDrift onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <GentleMathDrift onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 3 ? (
-          <SubtractionAdventure onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SubtractionAdventure onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 4 ? (
-          <SubtractionPop onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SubtractionPop onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 5 ? (
-          <DinoEgg onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DinoEgg onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 6 ? (
-          <FarmHideSeek onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <FarmHideSeek onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 7 ? (
-          <FeedTheHippo onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <FeedTheHippo onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 8 ? (
-          <SpaceBlast onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SpaceBlast onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 9 ? (
-          <DrawingCanvas onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 0 ? (
-          <DragCorrectNumber onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DragCorrectNumber onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 1 ? (
-          <CountMatch onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <CountMatch onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 2 ? (
-          <CountMatch2 onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <CountMatch2 onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 3 ? (
-          <CountMatch3 onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <CountMatch3 onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 4 ? (
-          <CountMatch4 onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <CountMatch4 onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 5 ? (
-          <DeepDive onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DeepDive onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 6 ? (
-          <ToyFactory onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ToyFactory onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 7 ? (
-          <NumberMonster onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <NumberMonster onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 8 ? (
-          <DrawingCanvas onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 0 ? (
-          <SlowFun onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SlowFun onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 1 ? (
-          <SmallShort onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SmallShort onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 2 ? (
-          <LightHeavy onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <LightHeavy onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 3 ? (
-          <TinyBuilderRuler onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <TinyBuilderRuler onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 4 ? (
-          <MagicRainbowBridge onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <MagicRainbowBridge onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 5 ? (
-          <SnakeGame onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SnakeGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 6 ? (
-          <DrawingCanvas onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 0 ? (
-          <Paghahambing1 onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <Paghahambing1 onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 1 ? (
-          <AyusinAngLaki onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <AyusinAngLaki onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 2 ? (
-          <MaramiKaunti onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <MaramiKaunti onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 3 ? (
-          <MataasMababa onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <MataasMababa onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 4 ? (
-          <MatchingTypeA onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <MatchingTypeA onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 5 ? (
-          <BarnyardBalance onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <BarnyardBalance onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 6 ? (
-          <SkyExplorer onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <SkyExplorer onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 7 ? (
-          <MadScientist onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <MadScientist onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 8 ? (
-          <WhichIsLonger onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <WhichIsLonger onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 9 ? (
-          <WhichIsComp onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <WhichIsComp onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 10 ? (
-          <CatchFall onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <CatchFall onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 0 ? (
-          <TimeAdventure onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <TimeAdventure onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 1 ? (
-          <TimeMatcher onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <TimeMatcher onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 2 ? (
-          <DragMatchingClock onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DragMatchingClock onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 3 ? (
-          <FillMissingTime onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <FillMissingTime onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 4 ? (
-          <DailyRoutineTime onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <DailyRoutineTime onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 5 ? (
-          <BuildClock onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <BuildClock onComplete={handleStructuredGameComplete} />
         ) : topic === 'clock' && currentIndex === 6 ? (
-          <ClockMultiple onComplete={() => {
-            setScore(s => s + 1);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ClockMultiple onComplete={handleStructuredGameComplete} />
         ) : (
         <div className="w-full max-w-5xl flex flex-col items-center">
           {/* Question Prompt */}
@@ -1401,7 +673,7 @@ export function QuizPage() {
           </div>
           <h1 className="text-4xl font-display font-extrabold mb-2 text-foreground">Excellent!</h1>
           <p className="text-xl font-bold text-muted-foreground mb-8">
-            You scored {score + (selectedOption?.isCorrect ? 1 : 0)} out of {questions.length}
+            You scored {score} out of {questions.length}
           </p>
           <div className="flex flex-col gap-3">
             <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => setLocation('/')}>
@@ -1415,6 +687,7 @@ export function QuizPage() {
                 setCurrentIndex(0);
                 setScore(0);
                 setSelectedOption(null);
+                setGameResults([]);
                 setGameState('video');
                 setSlideIndex(0);
               }}
@@ -1428,3 +701,4 @@ export function QuizPage() {
     </GameLayout>
   );
 }
+

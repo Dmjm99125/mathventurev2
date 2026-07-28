@@ -7,7 +7,12 @@ import { LanguageProvider } from '@/lib/useLanguage';
 import { Landing } from '@/pages/landing';
 import { About } from '@/pages/about';
 import { Login, Signup } from '@/pages/auth';
-import { TeacherDashboard, TeacherClasses, TeacherClassDetail, TeacherAssignments } from '@/pages/teacher';
+import {
+  TeacherClassesHome,
+  TeacherClassWorkspace,
+  TeacherReportsPlaceholder,
+  TeacherSettingsPlaceholder,
+} from '@/pages/teacher';
 import { StudentDashboard, StudentLessons, StudentClassDetail } from '@/pages/student';
 import { QuizPage } from '@/pages/QuizPage';
 import NotFound from '@/pages/not-found';
@@ -45,16 +50,19 @@ function AppRoutes() {
       </Route>
       
       <Route path="/teacher">
-        {() => <AppLayout><TeacherDashboard /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherClassesHome /></AppLayout>}
       </Route>
       <Route path="/teacher/classes">
-        {() => <AppLayout><TeacherClasses /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherClassesHome /></AppLayout>}
       </Route>
       <Route path="/teacher/classes/:classId">
-        {params => <AppLayout><TeacherClassDetail classId={params.classId} /></AppLayout>}
+        {params => <AppLayout sidebarMode="hidden"><TeacherClassWorkspace classId={params.classId} /></AppLayout>}
       </Route>
-      <Route path="/teacher/assignments">
-        {() => <AppLayout><TeacherAssignments /></AppLayout>}
+      <Route path="/teacher/reports">
+        {() => <AppLayout sidebarMode="hidden"><TeacherReportsPlaceholder /></AppLayout>}
+      </Route>
+      <Route path="/teacher/settings">
+        {() => <AppLayout sidebarMode="hidden"><TeacherSettingsPlaceholder /></AppLayout>}
       </Route>
       
       <Route component={NotFound} />

@@ -2,11 +2,32 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/useAuth';
 import { useLanguage } from '@/lib/useLanguage';
+import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher-nav';
 import { signOut } from '@/lib/auth';
 import { Button } from './ui';
 import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+
+function getTeacherNavItems(t: (key: string) => string) {
+  return TEACHER_NAV_ITEMS.map((item) => ({
+    href: item.href,
+    label: t(item.labelKey),
+    icon: item.href === '/teacher'
+      ? LayoutDashboard
+      : item.href === '/teacher/reports'
+        ? Users
+        : Settings,
+  }));
+}
+
+function isAppNavItemActive(location: string, href: string, isTeacher: boolean) {
+  if (isTeacher) {
+    return isTeacherNavActive(location, href);
+  }
+
+  return location === href || (location.startsWith(href) && href !== '/student');
+}
 
 export function TopNav() {
   const { user } = useAuth();
@@ -23,11 +44,8 @@ export function TopNav() {
   };
 
   const isTeacher = user?.role === 'teacher';
-  const navItems = user ? (isTeacher ? [
-    { href: '/teacher', label: t('teacher.dashboard'), icon: LayoutDashboard },
-    { href: '/teacher/classes', label: t('teacher.classes'), icon: Users },
-    { href: '/teacher/assignments', label: t('teacher.assignments'), icon: Settings },
-  ] : [
+  const teacherNavItems = getTeacherNavItems(t);
+  const navItems = user ? (isTeacher ? teacherNavItems : [
     { href: '/student', label: t('student.dashboard'), icon: Map },
     { href: '/student/lessons', label: t('student.portal.allLessons'), icon: Compass },
   ]) : [];
@@ -69,7 +87,7 @@ export function TopNav() {
                       {user.full_name}
                     </div>
                     {navItems.map(item => {
-                      const active = location === item.href || (location.startsWith(item.href) && item.href !== '/teacher' && item.href !== '/student');
+                      const active = isAppNavItemActive(location, item.href, Boolean(isTeacher));
                       return (
                         <DropdownMenuItem key={item.href} asChild>
                           <Link href={item.href} className={`cursor-pointer flex items-center gap-2 ${active ? 'text-primary bg-primary/10' : ''}`}>
@@ -112,11 +130,8 @@ export function AppLayout({
   const isTeacher = user.role === 'teacher';
   const showSidebar = sidebarMode !== 'hidden';
 
-  const navItems = isTeacher ? [
-    { href: '/teacher', label: t('teacher.dashboard'), icon: LayoutDashboard },
-    { href: '/teacher/classes', label: t('teacher.classes'), icon: Users },
-    { href: '/teacher/assignments', label: t('teacher.assignments'), icon: Settings },
-  ] : [
+  const teacherNavItems = getTeacherNavItems(t);
+  const navItems = isTeacher ? teacherNavItems : [
     { href: '/student', label: t('student.dashboard'), icon: Map },
     { href: '/student/lessons', label: t('student.portal.allLessons'), icon: Compass },
   ];
@@ -134,7 +149,7 @@ export function AppLayout({
           <aside className="hidden md:block w-full md:w-64 shrink-0">
             <nav className="flex flex-col gap-2">
               {navItems.map(item => {
-                const active = location === item.href || (location.startsWith(item.href) && item.href !== '/teacher' && item.href !== '/student');
+                const active = isAppNavItemActive(location, item.href, isTeacher);
                 return (
                   <Link key={item.href} href={item.href}>
                     <div className={cn(

@@ -70,10 +70,30 @@ export function useCreateAssignment() {
   });
 }
 
+export function useRemoveStudentFromClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ classId, studentId }: { classId: string; studentId: string }) =>
+      api.classes.removeStudent(classId, studentId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['classes', variables.classId, 'roster'] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+    },
+  });
+}
+
 export function useSubmitAttempt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { lessonId: string; assignmentId?: string; score: number; maxScore: number; durationSeconds?: number }) => 
+    mutationFn: (input: {
+      lessonId: string;
+      assignmentId?: string;
+      score: number;
+      maxScore: number;
+      durationSeconds?: number;
+      gameResults?: import('./api').AttemptGameResultInput[];
+    }) =>
       api.attempts.submit(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'student'] });
