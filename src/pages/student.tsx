@@ -11,12 +11,14 @@ import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
 import { buildPortalTopicEntries, summarizePortalRail } from '@/lib/student-portal';
+import { useLanguage } from '@/lib/useLanguage';
 
 export function StudentDashboard() {
-  const { data: dashboard, isLoading: dashLoading } = useStudentDashboard();
-  const { data: assignmentsData, isLoading: assignLoading } = useAssignments();
-  const { data: classesData } = useClasses();
+  const { data: dashboard, isLoading: dashLoading, error: dashboardError } = useStudentDashboard();
+  const { data: assignmentsData, isLoading: assignLoading, error: assignmentsError } = useAssignments();
+  const { data: classesData, isLoading: classLoading, error: classesError } = useClasses();
   const joinClass = useJoinClass();
+  const { t } = useLanguage();
   const [joinCode, setJoinCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -36,13 +38,19 @@ export function StudentDashboard() {
     }
   };
 
-  if (dashLoading || assignLoading || !dashboard) return <StudentPortalLoading />;
+  if (dashLoading || assignLoading || classLoading) return <StudentPortalLoading />;
 
   const assignments = (assignmentsData?.assignments || []) as AssignmentForStudent[];
   const myClasses = (classesData?.classes || []) as StudentClassSummary[];
+  const dashboardSummary = dashboard ?? {
+    completedLessons: 0,
+    streakDays: 0,
+    recentAttempts: [],
+  };
+  const showDashboardNotice = Boolean(dashboardError || assignmentsError || classesError || !dashboard);
   const topics = buildPortalTopicEntries({
     assignments,
-    recentAttempts: dashboard.recentAttempts || [],
+    recentAttempts: dashboardSummary.recentAttempts || [],
   });
   const railSummary = summarizePortalRail({
     assignments,
@@ -52,9 +60,9 @@ export function StudentDashboard() {
       teacherName: klass.teacherName,
     })),
     dashboard: {
-      completedLessons: dashboard.completedLessons,
-      streakDays: dashboard.streakDays,
-      recentAttempts: dashboard.recentAttempts || [],
+      completedLessons: dashboardSummary.completedLessons,
+      streakDays: dashboardSummary.streakDays,
+      recentAttempts: dashboardSummary.recentAttempts || [],
     },
   });
   const highlightedLessonId =
@@ -62,6 +70,21 @@ export function StudentDashboard() {
 
   return (
     <div className="animate-in fade-in duration-500">
+      {showDashboardNotice && (
+        <Card className="mb-4 rounded-[28px] border-white/70 bg-[#fff7db]/95 p-5 shadow-[0_20px_45px_rgba(59,109,42,0.12)]">
+          <h2 className="text-xl font-extrabold text-primary">{t('student.portal.dashboardUnavailableTitle')}</h2>
+          <p className="mt-2 text-sm font-bold text-primary/75">{t('student.portal.dashboardUnavailableBody')}</p>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Button variant="jungle" onClick={() => window.location.reload()}>
+              {t('common.tryAgain')}
+            </Button>
+            <Button variant="outline" onClick={() => setLocation('/student/lessons')}>
+              {t('student.portal.allLessons')}
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-[minmax(260px,25%)_minmax(0,1fr)]">
         <StudentPortalRail
           summary={railSummary}

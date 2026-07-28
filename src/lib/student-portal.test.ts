@@ -43,6 +43,30 @@ Deno.test("buildPortalTopicEntries creates assignment-aware lesson hrefs and com
   assertEquals(entries[8].isAssigned, false);
 });
 
+Deno.test("buildPortalTopicEntries keeps the earliest pending assignment when a lesson has multiple entries", () => {
+  const entries = buildPortalTopicEntries({
+    assignments: [
+      {
+        id: "asg-late",
+        lessonId: "colors",
+        dueAt: "2026-07-30T00:00:00.000Z",
+        createdAt: "2026-07-26T10:00:00.000Z",
+        completed: false,
+      },
+      {
+        id: "asg-early",
+        lessonId: "colors",
+        dueAt: "2026-07-29T00:00:00.000Z",
+        createdAt: "2026-07-25T10:00:00.000Z",
+        completed: false,
+      },
+    ],
+    recentAttempts: [],
+  });
+
+  assertEquals(entries[0].href, "/student/lessons/colors?assignmentId=asg-early");
+});
+
 Deno.test("summarizePortalRail prefers the first pending assignment and keeps class context", () => {
   const summary = summarizePortalRail({
     assignments: [
@@ -68,6 +92,40 @@ Deno.test("summarizePortalRail prefers the first pending assignment and keeps cl
   assertEquals(summary.primaryClass?.name, "Section Sunflower");
   assertEquals(summary.completedLessons, 4);
   assertEquals(summary.recentScorePct, 100);
+});
+
+Deno.test("summarizePortalRail picks the earliest due pending assignment regardless of input order", () => {
+  const summary = summarizePortalRail({
+    assignments: [
+      {
+        id: "asg-later",
+        lessonId: "numbers",
+        dueAt: "2026-08-02T00:00:00.000Z",
+        createdAt: "2026-07-28T12:00:00.000Z",
+        completed: false,
+      },
+      {
+        id: "asg-sooner",
+        lessonId: "colors",
+        dueAt: "2026-07-29T00:00:00.000Z",
+        createdAt: "2026-07-28T08:00:00.000Z",
+        completed: false,
+      },
+    ],
+    classes: [],
+    dashboard: {
+      completedLessons: 0,
+      streakDays: 0,
+      recentAttempts: [],
+    },
+  });
+
+  assertEquals(summary.nextAction, {
+    kind: "assignment",
+    lessonId: "colors",
+    href: "/student/lessons/colors?assignmentId=asg-sooner",
+    dueAt: "2026-07-29T00:00:00.000Z",
+  });
 });
 
 Deno.test("summarizePortalRail falls back to free play messaging and join prompt when data is sparse", () => {

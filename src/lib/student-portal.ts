@@ -13,6 +13,7 @@ export type PortalAssignment = {
   id: string;
   lessonId: string;
   dueAt: string | null;
+  createdAt?: string | null;
   completed: boolean;
 };
 
@@ -80,18 +81,48 @@ function toPortalTopicId(value: string): PortalTopicId | null {
   return LEGACY_TOPIC_META.find((topic) => topic.id === value)?.id ?? null;
 }
 
+function compareNullableDate(left: string | null | undefined, right: string | null | undefined) {
+  if (left && right) return left.localeCompare(right);
+  if (left) return -1;
+  if (right) return 1;
+  return 0;
+}
+
+function lessonOrder(lessonId: string) {
+  const topicId = toPortalTopicId(lessonId);
+  if (!topicId) return Number.MAX_SAFE_INTEGER;
+  return LEGACY_TOPIC_META.findIndex((topic) => topic.id === topicId);
+}
+
+function sortPendingAssignments(assignments: PortalAssignment[]) {
+  return [...assignments]
+    .filter((assignment) => !assignment.completed)
+    .sort((left, right) => {
+      const dueCompare = compareNullableDate(left.dueAt, right.dueAt);
+      if (dueCompare !== 0) return dueCompare;
+
+      const createdCompare = compareNullableDate(left.createdAt, right.createdAt);
+      if (createdCompare !== 0) return createdCompare;
+
+      return lessonOrder(left.lessonId) - lessonOrder(right.lessonId);
+    });
+}
+
+function toScorePct(score: number, maxScore: number) {
+  return maxScore > 0 ? Math.round((score / maxScore) * 100) : null;
+}
+
 export function buildPortalTopicEntries(input: {
   assignments: PortalAssignment[];
   recentAttempts: PortalRecentAttempt[];
 }): PortalTopicEntry[] {
-  const assignmentByLesson = new Map(
-    input.assignments
-      .filter((assignment) => !assignment.completed)
-      .flatMap((assignment) => {
-        const topicId = toPortalTopicId(assignment.lessonId);
-        return topicId ? [[topicId, assignment] as const] : [];
-      }),
-  );
+  const assignmentByLesson = new Map<PortalTopicId, PortalAssignment>();
+  for (const assignment of sortPendingAssignments(input.assignments)) {
+    const topicId = toPortalTopicId(assignment.lessonId);
+    if (topicId && !assignmentByLesson.has(topicId)) {
+      assignmentByLesson.set(topicId, assignment);
+    }
+  }
 
   const attemptsByLesson = new Map(
     input.recentAttempts.flatMap((attempt) => {
@@ -111,7 +142,7 @@ export function buildPortalTopicEntries(input: {
         : `/student/lessons/${topic.id}`,
       isAssigned: Boolean(assignment),
       isCompleted: Boolean(attempt),
-      recentScorePct: attempt ? Math.round((attempt.score / attempt.maxScore) * 100) : null,
+      recentScorePct: attempt ? toScorePct(attempt.score, attempt.maxScore) : null,
     };
   });
 }
@@ -121,7 +152,7 @@ export function summarizePortalRail(input: {
   classes: PortalClass[];
   dashboard: PortalDashboardSummary;
 }): PortalRailSummary {
-  const nextAssignment = input.assignments.find((assignment) => {
+  const nextAssignment = sortPendingAssignments(input.assignments).find((assignment) => {
     return !assignment.completed && toPortalTopicId(assignment.lessonId) !== null;
   }) ?? null;
 
@@ -148,7 +179,7 @@ export function summarizePortalRail(input: {
     streakDays: input.dashboard.streakDays,
     recentLessonId,
     recentScorePct: recentAttempt
-      ? Math.round((recentAttempt.score / recentAttempt.maxScore) * 100)
+      ? toScorePct(recentAttempt.score, recentAttempt.maxScore)
       : null,
     showJoinPrompt: input.classes.length === 0,
   };

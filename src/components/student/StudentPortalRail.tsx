@@ -120,7 +120,7 @@ export function StudentPortalRail({
           </div>
           <div className="rounded-2xl bg-sky-100 px-3 py-4 text-center">
             <span className="block text-2xl font-extrabold text-primary">{summary.recentScorePct ?? "--"}</span>
-            <span className="text-xs font-bold text-muted-foreground">{t("student.portal.score")}</span>
+            <span className="text-xs font-bold text-muted-foreground">{t("student.portal.recent")}</span>
           </div>
         </div>
       </Card>
