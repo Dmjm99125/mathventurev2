@@ -1,4 +1,8 @@
 import { supabase } from './supabase';
+import type {
+  TeacherAddStudentDraft,
+  TeacherAddStudentsResult,
+} from './teacher-add-students';
 
 export type Role = 'student' | 'teacher';
 
@@ -121,6 +125,11 @@ export const api = {
       }),
     roster: (classId: string) =>
       invokeFunction<{ students: TeacherClassStudent[] }>('classes-roster', { searchParams: { classId } }),
+    addStudents: (classId: string, students: TeacherAddStudentDraft[]) =>
+      invokeFunction<TeacherAddStudentsResult>('classes-add-students', {
+        method: 'POST',
+        body: { classId, students },
+      }),
     removeStudent: (classId: string, studentId: string) =>
       invokeFunction<{ removed: true }>('classes-remove-student', {
         method: 'POST',

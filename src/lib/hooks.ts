@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from './api';
+import type { TeacherAddStudentDraft } from './teacher-add-students';
 
 export function useClasses() {
   return useQuery({
@@ -77,6 +78,26 @@ export function useRemoveStudentFromClass() {
       api.classes.removeStudent(classId, studentId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['classes', variables.classId, 'roster'] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+    },
+  });
+}
+
+export function useAddStudentsToClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      classId,
+      students,
+    }: {
+      classId: string;
+      students: TeacherAddStudentDraft[];
+    }) => api.classes.addStudents(classId, students),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['classes', variables.classId, 'roster'],
+      });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
     },
