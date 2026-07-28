@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { useLocation, Link } from 'wouter';
+import { useLocation } from 'wouter';
 import { useStudentDashboard, useAssignments, useJoinClass, useClasses } from '@/lib/hooks';
-import { Card, Button, Badge, Input, Label } from '@/components/ui';
+import { Card, Button, Badge } from '@/components/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Flame, Star, Trophy, Map as MapIcon, Play, CheckCircle2, History, Plus, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
-import { useLanguage } from '@/lib/useLanguage';
-import type { StudentClassSummary } from '@/lib/api';
+import { Play, CheckCircle2, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
+import type { AssignmentForStudent, StudentClassSummary } from '@/lib/api';
 import { useClassPosts } from '@/lib/hooks';
 import { allTopics } from '@/data';
+import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
+import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
+import { StudentPortalRail } from '@/components/student/StudentPortalRail';
+import { buildPortalTopicEntries, summarizePortalRail } from '@/lib/student-portal';
 
 export function StudentDashboard() {
   const { data: dashboard, isLoading: dashLoading } = useStudentDashboard();
@@ -20,7 +23,7 @@ export function StudentDashboard() {
   const [dialogMessage, setDialogMessage] = useState('');
   const [, setLocation] = useLocation();
 
-  const handleJoinClass = async (e: React.FormEvent) => {
+  const handleJoinClass = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
     try {
@@ -33,193 +36,63 @@ export function StudentDashboard() {
     }
   };
 
-  if (dashLoading || assignLoading) return <div className="p-8 text-center font-bold">Loading your adventure...</div>;
-  if (!dashboard) return null;
+  if (dashLoading || assignLoading || !dashboard) return <StudentPortalLoading />;
 
-  const assignments = (assignmentsData?.assignments || []) as import('@/lib/api').AssignmentForStudent[];
-  const pendingAssignments = assignments.filter(a => !a.completed);
+  const assignments = (assignmentsData?.assignments || []) as AssignmentForStudent[];
   const myClasses = (classesData?.classes || []) as StudentClassSummary[];
-
-  // Compute topic mastery from hardcoded catalog
-  const recentAttempts = dashboard.recentAttempts || [];
-  const byTopic: Record<string, { total: number; completed: number }> = {};
-  
-  Object.keys(allTopics).forEach(topic => {
-    byTopic[topic] = { total: 1, completed: 0 }; // Treat each topic as 1 lesson chunk for simplicity
+  const topics = buildPortalTopicEntries({
+    assignments,
+    recentAttempts: dashboard.recentAttempts || [],
   });
-
-  const completedLessonIds = new Set(recentAttempts.map((a: any) => a.lessonId));
-  completedLessonIds.forEach(id => {
-    if (byTopic[id]) {
-      byTopic[id].completed = 1;
-    }
+  const railSummary = summarizePortalRail({
+    assignments,
+    classes: myClasses.map((klass) => ({
+      id: klass.id,
+      name: klass.name,
+      teacherName: klass.teacherName,
+    })),
+    dashboard: {
+      completedLessons: dashboard.completedLessons,
+      streakDays: dashboard.streakDays,
+      recentAttempts: dashboard.recentAttempts || [],
+    },
   });
-
-  const topicMastery = Object.entries(byTopic).map(([topic, v]) => ({
-    topic,
-    total: v.total,
-    completed: v.completed,
-    pct: v.total > 0 ? Math.round((v.completed / v.total) * 100) : 0,
-  }));
+  const highlightedLessonId =
+    railSummary.nextAction.kind === 'assignment' ? railSummary.nextAction.lessonId : null;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Top Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4 flex flex-col items-center justify-center text-center bg-jungle-orange/10 border-jungle-orange/20">
-          <Flame className="h-8 w-8 text-jungle-orange mb-2" />
-          <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Day Streak</span>
-          <span className="text-3xl font-display font-extrabold text-jungle-orange">{dashboard.streakDays}</span>
-        </Card>
-        <Card className="p-4 flex flex-col items-center justify-center text-center bg-primary/10 border-primary/20">
-          <Star className="h-8 w-8 text-primary mb-2" />
-          <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Lessons Done</span>
-          <span className="text-3xl font-display font-extrabold text-primary">{dashboard.completedLessons}</span>
-        </Card>
-        
-        {topicMastery.slice(0, 2).map(mastery => (
-          <Card key={mastery.topic} className="p-4 flex flex-col items-center justify-center text-center">
-            <Trophy className={`h-8 w-8 mb-2 ${mastery.pct >= 80 ? 'text-jungle-yellow' : 'text-muted-foreground'}`} />
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider capitalize">{mastery.topic}</span>
-            <div className="w-full bg-muted rounded-full h-2 mt-2 mb-1">
-              <div className="bg-primary h-2 rounded-full" style={{ width: `${mastery.pct}%` }} />
-            </div>
-            <span className="text-xs font-bold text-muted-foreground">{mastery.completed}/{mastery.total}</span>
-          </Card>
-        ))}
-      </div>
+    <div className="animate-in fade-in duration-500">
+      <div className="grid gap-4 lg:grid-cols-[minmax(260px,25%)_minmax(0,1fr)]">
+        <StudentPortalRail
+          summary={railSummary}
+          classes={myClasses}
+          joinCode={joinCode}
+          isJoining={isJoining}
+          isJoinPending={joinClass.isPending}
+          onJoinCodeChange={setJoinCode}
+          onJoinSubmit={handleJoinClass}
+          onStartJoin={() => setIsJoining(true)}
+          onOpenAssignment={(href) => setLocation(href)}
+          onOpenClass={(classId) => setLocation(`/student/classes/${classId}`)}
+        />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Main Content Column */}
-        <div className="col-span-1 lg:col-span-2 space-y-8">
-          
-          {/* Active Assignments */}
-          <div className="space-y-4">
-            <h2 className="text-2xl font-display font-bold flex items-center gap-2">
-              <MapIcon className="h-6 w-6 text-primary" /> Your Quests
-            </h2>
-            {pendingAssignments.length > 0 ? (
-              <div className="grid gap-4">
-                {pendingAssignments.map(assignment => (
-                  <Card key={assignment.id} className="p-4 flex sm:items-center justify-between flex-col sm:flex-row gap-4 border-2 border-primary/30 hover:border-primary transition-colors">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="jungle" className="capitalize">{assignment.lessonId}</Badge>
-                        {assignment.dueAt && <span className="text-xs font-bold text-destructive">Due soon!</span>}
-                      </div>
-                      <h3 className="text-xl font-bold capitalize">Play {assignment.lessonId}</h3>
-                      <p className="text-sm font-bold text-muted-foreground">Complete your assignment.</p>
-                    </div>
-                    <Button variant="jungle" size="lg" className="shrink-0 group" onClick={() => setLocation(`/student/lessons/${assignment.lessonId}?assignmentId=${assignment.id}`)}>
-                      Play <Play className="h-5 w-5 ml-2 fill-current group-hover:scale-110 transition-transform" />
-                    </Button>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="p-8 text-center bg-muted/30 border-dashed border-2">
-                <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm rotate-3">
-                  <CheckCircle2 className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">All caught up!</h3>
-                <p className="text-muted-foreground font-bold mb-4">You have no pending assignments from your teacher.</p>
-                <Link href="/student/lessons">
-                  <Button variant="outline" className="gap-2 bg-white">
-                    <MapIcon className="h-4 w-4" /> Explore the Jungle Map
-                  </Button>
-                </Link>
-              </Card>
-            )}
+        <div className="relative overflow-hidden rounded-[32px] border-4 border-white/60 shadow-[0_24px_60px_rgba(34,94,49,0.16)]">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, rgba(124,214,255,0.88) 0%, rgba(215,245,255,0.7) 65%, rgba(190,220,107,0.28) 100%), url('/assets/images/1bg.jpg')",
+            }}
+          />
+          <div className="absolute -left-12 top-0 h-[68%] w-44 rounded-br-[140px] rounded-tr-[140px] bg-jungle-green/80 blur-sm" />
+          <div className="absolute bottom-0 left-0 h-36 w-full bg-[radial-gradient(circle_at_20%_10%,rgba(211,239,126,0.75),transparent_35%),linear-gradient(180deg,rgba(150,193,74,0)_0%,rgba(108,150,54,0.58)_100%)]" />
+          <div className="relative p-3 md:p-5">
+            <LegacyLessonMenu
+              topics={topics}
+              highlightedLessonId={highlightedLessonId}
+              onSelect={(href) => setLocation(href)}
+            />
           </div>
-
-          {/* Map Entry Point */}
-          <Card className="relative overflow-hidden rounded-3xl border-4 border-primary">
-            <div className="absolute inset-0 bg-jungle-wood/10 z-0">
-               {/* Could add a background image of a map here if we had one */}
-               <div className="absolute top-10 left-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
-               <div className="absolute bottom-10 right-10 w-40 h-40 bg-jungle-orange/20 rounded-full blur-3xl"></div>
-            </div>
-            <div className="relative z-10 p-8 md:p-12 flex flex-col items-center text-center">
-              <h2 className="text-3xl md:text-4xl font-display font-extrabold text-foreground mb-4 text-shadow">Free Play Explorer</h2>
-              <p className="text-lg font-bold text-foreground/80 mb-8 max-w-md">
-                Want to practice on your own? Pick any lesson from the whole jungle catalog!
-              </p>
-              <Link href="/student/lessons">
-                <Button size="lg" className="text-xl px-8 h-16 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform bg-primary">
-                  Open the Map <MapIcon className="ml-2 h-6 w-6" />
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
-
-        {/* Sidebar Column */}
-        <div className="space-y-6">
-          
-          <Card className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-display font-bold text-xl">My Classes</h3>
-              {!isJoining && (
-                <Button variant="ghost" size="sm" onClick={() => setIsJoining(true)} className="h-8 w-8 p-0"><Plus className="h-5 w-5" /></Button>
-              )}
-            </div>
-
-            {isJoining && (
-              <form onSubmit={handleJoinClass} className="mb-4 flex gap-2">
-                <Input 
-                  placeholder="Join Code" 
-                  value={joinCode} 
-                  onChange={e => setJoinCode(e.target.value.toUpperCase())}
-                  className="font-mono uppercase h-10 text-sm"
-                  autoFocus
-                />
-                <Button type="submit" size="sm" variant="jungle" disabled={joinClass.isPending || !joinCode}>Join</Button>
-              </form>
-            )}
-
-            {myClasses.length > 0 ? (
-              <ul className="space-y-3">
-                {myClasses.map(c => (
-                  <li 
-                    key={c.id} 
-                    className="p-3 bg-muted/30 rounded-xl border border-border cursor-pointer hover:border-primary transition-colors"
-                    onClick={() => setLocation(`/student/classes/${c.id}`)}
-                  >
-                    <p className="font-bold">{c.name}</p>
-                    <p className="text-xs text-muted-foreground font-bold">Teacher: {c.teacherName}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm font-bold text-muted-foreground">You haven't joined any classes yet. Ask your teacher for a Join Code!</p>
-            )}
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="font-display font-bold text-xl flex items-center gap-2 mb-4">
-              <History className="h-5 w-5 text-muted-foreground" /> Recent Plays
-            </h3>
-            {dashboard.recentAttempts?.length > 0 ? (
-              <ul className="space-y-4">
-                {dashboard.recentAttempts.map((attempt: any, i: number) => (
-                  <li key={i} className="flex justify-between items-center">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <p className="font-bold text-sm truncate capitalize">{attempt.lessonId}</p>
-                      <p className="text-xs text-muted-foreground font-bold capitalize">{attempt.lessonId}</p>
-                    </div>
-                    <Badge variant={attempt.score / attempt.maxScore >= 0.7 ? 'default' : 'secondary'}>
-                      {Math.round((attempt.score / attempt.maxScore) * 100)}%
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm font-bold text-muted-foreground">No recent activity. Time to play!</p>
-            )}
-          </Card>
-
         </div>
       </div>
 
