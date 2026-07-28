@@ -23,6 +23,18 @@ export type PortalRecentAttempt = {
   completedAt?: string;
 };
 
+export type PortalClass = {
+  id: string;
+  name: string;
+  teacherName: string;
+};
+
+export type PortalDashboardSummary = {
+  completedLessons: number;
+  streakDays: number;
+  recentAttempts: PortalRecentAttempt[];
+};
+
 export type PortalTopicEntry = {
   id: PortalTopicId;
   lessonNumber: number;
@@ -32,6 +44,19 @@ export type PortalTopicEntry = {
   isAssigned: boolean;
   isCompleted: boolean;
   recentScorePct: number | null;
+};
+
+export type PortalRailSummary = {
+  nextAction:
+    | { kind: "assignment"; lessonId: PortalTopicId; href: string; dueAt: string | null }
+    | { kind: "free-play"; href: "/student/lessons" };
+  primaryClass: PortalClass | null;
+  classCount: number;
+  completedLessons: number;
+  streakDays: number;
+  recentLessonId: PortalTopicId | null;
+  recentScorePct: number | null;
+  showJoinPrompt: boolean;
 };
 
 export const LEGACY_TOPIC_META: ReadonlyArray<{
@@ -89,4 +114,42 @@ export function buildPortalTopicEntries(input: {
       recentScorePct: attempt ? Math.round((attempt.score / attempt.maxScore) * 100) : null,
     };
   });
+}
+
+export function summarizePortalRail(input: {
+  assignments: PortalAssignment[];
+  classes: PortalClass[];
+  dashboard: PortalDashboardSummary;
+}): PortalRailSummary {
+  const nextAssignment = input.assignments.find((assignment) => {
+    return !assignment.completed && toPortalTopicId(assignment.lessonId) !== null;
+  }) ?? null;
+
+  const nextLessonId = nextAssignment ? toPortalTopicId(nextAssignment.lessonId) : null;
+  const recentAttempt = input.dashboard.recentAttempts[0] ?? null;
+  const recentLessonId = recentAttempt ? toPortalTopicId(recentAttempt.lessonId) : null;
+  const primaryClass = input.classes[0] ?? null;
+
+  return {
+    nextAction: nextAssignment && nextLessonId
+      ? {
+          kind: "assignment",
+          lessonId: nextLessonId,
+          href: `/student/lessons/${nextLessonId}?assignmentId=${nextAssignment.id}`,
+          dueAt: nextAssignment.dueAt,
+        }
+      : {
+          kind: "free-play",
+          href: "/student/lessons",
+        },
+    primaryClass,
+    classCount: input.classes.length,
+    completedLessons: input.dashboard.completedLessons,
+    streakDays: input.dashboard.streakDays,
+    recentLessonId,
+    recentScorePct: recentAttempt
+      ? Math.round((recentAttempt.score / recentAttempt.maxScore) * 100)
+      : null,
+    showJoinPrompt: input.classes.length === 0,
+  };
 }
