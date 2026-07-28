@@ -1,12 +1,14 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
-  buildStudentEmail,
   normalizeClassCode,
-  normalizeFirstName,
-  normalizeLastName,
   STUDENT_VERIFY_TYPE,
-  studentDisplayName,
 } from "../_shared/student_auth.ts";
+import {
+  defaultHiddenStudentProvisionPersistence,
+  normalizeStudentIdentity,
+  provisionHiddenStudentForClass,
+  type NormalizedStudentIdentity,
+} from "../_shared/hidden_student_provision.ts";
 
 type StudentRegisterSession = {
   status: "ok";
@@ -18,15 +20,10 @@ type StudentRegisterSession = {
 type StudentRegisterDeps = {
   findClassByCode(joinCode: string): Promise<{ id: string; name: string } | null>;
   hasStudentWithNormalizedName(normalizedLastName: string, normalizedFirstName: string): Promise<boolean>;
-  createHiddenStudent(input: { rawLastName: string; rawFirstName: string }): Promise<{ id: string; email: string }>;
-  updateStudentProfile(input: {
-    studentId: string;
-    rawLastName: string;
-    normalizedLastName: string;
-    rawFirstName: string;
-    normalizedFirstName: string;
-  }): Promise<void>;
-  enrollStudent(input: { classId: string; studentId: string }): Promise<void>;
+  provisionStudentForClass(input: {
+    classId: string;
+    identity: NormalizedStudentIdentity;
+  }): Promise<{ studentId: string; email: string }>;
   issueStudentSession(email: string): Promise<StudentRegisterSession>;
 };
 
@@ -53,52 +50,11 @@ const defaultDeps: StudentRegisterDeps = {
     if (error) throw error;
     return (data?.length ?? 0) > 0;
   },
-  async createHiddenStudent({ rawLastName, rawFirstName }) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const email = buildStudentEmail(crypto.randomUUID());
-    const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-    const { data, error } = await adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        role: "student",
-        full_name: studentDisplayName(rawLastName, rawFirstName),
-        first_name: rawFirstName.trim(),
-        last_name: rawLastName.trim(),
-      },
-    });
-    if (error || !data.user) {
-      throw error ?? new Error("Failed to create student auth user");
-    }
-    return { id: data.user.id, email };
-  },
-  async updateStudentProfile({
-    studentId,
-    rawLastName,
-    normalizedLastName,
-    rawFirstName,
-    normalizedFirstName,
-  }) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { error } = await adminClient
-      .from("profiles")
-      .update({
-        full_name: studentDisplayName(rawLastName, rawFirstName),
-        first_name: rawFirstName.trim(),
-        normalized_first_name: normalizedFirstName,
-        last_name: rawLastName.trim(),
-        normalized_last_name: normalizedLastName,
-      })
-      .eq("id", studentId);
-    if (error) throw error;
-  },
-  async enrollStudent({ classId, studentId }) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { error } = await adminClient
-      .from("class_students")
-      .insert({ class_id: classId, student_id: studentId });
-    if (error) throw error;
+  async provisionStudentForClass(input) {
+    return provisionHiddenStudentForClass(
+      defaultHiddenStudentProvisionPersistence,
+      input,
+    );
   },
   async issueStudentSession(email) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -131,20 +87,23 @@ export function createStudentRegisterHandler(deps: StudentRegisterDeps = default
     try {
       const body = await req.json().catch(() => null);
       const normalizedClassCode = normalizeClassCode(typeof body?.classCode === "string" ? body.classCode : "");
-      const rawLastName = typeof body?.lastName === "string" ? body.lastName : "";
-      const rawFirstName = typeof body?.firstName === "string" ? body.firstName : "";
-      const normalizedLastName = normalizeLastName(rawLastName);
-      const normalizedFirstName = normalizeFirstName(rawFirstName);
+      const identity = normalizeStudentIdentity({
+        lastName: typeof body?.lastName === "string" ? body.lastName : "",
+        firstName: typeof body?.firstName === "string" ? body.firstName : "",
+      });
 
       if (!normalizedClassCode) {
         return errorResponse("We couldn't find that class code.", 422);
       }
 
-      if (!normalizedLastName || !normalizedFirstName) {
+      if (!identity) {
         return errorResponse("Please enter the student's last name and first name.", 422);
       }
 
-      const existingStudent = await deps.hasStudentWithNormalizedName(normalizedLastName, normalizedFirstName);
+      const existingStudent = await deps.hasStudentWithNormalizedName(
+        identity.normalizedLastName,
+        identity.normalizedFirstName,
+      );
       if (existingStudent) {
         return jsonResponse({ status: "already_registered" }, 409);
       }
@@ -154,16 +113,10 @@ export function createStudentRegisterHandler(deps: StudentRegisterDeps = default
         return errorResponse("We couldn't find that class code.", 404);
       }
 
-      const created = await deps.createHiddenStudent({ rawLastName, rawFirstName });
-      await deps.updateStudentProfile({
-        studentId: created.id,
-        rawLastName,
-        normalizedLastName,
-        rawFirstName,
-        normalizedFirstName,
+      const created = await deps.provisionStudentForClass({
+        classId: klass.id,
+        identity,
       });
-      await deps.enrollStudent({ classId: klass.id, studentId: created.id });
-
       return jsonResponse(await deps.issueStudentSession(created.email), 201);
     } catch (error) {
       console.error("student-register failed", error);

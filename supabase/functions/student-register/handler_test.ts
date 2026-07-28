@@ -5,11 +5,9 @@ Deno.test("student-register returns already_registered when the student name alr
   const handler = createStudentRegisterHandler({
     findClassByCode: async () => ({ id: "class-1", name: "Section A" }),
     hasStudentWithNormalizedName: async () => true,
-    createHiddenStudent: async () => {
-      throw new Error("should not create user");
+    provisionStudentForClass: async () => {
+      throw new Error("should not provision a student");
     },
-    updateStudentProfile: async () => {},
-    enrollStudent: async () => {},
     issueStudentSession: async () => {
       throw new Error("should not issue session");
     },
@@ -28,11 +26,9 @@ Deno.test("student-register returns 404 when the class code is unknown", async (
   const handler = createStudentRegisterHandler({
     findClassByCode: async () => null,
     hasStudentWithNormalizedName: async () => false,
-    createHiddenStudent: async () => {
-      throw new Error("should not create user");
+    provisionStudentForClass: async () => {
+      throw new Error("should not provision a student");
     },
-    updateStudentProfile: async () => {},
-    enrollStudent: async () => {},
     issueStudentSession: async () => {
       throw new Error("should not issue session");
     },
@@ -51,15 +47,12 @@ Deno.test("student-register creates a student, enrolls the class, and returns a 
   const handler = createStudentRegisterHandler({
     findClassByCode: async () => ({ id: "class-1", name: "Section A" }),
     hasStudentWithNormalizedName: async () => false,
-    createHiddenStudent: async () => {
-      calls.push("createHiddenStudent");
-      return { id: "student-1", email: "student.test-key@auth.mathventure.invalid" };
-    },
-    updateStudentProfile: async () => {
-      calls.push("updateStudentProfile");
-    },
-    enrollStudent: async () => {
-      calls.push("enrollStudent");
+    provisionStudentForClass: async () => {
+      calls.push("provisionStudentForClass");
+      return {
+        studentId: "student-1",
+        email: "student.test-key@auth.mathventure.invalid",
+      };
     },
     issueStudentSession: async () => {
       calls.push("issueStudentSession");
@@ -85,9 +78,7 @@ Deno.test("student-register creates a student, enrolls the class, and returns a 
     verifyType: "email",
   });
   assertEquals(calls, [
-    "createHiddenStudent",
-    "updateStudentProfile",
-    "enrollStudent",
+    "provisionStudentForClass",
     "issueStudentSession",
   ]);
 });
@@ -98,11 +89,9 @@ Deno.test("student-register returns a JSON 500 with CORS headers when a dependen
       throw new Error("boom");
     },
     hasStudentWithNormalizedName: async () => false,
-    createHiddenStudent: async () => {
-      throw new Error("should not create user");
+    provisionStudentForClass: async () => {
+      throw new Error("should not provision a student");
     },
-    updateStudentProfile: async () => {},
-    enrollStudent: async () => {},
     issueStudentSession: async () => {
       throw new Error("should not issue session");
     },
