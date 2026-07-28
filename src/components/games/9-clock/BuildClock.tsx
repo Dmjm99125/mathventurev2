@@ -164,7 +164,9 @@ export function BuildClock({ onComplete }: BuildClockProps) {
           return (
             <div 
               key={`slot-${num}`}
-              ref={(el) => (slotRefs.current[num] = el)}
+              ref={(el) => {
+                slotRefs.current[num] = el;
+              }}
               className={`absolute w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl md:text-2xl font-bold transition-all duration-300 font-['Comic_Sans_MS'] transform -translate-x-1/2 -translate-y-1/2
                 ${isPlaced ? 'border-4 border-[#4caf50] bg-[#c8e6c9] text-[#2e7d32] shadow-sm' : 'border-4 border-dashed border-[#b2ebf2] text-[#b2ebf2]'}`}
               style={{

@@ -32,7 +32,7 @@ function AppRoutes() {
       <Route path="/signup" component={Signup} />
       
       <Route path="/student">
-        {() => <AppLayout><StudentDashboard /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><StudentDashboard /></AppLayout>}
       </Route>
       <Route path="/student/lessons">
         {() => <AppLayout><StudentLessons /></AppLayout>}
