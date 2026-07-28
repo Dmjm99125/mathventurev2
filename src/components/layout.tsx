@@ -6,6 +6,7 @@ import { signOut } from '@/lib/auth';
 import { Button } from './ui';
 import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 export function TopNav() {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ export function TopNav() {
     { href: '/teacher/assignments', label: t('teacher.assignments'), icon: Settings },
   ] : [
     { href: '/student', label: t('student.dashboard'), icon: Map },
-    { href: '/student/lessons', label: 'All Lessons', icon: Compass },
+    { href: '/student/lessons', label: t('student.portal.allLessons'), icon: Compass },
   ]) : [];
 
   return (
@@ -95,7 +96,13 @@ export function TopNav() {
   );
 }
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({
+  children,
+  sidebarMode = 'default',
+}: {
+  children: React.ReactNode;
+  sidebarMode?: 'default' | 'hidden';
+}) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [location] = useLocation();
@@ -103,6 +110,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) return <div className="min-h-[100dvh] flex flex-col"><TopNav /><main className="flex-1">{children}</main></div>;
 
   const isTeacher = user.role === 'teacher';
+  const showSidebar = sidebarMode !== 'hidden';
 
   const navItems = isTeacher ? [
     { href: '/teacher', label: t('teacher.dashboard'), icon: LayoutDashboard },
@@ -110,32 +118,39 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/teacher/assignments', label: t('teacher.assignments'), icon: Settings },
   ] : [
     { href: '/student', label: t('student.dashboard'), icon: Map },
-    { href: '/student/lessons', label: 'All Lessons', icon: Compass },
+    { href: '/student/lessons', label: t('student.portal.allLessons'), icon: Compass },
   ];
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       <TopNav />
-      <div className="flex-1 container mx-auto flex flex-col md:flex-row gap-6 p-4 md:py-8">
-        
-        {/* Sidebar Nav - Hidden on mobile, shown in DropdownMenu instead */}
-        <aside className="hidden md:block w-full md:w-64 shrink-0">
-          <nav className="flex flex-col gap-2">
-            {navItems.map(item => {
-              const active = location === item.href || (location.startsWith(item.href) && item.href !== '/teacher' && item.href !== '/student');
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold cursor-pointer transition-colors whitespace-nowrap ${active ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent hover:text-accent-foreground text-foreground'}`}>
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </div>
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
+      <div
+        className={cn(
+          'flex-1 container mx-auto gap-6 p-4 md:py-8',
+          showSidebar ? 'flex flex-col md:flex-row' : 'max-w-[1440px]',
+        )}
+      >
+        {showSidebar && (
+          <aside className="hidden md:block w-full md:w-64 shrink-0">
+            <nav className="flex flex-col gap-2">
+              {navItems.map(item => {
+                const active = location === item.href || (location.startsWith(item.href) && item.href !== '/teacher' && item.href !== '/student');
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <div className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-xl font-bold cursor-pointer transition-colors whitespace-nowrap',
+                      active ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent hover:text-accent-foreground text-foreground',
+                    )}>
+                      <item.icon className="h-5 w-5" />
+                      {item.label}
+                    </div>
+                  </Link>
+                );
+              })}
+            </nav>
+          </aside>
+        )}
 
-        {/* Main Content */}
         <main className="flex-1 min-w-0">
           {children}
         </main>

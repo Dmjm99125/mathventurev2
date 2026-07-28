@@ -95,7 +95,7 @@ export function StudentPortalRail({
               autoFocus
             />
             <Button type="submit" variant="outline" disabled={isJoinPending || !joinCode.trim()}>
-              Join
+              {t("common.join")}
             </Button>
           </form>
         ) : (
