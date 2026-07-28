@@ -1339,7 +1339,7 @@ export function QuizPage() {
 
           {/* Options Grid */}
           <div className="flex flex-wrap justify-center gap-6 md:gap-8">
-            {question.options.map((opt, i) => {
+            {question.options.map((opt: { image: string; isCorrect: boolean }, i: number) => {
               const isSelected = selectedOption === opt;
               let stateClass = 'border-border hover:-translate-y-2 hover:border-primary cursor-pointer';
 

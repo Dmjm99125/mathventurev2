@@ -97,7 +97,7 @@ export function MagicRainbowBridge({ onComplete }: MagicRainbowBridgeProps) {
   const [showMushroom, setShowMushroom] = useState(false);
   const [mushroomX, setMushroomX] = useState(0);
   
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number | null>(null);
   const isBuildingRef = useRef(false);
 
   const startRound = () => {

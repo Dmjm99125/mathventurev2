@@ -11,6 +11,14 @@ const RANKS = [
     { name: "Master of the Universe", icon: "👑" }
 ];
 
+function createAudioContext() {
+    const legacyWindow = window as Window & typeof globalThis & {
+        webkitAudioContext?: typeof AudioContext;
+    };
+    const AudioContextCtor = window.AudioContext ?? legacyWindow.webkitAudioContext;
+    return AudioContextCtor ? new AudioContextCtor() : null;
+}
+
 export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
@@ -24,7 +32,8 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
     const MAX_SCORE = 5;
 
     const playLaserSound = (isCorrect: boolean) => {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx = createAudioContext();
+        if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -51,7 +60,8 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
     };
 
     const playChimeSound = () => {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx = createAudioContext();
+        if (!audioCtx) return;
         const now = audioCtx.currentTime;
         const notes = [261.63, 329.63, 392.00, 523.25];
         notes.forEach((freq, index) => {

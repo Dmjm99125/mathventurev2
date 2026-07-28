@@ -213,7 +213,9 @@ export function CountMatch4({ onComplete }: CountMatch4Props) {
               return (
                 <motion.div
                   key={`num-${num}`}
-                  ref={el => numRefs.current[num] = el}
+                  ref={(el) => {
+                    numRefs.current[num] = el;
+                  }}
                   whileHover={!isMatched ? { scale: 1.05 } : {}}
                   whileTap={!isMatched ? { scale: 0.95 } : {}}
                   onClick={() => handleNumberClick(num)}
@@ -239,7 +241,9 @@ export function CountMatch4({ onComplete }: CountMatch4Props) {
               return (
                 <motion.div
                   key={`smileys-${num}`}
-                  ref={el => imgRefs.current[num] = el}
+                  ref={(el) => {
+                    imgRefs.current[num] = el;
+                  }}
                   animate={wrongShake === num ? { x: [-10, 10, -10, 10, 0] } : {}}
                   transition={{ duration: 0.4 }}
                   whileHover={!isMatched ? { scale: 1.05 } : {}}
