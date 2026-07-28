@@ -26,6 +26,7 @@ export type HiddenStudentProvisionPersistence = {
     normalizedFirstName: string;
   }): Promise<void>;
   enrollStudent(input: { classId: string; studentId: string }): Promise<void>;
+  deleteHiddenStudent(studentId: string): Promise<void>;
 };
 
 export function normalizeStudentIdentity(
@@ -105,6 +106,14 @@ export const defaultHiddenStudentProvisionPersistence: HiddenStudentProvisionPer
       throw error;
     }
   },
+  async deleteHiddenStudent(studentId) {
+    const { adminClient } = await import("./client.ts");
+    const { error } = await adminClient.auth.admin.deleteUser(studentId);
+
+    if (error) {
+      throw error;
+    }
+  },
 };
 
 export async function provisionHiddenStudentForClass(
@@ -116,18 +125,23 @@ export async function provisionHiddenStudentForClass(
     rawFirstName: input.identity.rawFirstName,
   });
 
-  await persistence.updateStudentProfile({
-    studentId: created.id,
-    rawLastName: input.identity.rawLastName,
-    normalizedLastName: input.identity.normalizedLastName,
-    rawFirstName: input.identity.rawFirstName,
-    normalizedFirstName: input.identity.normalizedFirstName,
-  });
+  try {
+    await persistence.updateStudentProfile({
+      studentId: created.id,
+      rawLastName: input.identity.rawLastName,
+      normalizedLastName: input.identity.normalizedLastName,
+      rawFirstName: input.identity.rawFirstName,
+      normalizedFirstName: input.identity.normalizedFirstName,
+    });
 
-  await persistence.enrollStudent({
-    classId: input.classId,
-    studentId: created.id,
-  });
+    await persistence.enrollStudent({
+      classId: input.classId,
+      studentId: created.id,
+    });
+  } catch (error) {
+    await Promise.allSettled([persistence.deleteHiddenStudent(created.id)]);
+    throw error;
+  }
 
   return { studentId: created.id, email: created.email };
 }

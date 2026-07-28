@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertRejects } from "jsr:@std/assert";
 import {
   normalizeStudentIdentity,
   provisionHiddenStudentForClass,
@@ -43,6 +43,9 @@ Deno.test("provisionHiddenStudentForClass creates the auth user, updates the pro
       enrollStudent: async () => {
         calls.push("enrollStudent");
       },
+      deleteHiddenStudent: async () => {
+        calls.push("deleteHiddenStudent");
+      },
     },
     {
       classId: "class-1",
@@ -64,5 +67,52 @@ Deno.test("provisionHiddenStudentForClass creates the auth user, updates the pro
     "createHiddenStudent",
     "updateStudentProfile",
     "enrollStudent",
+  ]);
+});
+
+Deno.test("provisionHiddenStudentForClass deletes the created auth user when profile update fails", async () => {
+  const calls: string[] = [];
+
+  await assertRejects(
+    () =>
+      provisionHiddenStudentForClass(
+        {
+          createHiddenStudent: async () => {
+            calls.push("createHiddenStudent");
+            return {
+              id: "student-1",
+              email: "student.one@auth.mathventure.invalid",
+            };
+          },
+          updateStudentProfile: async () => {
+            calls.push("updateStudentProfile");
+            throw new Error("profile boom");
+          },
+          enrollStudent: async () => {
+            calls.push("enrollStudent");
+          },
+          deleteHiddenStudent: async () => {
+            calls.push("deleteHiddenStudent");
+          },
+        },
+        {
+          classId: "class-1",
+          identity: {
+            rawLastName: "Santos",
+            rawFirstName: "Maria",
+            normalizedLastName: "SANTOS",
+            normalizedFirstName: "MARIA",
+            fullName: "Santos, Maria",
+          },
+        },
+      ),
+    Error,
+    "profile boom",
+  );
+
+  assertEquals(calls, [
+    "createHiddenStudent",
+    "updateStudentProfile",
+    "deleteHiddenStudent",
   ]);
 });
