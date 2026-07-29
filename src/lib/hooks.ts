@@ -126,6 +126,7 @@ export function useSubmitAttempt() {
     mutationFn: (input: {
       lessonId: string;
       assignmentId?: string;
+      classId?: string;
       score: number;
       maxScore: number;
       durationSeconds?: number;

@@ -26,7 +26,7 @@ export function GameLayout({ children, topic, title, stage, onExit }: GameLayout
     if (onExit) {
       onExit();
     } else {
-      setLocation('/student/lessons');
+      setLocation('/student');
     }
   };
 
@@ -89,4 +89,3 @@ export function GameLayout({ children, topic, title, stage, onExit }: GameLayout
     </div>
   );
 }
-

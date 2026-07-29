@@ -1,7 +1,9 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
   LEGACY_TOPIC_META,
+  buildStudentLessonExitHref,
   buildPortalTopicEntries,
+  buildStudentLessonHref,
   summarizePortalRail,
 } from "./student-portal.ts";
 
@@ -18,8 +20,11 @@ Deno.test("legacy topic metadata preserves the original menu order and asset pat
 Deno.test("buildPortalTopicEntries creates assignment-aware lesson hrefs and completion flags", () => {
   const entries = buildPortalTopicEntries({
     assignments: [
-      { id: "asg-1", lessonId: "colors", dueAt: null, completed: false },
+      { id: "asg-1", lessonId: "colors", classId: "class-1", dueAt: null, completed: false },
       { id: "asg-2", lessonId: "clock", dueAt: null, completed: true },
+    ],
+    classes: [
+      { id: "class-1", name: "Section Sunflower", teacherName: "Teacher Mia" },
     ],
     recentAttempts: [
       { lessonId: "colors", score: 4, maxScore: 5 },
@@ -32,13 +37,13 @@ Deno.test("buildPortalTopicEntries creates assignment-aware lesson hrefs and com
     lessonNumber: 1,
     fallbackLabel: "Colors",
     assetSrc: "/assets/images/1col.png",
-    href: "/student/lessons/colors?assignmentId=asg-1",
+    href: "/student/lessons/colors?assignmentId=asg-1&classId=class-1",
     isAssigned: true,
     isCompleted: true,
     recentScorePct: 80,
   });
 
-  assertEquals(entries[5].href, "/student/lessons/numbers");
+  assertEquals(entries[5].href, "/student/lessons/numbers?classId=class-1");
   assertEquals(entries[5].isCompleted, true);
   assertEquals(entries[8].isAssigned, false);
 });
@@ -49,6 +54,7 @@ Deno.test("buildPortalTopicEntries keeps the earliest pending assignment when a 
       {
         id: "asg-late",
         lessonId: "colors",
+        classId: "class-1",
         dueAt: "2026-07-30T00:00:00.000Z",
         createdAt: "2026-07-26T10:00:00.000Z",
         completed: false,
@@ -56,21 +62,52 @@ Deno.test("buildPortalTopicEntries keeps the earliest pending assignment when a 
       {
         id: "asg-early",
         lessonId: "colors",
+        classId: "class-1",
         dueAt: "2026-07-29T00:00:00.000Z",
         createdAt: "2026-07-25T10:00:00.000Z",
         completed: false,
       },
     ],
+    classes: [
+      { id: "class-1", name: "Section Sunflower", teacherName: "Teacher Mia" },
+    ],
     recentAttempts: [],
   });
 
-  assertEquals(entries[0].href, "/student/lessons/colors?assignmentId=asg-early");
+  assertEquals(entries[0].href, "/student/lessons/colors?assignmentId=asg-early&classId=class-1");
+});
+
+Deno.test("buildStudentLessonHref only encodes class return targets when the lesson was launched from a class page", () => {
+  assertEquals(
+    buildStudentLessonHref({
+      lessonId: "colors",
+      assignmentId: "asg-1",
+      classId: "class-1",
+      returnTo: "class",
+    }),
+    "/student/lessons/colors?assignmentId=asg-1&classId=class-1&returnTo=class",
+  );
+
+  assertEquals(
+    buildStudentLessonHref({
+      lessonId: "numbers",
+      classId: "class-1",
+    }),
+    "/student/lessons/numbers?classId=class-1",
+  );
+});
+
+Deno.test("buildStudentLessonExitHref returns to basecamp by default and only uses class routes when explicitly requested", () => {
+  assertEquals(buildStudentLessonExitHref({}), "/student");
+  assertEquals(buildStudentLessonExitHref({ returnTo: "dashboard", classId: "class-1" }), "/student");
+  assertEquals(buildStudentLessonExitHref({ returnTo: "class", classId: "class-1" }), "/student/classes/class-1");
+  assertEquals(buildStudentLessonExitHref({ returnTo: "class" }), "/student");
 });
 
 Deno.test("summarizePortalRail prefers the first pending assignment and keeps class context", () => {
   const summary = summarizePortalRail({
     assignments: [
-      { id: "asg-1", lessonId: "colors", dueAt: "2026-07-29T00:00:00.000Z", completed: false },
+      { id: "asg-1", lessonId: "colors", classId: "class-1", dueAt: "2026-07-29T00:00:00.000Z", completed: false },
       { id: "asg-2", lessonId: "numbers", dueAt: null, completed: false },
     ],
     classes: [
@@ -86,7 +123,7 @@ Deno.test("summarizePortalRail prefers the first pending assignment and keeps cl
   assertEquals(summary.nextAction, {
     kind: "assignment",
     lessonId: "colors",
-    href: "/student/lessons/colors?assignmentId=asg-1",
+    href: "/student/lessons/colors?assignmentId=asg-1&classId=class-1",
     dueAt: "2026-07-29T00:00:00.000Z",
   });
   assertEquals(summary.primaryClass?.name, "Section Sunflower");
@@ -100,6 +137,7 @@ Deno.test("summarizePortalRail picks the earliest due pending assignment regardl
       {
         id: "asg-later",
         lessonId: "numbers",
+        classId: "class-2",
         dueAt: "2026-08-02T00:00:00.000Z",
         createdAt: "2026-07-28T12:00:00.000Z",
         completed: false,
@@ -107,6 +145,7 @@ Deno.test("summarizePortalRail picks the earliest due pending assignment regardl
       {
         id: "asg-sooner",
         lessonId: "colors",
+        classId: "class-1",
         dueAt: "2026-07-29T00:00:00.000Z",
         createdAt: "2026-07-28T08:00:00.000Z",
         completed: false,
@@ -123,8 +162,27 @@ Deno.test("summarizePortalRail picks the earliest due pending assignment regardl
   assertEquals(summary.nextAction, {
     kind: "assignment",
     lessonId: "colors",
-    href: "/student/lessons/colors?assignmentId=asg-sooner",
+    href: "/student/lessons/colors?assignmentId=asg-sooner&classId=class-1",
     dueAt: "2026-07-29T00:00:00.000Z",
+  });
+});
+
+Deno.test("summarizePortalRail passes single-class context into free play launches", () => {
+  const summary = summarizePortalRail({
+    assignments: [],
+    classes: [
+      { id: "class-1", name: "Section Sunflower", teacherName: "Teacher Mia" },
+    ],
+    dashboard: {
+      completedLessons: 0,
+      streakDays: 0,
+      recentAttempts: [],
+    },
+  });
+
+  assertEquals(summary.nextAction, {
+    kind: "free-play",
+    href: "/student",
   });
 });
 
@@ -141,7 +199,7 @@ Deno.test("summarizePortalRail falls back to free play messaging and join prompt
 
   assertEquals(summary.nextAction, {
     kind: "free-play",
-    href: "/student/lessons",
+    href: "/student",
   });
   assertEquals(summary.primaryClass, null);
   assertEquals(summary.showJoinPrompt, true);

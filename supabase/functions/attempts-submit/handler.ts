@@ -15,6 +15,7 @@ type AttemptInsertInput = {
   studentId: string;
   lessonId: string;
   assignmentId: string | null;
+  classId: string | null;
   score: number;
   maxScore: number;
   durationSeconds: number | null;
@@ -35,6 +36,7 @@ type AttemptGameResultInsert = {
 
 type AttemptsSubmitDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
+  resolveAttemptClassId(input: ResolveAttemptClassIdInput): Promise<string | null>;
   insertAttempt(input: AttemptInsertInput): Promise<{
     id: string;
     lesson_id: string;
@@ -45,10 +47,135 @@ type AttemptsSubmitDeps = {
   insertAttemptGameResults(rows: AttemptGameResultInsert[]): Promise<void>;
 };
 
+type AssignmentContext = {
+  classId: string | null;
+  studentId: string | null;
+};
+
+type ResolveAttemptClassIdInput = {
+  studentId: string;
+  assignmentId: string | null;
+  requestedClassId: string | null;
+};
+
+type ResolveAttemptClassIdDeps = {
+  getAssignmentContext(assignmentId: string): Promise<AssignmentContext | null>;
+  isStudentEnrolledInClass(studentId: string, classId: string): Promise<boolean>;
+};
+
+class AttemptsSubmitHttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "AttemptsSubmitHttpError";
+  }
+}
+
+const defaultResolveAttemptClassIdDeps: ResolveAttemptClassIdDeps = {
+  async getAssignmentContext(assignmentId) {
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data, error } = await adminClient
+      .from("assignments")
+      .select("class_id, student_id")
+      .eq("id", assignmentId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      classId: data.class_id ?? null,
+      studentId: data.student_id ?? null,
+    };
+  },
+  async isStudentEnrolledInClass(studentId, classId) {
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data, error } = await adminClient
+      .from("class_students")
+      .select("class_id")
+      .eq("class_id", classId)
+      .eq("student_id", studentId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return Boolean(data);
+  },
+};
+
+export async function resolveAttemptClassId(
+  input: ResolveAttemptClassIdInput,
+  deps: ResolveAttemptClassIdDeps = defaultResolveAttemptClassIdDeps,
+): Promise<string | null> {
+  if (input.assignmentId) {
+    const assignment = await deps.getAssignmentContext(input.assignmentId);
+    if (!assignment) {
+      throw new AttemptsSubmitHttpError(404, "Assignment not found");
+    }
+
+    if (assignment.studentId && assignment.studentId !== input.studentId) {
+      throw new AttemptsSubmitHttpError(
+        403,
+        "That assignment is not available to this student",
+      );
+    }
+
+    if (!assignment.classId) {
+      return null;
+    }
+
+    if (
+      input.requestedClassId &&
+      input.requestedClassId !== assignment.classId
+    ) {
+      throw new AttemptsSubmitHttpError(422, "classId does not match the assignment");
+    }
+
+    const isEnrolled = await deps.isStudentEnrolledInClass(
+      input.studentId,
+      assignment.classId,
+    );
+    if (!isEnrolled) {
+      throw new AttemptsSubmitHttpError(
+        403,
+        "That assignment is not available to this student",
+      );
+    }
+
+    return assignment.classId;
+  }
+
+  if (!input.requestedClassId) {
+    return null;
+  }
+
+  const isEnrolled = await deps.isStudentEnrolledInClass(
+    input.studentId,
+    input.requestedClassId,
+  );
+  if (!isEnrolled) {
+    throw new AttemptsSubmitHttpError(403, "That class is not available to this student");
+  }
+
+  return input.requestedClassId;
+}
+
 const defaultDeps: AttemptsSubmitDeps = {
   async getAuthedProfile(req) {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
+  },
+  async resolveAttemptClassId(input) {
+    return resolveAttemptClassId(input);
   },
   async insertAttempt(input) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -58,6 +185,7 @@ const defaultDeps: AttemptsSubmitDeps = {
         student_id: input.studentId,
         lesson_id: input.lessonId,
         assignment_id: input.assignmentId,
+        class_id: input.classId,
         score: input.score,
         max_score: input.maxScore,
         duration_seconds: input.durationSeconds,
@@ -123,6 +251,9 @@ export function createAttemptsSubmitHandler(deps: AttemptsSubmitDeps = defaultDe
       const score = Number(body?.score);
       const maxScore = Number(body?.maxScore);
       const assignmentId = body?.assignmentId ?? null;
+      const requestedClassId = typeof body?.classId === "string"
+        ? body.classId
+        : null;
       const durationSeconds = body?.durationSeconds != null ? Number(body.durationSeconds) : null;
       const gameResults = Array.isArray(body?.gameResults) ? body.gameResults : [];
 
@@ -134,11 +265,17 @@ export function createAttemptsSubmitHandler(deps: AttemptsSubmitDeps = defaultDe
         return errorResponse("gameResults must contain valid detailed game rows", 422);
       }
       const detailedGameResults = gameResults as AttemptGameResultInput[];
+      const classId = await deps.resolveAttemptClassId({
+        studentId: profile.id,
+        assignmentId,
+        requestedClassId,
+      });
 
       const attempt = await deps.insertAttempt({
         studentId: profile.id,
         lessonId,
         assignmentId,
+        classId,
         score,
         maxScore,
         durationSeconds,
@@ -161,6 +298,9 @@ export function createAttemptsSubmitHandler(deps: AttemptsSubmitDeps = defaultDe
 
       return jsonResponse({ attempt }, 201);
     } catch (error) {
+      if (error instanceof AttemptsSubmitHttpError) {
+        return errorResponse(error.message, error.status);
+      }
       console.error("attempts-submit failed", error);
       return errorResponse("We couldn't save that attempt right now.", 500);
     }

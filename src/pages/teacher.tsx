@@ -30,6 +30,7 @@ import {
   useTeacherClassReport,
   useTeacherReportsOverview,
 } from '@/lib/hooks';
+import { buildTeacherClassReportPageState } from '@/lib/teacher-class-report-page-state';
 import { parseTeacherReportsWindow } from '@/lib/teacher-reports';
 import type { TeacherClassStudent, TeacherClassSummary } from '@/lib/api';
 
@@ -281,43 +282,51 @@ export function TeacherClassReportPage({ classId }: { classId: string }) {
     return <div className="p-8 text-center font-bold">Loading class report...</div>;
   }
 
-  if (!data) {
-    return <div className="p-8 text-center font-bold">Class report unavailable.</div>;
-  }
+  const pageState = buildTeacherClassReportPageState({
+    data: data ?? null,
+    error,
+  });
+  const report = pageState.kind === 'ready' ? pageState.report : null;
 
   return (
     <TeacherWorkspaceBoard
       heading={(
         <>
-          <h1 className="text-4xl font-display font-bold">{data.classSummary.name}</h1>
-          <p className="mt-2 font-bold text-muted-foreground">
-            Code: {data.classSummary.joinCode} | {data.windowLabel}
-          </p>
+          <h1 className="text-4xl font-display font-bold">{pageState.title}</h1>
+          <p className="mt-2 font-bold text-muted-foreground">{pageState.subtitle}</p>
         </>
       )}
-      action={<TeacherClassReportPdfButton report={data} disabled={!data.hasData} />}
+      action={report ? <TeacherClassReportPdfButton report={report} disabled={!report.hasData} /> : undefined}
     >
       <TeacherReportsWindowPicker
         value={windowKey}
         onChange={(nextWindow) => setLocation(`/teacher/reports/classes/${classId}?window=${nextWindow}`)}
       />
 
-      {error && (
+      {pageState.kind === 'error' && (
         <Card className="mb-6 rounded-[24px] p-6 font-bold text-destructive">
-          {(error as Error).message || "We couldn't load this class report right now."}
+          {pageState.message}
         </Card>
       )}
 
-      {!data.hasData && (
+      {pageState.kind === 'empty' && (
+        <Card className="mb-6 rounded-[24px] p-6 font-bold text-muted-foreground">
+          {pageState.message}
+        </Card>
+      )}
+
+      {report && !report.hasData && (
         <Card className="mb-6 rounded-[24px] p-6 font-bold text-muted-foreground">
           No reportable game results exist for this class in the selected window.
         </Card>
       )}
 
-      <div className="grid gap-6">
-        <TeacherClassReportStudentTable rows={data.studentRows} />
-        <TeacherClassReportTopicBreakdown rows={data.topicBreakdown} />
-      </div>
+      {report && (
+        <div className="grid gap-6">
+          <TeacherClassReportStudentTable rows={report.studentRows} />
+          <TeacherClassReportTopicBreakdown rows={report.topicBreakdown} />
+        </div>
+      )}
     </TeacherWorkspaceBoard>
   );
 }

@@ -91,6 +91,7 @@ import {
   buildAttemptGameResult,
   type AttemptGameResultInput,
 } from '@/lib/attempt-game-results';
+import { buildStudentLessonExitHref } from '@/lib/student-portal';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
@@ -99,9 +100,12 @@ export function QuizPage() {
   const searchStr = useSearch();
   const searchParams = new URLSearchParams(searchStr);
   const assignmentId = searchParams.get('assignmentId') || undefined;
+  const classId = searchParams.get('classId') || undefined;
+  const returnTo = searchParams.get('returnTo');
   const topic = params?.topic || 'colors';
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
+  const exitHref = buildStudentLessonExitHref({ classId, returnTo });
 
   const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
 
@@ -142,6 +146,10 @@ export function QuizPage() {
     setGameState('quiz-intro');
   };
 
+  const handleExit = () => {
+    setLocation(exitHref);
+  };
+
   // ── Quiz handlers ──────────────────────────────────────────────────────────
   const startGame = () => {
     setCurrentIndex(0);
@@ -180,6 +188,7 @@ export function QuizPage() {
       await submitAttempt.mutateAsync({
         lessonId: topic,
         assignmentId,
+        classId,
         score: finalScore,
         maxScore,
         durationSeconds,
@@ -230,11 +239,11 @@ export function QuizPage() {
   // ─────────────────────────────────────────────────────────────────────────
   if (!questions.length && !lesson) {
     return (
-      <GameLayout topic={topic} title="Coming Soon">
+      <GameLayout topic={topic} title="Coming Soon" onExit={handleExit}>
         <Card className="p-8 text-center max-w-md w-full">
           <h2 className="text-2xl font-bold mb-4">Under Construction</h2>
           <p className="text-muted-foreground mb-8">This chapter's questions are being built!</p>
-          <Button onClick={() => setLocation('/student/lessons')}>Go Back</Button>
+          <Button onClick={handleExit}>Go Back</Button>
         </Card>
       </GameLayout>
     );
@@ -245,7 +254,7 @@ export function QuizPage() {
   // ─────────────────────────────────────────────────────────────────────────
   if (gameState === 'video') {
     return (
-      <GameLayout topic={topic} stage="video">
+      <GameLayout topic={topic} stage="video" onExit={handleExit}>
         <div className="w-full max-w-3xl flex flex-col items-center gap-6 animate-in fade-in duration-500">
           {/* Title */}
           <div className="text-center space-y-1">
@@ -310,7 +319,7 @@ export function QuizPage() {
     const isLast = slideIndex === slides.length - 1;
 
     return (
-      <GameLayout topic={topic} stage="lesson">
+      <GameLayout topic={topic} stage="lesson" onExit={handleExit}>
         <div className="w-full max-w-2xl flex flex-col items-center gap-6">
           {slide ? (
             <LessonSlideCard slide={slide} index={slideIndex + 1} total={slides.length} />
@@ -373,18 +382,18 @@ export function QuizPage() {
   // ─────────────────────────────────────────────────────────────────────────
   if (!questions.length) {
     return (
-      <GameLayout topic={topic} stage="quiz">
+      <GameLayout topic={topic} stage="quiz" onExit={handleExit}>
         <Card className="p-8 text-center max-w-md w-full">
           <h2 className="text-2xl font-bold mb-4">Under Construction</h2>
           <p className="text-muted-foreground mb-8">This chapter's questions are being built!</p>
-          <Button onClick={() => setLocation('/student/lessons')}>Go Back</Button>
+          <Button onClick={handleExit}>Go Back</Button>
         </Card>
       </GameLayout>
     );
   }
 
   return (
-    <GameLayout topic={topic} stage="quiz">
+    <GameLayout topic={topic} stage="quiz" onExit={handleExit}>
 
       {gameState === 'quiz-intro' && (
         <Card className="max-w-md w-full p-8 text-center animate-in zoom-in-95 duration-500 shadow-2xl border-4 border-primary">
@@ -432,6 +441,7 @@ export function QuizPage() {
               await submitAttempt.mutateAsync({
                 lessonId: topic,
                 assignmentId,
+                classId,
                 score: finalScore,
                 maxScore: 17,
                 durationSeconds,

@@ -48,6 +48,7 @@ export interface TeacherClassStudent {
 export interface AssignmentForStudent {
   id: string;
   lessonId: string;
+  classId: string | null;
   dueAt: string | null;
   createdAt: string;
   completed: boolean;
@@ -153,6 +154,7 @@ export const api = {
     submit: (input: {
       lessonId: string;
       assignmentId?: string;
+      classId?: string;
       score: number;
       maxScore: number;
       durationSeconds?: number;

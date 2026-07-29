@@ -12,6 +12,7 @@ export type PortalTopicId =
 export type PortalAssignment = {
   id: string;
   lessonId: string;
+  classId?: string | null;
   dueAt: string | null;
   createdAt?: string | null;
   completed: boolean;
@@ -50,7 +51,7 @@ export type PortalTopicEntry = {
 export type PortalRailSummary = {
   nextAction:
     | { kind: "assignment"; lessonId: PortalTopicId; href: string; dueAt: string | null }
-    | { kind: "free-play"; href: "/student/lessons" };
+    | { kind: "free-play"; href: string };
   primaryClass: PortalClass | null;
   classCount: number;
   completedLessons: number;
@@ -76,6 +77,8 @@ export const LEGACY_TOPIC_META: ReadonlyArray<{
   { id: "comparison", lessonNumber: 8, fallbackLabel: "Comparison", assetSrc: "/assets/images/1COM.png" },
   { id: "clock", lessonNumber: 9, fallbackLabel: "Clock", assetSrc: "/assets/images/1CLO.png" },
 ] as const;
+
+export type StudentLessonReturnTo = "dashboard" | "class";
 
 function toPortalTopicId(value: string): PortalTopicId | null {
   return LEGACY_TOPIC_META.find((topic) => topic.id === value)?.id ?? null;
@@ -112,8 +115,47 @@ function toScorePct(score: number, maxScore: number) {
   return maxScore > 0 ? Math.round((score / maxScore) * 100) : null;
 }
 
+function getSingleClassId(classes: PortalClass[]) {
+  return classes.length === 1 ? classes[0].id : null;
+}
+
+export function buildStudentLessonHref(input: {
+  lessonId: PortalTopicId;
+  assignmentId?: string | null;
+  classId?: string | null;
+  returnTo?: StudentLessonReturnTo | null;
+}): string {
+  const params = new URLSearchParams();
+  if (input.assignmentId) {
+    params.set("assignmentId", input.assignmentId);
+  }
+  if (input.classId) {
+    params.set("classId", input.classId);
+  }
+  if (input.returnTo === "class" && input.classId) {
+    params.set("returnTo", input.returnTo);
+  }
+
+  const query = params.toString();
+  return query
+    ? `/student/lessons/${input.lessonId}?${query}`
+    : `/student/lessons/${input.lessonId}`;
+}
+
+export function buildStudentLessonExitHref(input: {
+  classId?: string | null;
+  returnTo?: string | null;
+}): string {
+  if (input.returnTo === "class" && input.classId) {
+    return `/student/classes/${input.classId}`;
+  }
+
+  return "/student";
+}
+
 export function buildPortalTopicEntries(input: {
   assignments: PortalAssignment[];
+  classes?: PortalClass[];
   recentAttempts: PortalRecentAttempt[];
 }): PortalTopicEntry[] {
   const assignmentByLesson = new Map<PortalTopicId, PortalAssignment>();
@@ -130,6 +172,7 @@ export function buildPortalTopicEntries(input: {
       return topicId ? [[topicId, attempt] as const] : [];
     }),
   );
+  const singleClassId = getSingleClassId(input.classes ?? []);
 
   return LEGACY_TOPIC_META.map((topic) => {
     const assignment = assignmentByLesson.get(topic.id);
@@ -137,9 +180,11 @@ export function buildPortalTopicEntries(input: {
 
     return {
       ...topic,
-      href: assignment
-        ? `/student/lessons/${topic.id}?assignmentId=${assignment.id}`
-        : `/student/lessons/${topic.id}`,
+      href: buildStudentLessonHref({
+        lessonId: topic.id,
+        assignmentId: assignment?.id ?? null,
+        classId: assignment ? assignment.classId ?? null : singleClassId,
+      }),
       isAssigned: Boolean(assignment),
       isCompleted: Boolean(attempt),
       recentScorePct: attempt ? toScorePct(attempt.score, attempt.maxScore) : null,
@@ -160,18 +205,23 @@ export function summarizePortalRail(input: {
   const recentAttempt = input.dashboard.recentAttempts[0] ?? null;
   const recentLessonId = recentAttempt ? toPortalTopicId(recentAttempt.lessonId) : null;
   const primaryClass = input.classes[0] ?? null;
+  const singleClassId = getSingleClassId(input.classes);
 
   return {
     nextAction: nextAssignment && nextLessonId
       ? {
           kind: "assignment",
           lessonId: nextLessonId,
-          href: `/student/lessons/${nextLessonId}?assignmentId=${nextAssignment.id}`,
+          href: buildStudentLessonHref({
+            lessonId: nextLessonId,
+            assignmentId: nextAssignment.id,
+            classId: nextAssignment.classId ?? null,
+          }),
           dueAt: nextAssignment.dueAt,
         }
       : {
           kind: "free-play",
-          href: "/student/lessons",
+          href: "/student",
         },
     primaryClass,
     classCount: input.classes.length,

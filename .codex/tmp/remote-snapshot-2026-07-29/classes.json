@@ -1,0 +1,26 @@
+{
+    "value":  [
+                  {
+                      "id":  "c81f5db4-15f8-4c9b-9f0f-423fc84f0735",
+                      "teacher_id":  "261284e9-6700-4b22-9b49-b87d4fca3abf",
+                      "name":  "Kinder A",
+                      "join_code":  "36Z74D",
+                      "created_at":  "2026-07-15T09:29:30.340863+00:00"
+                  },
+                  {
+                      "id":  "d29aa72e-3052-49c9-95db-4bee1060fb64",
+                      "teacher_id":  "230f6b86-c3f7-45e1-b1a2-a5d08f84340a",
+                      "name":  "Kinder B",
+                      "join_code":  "PRMUP5",
+                      "created_at":  "2026-07-15T09:30:43.877887+00:00"
+                  },
+                  {
+                      "id":  "25b2cf3e-f2cc-4e36-bcd3-acc1f0a4fbd0",
+                      "teacher_id":  "5dcd000a-f908-41a9-87f4-628a536613bf",
+                      "name":  "Testing",
+                      "join_code":  "M6U49L",
+                      "created_at":  "2026-07-15T11:22:15.34598+00:00"
+                  }
+              ],
+    "Count":  3
+}

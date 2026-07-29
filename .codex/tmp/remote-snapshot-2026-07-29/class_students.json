@@ -1,0 +1,30 @@
+{
+    "value":  [
+                  {
+                      "class_id":  "c81f5db4-15f8-4c9b-9f0f-423fc84f0735",
+                      "student_id":  "818b7d7a-8ee2-48ba-8bc0-dc48352be9ca",
+                      "joined_at":  "2026-07-15T09:29:32.879638+00:00"
+                  },
+                  {
+                      "class_id":  "d29aa72e-3052-49c9-95db-4bee1060fb64",
+                      "student_id":  "fe949593-c71f-4fcc-af30-f56755b6c7a6",
+                      "joined_at":  "2026-07-15T09:30:45.833479+00:00"
+                  },
+                  {
+                      "class_id":  "25b2cf3e-f2cc-4e36-bcd3-acc1f0a4fbd0",
+                      "student_id":  "eb900cff-ed32-4256-b283-bd54e262c297",
+                      "joined_at":  "2026-07-15T11:42:28.170811+00:00"
+                  },
+                  {
+                      "class_id":  "25b2cf3e-f2cc-4e36-bcd3-acc1f0a4fbd0",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "joined_at":  "2026-07-17T03:22:08.605649+00:00"
+                  },
+                  {
+                      "class_id":  "25b2cf3e-f2cc-4e36-bcd3-acc1f0a4fbd0",
+                      "student_id":  "acccbf1c-2035-4e8d-8fce-96af3165c82f",
+                      "joined_at":  "2026-07-24T07:20:31.768789+00:00"
+                  }
+              ],
+    "Count":  5
+}

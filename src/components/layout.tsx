@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/useAuth';
 import { useLanguage } from '@/lib/useLanguage';
+import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student-nav';
 import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher-nav';
 import { signOut } from '@/lib/auth';
 import { Button } from './ui';
@@ -26,7 +27,7 @@ function isAppNavItemActive(location: string, href: string, isTeacher: boolean) 
     return isTeacherNavActive(location, href);
   }
 
-  return location === href || (location.startsWith(href) && href !== '/student');
+  return isStudentNavActive(location, href);
 }
 
 export function TopNav() {
@@ -45,10 +46,12 @@ export function TopNav() {
 
   const isTeacher = user?.role === 'teacher';
   const teacherNavItems = getTeacherNavItems(t);
-  const navItems = user ? (isTeacher ? teacherNavItems : [
-    { href: '/student', label: t('student.dashboard'), icon: Map },
-    { href: '/student/lessons', label: t('student.portal.allLessons'), icon: Compass },
-  ]) : [];
+  const studentNavItems = STUDENT_NAV_ITEMS.map((item) => ({
+    href: item.href,
+    label: t(item.labelKey),
+    icon: Map,
+  }));
+  const navItems = user ? (isTeacher ? teacherNavItems : studentNavItems) : [];
 
   return (
     <header className="sticky top-0 z-40 w-full border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -131,10 +134,12 @@ export function AppLayout({
   const showSidebar = sidebarMode !== 'hidden';
 
   const teacherNavItems = getTeacherNavItems(t);
-  const navItems = isTeacher ? teacherNavItems : [
-    { href: '/student', label: t('student.dashboard'), icon: Map },
-    { href: '/student/lessons', label: t('student.portal.allLessons'), icon: Compass },
-  ];
+  const studentNavItems = STUDENT_NAV_ITEMS.map((item) => ({
+    href: item.href,
+    label: t(item.labelKey),
+    icon: Map,
+  }));
+  const navItems = isTeacher ? teacherNavItems : studentNavItems;
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">

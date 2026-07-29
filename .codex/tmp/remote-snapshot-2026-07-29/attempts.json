@@ -1,0 +1,170 @@
+{
+    "value":  [
+                  {
+                      "id":  "6d394c70-bf65-4a38-b31a-d0a97f0f42fb",
+                      "student_id":  "818b7d7a-8ee2-48ba-8bc0-dc48352be9ca",
+                      "lesson_id":  "3e1bd34f-1035-44b0-9b57-b35d385db7f6",
+                      "assignment_id":  null,
+                      "score":  8,
+                      "max_score":  10,
+                      "duration_seconds":  42,
+                      "completed_at":  "2026-07-15T09:29:39.927917+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "f4503a14-1bb8-4587-a879-10f47a8cef9f",
+                      "student_id":  "eb900cff-ed32-4256-b283-bd54e262c297",
+                      "lesson_id":  "colors",
+                      "assignment_id":  null,
+                      "score":  9,
+                      "max_score":  11,
+                      "duration_seconds":  138,
+                      "completed_at":  "2026-07-15T11:48:36.128121+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "e3aae385-8b6e-4629-8c6b-d4039418709c",
+                      "student_id":  "eb900cff-ed32-4256-b283-bd54e262c297",
+                      "lesson_id":  "colors",
+                      "assignment_id":  null,
+                      "score":  10,
+                      "max_score":  11,
+                      "duration_seconds":  22,
+                      "completed_at":  "2026-07-15T12:55:28.287677+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "c3de4d78-49e6-46f9-a452-3d2106b0825c",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "shapes",
+                      "assignment_id":  null,
+                      "score":  8,
+                      "max_score":  9,
+                      "duration_seconds":  11,
+                      "completed_at":  "2026-07-17T13:12:25.110205+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "aabf43fe-9d70-488b-993c-6088e2f0f806",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "shapes",
+                      "assignment_id":  null,
+                      "score":  8,
+                      "max_score":  9,
+                      "duration_seconds":  100,
+                      "completed_at":  "2026-07-18T01:17:52.963231+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "2cf8508a-4dd4-4b5f-829c-4f8c922016d8",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "shapes",
+                      "assignment_id":  null,
+                      "score":  8,
+                      "max_score":  9,
+                      "duration_seconds":  23,
+                      "completed_at":  "2026-07-22T03:26:49.601027+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "55e258d0-24da-42f5-a82a-98563b5c94d0",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "sequencing",
+                      "assignment_id":  null,
+                      "score":  9,
+                      "max_score":  10,
+                      "duration_seconds":  5,
+                      "completed_at":  "2026-07-22T04:39:18.876+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "80a7e86b-e976-449a-9d82-a90a181dbed3",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "subtraction",
+                      "assignment_id":  null,
+                      "score":  9,
+                      "max_score":  10,
+                      "duration_seconds":  9,
+                      "completed_at":  "2026-07-22T07:13:55.336216+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "fbf4d97f-d0ed-407b-a946-edea7fc6eb9b",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "shapes",
+                      "assignment_id":  null,
+                      "score":  8,
+                      "max_score":  9,
+                      "duration_seconds":  10,
+                      "completed_at":  "2026-07-22T07:20:45.929492+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "f25c0dfb-8511-45ea-949d-fa8d23896ae1",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "sequencing",
+                      "assignment_id":  null,
+                      "score":  9,
+                      "max_score":  10,
+                      "duration_seconds":  5,
+                      "completed_at":  "2026-07-22T07:21:02.722653+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "ee66ce85-bcd7-4bfc-8d3f-a22acdde266b",
+                      "student_id":  "76b92207-1f1f-4f8c-b334-c7ef107c64a6",
+                      "lesson_id":  "colors",
+                      "assignment_id":  null,
+                      "score":  25,
+                      "max_score":  17,
+                      "duration_seconds":  39,
+                      "completed_at":  "2026-07-22T07:31:33.120662+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "f1f843f9-c380-4827-a358-0aa18f41865e",
+                      "student_id":  "acccbf1c-2035-4e8d-8fce-96af3165c82f",
+                      "lesson_id":  "measurement",
+                      "assignment_id":  null,
+                      "score":  6,
+                      "max_score":  7,
+                      "duration_seconds":  1881,
+                      "completed_at":  "2026-07-24T08:56:16.606431+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "f403a5b4-8215-43d9-872f-74751ab309eb",
+                      "student_id":  "acccbf1c-2035-4e8d-8fce-96af3165c82f",
+                      "lesson_id":  "measurement",
+                      "assignment_id":  null,
+                      "score":  6,
+                      "max_score":  7,
+                      "duration_seconds":  26,
+                      "completed_at":  "2026-07-24T10:30:51.784361+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "23f030d1-0c38-4dcb-8749-76b079d851ec",
+                      "student_id":  "acccbf1c-2035-4e8d-8fce-96af3165c82f",
+                      "lesson_id":  "comparison",
+                      "assignment_id":  null,
+                      "score":  10,
+                      "max_score":  11,
+                      "duration_seconds":  1534,
+                      "completed_at":  "2026-07-24T11:01:58.931147+00:00",
+                      "class_id":  null
+                  },
+                  {
+                      "id":  "bbc45a0a-e987-463b-b40d-be052e25d0ea",
+                      "student_id":  "acccbf1c-2035-4e8d-8fce-96af3165c82f",
+                      "lesson_id":  "clock",
+                      "assignment_id":  null,
+                      "score":  6,
+                      "max_score":  7,
+                      "duration_seconds":  1594,
+                      "completed_at":  "2026-07-24T12:17:43.782829+00:00",
+                      "class_id":  null
+                  }
+              ],
+    "Count":  15
+}

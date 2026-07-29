@@ -1,0 +1,32 @@
+{
+    "value":  [
+                  {
+                      "id":  "a7d09e89-dff3-4a4a-9155-e74ad158cef4",
+                      "lesson_id":  "3e1bd34f-1035-44b0-9b57-b35d385db7f6",
+                      "class_id":  "c81f5db4-15f8-4c9b-9f0f-423fc84f0735",
+                      "student_id":  null,
+                      "assigned_by":  "261284e9-6700-4b22-9b49-b87d4fca3abf",
+                      "due_at":  null,
+                      "created_at":  "2026-07-15T09:29:37.055999+00:00"
+                  },
+                  {
+                      "id":  "9ec55c47-6572-4d81-a91a-43ab67637df9",
+                      "lesson_id":  "colors",
+                      "class_id":  "25b2cf3e-f2cc-4e36-bcd3-acc1f0a4fbd0",
+                      "student_id":  null,
+                      "assigned_by":  "5dcd000a-f908-41a9-87f4-628a536613bf",
+                      "due_at":  null,
+                      "created_at":  "2026-07-17T00:00:45.519127+00:00"
+                  },
+                  {
+                      "id":  "2c6e2bd5-9159-4942-86b6-62623dd8c162",
+                      "lesson_id":  "shapes",
+                      "class_id":  "25b2cf3e-f2cc-4e36-bcd3-acc1f0a4fbd0",
+                      "student_id":  null,
+                      "assigned_by":  "5dcd000a-f908-41a9-87f4-628a536613bf",
+                      "due_at":  null,
+                      "created_at":  "2026-07-17T00:03:01.656139+00:00"
+                  }
+              ],
+    "Count":  3
+}

@@ -10,7 +10,7 @@ import { allTopics } from '@/data';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
-import { buildPortalTopicEntries, summarizePortalRail } from '@/lib/student-portal';
+import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@/lib/student-portal';
 import { useLanguage } from '@/lib/useLanguage';
 
 export function StudentDashboard() {
@@ -50,6 +50,11 @@ export function StudentDashboard() {
   const showDashboardNotice = Boolean(dashboardError || assignmentsError || classesError || !dashboard);
   const topics = buildPortalTopicEntries({
     assignments,
+    classes: myClasses.map((klass) => ({
+      id: klass.id,
+      name: klass.name,
+      teacherName: klass.teacherName,
+    })),
     recentAttempts: dashboardSummary.recentAttempts || [],
   });
   const railSummary = summarizePortalRail({
@@ -77,9 +82,6 @@ export function StudentDashboard() {
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Button variant="jungle" onClick={() => window.location.reload()}>
               {t('common.tryAgain')}
-            </Button>
-            <Button variant="outline" onClick={() => setLocation('/student/lessons')}>
-              {t('student.portal.allLessons')}
             </Button>
           </div>
         </Card>
@@ -140,6 +142,7 @@ export function StudentDashboard() {
 
 export function StudentLessons() {
   const { data: dashboard } = useStudentDashboard();
+  const { data: classesData } = useClasses();
   const [, setLocation] = useLocation();
 
   // Topics to show in order
@@ -164,6 +167,8 @@ export function StudentLessons() {
     if (!attempt) return null;
     return Math.round((attempt.score / attempt.maxScore) * 100);
   };
+  const classes = (classesData?.classes || []) as StudentClassSummary[];
+  const singleClassId = classes.length === 1 ? classes[0].id : null;
 
   return (
     <div className="space-y-12 pb-12 animate-in fade-in duration-700 relative">
@@ -183,7 +188,7 @@ export function StudentLessons() {
               <Card 
                 key={topic} 
                 className={`relative p-5 cursor-pointer transition-all hover:-translate-y-2 border-2 ${theme.border} ${isCompleted ? 'bg-muted/10' : 'bg-card'}`}
-                onClick={() => setLocation(`/student/lessons/${topic}`)}
+                onClick={() => setLocation(buildStudentLessonHref({ lessonId: topic as import('@/lib/student-portal').PortalTopicId, classId: singleClassId }))}
               >
                 {isCompleted && (
                   <div className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-jungle-yellow text-white flex items-center justify-center shadow-sm">
@@ -291,7 +296,19 @@ export function StudentClassDetail({ classId }: { classId: string }) {
                       <Badge variant="jungle" className="mb-1 capitalize">{a.lessonId}</Badge>
                       <p className="text-xs font-bold text-muted-foreground">Pending</p>
                     </div>
-                    <Button size="sm" variant="jungle" onClick={() => setLocation(`/student/lessons/${a.lessonId}?assignmentId=${a.id}`)}>
+                    <Button
+                      size="sm"
+                      variant="jungle"
+                      onClick={() =>
+                        setLocation(
+                          buildStudentLessonHref({
+                            lessonId: a.lessonId as import('@/lib/student-portal').PortalTopicId,
+                            assignmentId: a.id,
+                            classId: classId,
+                            returnTo: 'class',
+                          }),
+                        )}
+                    >
                       Play
                     </Button>
                   </div>

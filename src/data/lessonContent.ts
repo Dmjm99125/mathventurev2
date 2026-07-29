@@ -7,6 +7,10 @@ export interface LessonSlide {
   id: string;
   /** Image to display (relative to /assets/images/) */
   image?: string;
+  /** Image set to display together (relative to /assets/images/) */
+  images?: string[];
+  /** How grouped images should be rendered */
+  groupedImageSizing?: 'uniform' | 'natural';
   /** Video to display (relative to /assets/videos/) */
   video?: string;
   /** English label */
@@ -85,13 +89,23 @@ export const lessonContent: Record<string, TopicLesson> = {
     videoTitle: 'Alpabetong Pilipino / Ang Bagong Alpabetong Filipino / Tagalog / Awiting Pambata',
     videoCredit: 'Musikwela Kids TV',
     slides: [
+      {
+        id: 'sq-count',
+        images: ['1n0.png', '1n1.png', '1n2.png', '1n3.png', '1n4.png', '1n5.png', '1n6.png', '1n7.png', '1n8.png', '1n9.png', '1n10.png'],
+        labelEn: 'Numbers 0 to 10',
+        labelFil: 'Mga Bilang 0 hanggang 10',
+      },
       { id: 'sq-alpha', image: 'alp.png', labelEn: 'The Alphabet', labelFil: 'Alpabeto' },
-      { id: 'sq-alr',   image: 'alr.png', labelEn: 'Alphabet Order', labelFil: 'Ayos ng Alpabeto' },
-      { id: 'sq-sn1',   image: 'sn1.png', labelEn: 'Small',   labelFil: 'Maliit' },
-      { id: 'sq-sn2',   image: 'sn2.png', labelEn: 'Smaller', labelFil: 'Mas Maliit' },
-      { id: 'sq-sn3',   image: 'sn3.png', labelEn: 'Medium',  labelFil: 'Katamtaman' },
-      { id: 'sq-sn4',   image: 'sn4.png', labelEn: 'Bigger',  labelFil: 'Mas Malaki' },
-      { id: 'sq-sn5',   image: 'sn5.png', labelEn: 'Biggest', labelFil: 'Pinaka Malaki' },
+      {
+        id: 'sq-size',
+        images: ['sn1.png', 'sn2.png', 'sn3.png', 'sn4.png', 'sn5.png'],
+        groupedImageSizing: 'natural',
+        labelEn: 'Size Order',
+        labelFil: 'Ayos ng Laki',
+      },
+      { id: 'sq-pattern-1', image: 'r.png', labelEn: 'Pattern 1', labelFil: 'Padron 1' },
+      { id: 'sq-pattern-2', image: 'r1.png', labelEn: 'Pattern 2', labelFil: 'Padron 2' },
+      { id: 'sq-pattern-3', image: 'r2.png', labelEn: 'Pattern 3', labelFil: 'Padron 3' },
     ],
   },
 

@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
   const { data, error } = await adminClient
     .from("assignments")
-    .select("id, due_at, created_at, lesson_id")
+    .select("id, due_at, created_at, lesson_id, class_id")
     .or(
       classIds.length
         ? `student_id.eq.${profile.id},class_id.in.(${classIds.join(",")})`
@@ -68,10 +68,10 @@ Deno.serve(async (req) => {
     assignments: (data ?? []).map((a: any) => ({
       id: a.id,
       lessonId: a.lesson_id,
+      classId: a.class_id,
       dueAt: a.due_at,
       createdAt: a.created_at,
       completed: completedIds.has(a.id),
     })),
   });
 });
-

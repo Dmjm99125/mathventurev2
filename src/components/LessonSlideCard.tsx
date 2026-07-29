@@ -11,6 +11,43 @@ interface LessonSlideProps {
 }
 
 export function LessonSlideCard({ slide, index, total }: LessonSlideProps) {
+  const mediaContent = slide.video ? (
+    <video
+      src={`/assets/videos/${slide.video}`}
+      controls
+      className="max-h-[380px] max-w-full rounded-xl shadow-md"
+    />
+  ) : slide.images?.length ? (
+    <div
+      className={
+        slide.groupedImageSizing === 'natural'
+          ? "flex w-full min-w-0 items-end justify-center gap-3 overflow-hidden"
+          : "grid w-full grid-cols-4 place-items-center gap-3 sm:grid-cols-6"
+      }
+    >
+      {slide.images.map((image, imageIndex) => (
+        <img
+          key={`${slide.id}-${image}`}
+          src={`/assets/images/${image}`}
+          alt={`${slide.labelEn} ${imageIndex + 1}`}
+          className={
+            slide.groupedImageSizing === 'natural'
+              ? "h-auto w-auto min-w-0 max-h-40 max-w-full shrink object-contain drop-shadow-md"
+              : "h-14 w-auto object-contain drop-shadow-md sm:h-20"
+          }
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      ))}
+    </div>
+  ) : slide.image ? (
+    <img
+      src={`/assets/images/${slide.image}`}
+      alt={slide.labelEn}
+      className="max-h-48 max-w-full object-contain drop-shadow-md"
+      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+    />
+  ) : null;
+
   return (
     <div className="w-full max-w-2xl flex flex-col items-center gap-6 animate-in fade-in zoom-in-95 duration-400">
       {/* Slide counter */}
@@ -20,20 +57,7 @@ export function LessonSlideCard({ slide, index, total }: LessonSlideProps) {
 
       {/* Main media */}
       <Card className="p-6 border-4 border-primary/20 shadow-xl bg-white w-full flex items-center justify-center min-h-48">
-        {slide.video ? (
-          <video
-            src={`/assets/videos/${slide.video}`}
-            controls
-            className="max-h-[380px] max-w-full rounded-xl shadow-md"
-          />
-        ) : (
-          <img
-            src={`/assets/images/${slide.image}`}
-            alt={slide.labelEn}
-            className="max-h-48 max-w-full object-contain drop-shadow-md"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        )}
+        {mediaContent}
       </Card>
 
       {/* Bilingual labels + audio */}

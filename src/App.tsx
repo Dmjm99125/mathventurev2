@@ -1,4 +1,4 @@
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { Redirect, Route, Switch, Router as WouterRouter } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/lib/useAuth';
 import { LanguageProvider } from '@/lib/useLanguage';
@@ -14,7 +14,7 @@ import {
   TeacherReportsOverviewPage,
   TeacherSettingsPlaceholder,
 } from '@/pages/teacher';
-import { StudentDashboard, StudentLessons, StudentClassDetail } from '@/pages/student';
+import { StudentDashboard, StudentClassDetail } from '@/pages/student';
 import { QuizPage } from '@/pages/QuizPage';
 import NotFound from '@/pages/not-found';
 
@@ -41,7 +41,7 @@ function AppRoutes() {
         {() => <AppLayout sidebarMode="hidden"><StudentDashboard /></AppLayout>}
       </Route>
       <Route path="/student/lessons">
-        {() => <AppLayout><StudentLessons /></AppLayout>}
+        {() => <Redirect to="/student" replace />}
       </Route>
       <Route path="/student/lessons/:topic">
         {() => <QuizPage />}
