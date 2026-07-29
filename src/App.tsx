@@ -10,7 +10,8 @@ import { Login, Signup } from '@/pages/auth';
 import {
   TeacherClassesHome,
   TeacherClassWorkspace,
-  TeacherReportsPlaceholder,
+  TeacherClassReportPage,
+  TeacherReportsOverviewPage,
   TeacherSettingsPlaceholder,
 } from '@/pages/teacher';
 import { StudentDashboard, StudentLessons, StudentClassDetail } from '@/pages/student';
@@ -58,8 +59,11 @@ function AppRoutes() {
       <Route path="/teacher/classes/:classId">
         {params => <AppLayout sidebarMode="hidden"><TeacherClassWorkspace classId={params.classId} /></AppLayout>}
       </Route>
+      <Route path="/teacher/reports/classes/:classId">
+        {params => <AppLayout sidebarMode="hidden"><TeacherClassReportPage classId={params.classId} /></AppLayout>}
+      </Route>
       <Route path="/teacher/reports">
-        {() => <AppLayout sidebarMode="hidden"><TeacherReportsPlaceholder /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherReportsOverviewPage /></AppLayout>}
       </Route>
       <Route path="/teacher/settings">
         {() => <AppLayout sidebarMode="hidden"><TeacherSettingsPlaceholder /></AppLayout>}

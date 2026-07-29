@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/dialog';
 import { TeacherAddStudentsDialog } from '@/components/teacher/add-students/TeacherAddStudentsDialog';
 import { TeacherReportsAttentionList } from '@/components/teacher/reports/TeacherReportsAttentionList';
+import { TeacherClassReportPdfButton } from '@/components/teacher/reports/TeacherClassReportPdfButton';
+import { TeacherClassReportStudentTable } from '@/components/teacher/reports/TeacherClassReportStudentTable';
+import { TeacherClassReportTopicBreakdown } from '@/components/teacher/reports/TeacherClassReportTopicBreakdown';
 import { TeacherReportsClassComparison } from '@/components/teacher/reports/TeacherReportsClassComparison';
 import { TeacherReportsRecentActivity } from '@/components/teacher/reports/TeacherReportsRecentActivity';
 import { TeacherReportsWindowPicker } from '@/components/teacher/reports/TeacherReportsWindowPicker';
@@ -24,6 +27,7 @@ import {
   useClassRoster,
   useCreateClass,
   useRemoveStudentFromClass,
+  useTeacherClassReport,
   useTeacherReportsOverview,
 } from '@/lib/hooks';
 import { parseTeacherReportsWindow } from '@/lib/teacher-reports';
@@ -264,6 +268,59 @@ export function TeacherReportsOverviewPage() {
 }
 
 export const TeacherReportsPlaceholder = TeacherReportsOverviewPage;
+
+export function TeacherClassReportPage({ classId }: { classId: string }) {
+  const [location, setLocation] = useLocation();
+  const windowKey = React.useMemo(
+    () => parseTeacherReportsWindow(window.location.search),
+    [location],
+  );
+  const { data, isLoading, error } = useTeacherClassReport(classId, windowKey);
+
+  if (isLoading) {
+    return <div className="p-8 text-center font-bold">Loading class report...</div>;
+  }
+
+  if (!data) {
+    return <div className="p-8 text-center font-bold">Class report unavailable.</div>;
+  }
+
+  return (
+    <TeacherWorkspaceBoard
+      heading={(
+        <>
+          <h1 className="text-4xl font-display font-bold">{data.classSummary.name}</h1>
+          <p className="mt-2 font-bold text-muted-foreground">
+            Code: {data.classSummary.joinCode} | {data.windowLabel}
+          </p>
+        </>
+      )}
+      action={<TeacherClassReportPdfButton report={data} disabled={!data.hasData} />}
+    >
+      <TeacherReportsWindowPicker
+        value={windowKey}
+        onChange={(nextWindow) => setLocation(`/teacher/reports/classes/${classId}?window=${nextWindow}`)}
+      />
+
+      {error && (
+        <Card className="mb-6 rounded-[24px] p-6 font-bold text-destructive">
+          {(error as Error).message || "We couldn't load this class report right now."}
+        </Card>
+      )}
+
+      {!data.hasData && (
+        <Card className="mb-6 rounded-[24px] p-6 font-bold text-muted-foreground">
+          No reportable game results exist for this class in the selected window.
+        </Card>
+      )}
+
+      <div className="grid gap-6">
+        <TeacherClassReportStudentTable rows={data.studentRows} />
+        <TeacherClassReportTopicBreakdown rows={data.topicBreakdown} />
+      </div>
+    </TeacherWorkspaceBoard>
+  );
+}
 
 export function TeacherSettingsPlaceholder() {
   return (
