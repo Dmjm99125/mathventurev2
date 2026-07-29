@@ -5,11 +5,18 @@ export const TEACHER_NAV_ITEMS = [
 ] as const;
 
 export function isTeacherNavActive(pathname: string, href: string): boolean {
+  const cleanPath = pathname.split("?")[0].split("#")[0];
+
   if (href === "/teacher") {
-    return pathname === "/teacher"
-      || pathname === "/teacher/classes"
-      || pathname.startsWith("/teacher/classes/");
+    return cleanPath === "/teacher"
+      || cleanPath === "/teacher/classes"
+      || cleanPath.startsWith("/teacher/classes/");
   }
 
-  return pathname === href;
+  if (href === "/teacher/reports") {
+    return cleanPath === "/teacher/reports"
+      || cleanPath.startsWith("/teacher/reports/");
+  }
+
+  return cleanPath === href;
 }

@@ -3,6 +3,11 @@ import type {
   TeacherAddStudentDraft,
   TeacherAddStudentsResult,
 } from './teacher-add-students';
+import type {
+  TeacherClassReportPayload,
+  TeacherReportsOverviewPayload,
+  TeacherReportsWindowKey,
+} from './teacher-reports';
 
 export type Role = 'student' | 'teacher';
 
@@ -161,6 +166,16 @@ export const api = {
   posts: {
     list: (classId: string) => invokeFunction<{ posts: ClassPost[] }>('posts-list', { searchParams: { classId } }),
     create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
+  },
+  reports: {
+    overview: (window: TeacherReportsWindowKey) =>
+      invokeFunction<TeacherReportsOverviewPayload>('reports-overview', {
+        searchParams: { window },
+      }),
+    classDetail: (classId: string, window: TeacherReportsWindowKey) =>
+      invokeFunction<TeacherClassReportPayload>('reports-class', {
+        searchParams: { classId, window },
+      }),
   },
 };
 

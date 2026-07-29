@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from './api';
 import type { TeacherAddStudentDraft } from './teacher-add-students';
+import type { TeacherReportsWindowKey } from './teacher-reports';
 
 export function useClasses() {
   return useQuery({
@@ -35,6 +36,21 @@ export function useTeacherDashboard() {
   return useQuery({
     queryKey: ['dashboard', 'teacher'],
     queryFn: () => api.dashboard.teacher(),
+  });
+}
+
+export function useTeacherReportsOverview(window: TeacherReportsWindowKey) {
+  return useQuery({
+    queryKey: ['teacher-reports', 'overview', window],
+    queryFn: () => api.reports.overview(window),
+  });
+}
+
+export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey) {
+  return useQuery({
+    queryKey: ['teacher-reports', 'class', classId, window],
+    queryFn: () => api.reports.classDetail(classId, window),
+    enabled: !!classId,
   });
 }
 
