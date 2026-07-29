@@ -11,6 +11,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { TeacherAddStudentsDialog } from '@/components/teacher/add-students/TeacherAddStudentsDialog';
+import { TeacherReportsAttentionList } from '@/components/teacher/reports/TeacherReportsAttentionList';
+import { TeacherReportsClassComparison } from '@/components/teacher/reports/TeacherReportsClassComparison';
+import { TeacherReportsRecentActivity } from '@/components/teacher/reports/TeacherReportsRecentActivity';
+import { TeacherReportsWindowPicker } from '@/components/teacher/reports/TeacherReportsWindowPicker';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
 import { TeacherClassCard } from '@/components/teacher/TeacherClassCard';
 import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentListTable';
@@ -20,7 +24,9 @@ import {
   useClassRoster,
   useCreateClass,
   useRemoveStudentFromClass,
+  useTeacherReportsOverview,
 } from '@/lib/hooks';
+import { parseTeacherReportsWindow } from '@/lib/teacher-reports';
 import type { TeacherClassStudent, TeacherClassSummary } from '@/lib/api';
 
 export function TeacherClassesHome() {
@@ -203,17 +209,61 @@ export function TeacherClassWorkspace({ classId }: { classId: string }) {
   );
 }
 
-export function TeacherReportsPlaceholder() {
+export function TeacherReportsOverviewPage() {
+  const [location, setLocation] = useLocation();
+  const windowKey = React.useMemo(
+    () => parseTeacherReportsWindow(window.location.search),
+    [location],
+  );
+  const { data, isLoading, error } = useTeacherReportsOverview(windowKey);
+
+  if (isLoading) {
+    return <div className="p-8 text-center font-bold">Loading reports...</div>;
+  }
+
   return (
     <TeacherWorkspaceBoard
-      heading={<h1 className="text-4xl font-display font-bold">Reports</h1>}
+      heading={(
+        <>
+          <h1 className="text-4xl font-display font-bold">Reports</h1>
+          <p className="mt-2 font-bold text-muted-foreground">
+            Compare classes, find students who need attention, and open class reports.
+          </p>
+        </>
+      )}
     >
-      <Card className="rounded-[24px] p-8 font-bold text-muted-foreground">
-        Reports will be wired in the next teacher flow.
-      </Card>
+      <TeacherReportsWindowPicker
+        value={windowKey}
+        onChange={(nextWindow) => setLocation(`/teacher/reports?window=${nextWindow}`)}
+      />
+
+      {error && (
+        <Card className="mb-6 rounded-[24px] p-6 font-bold text-destructive">
+          {(error as Error).message || "We couldn't load reports right now."}
+        </Card>
+      )}
+
+      {data && (
+        <div className="grid gap-6">
+          <TeacherReportsClassComparison
+            rows={data.classSummaries}
+            onOpenClass={(classId) => setLocation(`/teacher/reports/classes/${classId}?window=${windowKey}`)}
+          />
+          <TeacherReportsAttentionList
+            rows={data.attentionStudents}
+            onOpenClass={(classId) => setLocation(`/teacher/reports/classes/${classId}?window=${windowKey}`)}
+          />
+          <TeacherReportsRecentActivity data={data.recentActivity} />
+          <Card className="rounded-[24px] p-6 font-bold text-muted-foreground">
+            PDF export is available from each class report.
+          </Card>
+        </div>
+      )}
     </TeacherWorkspaceBoard>
   );
 }
+
+export const TeacherReportsPlaceholder = TeacherReportsOverviewPage;
 
 export function TeacherSettingsPlaceholder() {
   return (
