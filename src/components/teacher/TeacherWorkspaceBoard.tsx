@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui';
-import { useAuth } from '@/lib/useAuth';
-import { useLanguage } from '@/lib/useLanguage';
-import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher-nav';
+import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/useLanguage';
+import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { signOut } from '@/lib/auth';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 
 export function TeacherWorkspaceBoard({
   heading,

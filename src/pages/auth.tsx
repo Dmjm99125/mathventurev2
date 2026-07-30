@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/lib/useAuth';
-import { useLanguage } from '@/lib/useLanguage';
+import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 import { studentRegister, studentSignIn, teacherSignIn, teacherSignUp } from '@/lib/auth';
 import { Button, Input, Label, Card } from '@/components/ui';
 import type { Role } from '@/lib/api';

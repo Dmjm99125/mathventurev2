@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/lib/useAuth';
+import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui';
 import { Compass, Sparkles, Map as MapIcon, GraduationCap, Users } from 'lucide-react';
 import { TopNav } from '@/components/layout';

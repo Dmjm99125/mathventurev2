@@ -2,8 +2,8 @@ import React from "react";
 
 import { Button, Card, Input } from "@/components/ui";
 import type { StudentClassSummary } from "@/lib/api";
-import type { PortalRailSummary } from "@/lib/student-portal";
-import { useLanguage } from "@/lib/useLanguage";
+import type { PortalRailSummary } from "@/lib/student/portal";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export function StudentPortalRail({
   summary,

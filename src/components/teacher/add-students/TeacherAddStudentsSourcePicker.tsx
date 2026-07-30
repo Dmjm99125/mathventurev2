@@ -1,5 +1,5 @@
 import { Button, Card } from '@/components/ui';
-import type { TeacherAddStudentsSource } from '@/lib/teacher-add-students-flow';
+import type { TeacherAddStudentsSource } from '@/lib/teacher/add-students/flow';
 
 const SOURCE_OPTIONS: {
   source: TeacherAddStudentsSource;

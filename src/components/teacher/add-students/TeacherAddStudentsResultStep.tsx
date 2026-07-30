@@ -1,5 +1,5 @@
 import { Button, Card } from '@/components/ui';
-import type { TeacherAddStudentsResult } from '@/lib/teacher-add-students';
+import type { TeacherAddStudentsResult } from '@/lib/teacher/add-students';
 
 export function TeacherAddStudentsResultStep({
   result,

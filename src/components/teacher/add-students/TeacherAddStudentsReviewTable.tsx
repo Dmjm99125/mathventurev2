@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui';
-import type { TeacherAddStudentDraft } from '@/lib/teacher-add-students';
+import type { TeacherAddStudentDraft } from '@/lib/teacher/add-students';
 
 export function TeacherAddStudentsReviewTable({
   rows,

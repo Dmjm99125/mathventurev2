@@ -3,7 +3,7 @@ import { Button, Card, Input, Label } from '@/components/ui';
 import {
   normalizeTeacherAddStudentRows,
   type TeacherAddStudentDraft,
-} from '@/lib/teacher-add-students';
+} from '@/lib/teacher/add-students';
 
 type EditableRow = TeacherAddStudentDraft & { id: string };
 

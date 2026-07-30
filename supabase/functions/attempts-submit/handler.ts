@@ -1,6 +1,6 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
-import { isPassingPct } from "../../../src/lib/teacher-progress.ts";
+import { isPassingPct } from "../../../src/lib/teacher/progress.ts";
 
 export type AttemptGameResultInput = {
   topicId: string;

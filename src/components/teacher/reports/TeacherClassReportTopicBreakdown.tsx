@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui';
-import type { TeacherClassReportPayload } from '@/lib/teacher-reports';
+import type { TeacherClassReportPayload } from '@/lib/teacher/reports';
 
 function formatPct(value: number | null) {
   return value == null ? '--' : `${value}%`;

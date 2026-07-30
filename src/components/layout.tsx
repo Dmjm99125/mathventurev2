@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/lib/useAuth';
-import { useLanguage } from '@/lib/useLanguage';
-import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student-nav';
-import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher-nav';
+import { useAuth } from '@/lib/auth';
+import { useLanguage } from '@/lib/i18n/useLanguage';
+import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student/navigation';
+import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { signOut } from '@/lib/auth';
 import { Button } from './ui';
 import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/shared/utils';
 
 function getTeacherNavItems(t: (key: string) => string) {
   return TEACHER_NAV_ITEMS.map((item) => ({

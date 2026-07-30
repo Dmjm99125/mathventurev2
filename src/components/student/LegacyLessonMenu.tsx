@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
-import type { PortalTopicEntry, PortalTopicId } from "@/lib/student-portal";
-import { cn } from "@/lib/utils";
+import type { PortalTopicEntry, PortalTopicId } from "@/lib/student/portal";
+import { cn } from "@/lib/shared/utils";
 
 const headerAssets = [
   { key: "let", src: "/assets/images/1let.png", fallback: "Let's Learn!" },

@@ -29,9 +29,9 @@ import {
   useRemoveStudentFromClass,
   useTeacherClassReport,
   useTeacherReportsOverview,
-} from '@/lib/hooks';
-import { buildTeacherClassReportPageState } from '@/lib/teacher-class-report-page-state';
-import { parseTeacherReportsWindow } from '@/lib/teacher-reports';
+} from '@/lib/api/hooks';
+import { buildTeacherClassReportPageState } from '@/lib/teacher/reports/page-state';
+import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { TeacherClassStudent, TeacherClassSummary } from '@/lib/api';
 
 export function TeacherClassesHome() {

@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useStudentDashboard, useAssignments, useJoinClass, useClasses } from '@/lib/hooks';
+import { useStudentDashboard, useAssignments, useJoinClass, useClasses } from '@/lib/api/hooks';
 import { Card, Button, Badge } from '@/components/ui';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Play, CheckCircle2, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
 import type { AssignmentForStudent, StudentClassSummary } from '@/lib/api';
-import { useClassPosts } from '@/lib/hooks';
+import { useClassPosts } from '@/lib/api/hooks';
 import { allTopics } from '@/data';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
-import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@/lib/student-portal';
-import { useLanguage } from '@/lib/useLanguage';
+import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@/lib/student/portal';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 export function StudentDashboard() {
   const { data: dashboard, isLoading: dashLoading, error: dashboardError } = useStudentDashboard();
@@ -188,7 +188,7 @@ export function StudentLessons() {
               <Card 
                 key={topic} 
                 className={`relative p-5 cursor-pointer transition-all hover:-translate-y-2 border-2 ${theme.border} ${isCompleted ? 'bg-muted/10' : 'bg-card'}`}
-                onClick={() => setLocation(buildStudentLessonHref({ lessonId: topic as import('@/lib/student-portal').PortalTopicId, classId: singleClassId }))}
+                onClick={() => setLocation(buildStudentLessonHref({ lessonId: topic as import('@/lib/student/portal').PortalTopicId, classId: singleClassId }))}
               >
                 {isCompleted && (
                   <div className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-jungle-yellow text-white flex items-center justify-center shadow-sm">
@@ -302,7 +302,7 @@ export function StudentClassDetail({ classId }: { classId: string }) {
                       onClick={() =>
                         setLocation(
                           buildStudentLessonHref({
-                            lessonId: a.lessonId as import('@/lib/student-portal').PortalTopicId,
+                            lessonId: a.lessonId as import('@/lib/student/portal').PortalTopicId,
                             assignmentId: a.id,
                             classId: classId,
                             returnTo: 'class',

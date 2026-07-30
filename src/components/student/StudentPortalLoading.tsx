@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useLanguage } from "@/lib/useLanguage";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 export function StudentPortalLoading() {
   const { t } = useLanguage();

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { TeacherClassReportPayload } from '@/lib/teacher-reports';
+import type { TeacherClassReportPayload } from '@/lib/teacher/reports';
 
 function formatPct(value: number | null) {
   return value == null ? '--' : `${value}%`;

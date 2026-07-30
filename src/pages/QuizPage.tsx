@@ -85,13 +85,13 @@ import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { useSubmitAttempt } from '@/lib/hooks';
+import { useSubmitAttempt } from '@/lib/api/hooks';
 import {
   appendAttemptGameResult,
   buildAttemptGameResult,
   type AttemptGameResultInput,
-} from '@/lib/attempt-game-results';
-import { buildStudentLessonExitHref } from '@/lib/student-portal';
+} from '@/lib/games/attempt-results';
+import { buildStudentLessonExitHref } from '@/lib/student/portal';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 

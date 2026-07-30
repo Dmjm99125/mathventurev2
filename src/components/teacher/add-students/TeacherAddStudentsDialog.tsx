@@ -14,11 +14,11 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useAddStudentsToClass } from '@/lib/hooks';
+import { useAddStudentsToClass } from '@/lib/api/hooks';
 import {
   createInitialTeacherAddStudentsFlowState,
   teacherAddStudentsFlowReducer,
-} from '@/lib/teacher-add-students-flow';
+} from '@/lib/teacher/add-students/flow';
 import { TeacherAddStudentsImportStep } from './TeacherAddStudentsImportStep';
 import { TeacherAddStudentsManualEditor } from './TeacherAddStudentsManualEditor';
 import { TeacherAddStudentsResultStep } from './TeacherAddStudentsResultStep';
