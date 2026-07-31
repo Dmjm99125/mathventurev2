@@ -139,7 +139,7 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
         <div ref={containerRef} className="w-full max-w-4xl mx-auto bg-[#fffae3] rounded-3xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative border-4 border-yellow-200 shrink-0">
 
             {/* HUD & Header */}
-            <div className="bg-white p-4 md:p-6 shadow-sm flex flex-col items-center z-20 relative w-full border-b-2 border-gray-100">
+            <div className="bg-white px-4 py-4 sm:px-6 md:p-6 shadow-sm flex flex-col items-center z-20 relative w-full border-b-2 border-gray-100">
                 {onComplete && score < 10 && (
                     <Button
                         variant="outline"
@@ -149,16 +149,16 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
                         Next Game ➡️
                     </Button>
                 )}
-                <h1 className="text-xl md:text-3xl font-bold text-gray-800 mb-2 font-display uppercase tracking-widest text-center">Shape Matching</h1>
+                <h1 className="text-xl md:text-3xl font-bold text-gray-800 mb-2 font-display uppercase tracking-[0.2em] text-center leading-tight">Shape Matching</h1>
 
                 <div
-                    className="text-4xl md:text-6xl font-extrabold my-2 text-center drop-shadow-sm transition-colors duration-300 tracking-wider"
+                    className="my-2 max-w-full px-4 text-center text-3xl font-extrabold leading-tight break-words drop-shadow-sm transition-colors duration-300 sm:px-6 sm:text-4xl md:text-6xl"
                     style={{ color: targetShape?.color, textShadow: '2px 2px #ddd' }}
                 >
                     {targetShape?.name}
                 </div>
 
-                <div className="text-2xl md:text-3xl font-bold text-orange-500 mt-2 flex items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-2xl font-bold text-orange-500 md:text-3xl">
                     Stars: {score} / 10 <Star className="fill-orange-500 text-orange-500 h-8 w-8" />
                 </div>
 
@@ -175,12 +175,12 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
             </div>
 
             {/* Play Area */}
-            <div className="flex-1 p-6 md:p-12 flex items-center justify-center relative z-20">
-                <div className="flex flex-wrap justify-center gap-6 md:gap-10 max-w-2xl w-full">
+            <div className="relative z-20 flex flex-1 items-center justify-center p-5 sm:p-6 md:p-12">
+                <div className="flex w-full max-w-2xl flex-wrap justify-center gap-4 sm:gap-6 md:gap-10">
                     {options.map((opt, i) => (
                         <button
                             key={i}
-                            className="w-32 h-32 md:w-44 md:h-44 rounded-[2rem] text-7xl md:text-[7rem] flex items-center justify-center text-white shadow-[0_8px_0_0_rgba(0,0,0,0.2)] transition-all hover:-translate-y-2 hover:shadow-[0_12px_0_0_rgba(0,0,0,0.2)] active:translate-y-2 active:shadow-[0_2px_0_0_rgba(0,0,0,0.2)]"
+                            className="flex h-28 w-28 items-center justify-center rounded-[2rem] text-6xl text-white shadow-[0_8px_0_0_rgba(0,0,0,0.2)] transition-all hover:-translate-y-2 hover:shadow-[0_12px_0_0_rgba(0,0,0,0.2)] active:translate-y-2 active:shadow-[0_2px_0_0_rgba(0,0,0,0.2)] sm:h-32 sm:w-32 sm:text-7xl md:h-44 md:w-44 md:text-[7rem]"
                             style={{ backgroundColor: opt.color }}
                             onClick={(e) => handleChoice(opt, e)}
                         >

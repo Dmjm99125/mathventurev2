@@ -113,7 +113,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
   }, [isGameOver, score, highScore]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto h-[700px] flex flex-col relative rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-gradient-to-b from-[#87CEEB] via-[#E0F7FF] to-[#FFF9D6]">
+    <div className="w-full max-w-4xl mx-auto min-h-[700px] flex flex-col relative rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-gradient-to-b from-[#87CEEB] via-[#E0F7FF] to-[#FFF9D6]">
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes floatCloud {
           from { left: -200px; }
@@ -157,7 +157,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
         </Button>
       )}
 
-      <div className="relative z-10 w-full h-full flex flex-col items-center pt-8 px-4">
+      <div className="relative z-10 w-full flex-1 flex flex-col items-center px-4 py-6 md:pt-8">
         {onComplete && (
           <Button
             variant="default"
@@ -169,7 +169,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
         )}
         
         {screen === 'pet' && (
-          <div className="flex flex-col items-center w-full max-w-lg mt-12 bg-white/60 p-8 rounded-3xl backdrop-blur-sm shadow-lg text-center animate-in fade-in zoom-in">
+          <div className="mt-6 flex w-full max-w-lg flex-col items-center rounded-3xl bg-white/60 p-6 text-center shadow-lg backdrop-blur-sm animate-in fade-in zoom-in md:mt-12 md:p-8">
             <h1 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-8">Choose Your Pet Friend</h1>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 w-full justify-items-center">
               {['🐶', '🐱', '🦄', '🐼', '🐯'].map(p => (
@@ -186,7 +186,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
         )}
 
         {screen === 'difficulty' && (
-          <div className="flex flex-col items-center w-full max-w-lg mt-12 bg-white/60 p-8 rounded-3xl backdrop-blur-sm shadow-lg text-center animate-in fade-in slide-in-from-right">
+          <div className="mt-6 flex w-full max-w-lg flex-col items-center rounded-3xl bg-white/60 p-6 text-center shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-right md:mt-12 md:p-8">
             <h1 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-8">Choose Difficulty</h1>
             <div className="flex flex-col gap-4 w-full">
               <button className="text-xl md:text-2xl font-bold py-4 px-6 bg-white rounded-2xl shadow-md hover:scale-105 hover:bg-green-50 transition-all text-green-600 border-2 border-green-200" onClick={() => startGame('easy')}>
@@ -217,27 +217,28 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
               </Button>
             </div>
             {/* Top Bar */}
-            <div className="flex flex-wrap justify-center gap-4 text-xl font-bold text-gray-700 mb-4">
-              <div className="bg-white/90 px-6 py-2 rounded-2xl shadow-sm">Score: <span className="text-orange-500">{score}</span></div>
-              <div className="bg-white/90 px-6 py-2 rounded-2xl shadow-sm">Best: <span className="text-blue-500">{highScore}</span></div>
-              <div className="bg-white/90 px-6 py-2 rounded-2xl shadow-sm">Time: <span className="text-red-500">{timeLeft}</span></div>
+            <div className="mb-4 grid w-full grid-cols-1 gap-3 text-lg font-bold text-gray-700 sm:grid-cols-3 sm:text-xl">
+              <div className="rounded-2xl bg-white/90 px-4 py-3 text-center shadow-sm sm:px-6 sm:py-2">Score: <span className="text-orange-500">{score}</span></div>
+              <div className="rounded-2xl bg-white/90 px-4 py-3 text-center shadow-sm sm:px-6 sm:py-2">Best: <span className="text-blue-500">{highScore}</span></div>
+              <div className="rounded-2xl bg-white/90 px-4 py-3 text-center shadow-sm sm:px-6 sm:py-2">Time: <span className="text-red-500">{timeLeft}</span></div>
             </div>
 
-            <div className="transition-all duration-300 ease-out" style={{ fontSize: `${Math.min(150, 80 + score * 2)}px` }}>
+            <div className="transition-all duration-300 ease-out leading-none" style={{ fontSize: `${Math.min(150, 80 + score * 2)}px` }}>
               {pet}
             </div>
 
-            <div className="text-3xl md:text-4xl font-bold my-4 bg-white/70 px-8 py-3 rounded-2xl shadow-sm">
-              Find: <span style={{ color: targetColor }}>{COLOR_NAMES[targetColor]}</span>
+            <div className="my-4 w-full rounded-2xl bg-white/70 px-5 py-4 text-center text-2xl font-bold shadow-sm sm:px-8 md:text-4xl">
+              <span className="block sm:inline">Find:</span>{" "}
+              <span className="break-words" style={{ color: targetColor }}>{COLOR_NAMES[targetColor]}</span>
             </div>
             
-            <div className={`h-10 text-2xl font-bold ${messageColor}`}>{message}</div>
+            <div className={`min-h-10 text-center text-xl font-bold sm:text-2xl ${messageColor}`}>{message}</div>
 
-            <div className="flex flex-wrap justify-center gap-4 mt-6 max-w-[400px]">
+            <div className="mt-6 grid w-full max-w-[420px] grid-cols-2 gap-4 sm:max-w-[460px]">
               {options.map((color, i) => (
                 <button
                   key={i}
-                  className="w-[120px] h-[120px] md:w-[150px] md:h-[150px] rounded-3xl cursor-pointer transition-transform hover:scale-105 active:scale-95 shadow-lg border-8 border-white"
+                  className="aspect-square w-full rounded-3xl border-8 border-white shadow-lg transition-transform hover:scale-105 active:scale-95"
                   style={{ backgroundColor: color }}
                   onClick={(e) => handleColorClick(color, e)}
                 />

@@ -78,10 +78,10 @@ export function GameLayout({ children, topic, title, stage, onExit }: GameLayout
         </div>
       </div>
 
-      <div className="flex-1 relative overflow-hidden bg-[url('/assets/images/1bg.jpg')] bg-cover bg-center bg-fixed">
+      <div className="flex-1 min-h-0 relative overflow-hidden bg-[url('/assets/images/1bg.jpg')] bg-cover bg-center bg-fixed">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] pointer-events-none" />
-        <div className="relative z-10 h-full overflow-auto">
-          <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-full">
+        <div className="relative z-10 h-full overflow-y-auto">
+          <div className="container mx-auto px-4 py-6 md:py-8 flex min-h-full flex-col items-center justify-start md:justify-center">
             {children}
           </div>
         </div>
