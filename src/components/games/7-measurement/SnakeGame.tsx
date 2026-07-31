@@ -188,7 +188,7 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#e8f5e9] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none touch-none">
+    <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#e8f5e9] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none touch-pan-y">
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
@@ -214,7 +214,7 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
             ref={canvasRef} 
             width={300} 
             height={300} 
-            className="bg-[#a5d6a7] border-4 border-[#4caf50] rounded-xl"
+            className="bg-[#a5d6a7] border-4 border-[#4caf50] rounded-xl touch-none"
           />
 
           <AnimatePresence>
