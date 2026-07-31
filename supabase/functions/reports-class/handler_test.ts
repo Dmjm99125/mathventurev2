@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import { createReportsClassHandler } from "./handler.ts";
 
-Deno.test("reports-class returns 404 when the class is not owned by the teacher", async () => {
+Deno.test("reports-class returns 404 when the requested class does not match the teacher classroom", async () => {
   const handler = createReportsClassHandler({
     getAuthedProfile: async () => ({
       id: "teacher-1",
@@ -9,7 +9,7 @@ Deno.test("reports-class returns 404 when the class is not owned by the teacher"
       full_name: "Teacher One",
     }),
     loadTeacherReportsDataset: async () => ({
-      classes: [],
+      classroom: { id: "classroom-1", studentCount: 0 },
       students: [],
       results: [],
     }),
@@ -18,7 +18,7 @@ Deno.test("reports-class returns 404 when the class is not owned by the teacher"
 
   const response = await handler(new Request("http://local/reports-class?classId=class-a&window=7d"));
   assertEquals(response.status, 404);
-  assertEquals(await response.json(), { error: "Class not found" });
+  assertEquals(await response.json(), { error: "Classroom not found" });
 });
 
 Deno.test("reports-class returns an honest no-data payload for empty windows", async () => {
@@ -29,12 +29,12 @@ Deno.test("reports-class returns an honest no-data payload for empty windows", a
       full_name: "Teacher One",
     }),
     loadTeacherReportsDataset: async () => ({
-      classes: [{ id: "class-a", name: "Class A", joinCode: "AAA111", studentCount: 1 }],
+      classroom: { id: "classroom-1", studentCount: 1 },
       students: [
         {
           id: "student-1",
-          classId: "class-a",
-          className: "Class A",
+          classId: "classroom-1",
+          className: "Classroom",
           fullName: "Maria Santos",
           firstName: "Maria",
           lastName: "Santos",
@@ -46,7 +46,7 @@ Deno.test("reports-class returns an honest no-data payload for empty windows", a
     now: () => new Date("2026-07-29T09:00:00.000Z"),
   });
 
-  const response = await handler(new Request("http://local/reports-class?classId=class-a&window=7d"));
+  const response = await handler(new Request("http://local/reports-class?classId=classroom-1&window=7d"));
   const json = await response.json();
 
   assertEquals(response.status, 200);

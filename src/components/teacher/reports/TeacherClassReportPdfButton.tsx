@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui';
 import { downloadTeacherClassReportPdf } from '@/lib/teacher-reports-pdf';
-import type { TeacherClassReportPayload } from '@/lib/teacher-reports';
+import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher-reports';
 
 export function TeacherClassReportPdfButton({
   report,
   disabled,
 }: {
-  report: TeacherClassReportPayload;
+  report: TeacherSingleClassroomReportPayload;
   disabled: boolean;
 }) {
   return (

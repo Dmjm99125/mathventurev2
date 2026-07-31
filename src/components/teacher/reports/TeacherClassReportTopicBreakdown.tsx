@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui';
-import type { TeacherClassReportPayload } from '@/lib/teacher-reports';
+import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher-reports';
 
 function formatPct(value: number | null) {
   return value == null ? '--' : `${value}%`;
@@ -9,12 +9,18 @@ function formatPct(value: number | null) {
 export function TeacherClassReportTopicBreakdown({
   rows,
 }: {
-  rows: TeacherClassReportPayload['topicBreakdown'];
+  rows: TeacherSingleClassroomReportPayload['topicBreakdown'];
 }) {
   const [openTopics, setOpenTopics] = useState<Record<string, boolean>>({});
 
   return (
     <div className="grid gap-4">
+      <Card className="rounded-[24px] p-6">
+        <h2 className="text-2xl font-display font-bold">Topic Breakdown</h2>
+        <p className="mt-2 font-bold text-muted-foreground">
+          Drill into topic and game performance for the selected report window.
+        </p>
+      </Card>
       {rows.length === 0 && (
         <Card className="rounded-[24px] p-6 font-bold text-muted-foreground">
           No topic breakdown is available for this window.

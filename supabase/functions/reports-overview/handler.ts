@@ -1,15 +1,10 @@
 import type { AuthedProfile } from "../_shared/client.ts";
+import type { TeacherReportsDataset } from "../_shared/teacher_reports.ts";
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
-  buildTeacherReportsOverview,
+  buildTeacherSingleClassroomReport,
   coerceTeacherReportsWindowKey,
 } from "../../../src/lib/teacher-reports.ts";
-
-type TeacherReportsDataset = {
-  classes: import("../../../src/lib/teacher-reports.ts").TeacherReportClassRecord[];
-  students: import("../../../src/lib/teacher-reports.ts").TeacherReportStudentRecord[];
-  results: import("../../../src/lib/teacher-reports.ts").TeacherReportGameResultRecord[];
-};
 
 export function createReportsOverviewHandler(
   deps: {
@@ -50,7 +45,7 @@ export function createReportsOverviewHandler(
       const dataset = await deps.loadTeacherReportsDataset({ teacherId: profile.id });
 
       return jsonResponse(
-        buildTeacherReportsOverview({
+        buildTeacherSingleClassroomReport({
           ...dataset,
           windowKey,
           now: deps.now(),

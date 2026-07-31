@@ -1,4 +1,4 @@
-import type { TeacherClassReportPayload } from "./teacher-reports.ts";
+import type { TeacherSingleClassroomReportPayload } from "./teacher-reports.ts";
 
 export type TeacherClassReportPdfModel = {
   filename: string;
@@ -24,13 +24,17 @@ function formatDate(value: string | null): string {
   return value ? value.slice(0, 10) : "--";
 }
 
+function formatStudentCount(value: number): string {
+  return `${value} student${value === 1 ? "" : "s"}`;
+}
+
 export function buildTeacherClassReportPdfModel(
-  report: TeacherClassReportPayload,
+  report: TeacherSingleClassroomReportPayload,
 ): TeacherClassReportPdfModel {
   return {
-    filename: `${slugify(report.classSummary.name)}-${slugify(report.windowLabel)}-report.pdf`,
-    title: `${report.classSummary.name} Report`,
-    subtitle: `${report.windowLabel} | Code ${report.classSummary.joinCode}`,
+    filename: `classroom-${slugify(report.windowLabel)}-report.pdf`,
+    title: "Classroom Report",
+    subtitle: `${report.windowLabel} | ${formatStudentCount(report.classroomSummary.studentCount)}`,
     generatedAt: new Date().toISOString().slice(0, 10),
     studentRows: report.studentRows.map((row) => [
       row.lastName ?? "--",
@@ -50,7 +54,7 @@ export function buildTeacherClassReportPdfModel(
 }
 
 export async function downloadTeacherClassReportPdf(
-  report: TeacherClassReportPayload,
+  report: TeacherSingleClassroomReportPayload,
 ): Promise<void> {
   const model = buildTeacherClassReportPdfModel(report);
   const [{ jsPDF }, { autoTable }] = await Promise.all([

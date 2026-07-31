@@ -1,20 +1,15 @@
 import type { AuthedProfile } from "../_shared/client.ts";
+import type { TeacherReportsDataset } from "../_shared/teacher_reports.ts";
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
-  buildTeacherClassReport,
+  buildTeacherSingleClassroomReport,
   coerceTeacherReportsWindowKey,
 } from "../../../src/lib/teacher-reports.ts";
-
-type TeacherReportsDataset = {
-  classes: import("../../../src/lib/teacher-reports.ts").TeacherReportClassRecord[];
-  students: import("../../../src/lib/teacher-reports.ts").TeacherReportStudentRecord[];
-  results: import("../../../src/lib/teacher-reports.ts").TeacherReportGameResultRecord[];
-};
 
 export function createReportsClassHandler(
   deps: {
     getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-    loadTeacherReportsDataset(input: { teacherId: string; classId: string }): Promise<TeacherReportsDataset>;
+    loadTeacherReportsDataset(input: { teacherId: string }): Promise<TeacherReportsDataset>;
     now(): Date;
   } = {
     async getAuthedProfile(req) {
@@ -51,15 +46,14 @@ export function createReportsClassHandler(
         return errorResponse("classId is required", 422);
       }
 
-      const dataset = await deps.loadTeacherReportsDataset({ teacherId: profile.id, classId });
-      if (!dataset.classes.length) {
-        return errorResponse("Class not found", 404);
+      const dataset = await deps.loadTeacherReportsDataset({ teacherId: profile.id });
+      if (dataset.classroom.id !== classId) {
+        return errorResponse("Classroom not found", 404);
       }
 
       return jsonResponse(
-        buildTeacherClassReport({
+        buildTeacherSingleClassroomReport({
           ...dataset,
-          classId,
           windowKey: coerceTeacherReportsWindowKey(url.searchParams.get("window")),
           now: deps.now(),
         }),

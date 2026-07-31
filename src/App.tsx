@@ -9,8 +9,7 @@ import { About } from '@/pages/about';
 import { Login, Signup } from '@/pages/auth';
 import {
   TeacherWorkspacePage,
-  TeacherClassReportPage,
-  TeacherReportsOverviewPage,
+  TeacherReportsPage,
   TeacherSettingsPlaceholder,
 } from '@/pages/teacher';
 import { StudentDashboard, StudentClassroomPage } from '@/pages/student';
@@ -62,10 +61,10 @@ function AppRoutes() {
         {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/reports/classes/:classId">
-        {params => <AppLayout sidebarMode="hidden"><TeacherClassReportPage classId={params.classId} /></AppLayout>}
+        {() => <Redirect to="/teacher/reports" replace />}
       </Route>
       <Route path="/teacher/reports">
-        {() => <AppLayout sidebarMode="hidden"><TeacherReportsOverviewPage /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherReportsPage /></AppLayout>}
       </Route>
       <Route path="/teacher/settings">
         {() => <AppLayout sidebarMode="hidden"><TeacherSettingsPlaceholder /></AppLayout>}

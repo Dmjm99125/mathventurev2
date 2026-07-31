@@ -110,6 +110,42 @@ export type TeacherClassReportPayload = {
 
 type AttentionReasonCode = TeacherReportsOverviewPayload["attentionStudents"][number]["reasonCodes"][number];
 
+export type TeacherSingleClassroomReportPayload = {
+  windowKey: TeacherReportsWindowKey;
+  windowLabel: string;
+  hasData: boolean;
+  classroomSummary: {
+    id: string;
+    studentCount: number;
+    activeStudentCount: number;
+    averageScorePct: number | null;
+    completionPct: number;
+    lastActivityAt: string | null;
+  };
+  attentionStudents: {
+    studentId: string;
+    fullName: string;
+    firstName: string;
+    lastName: string | null;
+    averageScorePct: number | null;
+    completionPct: number;
+    reasonCodes: AttentionReasonCode[];
+  }[];
+  recentActivity: {
+    recentPasses: {
+      studentId: string;
+      fullName: string;
+      gameId: string;
+      completedAt: string;
+      scorePct: number;
+    }[];
+    lastPlayedAt: string | null;
+    inactiveStudentCount: number;
+  };
+  studentRows: TeacherClassReportPayload["studentRows"];
+  topicBreakdown: TeacherClassReportPayload["topicBreakdown"];
+};
+
 export function coerceTeacherReportsWindowKey(
   value: string | null | undefined,
 ): TeacherReportsWindowKey {
@@ -217,6 +253,18 @@ function latestCompletedAt(rows: TeacherReportGameResultRecord[]): string | null
 
 function byNewestFirst(left: { completedAt: string }, right: { completedAt: string }) {
   return right.completedAt.localeCompare(left.completedAt);
+}
+
+function toHiddenClassRecord(input: {
+  id: string;
+  studentCount: number;
+}): TeacherReportClassRecord {
+  return {
+    id: input.id,
+    name: "Classroom",
+    joinCode: "",
+    studentCount: input.studentCount,
+  };
 }
 
 export function buildTeacherReportsOverview(input: {
@@ -455,5 +503,80 @@ export function buildTeacherClassReport(input: {
     },
     studentRows,
     topicBreakdown,
+  };
+}
+
+export function buildTeacherSingleClassroomReport(input: {
+  classroom: {
+    id: string;
+    studentCount: number;
+  };
+  students: TeacherReportStudentRecord[];
+  results: TeacherReportGameResultRecord[];
+  windowKey: TeacherReportsWindowKey;
+  now?: Date;
+}): TeacherSingleClassroomReportPayload {
+  const classroomRecord = toHiddenClassRecord(input.classroom);
+  const overview = buildTeacherReportsOverview({
+    classes: [classroomRecord],
+    students: input.students,
+    results: input.results,
+    windowKey: input.windowKey,
+    now: input.now,
+  });
+  const classReport = buildTeacherClassReport({
+    classes: [classroomRecord],
+    students: input.students,
+    results: input.results,
+    classId: input.classroom.id,
+    windowKey: input.windowKey,
+    now: input.now,
+  });
+  const classroomSummary = overview.classSummaries[0] ?? {
+    id: input.classroom.id,
+    name: "Classroom",
+    joinCode: "",
+    studentCount: input.classroom.studentCount,
+    activeStudentCount: 0,
+    averageScorePct: null,
+    completionPct: 0,
+    lastActivityAt: null,
+  };
+
+  return {
+    windowKey: classReport.windowKey,
+    windowLabel: classReport.windowLabel,
+    hasData: classReport.hasData,
+    classroomSummary: {
+      id: classroomSummary.id,
+      studentCount: classroomSummary.studentCount,
+      activeStudentCount: classroomSummary.activeStudentCount,
+      averageScorePct: classroomSummary.averageScorePct,
+      completionPct: classroomSummary.completionPct,
+      lastActivityAt: classroomSummary.lastActivityAt,
+    },
+    attentionStudents: overview.attentionStudents.map((row) => ({
+      studentId: row.studentId,
+      fullName: row.fullName,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      averageScorePct: row.averageScorePct,
+      completionPct: row.completionPct,
+      reasonCodes: row.reasonCodes,
+    })),
+    recentActivity: {
+      recentPasses: overview.recentActivity.recentPasses.map((row) => ({
+        studentId: row.studentId,
+        fullName: row.fullName,
+        gameId: row.gameId,
+        completedAt: row.completedAt,
+        scorePct: row.scorePct,
+      })),
+      lastPlayedAt: classroomSummary.lastActivityAt,
+      inactiveStudentCount: classReport.studentRows.filter((row) => row.lastActivityAt === null)
+        .length,
+    },
+    studentRows: classReport.studentRows,
+    topicBreakdown: classReport.topicBreakdown,
   };
 }

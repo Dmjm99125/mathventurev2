@@ -15,7 +15,7 @@ import { TeacherReportsAttentionList } from '@/components/teacher/reports/Teache
 import { TeacherClassReportPdfButton } from '@/components/teacher/reports/TeacherClassReportPdfButton';
 import { TeacherClassReportStudentTable } from '@/components/teacher/reports/TeacherClassReportStudentTable';
 import { TeacherClassReportTopicBreakdown } from '@/components/teacher/reports/TeacherClassReportTopicBreakdown';
-import { TeacherReportsClassComparison } from '@/components/teacher/reports/TeacherReportsClassComparison';
+import { TeacherReportsClassroomSummary } from '@/components/teacher/reports/TeacherReportsClassroomSummary';
 import { TeacherReportsRecentActivity } from '@/components/teacher/reports/TeacherReportsRecentActivity';
 import { TeacherReportsWindowPicker } from '@/components/teacher/reports/TeacherReportsWindowPicker';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
@@ -25,10 +25,8 @@ import {
   useClassRoster,
   useRemoveStudentFromClass,
   useTeacherClassroom,
-  useTeacherClassReport,
   useTeacherReportsOverview,
 } from '@/lib/hooks';
-import { buildTeacherClassReportPageState } from '@/lib/teacher-class-report-page-state';
 import { parseTeacherReportsWindow } from '@/lib/teacher-reports';
 import type { TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 
@@ -137,7 +135,7 @@ export function TeacherClassWorkspace(_: { classId: string }) {
   return <TeacherWorkspacePage />;
 }
 
-export function TeacherReportsOverviewPage() {
+export function TeacherReportsPage() {
   const [location, setLocation] = useLocation();
   const windowKey = React.useMemo(
     () => parseTeacherReportsWindow(window.location.search),
@@ -155,10 +153,11 @@ export function TeacherReportsOverviewPage() {
         <>
           <h1 className="text-4xl font-display font-bold">Reports</h1>
           <p className="mt-2 font-bold text-muted-foreground">
-            Compare classes, find students who need attention, and open class reports.
+            Review classroom performance, student activity, and topic mastery in one place.
           </p>
         </>
       )}
+      action={data ? <TeacherClassReportPdfButton report={data} disabled={!data.hasData} /> : undefined}
     >
       <TeacherReportsWindowPicker
         value={windowKey}
@@ -173,86 +172,24 @@ export function TeacherReportsOverviewPage() {
 
       {data && (
         <div className="grid gap-6">
-          <TeacherReportsClassComparison
-            rows={data.classSummaries}
-            onOpenClass={(classId) => setLocation(`/teacher/reports/classes/${classId}?window=${windowKey}`)}
-          />
-          <TeacherReportsAttentionList
-            rows={data.attentionStudents}
-            onOpenClass={(classId) => setLocation(`/teacher/reports/classes/${classId}?window=${windowKey}`)}
-          />
+          <TeacherReportsClassroomSummary summary={data.classroomSummary} />
+          {data.hasData ? null : (
+            <Card className="rounded-[24px] p-6 font-bold text-muted-foreground">
+              No reportable game results exist for this classroom in the selected window.
+            </Card>
+          )}
+          <TeacherReportsAttentionList rows={data.attentionStudents} />
           <TeacherReportsRecentActivity data={data.recentActivity} />
-          <Card className="rounded-[24px] p-6 font-bold text-muted-foreground">
-            PDF export is available from each class report.
-          </Card>
+          <TeacherClassReportStudentTable rows={data.studentRows} />
+          <TeacherClassReportTopicBreakdown rows={data.topicBreakdown} />
         </div>
       )}
     </TeacherWorkspaceBoard>
   );
 }
 
-export const TeacherReportsPlaceholder = TeacherReportsOverviewPage;
-
-export function TeacherClassReportPage({ classId }: { classId: string }) {
-  const [location, setLocation] = useLocation();
-  const windowKey = React.useMemo(
-    () => parseTeacherReportsWindow(window.location.search),
-    [location],
-  );
-  const { data, isLoading, error } = useTeacherClassReport(classId, windowKey);
-
-  if (isLoading) {
-    return <div className="p-8 text-center font-bold">Loading class report...</div>;
-  }
-
-  const pageState = buildTeacherClassReportPageState({
-    data: data ?? null,
-    error,
-  });
-  const report = pageState.kind === 'ready' ? pageState.report : null;
-
-  return (
-    <TeacherWorkspaceBoard
-      heading={(
-        <>
-          <h1 className="text-4xl font-display font-bold">{pageState.title}</h1>
-          <p className="mt-2 font-bold text-muted-foreground">{pageState.subtitle}</p>
-        </>
-      )}
-      action={report ? <TeacherClassReportPdfButton report={report} disabled={!report.hasData} /> : undefined}
-    >
-      <TeacherReportsWindowPicker
-        value={windowKey}
-        onChange={(nextWindow) => setLocation(`/teacher/reports/classes/${classId}?window=${nextWindow}`)}
-      />
-
-      {pageState.kind === 'error' && (
-        <Card className="mb-6 rounded-[24px] p-6 font-bold text-destructive">
-          {pageState.message}
-        </Card>
-      )}
-
-      {pageState.kind === 'empty' && (
-        <Card className="mb-6 rounded-[24px] p-6 font-bold text-muted-foreground">
-          {pageState.message}
-        </Card>
-      )}
-
-      {report && !report.hasData && (
-        <Card className="mb-6 rounded-[24px] p-6 font-bold text-muted-foreground">
-          No reportable game results exist for this class in the selected window.
-        </Card>
-      )}
-
-      {report && (
-        <div className="grid gap-6">
-          <TeacherClassReportStudentTable rows={report.studentRows} />
-          <TeacherClassReportTopicBreakdown rows={report.topicBreakdown} />
-        </div>
-      )}
-    </TeacherWorkspaceBoard>
-  );
-}
+export const TeacherReportsOverviewPage = TeacherReportsPage;
+export const TeacherReportsPlaceholder = TeacherReportsPage;
 
 export function TeacherSettingsPlaceholder() {
   return (

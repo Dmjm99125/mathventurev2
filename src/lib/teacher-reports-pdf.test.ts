@@ -1,16 +1,24 @@
 import { assertEquals } from "jsr:@std/assert";
 import { buildTeacherClassReportPdfModel } from "./teacher-reports-pdf.ts";
 
-Deno.test("buildTeacherClassReportPdfModel derives filename and rows from the class payload", () => {
+Deno.test("buildTeacherClassReportPdfModel derives a classroom-only header and rows from the singleton payload", () => {
   const model = buildTeacherClassReportPdfModel({
     windowKey: "30d",
     windowLabel: "Last 30 days",
     hasData: true,
-    classSummary: {
-      id: "class-a",
-      name: "Class A",
-      joinCode: "AAA111",
+    classroomSummary: {
+      id: "classroom-1",
       studentCount: 1,
+      activeStudentCount: 1,
+      averageScorePct: 80,
+      completionPct: 12,
+      lastActivityAt: "2026-07-28T08:00:00.000Z",
+    },
+    attentionStudents: [],
+    recentActivity: {
+      recentPasses: [],
+      lastPlayedAt: "2026-07-28T08:00:00.000Z",
+      inactiveStudentCount: 0,
     },
     studentRows: [
       {
@@ -45,7 +53,9 @@ Deno.test("buildTeacherClassReportPdfModel derives filename and rows from the cl
     ],
   });
 
-  assertEquals(model.filename, "class-a-last-30-days-report.pdf");
+  assertEquals(model.filename, "classroom-last-30-days-report.pdf");
+  assertEquals(model.title, "Classroom Report");
+  assertEquals(model.subtitle, "Last 30 days | 1 student");
   assertEquals(model.studentRows[0], ["Santos", "Maria", "80%", "12%", "100%", "2026-07-28"]);
   assertEquals(model.topicRows[0], ["colors", "80%", "1", "1"]);
 });

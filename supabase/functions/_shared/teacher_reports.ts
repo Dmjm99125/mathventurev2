@@ -1,13 +1,12 @@
 import type {
-  TeacherReportClassRecord,
   TeacherReportGameResultRecord,
   TeacherReportStudentRecord,
 } from "../../../src/lib/teacher-reports.ts";
+import { getTeacherSingletonClass } from "./teacher_singleton_class.ts";
 
-type ClassRow = {
+type ClassroomRow = {
   id: string;
   name: string;
-  join_code: string;
 };
 
 type EnrollmentRow = {
@@ -60,49 +59,60 @@ type AttemptRow = {
 };
 
 type TeacherReportsDatasetDeps = {
-  listClasses(input: { teacherId: string; classId?: string }): Promise<ClassRow[]>;
-  listEnrollments(classIds: string[]): Promise<EnrollmentRow[]>;
-  listAttempts(studentIds: string[], classIds: string[]): Promise<AttemptRow[]>;
+  getClassroom(teacherId: string): Promise<ClassroomRow>;
+  listEnrollments(classId: string): Promise<EnrollmentRow[]>;
+  listAttempts(studentIds: string[], classId: string): Promise<AttemptRow[]>;
   listResultRows(attemptIds: string[]): Promise<ResultRow[]>;
 };
 
 export type TeacherReportsDataset = {
-  classes: TeacherReportClassRecord[];
+  classroom: {
+    id: string;
+    studentCount: number;
+  };
   students: TeacherReportStudentRecord[];
   results: TeacherReportGameResultRecord[];
 };
 
 const defaultDeps: TeacherReportsDatasetDeps = {
-  async listClasses(input) {
+  async getClassroom(teacherId) {
     const { adminClient } = await import("./client.ts");
-    const classQuery = adminClient
-      .from("classes")
-      .select("id, name, join_code")
-      .eq("teacher_id", input.teacherId);
+    const classroom = await getTeacherSingletonClass(
+      {
+        async listTeacherClasses(nextTeacherId) {
+          const { data, error } = await adminClient
+            .from("classes")
+            .select("id, teacher_id, name, created_at")
+            .eq("teacher_id", nextTeacherId);
 
-    if (input.classId) {
-      classQuery.eq("id", input.classId);
-    }
+          if (error) {
+            throw error;
+          }
 
-    const { data, error } = await classQuery;
-    if (error) {
-      throw error;
-    }
+          return (data ?? []).map((row) => ({
+            id: row.id,
+            teacherId: row.teacher_id,
+            name: row.name,
+            createdAt: row.created_at,
+          }));
+        },
+      },
+      teacherId,
+    );
 
-    return (data ?? []) as ClassRow[];
+    return {
+      id: classroom.id,
+      name: classroom.name,
+    };
   },
-  async listEnrollments(classIds) {
-    if (!classIds.length) {
-      return [];
-    }
-
+  async listEnrollments(classId) {
     const { adminClient } = await import("./client.ts");
     const { data, error } = await adminClient
       .from("class_students")
       .select(
         "class_id, student_id, joined_at, classes(id, name), profiles(id, full_name, first_name, last_name)",
       )
-      .in("class_id", classIds);
+      .eq("class_id", classId);
 
     if (error) {
       throw error;
@@ -110,8 +120,8 @@ const defaultDeps: TeacherReportsDatasetDeps = {
 
     return (data ?? []) as EnrollmentRow[];
   },
-  async listAttempts(studentIds, classIds) {
-    if (!studentIds.length || !classIds.length) {
+  async listAttempts(studentIds, classId) {
+    if (!studentIds.length) {
       return [];
     }
 
@@ -120,7 +130,7 @@ const defaultDeps: TeacherReportsDatasetDeps = {
       .from("attempts")
       .select("id, student_id, class_id")
       .in("student_id", studentIds)
-      .in("class_id", classIds);
+      .eq("class_id", classId);
 
     if (error) {
       throw error;
@@ -153,27 +163,10 @@ export function createLoadTeacherReportsDataset(
   deps: TeacherReportsDatasetDeps = defaultDeps,
 ) {
   return async (
-    input: { teacherId: string; classId?: string },
+    input: { teacherId: string },
   ): Promise<TeacherReportsDataset> => {
-    const classRows = await deps.listClasses(input);
-
-    const classes = classRows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      joinCode: row.join_code,
-      studentCount: 0,
-    }));
-
-    if (!classes.length) {
-      return {
-        classes: [],
-        students: [],
-        results: [],
-      };
-    }
-
-    const classIds = classes.map((row) => row.id);
-    const enrollmentRows = await deps.listEnrollments(classIds);
+    const classroom = await deps.getClassroom(input.teacherId);
+    const enrollmentRows = await deps.listEnrollments(classroom.id);
 
     const students = enrollmentRows.flatMap((row) => {
       const klass = Array.isArray(row.classes) ? row.classes[0] : row.classes;
@@ -186,7 +179,7 @@ export function createLoadTeacherReportsDataset(
       return [{
         id: profile.id,
         classId: row.class_id,
-        className: klass.name,
+        className: klass?.name ?? classroom.name,
         fullName: profile.full_name,
         firstName: profile.first_name ?? profile.full_name,
         lastName: profile.last_name ?? null,
@@ -195,7 +188,7 @@ export function createLoadTeacherReportsDataset(
     });
 
     const studentIds = Array.from(new Set(students.map((row) => row.id)));
-    const attempts = await deps.listAttempts(studentIds, classIds);
+    const attempts = await deps.listAttempts(studentIds, classroom.id);
     const attemptsById = new Map(attempts.map((row) => [row.id, row]));
     const enrollmentJoinAtByClassStudent = new Map(
       students.map((row) => [`${row.classId}:${row.id}`, row.joinedAt] as const),
@@ -238,10 +231,10 @@ export function createLoadTeacherReportsDataset(
     }
 
     return {
-      classes: classes.map((klass) => ({
-        ...klass,
-        studentCount: studentCountByClassId.get(klass.id) ?? 0,
-      })),
+      classroom: {
+        id: classroom.id,
+        studentCount: studentCountByClassId.get(classroom.id) ?? 0,
+      },
       students,
       results,
     };

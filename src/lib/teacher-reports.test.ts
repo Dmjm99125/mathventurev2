@@ -1,5 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
+  buildTeacherSingleClassroomReport,
   buildTeacherClassReport,
   buildTeacherReportsOverview,
   coerceTeacherReportsWindowKey,
@@ -147,4 +148,42 @@ Deno.test("buildTeacherClassReport aggregates student rows and topic rows withou
   assertEquals(report.studentRows[0].lastPlayedPct, 100);
   assertEquals(report.topicBreakdown[0].topicId, "colors");
   assertEquals(report.topicBreakdown[0].games[0].gameId, "colors:0");
+});
+
+Deno.test("buildTeacherSingleClassroomReport returns one classroom summary plus detailed student and topic rows", () => {
+  const report = buildTeacherSingleClassroomReport({
+    classroom: { id: "classroom-1", studentCount: 2 },
+    students: [
+      {
+        id: "student-1",
+        classId: "classroom-1",
+        className: "Classroom",
+        fullName: "Maria Santos",
+        firstName: "Maria",
+        lastName: "Santos",
+        joinedAt: "2026-07-01T00:00:00.000Z",
+      },
+    ],
+    results: [
+      {
+        studentId: "student-1",
+        classId: "classroom-1",
+        topicId: "colors",
+        gameId: "colors:0",
+        gameOrder: 0,
+        score: 1,
+        maxScore: 1,
+        scorePct: 100,
+        passed: true,
+        completedAt: "2026-07-30T00:00:00.000Z",
+      },
+    ],
+    windowKey: "7d",
+    now: new Date("2026-07-31T00:00:00.000Z"),
+  });
+
+  assertEquals(report.classroomSummary.studentCount, 2);
+  assertEquals(report.hasData, true);
+  assertEquals(report.studentRows[0].averageScorePct, 100);
+  assertEquals(report.topicBreakdown[0].topicId, "colors");
 });

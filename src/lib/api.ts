@@ -4,8 +4,7 @@ import type {
   TeacherAddStudentsResult,
 } from './teacher-add-students';
 import type {
-  TeacherClassReportPayload,
-  TeacherReportsOverviewPayload,
+  TeacherSingleClassroomReportPayload,
   TeacherReportsWindowKey,
 } from './teacher-reports';
 
@@ -183,11 +182,11 @@ export const api = {
   },
   reports: {
     overview: (window: TeacherReportsWindowKey) =>
-      invokeFunction<TeacherReportsOverviewPayload>('reports-overview', {
+      invokeFunction<TeacherSingleClassroomReportPayload>('reports-overview', {
         searchParams: { window },
       }),
     classDetail: (classId: string, window: TeacherReportsWindowKey) =>
-      invokeFunction<TeacherClassReportPayload>('reports-class', {
+      invokeFunction<TeacherSingleClassroomReportPayload>('reports-class', {
         searchParams: { classId, window },
       }),
   },
