@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Play, ChevronRight } from 'lucide-react';
 
 const playSlowFunSound = (type: 'pop' | 'success' | 'error' | 'fanfare') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -80,6 +80,14 @@ export function SlowFun({ onComplete }: SlowFunProps) {
     setIsCompleted(false);
   };
 
+  const resetToStart = () => {
+    setScore(0);
+    setGameStarted(false);
+    setGameActive(false);
+    setIsCompleted(false);
+    setMessage("Ready to play?");
+  };
+
   const generateRound = () => {
     const isBig = Math.random() > 0.5;
     setCurrentGoal(isBig ? "BIG" : "SMALL");
@@ -151,6 +159,18 @@ export function SlowFun({ onComplete }: SlowFunProps) {
           </Button>
         )}
       </div>
+
+      {gameStarted && !isCompleted && (
+        <div className="absolute top-6 left-6 z-50">
+          <Button
+            variant="ghost"
+            className="text-[#3e4e22] font-bold bg-white/50 hover:bg-white"
+            onClick={resetToStart}
+          >
+            <ArrowLeft className="mr-1 w-5 h-5" /> Back
+          </Button>
+        </div>
+      )}
 
       <div className="w-full max-w-lg mt-auto mb-auto bg-[#7cfc00] border-[8px] border-[#556b2f] rounded-[40px] p-5 shadow-[0_10px_0_#3e4e22] relative flex flex-col items-center">
         

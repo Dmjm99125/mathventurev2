@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 
 const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -234,6 +234,15 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
 
   return (
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
+      <div className="absolute top-6 left-6 z-50">
+        <Button
+          variant="ghost"
+          className="text-white font-bold bg-white/20 hover:bg-white/40"
+          onClick={resetGame}
+        >
+          <ArrowLeft className="mr-1 w-5 h-5" /> Back
+        </Button>
+      </div>
       
       {/* Skip Button */}
       <div className="absolute top-6 right-6 z-50">

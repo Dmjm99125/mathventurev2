@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, CheckCircle2, XCircle, Star, LogIn } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle2, XCircle, Star } from 'lucide-react';
 
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍍"];
@@ -218,7 +218,7 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                             className="mt-2 text-slate-500 hover:bg-white/50 font-bold"
                             onClick={() => setGameState('menu')}
                         >
-                            <LogIn className="w-5 h-5 mr-2 rotate-180" /> Change Character
+                            <ArrowLeft className="w-5 h-5 mr-2" /> Back
                         </Button>
                     </motion.div>
                 )}

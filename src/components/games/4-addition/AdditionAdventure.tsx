@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, CheckCircle2, XCircle, Star, Map } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle2, XCircle, Star, Map } from 'lucide-react';
 
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍍'];
@@ -89,6 +89,13 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
                 </h2>
                 {gameState === 'playing' && (
                     <div className="flex gap-4 items-center">
+                        <Button
+                            variant="outline"
+                            className="border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white"
+                            onClick={() => setGameState('menu')}
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                        </Button>
                         <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-700 bg-indigo-100 px-4 py-2 rounded-full shadow-sm">
                             <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
                             <span className="text-indigo-700">{score} / {MAX_SCORE}</span>
