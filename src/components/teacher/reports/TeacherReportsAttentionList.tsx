@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui';
-import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher-reports';
+import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher/reports';
 
 const ATTENTION_LABELS = {
   low_average: 'Average score below 75%',

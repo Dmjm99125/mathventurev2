@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui';
-import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher-reports';
+import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher/reports';
 
 function formatPct(value: number | null) {
   return value == null ? '--' : `${value}%`;

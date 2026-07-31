@@ -3,8 +3,8 @@ import { Button, Card, Input } from '@/components/ui';
 import {
   parseTeacherStudentsJson,
   type TeacherAddStudentDraft,
-} from '@/lib/teacher-add-students';
-import { parseTeacherStudentsXlsxFile } from '@/lib/teacher-add-students-xlsx';
+} from '@/lib/teacher/add-students';
+import { parseTeacherStudentsXlsxFile } from '@/lib/teacher/add-students/xlsx';
 
 export function TeacherAddStudentsImportStep({
   source,

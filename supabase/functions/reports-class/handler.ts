@@ -4,7 +4,7 @@ import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
   buildTeacherSingleClassroomReport,
   coerceTeacherReportsWindowKey,
-} from "../../../src/lib/teacher-reports.ts";
+} from "../../../src/lib/teacher/reports/index.ts";
 
 export function createReportsClassHandler(
   deps: {

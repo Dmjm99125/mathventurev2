@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui';
-import type { TeacherReportsWindowKey } from '@/lib/teacher-reports';
+import type { TeacherReportsWindowKey } from '@/lib/teacher/reports';
 
 const WINDOWS: { value: TeacherReportsWindowKey; label: string }[] = [
   { value: '7d', label: 'Last 7 days' },

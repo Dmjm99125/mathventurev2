@@ -1,7 +1,7 @@
 import type {
   TeacherReportGameResultRecord,
   TeacherReportStudentRecord,
-} from "../../../src/lib/teacher-reports.ts";
+} from "../../../src/lib/teacher/reports/index.ts";
 import { getTeacherSingletonClass } from "./teacher_singleton_class.ts";
 
 type ClassroomRow = {

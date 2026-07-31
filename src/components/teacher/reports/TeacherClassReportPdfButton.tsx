@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui';
-import { downloadTeacherClassReportPdf } from '@/lib/teacher-reports-pdf';
-import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher-reports';
+import { downloadTeacherClassReportPdf } from '@/lib/teacher/reports/pdf';
+import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher/reports';
 
 export function TeacherClassReportPdfButton({
   report,

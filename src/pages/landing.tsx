@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/lib/useAuth';
+import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui';
 import { Compass, Sparkles, Map as MapIcon, GraduationCap, Users } from 'lucide-react';
 import { TopNav } from '@/components/layout';
@@ -31,9 +31,9 @@ export function Landing() {
       <main className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 relative overflow-hidden">
 
         {/* Background decorative elements */}
-        <div className="absolute top-20 left-10 md:left-40 bg-jungle-yellow/20 w-32 h-32 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 md:right-40 bg-jungle-orange/20 w-48 h-48 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/10 w-96 h-96 rounded-full blur-3xl -z-10" />
+        <div aria-hidden="true" className="pointer-events-none absolute top-20 left-10 md:left-40 bg-jungle-yellow/20 w-32 h-32 rounded-full blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute bottom-20 right-10 md:right-40 bg-jungle-orange/20 w-48 h-48 rounded-full blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/10 w-96 h-96 rounded-full blur-3xl -z-10" />
 
         <div className="mb-8 inline-flex items-center justify-center p-4 bg-jungle-orange text-white rounded-3xl shadow-xl rotate-3 hover:rotate-0 transition-transform">
           <Compass className="w-12 h-12" />
@@ -51,16 +51,16 @@ export function Landing() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md mx-auto">
-          <Link href="/signup">
-            <Button size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
+          <Button asChild size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
+            <Link href="/signup">
               <MapIcon className="w-5 h-5" /> Start Exploring
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto min-w-[200px] text-lg gap-2 bg-white">
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto min-w-[200px] text-lg gap-2 bg-white">
+            <Link href="/login">
               <GraduationCap className="w-5 h-5" />Login
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
 
         <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto text-left">
@@ -82,11 +82,11 @@ export function Landing() {
         </div>
 
         <div className="mt-16 text-center">
-          <Link href="/about">
-            <Button size="lg" variant="outline" className="text-lg gap-2 bg-white">
+          <Button asChild size="lg" variant="outline" className="text-lg gap-2 bg-white">
+            <Link href="/about">
               <Users className="w-5 h-5" /> Meet The Researchers
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </main>
     </div>

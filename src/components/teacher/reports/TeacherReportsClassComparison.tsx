@@ -1,5 +1,5 @@
 import { Button, Card } from '@/components/ui';
-import type { TeacherReportsOverviewPayload } from '@/lib/teacher-reports';
+import type { TeacherReportsOverviewPayload } from '@/lib/teacher/reports';
 
 function formatPct(value: number | null) {
   return value == null ? '--' : `${value}%`;

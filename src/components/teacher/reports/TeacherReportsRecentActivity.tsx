@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui';
-import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher-reports';
+import type { TeacherSingleClassroomReportPayload } from '@/lib/teacher/reports';
 
 function formatDate(value: string | null) {
   return value ? value.slice(0, 10) : '--';

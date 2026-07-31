@@ -1,7 +1,7 @@
 import { Redirect, Route, Switch, Router as WouterRouter } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/lib/useAuth';
-import { LanguageProvider } from '@/lib/useLanguage';
+import { AuthProvider } from '@/lib/auth';
+import { LanguageProvider } from '@/lib/i18n/useLanguage';
 
 // Pages
 import { Landing } from '@/pages/landing';
