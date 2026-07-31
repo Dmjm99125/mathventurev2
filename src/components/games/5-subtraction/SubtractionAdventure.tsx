@@ -114,18 +114,18 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="flex flex-col items-center w-full max-w-xl bg-white/90 p-8 rounded-[3rem] shadow-lg border-4 border-blue-400"
+                        className="flex flex-col items-center w-full max-w-xl bg-white/90 p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem] shadow-lg border-4 border-blue-400"
                     >
                         <h1 className="text-3xl md:text-4xl font-black text-blue-600 drop-shadow-sm mb-6 text-center">Choose Your Hero!</h1>
                         
-                        <div className="flex gap-6 mb-10">
+                        <div className="flex w-full flex-wrap justify-center gap-4 md:gap-6 mb-8 md:mb-10">
                             {CHARACTERS.map((char) => (
                                 <motion.button
                                     key={char}
                                     whileHover={{ scale: 1.1, y: -5 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => setCharacter(char)}
-                                    className={`text-6xl md:text-7xl p-4 rounded-3xl transition-colors border-4 ${character === char ? 'bg-blue-100 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-transparent border-transparent hover:bg-slate-100'}`}
+                                    className={`text-5xl md:text-7xl p-3 md:p-4 rounded-3xl transition-colors border-4 ${character === char ? 'bg-blue-100 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-transparent border-transparent hover:bg-slate-100'}`}
                                 >
                                     {char}
                                 </motion.button>
@@ -134,7 +134,7 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
 
                         <Button 
                             size="lg" 
-                            className="bg-blue-500 hover:bg-blue-600 text-white font-black text-2xl px-12 py-8 rounded-full shadow-[0_6px_0_0_#2563eb] active:translate-y-2 active:shadow-none transition-all w-full border-none"
+                            className="bg-blue-500 hover:bg-blue-600 text-white font-black text-xl md:text-2xl px-8 md:px-12 py-6 md:py-8 rounded-full shadow-[0_6px_0_0_#2563eb] active:translate-y-2 active:shadow-none transition-all w-full border-none"
                             onClick={startGame}
                         >
                             Start Game <Play className="ml-2 w-8 h-8 fill-current" />
