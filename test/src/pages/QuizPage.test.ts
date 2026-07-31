@@ -6,4 +6,5 @@ Deno.test("lesson intro video removes the skip button and uses larger sizing", a
   assertEquals(source.includes("Skip Video"), false);
   assertEquals(source.includes("max-w-5xl"), true);
   assertEquals(source.includes("maxHeight: '520px'"), true);
+  assertEquals(source.includes("text-3xl font-display font-extrabold text-foreground text-center"), true);
 });

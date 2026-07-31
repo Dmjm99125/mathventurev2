@@ -282,9 +282,14 @@ export function QuizPage() {
 
           {/* Citation */}
           {lesson && (
-            <p className="text-xs text-muted-foreground font-bold text-center max-w-lg italic">
-              "{lesson.videoTitle}" — {lesson.videoCredit}
-            </p>
+            <div className="max-w-4xl space-y-2 text-center">
+              <p className="text-3xl font-display font-extrabold text-foreground text-center">
+                {lesson.videoTitle}
+              </p>
+              <p className="text-sm text-muted-foreground font-bold italic">
+                {lesson.videoCredit}
+              </p>
+            </div>
           )}
 
           {/* Navigation */}
