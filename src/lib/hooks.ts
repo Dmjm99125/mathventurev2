@@ -154,11 +154,13 @@ export function useCreateAssignment() {
 export function useRemoveStudentFromClass() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ classId, studentId }: { classId: string; studentId: string }) =>
+    mutationFn: ({ studentId }: { classId?: string; studentId: string }) =>
       api.classes.removeStudent(studentId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
-      queryClient.invalidateQueries({ queryKey: ['classes', variables.classId, 'roster'] });
+      if (variables.classId) {
+        queryClient.invalidateQueries({ queryKey: ['classes', variables.classId, 'roster'] });
+      }
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
     },
@@ -169,19 +171,20 @@ export function useAddStudentsToClass() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
-      classId,
       students,
     }: {
-      classId: string;
+      classId?: string;
       students: TeacherAddStudentDraft[];
     }) => api.classes.addStudents(students),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['classroom', 'roster'],
       });
-      queryClient.invalidateQueries({
-        queryKey: ['classes', variables.classId, 'roster'],
-      });
+      if (variables.classId) {
+        queryClient.invalidateQueries({
+          queryKey: ['classes', variables.classId, 'roster'],
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
     },

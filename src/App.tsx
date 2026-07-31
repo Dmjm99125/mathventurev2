@@ -8,8 +8,7 @@ import { Landing } from '@/pages/landing';
 import { About } from '@/pages/about';
 import { Login, Signup } from '@/pages/auth';
 import {
-  TeacherClassesHome,
-  TeacherClassWorkspace,
+  TeacherWorkspacePage,
   TeacherClassReportPage,
   TeacherReportsOverviewPage,
   TeacherSettingsPlaceholder,
@@ -51,13 +50,13 @@ function AppRoutes() {
       </Route>
       
       <Route path="/teacher">
-        {() => <AppLayout sidebarMode="hidden"><TeacherClassesHome /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherWorkspacePage /></AppLayout>}
       </Route>
       <Route path="/teacher/classes">
-        {() => <AppLayout sidebarMode="hidden"><TeacherClassesHome /></AppLayout>}
+        {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/classes/:classId">
-        {params => <AppLayout sidebarMode="hidden"><TeacherClassWorkspace classId={params.classId} /></AppLayout>}
+        {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/reports/classes/:classId">
         {params => <AppLayout sidebarMode="hidden"><TeacherClassReportPage classId={params.classId} /></AppLayout>}

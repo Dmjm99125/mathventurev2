@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Button, Card, Input, Label } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 import {
   Dialog,
   DialogClose,
@@ -19,133 +19,51 @@ import { TeacherReportsClassComparison } from '@/components/teacher/reports/Teac
 import { TeacherReportsRecentActivity } from '@/components/teacher/reports/TeacherReportsRecentActivity';
 import { TeacherReportsWindowPicker } from '@/components/teacher/reports/TeacherReportsWindowPicker';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
-import { TeacherClassCard } from '@/components/teacher/TeacherClassCard';
 import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentListTable';
 import { TeacherStudentProgressTable } from '@/components/teacher/TeacherStudentProgressTable';
 import {
-  useClasses,
   useClassRoster,
-  useCreateClass,
   useRemoveStudentFromClass,
+  useTeacherClassroom,
   useTeacherClassReport,
   useTeacherReportsOverview,
 } from '@/lib/hooks';
 import { buildTeacherClassReportPageState } from '@/lib/teacher-class-report-page-state';
 import { parseTeacherReportsWindow } from '@/lib/teacher-reports';
-import type { TeacherClassStudent, TeacherClassSummary } from '@/lib/api';
+import type { TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 
-export function TeacherClassesHome() {
-  const { data, isLoading } = useClasses();
-  const createClass = useCreateClass();
-  const [isCreating, setIsCreating] = useState(false);
-  const [newClassName, setNewClassName] = useState('');
-  const [, setLocation] = useLocation();
-
-  if (isLoading) {
-    return <div className="p-8 text-center font-bold">Loading classes...</div>;
-  }
-
-  const classes = (data?.classes ?? []) as TeacherClassSummary[];
-
-  return (
-    <TeacherWorkspaceBoard
-      heading={(
-        <>
-          <h1 className="text-4xl font-display font-bold">My Classes</h1>
-          <p className="mt-2 font-bold text-muted-foreground">
-            Open a class or create a new one.
-          </p>
-        </>
-      )}
-      action={<Button onClick={() => setIsCreating(true)}>+ Create Class</Button>}
-    >
-      {isCreating && (
-        <Card className="mb-6 rounded-[24px] p-5">
-          <form
-            className="flex flex-col gap-4 md:flex-row md:items-end"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              if (!newClassName.trim()) {
-                return;
-              }
-              await createClass.mutateAsync(newClassName.trim());
-              setNewClassName('');
-              setIsCreating(false);
-            }}
-          >
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="teacher-class-name">Class Name</Label>
-              <Input
-                id="teacher-class-name"
-                value={newClassName}
-                onChange={(event) => setNewClassName(event.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="ghost" onClick={() => setIsCreating(false)}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={!newClassName.trim() || createClass.isPending}
-              >
-                {createClass.isPending ? 'Creating...' : 'Create'}
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {classes.length === 0 && !isCreating && (
-        <Card className="mb-6 rounded-[24px] border-dashed p-8 text-center">
-          <p className="font-bold text-muted-foreground">
-            No classes yet. Create your first class to get started.
-          </p>
-        </Card>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {classes.map((klass) => (
-          <TeacherClassCard
-            key={klass.id}
-            klass={klass}
-            onEnter={() => setLocation(`/teacher/classes/${klass.id}`)}
-          />
-        ))}
-      </div>
-    </TeacherWorkspaceBoard>
-  );
-}
-
-export function TeacherClassWorkspace({ classId }: { classId: string }) {
-  const { data: classesData } = useClasses();
-  const { data: rosterData, isLoading } = useClassRoster(classId);
+export function TeacherWorkspacePage() {
+  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
+  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
   const removeStudent = useRemoveStudentFromClass();
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
 
-  const classes = (classesData?.classes ?? []) as TeacherClassSummary[];
-  const klass = classes.find((row) => row.id === classId);
+  const classroom = classroomData?.classroom as TeacherClassroomSummary | null;
   const students = (rosterData?.students ?? []) as TeacherClassStudent[];
 
-  if (isLoading || !klass) {
-    return <div className="p-8 text-center font-bold">Loading class...</div>;
+  if (classroomLoading || rosterLoading) {
+    return <div className="p-8 text-center font-bold">Loading classroom...</div>;
+  }
+
+  if (!classroom) {
+    return <div className="p-8 text-center font-bold">Classroom unavailable.</div>;
   }
 
   return (
     <TeacherWorkspaceBoard
       heading={(
         <>
-          <h1 className="text-4xl font-display font-bold">{klass.name}</h1>
-          <p className="mt-2 font-bold text-muted-foreground">Code: {klass.joinCode}</p>
+          <h1 className="text-4xl font-display font-bold">Classroom</h1>
+          <p className="mt-2 font-bold text-muted-foreground">
+            Manage your students and monitor progress in one place.
+          </p>
         </>
       )}
       action={<Button variant="outline" onClick={() => setIsAddStudentsOpen(true)}>+ Add</Button>}
     >
       <TeacherAddStudentsDialog
-        classId={classId}
-        className={klass.name}
         open={isAddStudentsOpen}
         onOpenChange={setIsAddStudentsOpen}
       />
@@ -183,9 +101,9 @@ export function TeacherClassWorkspace({ classId }: { classId: string }) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove student from this class?</DialogTitle>
+            <DialogTitle>Remove student from your classroom?</DialogTitle>
             <DialogDescription>
-              This removes the student from the class only. Their account and progress stay intact.
+              This removes the student from your classroom only. Their account and progress stay intact.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -199,7 +117,6 @@ export function TeacherClassWorkspace({ classId }: { classId: string }) {
                   return;
                 }
                 await removeStudent.mutateAsync({
-                  classId,
                   studentId: pendingRemoval.id,
                 });
                 setPendingRemoval(null);
@@ -212,6 +129,12 @@ export function TeacherClassWorkspace({ classId }: { classId: string }) {
       </Dialog>
     </TeacherWorkspaceBoard>
   );
+}
+
+export const TeacherClassesHome = TeacherWorkspacePage;
+
+export function TeacherClassWorkspace(_: { classId: string }) {
+  return <TeacherWorkspacePage />;
 }
 
 export function TeacherReportsOverviewPage() {

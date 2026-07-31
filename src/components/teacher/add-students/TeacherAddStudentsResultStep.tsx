@@ -13,7 +13,7 @@ export function TeacherAddStudentsResultStep({
       <h3 className="text-2xl font-display font-bold">Students Added</h3>
       <p className="mt-3 font-bold text-muted-foreground">
         Added {result.createdCount} student
-        {result.createdCount === 1 ? '' : 's'} to {result.className}.
+        {result.createdCount === 1 ? '' : 's'} to your classroom.
       </p>
       <Button className="mt-6" onClick={onDone}>
         Done

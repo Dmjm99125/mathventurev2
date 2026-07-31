@@ -26,13 +26,9 @@ import { TeacherAddStudentsReviewTable } from './TeacherAddStudentsReviewTable';
 import { TeacherAddStudentsSourcePicker } from './TeacherAddStudentsSourcePicker';
 
 export function TeacherAddStudentsDialog({
-  classId,
-  className,
   open,
   onOpenChange,
 }: {
-  classId: string;
-  className: string;
   open: boolean;
   onOpenChange(open: boolean): void;
 }) {
@@ -57,7 +53,6 @@ export function TeacherAddStudentsDialog({
     try {
       setError(null);
       const result = await addStudents.mutateAsync({
-        classId,
         students: state.rows,
       });
       dispatch({ type: 'submission.succeeded', result });
@@ -139,7 +134,7 @@ export function TeacherAddStudentsDialog({
           <DrawerHeader className="px-0 pt-6 text-left">
             <DrawerTitle>Add Students</DrawerTitle>
             <DrawerDescription>
-              Add students to {className} and review everything before
+              Add students to your classroom and review everything before
               creation.
             </DrawerDescription>
           </DrawerHeader>
@@ -156,7 +151,7 @@ export function TeacherAddStudentsDialog({
           <DialogHeader>
             <DialogTitle>Add Students</DialogTitle>
             <DialogDescription>
-              Add students to {className} and review everything before
+              Add students to your classroom and review everything before
               creation.
             </DialogDescription>
           </DialogHeader>
