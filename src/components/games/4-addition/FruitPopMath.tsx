@@ -96,13 +96,13 @@ export function FruitPopMath({ onComplete }: { onComplete?: () => void }) {
                 <h2 className="text-xl md:text-2xl font-bold font-display text-fuchsia-700 uppercase tracking-wide flex items-center gap-2">
                     <Cherry className="w-8 h-8 text-fuchsia-500 fill-fuchsia-500" /> Fruit Pop Math
                 </h2>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                     <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-700 bg-fuchsia-100 px-4 py-2 rounded-full shadow-sm">
                         <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
                         <span className="text-fuchsia-700">{score} / {MAX_SCORE}</span>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-fuchsia-400 text-fuchsia-700 font-bold hover:bg-fuchsia-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-fuchsia-400 text-fuchsia-700 font-bold hover:bg-fuchsia-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

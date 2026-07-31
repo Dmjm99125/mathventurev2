@@ -88,10 +88,10 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
                     <Map className="w-8 h-8 text-indigo-500" /> Addition Adventure
                 </h2>
                 {gameState === 'playing' && (
-                    <div className="flex gap-4 items-center">
+                    <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                         <Button
                             variant="outline"
-                            className="border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white"
+                            className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white"
                             onClick={() => setGameState('menu')}
                         >
                             <ArrowLeft className="mr-2 h-4 w-4" /> Back
@@ -101,7 +101,7 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
                             <span className="text-indigo-700">{score} / {MAX_SCORE}</span>
                         </div>
                         {onComplete && (
-                            <Button variant="outline" className="border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white" onClick={onComplete}>
+                            <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white" onClick={onComplete}>
                                 Skip Game ➡️
                             </Button>
                         )}

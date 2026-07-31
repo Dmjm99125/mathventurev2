@@ -93,7 +93,7 @@ export function IceCreamShop({ onComplete }: { onComplete?: () => void }) {
                 <h2 className="text-xl md:text-2xl font-bold font-display text-purple-700 uppercase tracking-wide flex items-center gap-2">
                     <IceCream2 className="w-8 h-8 text-purple-500" /> Ice Cream Shop
                 </h2>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                     <div className="flex flex-col items-end">
                         <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Question {Math.min(currentQuestion, MAX_SCORE)} / {MAX_SCORE}</span>
                         <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-700 bg-amber-100 px-4 py-1 rounded-full shadow-sm mt-1 border-2 border-amber-300">
@@ -102,7 +102,7 @@ export function IceCreamShop({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-purple-400 text-purple-700 font-bold hover:bg-purple-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-purple-400 text-purple-700 font-bold hover:bg-purple-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

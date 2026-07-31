@@ -66,17 +66,17 @@ export function AdditionFunGame({ onComplete }: { onComplete?: () => void }) {
         <div className="w-full max-w-3xl mx-auto bg-sky-50 p-6 md:p-10 rounded-[3rem] shadow-xl flex flex-col items-center relative border-8 border-sky-300 min-h-[500px]">
             
             {/* Header */}
-            <div className="w-full flex justify-between items-center mb-8 bg-white/80 backdrop-blur-sm p-4 rounded-3xl shadow-sm border border-sky-200">
+            <div className="w-full flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8 bg-white/80 backdrop-blur-sm p-4 rounded-3xl shadow-sm border border-sky-200">
                 <h2 className="text-xl md:text-2xl font-bold font-display text-sky-700 uppercase tracking-wide flex items-center gap-2">
                     <Calculator className="w-8 h-8 text-sky-500" /> Addition Fun
                 </h2>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                     <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-700 bg-sky-100 px-4 py-2 rounded-full shadow-sm">
                         <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
                         <span className="text-sky-600">{score} / {MAX_SCORE}</span>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

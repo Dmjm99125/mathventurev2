@@ -98,7 +98,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                 <h2 className="text-xl md:text-2xl font-bold font-display text-cyan-400 uppercase tracking-wide flex items-center gap-2">
                     <Sparkles className="w-8 h-8 text-cyan-400" /> Star Catcher
                 </h2>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                     <div className="flex flex-col items-end">
                         <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Question {Math.min(currentQuestion, MAX_SCORE)} / {MAX_SCORE}</span>
                         <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-cyan-100 bg-cyan-900/50 px-4 py-1 rounded-full shadow-sm mt-1 border border-cyan-500/50">
@@ -107,7 +107,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}
