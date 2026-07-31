@@ -101,7 +101,7 @@ export function Carnival({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-red-400 text-red-700 font-bold hover:bg-red-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-red-400 text-red-700 font-bold hover:bg-red-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

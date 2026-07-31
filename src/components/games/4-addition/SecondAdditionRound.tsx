@@ -93,7 +93,7 @@ export function SecondAdditionRound({ onComplete }: { onComplete?: () => void })
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-cyan-400 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-cyan-400 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

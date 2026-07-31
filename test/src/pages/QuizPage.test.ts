@@ -8,3 +8,12 @@ Deno.test("lesson intro video removes the skip button and uses larger sizing", a
   assertEquals(source.includes("maxHeight: '520px'"), true);
   assertEquals(source.includes("text-3xl font-display font-extrabold text-foreground text-center"), true);
 });
+
+Deno.test("lesson slide navigation uses a responsive mobile grid with a separate dot row", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]"), true);
+  assertEquals(source.includes("col-span-2 flex flex-wrap items-center justify-center gap-1.5 sm:col-span-1 sm:col-start-2"), true);
+  assertEquals(source.includes("w-full min-w-0 gap-2 font-bold sm:col-start-1 sm:row-start-1 sm:w-auto"), true);
+  assertEquals(source.includes("w-full min-w-0 gap-2 font-bold sm:col-start-3 sm:row-start-1 sm:w-auto"), true);
+});

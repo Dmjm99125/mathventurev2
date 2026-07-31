@@ -116,13 +116,13 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
         <h2 className="text-xl md:text-2xl font-bold font-display text-sky-700 uppercase tracking-wide flex items-center gap-2">
           <Train className="w-8 h-8 text-sky-600" /> Pattern Academy
         </h2>
-        <div className="flex gap-4 items-center">
+        <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700 bg-sky-100 px-4 py-1 rounded-full shadow-sm flex items-center gap-2">
              Level: <span className="text-sky-600">{level}/11</span>
              <span className={`text-sm text-white px-3 py-1 rounded-full shadow-sm ${diffStyle.bg}`}>{diffStyle.text}</span>
           </div>
           {onComplete && (
-            <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
           )}

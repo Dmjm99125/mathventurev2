@@ -97,7 +97,7 @@ export function SubtractionPop({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-teal-400 text-teal-700 font-bold hover:bg-teal-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-teal-400 text-teal-700 font-bold hover:bg-teal-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip ➡️
                         </Button>
                     )}

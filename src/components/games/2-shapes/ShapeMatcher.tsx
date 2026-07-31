@@ -89,7 +89,7 @@ export function ShapeMatcher({ onComplete }: { onComplete?: () => void }) {
         {onComplete && (
           <Button 
             variant="outline" 
-            className="border-2 border-orange-300 text-orange-700 font-bold hover:bg-orange-100 rounded-xl bg-white shadow-sm"
+            className="border-2 border-orange-300 text-orange-700 font-bold hover:bg-orange-100 rounded-xl bg-white shadow-sm w-full justify-center md:w-auto"
             onClick={onComplete}
           >
             Next Game ➡️

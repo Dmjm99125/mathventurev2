@@ -107,7 +107,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800 hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

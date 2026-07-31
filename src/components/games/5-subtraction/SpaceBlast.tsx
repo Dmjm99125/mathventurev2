@@ -145,7 +145,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
                         <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl hidden md:flex h-9 px-3 bg-transparent" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl h-9 px-3 bg-transparent" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}

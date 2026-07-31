@@ -95,7 +95,7 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

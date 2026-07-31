@@ -76,7 +76,7 @@ export function AdditionFunGame({ onComplete }: { onComplete?: () => void }) {
                         <span className="text-sky-600">{score} / {MAX_SCORE}</span>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

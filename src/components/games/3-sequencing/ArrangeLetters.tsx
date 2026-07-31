@@ -60,10 +60,10 @@ export function ArrangeLetters({ onComplete }: { onComplete?: () => void }) {
         <h2 className="text-xl md:text-2xl font-bold font-display text-cyan-800 uppercase tracking-wide flex items-center gap-2">
           <TrainFront className="w-8 h-8 text-cyan-600" /> Alphabet Express
         </h2>
-        <div className="flex gap-4 items-center">
+        <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-cyan-600">{score}</span></div>
           {onComplete && (
-            <Button variant="outline" className="border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
           )}

@@ -90,14 +90,14 @@ export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {
         <div className="w-full flex justify-between items-center mb-4 flex-wrap gap-4">
           <h2 className="text-2xl md:text-3xl font-bold font-display text-orange-800">👾 Monster Cafe</h2>
           
-          <div className="flex items-center gap-4">
+          <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
             <div className="text-lg md:text-xl font-bold text-gray-700 bg-white/60 px-4 py-2 rounded-full shadow-sm border border-orange-200">
                Score: <span className="text-orange-600">{score}</span>
             </div>
             {onComplete && (
               <Button 
                 variant="outline" 
-                className="bg-white/80 border-2 border-orange-300 text-orange-800 font-bold hover:bg-orange-100 flex rounded-xl"
+                className="bg-white/80 border-2 border-orange-300 text-orange-800 font-bold hover:bg-orange-100 rounded-xl w-full justify-center md:w-auto"
                 onClick={onComplete}
               >
                 Next Game ➡️

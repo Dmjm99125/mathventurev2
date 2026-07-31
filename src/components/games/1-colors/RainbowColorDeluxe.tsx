@@ -150,7 +150,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
       {onComplete && (
         <Button 
           variant="default" 
-          className="absolute top-16 right-4 md:top-4 md:right-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50"
+          className="absolute top-4 right-4 hidden md:flex bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50"
           onClick={onComplete}
         >
           Next Game ➡️
@@ -158,6 +158,15 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
       )}
 
       <div className="relative z-10 w-full h-full flex flex-col items-center pt-8 px-4">
+        {onComplete && (
+          <Button
+            variant="default"
+            className="mb-4 w-full max-w-sm justify-center bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50 md:hidden"
+            onClick={onComplete}
+          >
+            Next Game ➡️
+          </Button>
+        )}
         
         {screen === 'pet' && (
           <div className="flex flex-col items-center w-full max-w-lg mt-12 bg-white/60 p-8 rounded-3xl backdrop-blur-sm shadow-lg text-center animate-in fade-in zoom-in">

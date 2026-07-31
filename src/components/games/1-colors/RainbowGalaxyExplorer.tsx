@@ -116,7 +116,7 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
       {onComplete && (
         <Button 
           variant="outline" 
-          className="absolute top-16 right-4 bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] z-50"
+          className="absolute top-16 right-4 hidden md:flex bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] z-50"
           onClick={onComplete}
         >
           Next Game ➡️
@@ -126,6 +126,15 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
       {/* Start Screen */}
       {screen === 'start' && (
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 animate-in fade-in">
+          {onComplete && (
+            <Button
+              variant="outline"
+              className="mb-6 w-full max-w-sm justify-center bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] md:hidden"
+              onClick={onComplete}
+            >
+              Next Game ➡️
+            </Button>
+          )}
           <h1 className="text-4xl md:text-5xl font-display font-bold mb-8 text-center" style={{ textShadow: '0 0 15px #00f2ff' }}>🚀 RAINBOW GALAXY</h1>
           <p className="text-2xl mb-8 font-bold text-gray-300">Pick your Pilot:</p>
           <div className="grid grid-cols-2 gap-4 md:gap-8 w-full max-w-md">
@@ -156,7 +165,7 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
           </div>
           
           {/* HUD */}
-          <div className="absolute top-4 left-0 w-full px-4 flex justify-between gap-2 z-20">
+          <div className="absolute top-20 md:top-4 left-0 w-full px-4 flex justify-between gap-2 z-20">
             <div className="bg-black/60 px-4 py-2 rounded-2xl border border-gray-600 font-bold text-lg">✨ <span className="text-yellow-400">{score}</span></div>
             <div className="bg-black/60 px-4 py-2 rounded-2xl border border-[#00f2ff] font-bold text-lg text-[#00f2ff] truncate max-w-[150px] md:max-w-none">🌍 {currentTarget.planet}</div>
             <div className="bg-black/60 px-4 py-2 rounded-2xl border border-red-500 font-bold text-lg text-red-400">⏳ {timer}</div>

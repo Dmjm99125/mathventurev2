@@ -101,7 +101,7 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
                             <span className="text-indigo-700">{score} / {MAX_SCORE}</span>
                         </div>
                         {onComplete && (
-                            <Button variant="outline" className="border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                            <Button variant="outline" className="border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white" onClick={onComplete}>
                                 Skip Game ➡️
                             </Button>
                         )}

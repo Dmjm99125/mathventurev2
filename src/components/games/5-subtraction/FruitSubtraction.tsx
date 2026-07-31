@@ -91,7 +91,7 @@ export function FruitSubtraction({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

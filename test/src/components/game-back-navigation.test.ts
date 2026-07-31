@@ -32,6 +32,12 @@ Deno.test("color and shape setup games expose Back buttons that return to the pr
   }
 });
 
+Deno.test("galaxy explorer keeps the game HUD below the back button on mobile", async () => {
+  const source = await readSource("src/components/games/1-colors/RainbowGalaxyExplorer.tsx");
+
+  assertEquals(source.includes("absolute top-20 md:top-4 left-0 w-full px-4 flex justify-between gap-2 z-20"), true);
+});
+
 Deno.test("adventure, measurement, and clock setup games expose Back buttons that return to the previous screen", async () => {
   const expectations = [
     {

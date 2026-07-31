@@ -156,7 +156,16 @@ export function BalloonFindingGame({ onComplete }: BalloonFindingGameProps) {
         {onComplete && (
           <Button 
             variant="default" 
-            className="absolute top-4 right-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20"
+            className="absolute top-4 right-4 hidden md:flex bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20"
+            onClick={onComplete}
+          >
+            Next Game ➡️
+          </Button>
+        )}
+        {onComplete && (
+          <Button
+            variant="default"
+            className="mt-4 w-full max-w-sm justify-center bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 md:hidden"
             onClick={onComplete}
           >
             Next Game ➡️

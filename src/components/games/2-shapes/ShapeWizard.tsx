@@ -105,7 +105,7 @@ export function ShapeWizard({ onComplete }: { onComplete?: () => void }) {
     <div className={`w-full max-w-4xl mx-auto bg-gradient-to-b ${world.color} rounded-[3rem] shadow-2xl flex flex-col items-center relative overflow-hidden shrink-0 h-[600px] border-4 border-white/20 transition-colors duration-700`}>
       
       {/* Universal HUD */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none">
+      <div className="absolute top-4 left-4 right-4 z-20 flex flex-col gap-3 md:flex-row md:justify-between md:items-start pointer-events-none">
         <div className="flex gap-2 md:gap-4 flex-wrap">
           <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full text-white font-bold shadow-sm pointer-events-auto">
             <Star className="text-yellow-400 fill-yellow-400 w-4 h-4 md:w-5 md:h-5" /> {stars}
@@ -123,7 +123,7 @@ export function ShapeWizard({ onComplete }: { onComplete?: () => void }) {
         {onComplete && (
           <Button 
             variant="outline" 
-            className="bg-white/90 border-2 border-purple-300 text-purple-700 font-bold hover:bg-purple-100 shadow-sm pointer-events-auto rounded-xl"
+            className="bg-white/90 border-2 border-purple-300 text-purple-700 font-bold hover:bg-purple-100 shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"
             onClick={onComplete}
           >
             Next Game ➡️

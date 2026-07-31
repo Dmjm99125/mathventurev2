@@ -102,7 +102,7 @@ export function SurpriseSequencing({ onComplete }: { onComplete?: () => void }) 
           <div className="text-lg md:text-xl font-bold text-slate-700 bg-pink-100 px-4 py-1 rounded-full">Level: <span className="text-pink-600">{level}/5</span></div>
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-pink-600">{score}</span></div>
           {onComplete && (
-            <Button variant="outline" className="border-2 border-pink-300 text-pink-700 font-bold hover:bg-pink-50 rounded-xl" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-pink-300 text-pink-700 font-bold hover:bg-pink-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
           )}

@@ -119,7 +119,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
     <div className={`w-full max-w-4xl mx-auto bg-gradient-to-br from-[#2ecc71] to-[#1e8449] rounded-[3rem] shadow-2xl flex flex-col items-center relative overflow-hidden shrink-0 h-[600px] border-4 border-[#34495e]`}>
       
       {/* Universal HUD */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none">
+      <div className="absolute top-4 left-4 right-4 z-20 flex flex-col gap-3 md:flex-row md:justify-between md:items-start pointer-events-none">
         <div className="flex gap-2 md:gap-4 flex-wrap">
           <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full text-white font-bold shadow-sm pointer-events-auto">
             <Star className="text-yellow-400 fill-yellow-400 w-5 h-5" /> {score}
@@ -134,7 +134,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
         {onComplete && (
           <Button 
             variant="outline" 
-            className="bg-white/90 border-2 border-green-300 text-green-800 font-bold hover:bg-green-100 shadow-sm pointer-events-auto rounded-xl"
+            className="bg-white/90 border-2 border-green-300 text-green-800 font-bold hover:bg-green-100 shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"
             onClick={onComplete}
           >
             Next Game ➡️

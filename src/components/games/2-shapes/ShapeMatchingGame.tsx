@@ -143,7 +143,7 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
                 {onComplete && score < 10 && (
                     <Button
                         variant="outline"
-                        className="absolute right-4 top-4 md:right-6 md:top-6 border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 hidden sm:flex"
+                        className="absolute right-4 top-4 md:right-6 md:top-6 border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 hidden md:flex"
                         onClick={onComplete}
                     >
                         Next Game ➡️
@@ -166,7 +166,7 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
                 {onComplete && score < 10 && (
                     <Button
                         variant="outline"
-                        className="mt-4 border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 flex sm:hidden"
+                        className="mt-4 w-full justify-center border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 flex md:hidden"
                         onClick={onComplete}
                     >
                         Next Game ➡️

@@ -125,12 +125,12 @@ export function AnimalVehicleBuilder({ onComplete }: { onComplete?: () => void }
         <h2 className="text-xl md:text-2xl font-bold font-display text-slate-700 uppercase tracking-wide flex items-center gap-2">
           <Puzzle className="w-8 h-8 text-sky-500" /> Mega Builder
         </h2>
-        <div className="flex gap-4 items-center">
+        <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700 bg-white/80 px-4 py-1 rounded-full shadow-sm">
              Puzzle: <span className="text-sky-600">{level}/5</span>
           </div>
           {onComplete && (
-            <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
           )}

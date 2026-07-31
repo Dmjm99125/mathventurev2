@@ -102,7 +102,7 @@ export function FruitPopMath({ onComplete }: { onComplete?: () => void }) {
                         <span className="text-fuchsia-700">{score} / {MAX_SCORE}</span>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-fuchsia-400 text-fuchsia-700 font-bold hover:bg-fuchsia-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-fuchsia-400 text-fuchsia-700 font-bold hover:bg-fuchsia-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

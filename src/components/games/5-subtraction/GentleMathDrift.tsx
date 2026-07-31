@@ -114,7 +114,7 @@ export function GentleMathDrift({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-emerald-400 text-emerald-700 font-bold hover:bg-emerald-50 rounded-xl bg-white hidden md:flex" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-emerald-400 text-emerald-700 font-bold hover:bg-emerald-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
                     )}

@@ -103,14 +103,14 @@ export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
       <div className="w-full flex justify-between items-center mb-6 flex-wrap gap-4 bg-white/60 p-5 rounded-3xl shadow-sm border border-sky-100">
         <h1 className="text-3xl md:text-4xl font-display font-bold text-sky-900 drop-shadow-sm mb-1 tracking-wide">🎨 Shape Hunter!</h1>
         
-        <div className="flex gap-4 items-center">
+        <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
           <div className="text-xl md:text-2xl font-bold text-gray-700 bg-white/80 px-4 py-2 rounded-2xl shadow-sm border border-sky-200">
              Score: <span className="text-[#ff5722]">{score}</span>
           </div>
           {onComplete && (
             <Button 
               variant="outline" 
-              className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-100 rounded-xl bg-white shadow-sm"
+              className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-100 rounded-xl bg-white shadow-sm w-full justify-center md:w-auto"
               onClick={onComplete}
             >
               Next Game ➡️

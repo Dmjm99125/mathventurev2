@@ -109,7 +109,7 @@ export function FeedTheHippo({ onComplete }: { onComplete?: () => void }) {
                         <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl hidden md:flex h-9 px-3" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl h-9 px-3" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}

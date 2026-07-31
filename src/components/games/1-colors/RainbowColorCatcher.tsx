@@ -174,7 +174,7 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
         {onComplete && (
           <Button 
             variant="default" 
-            className="absolute top-3 right-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 hidden sm:flex"
+            className="absolute top-3 right-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 hidden md:flex"
             onClick={onComplete}
           >
             Next Game ➡️
@@ -186,7 +186,7 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
       {onComplete && (
         <Button 
           variant="default" 
-          className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 sm:hidden mx-auto mt-2"
+          className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 md:hidden mx-auto mt-2"
           onClick={onComplete}
         >
           Next Game ➡️

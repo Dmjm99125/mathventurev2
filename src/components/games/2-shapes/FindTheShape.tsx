@@ -44,10 +44,10 @@ export function FindTheShape({ onComplete }: { onComplete?: () => void }) {
             {/* Header */}
             <div className="w-full flex justify-between items-center mb-8 bg-white p-4 rounded-2xl shadow-sm border border-orange-100 flex-wrap gap-4">
                 <h2 className="text-2xl font-bold font-display text-orange-600 uppercase tracking-wide">Find the Shape</h2>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
                     <div className="text-xl font-bold text-gray-700">Score: <span className="text-orange-500">{score}</span></div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-100" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-100 w-full justify-center md:w-auto" onClick={onComplete}>
                             Next Game ➡️
                         </Button>
                     )}

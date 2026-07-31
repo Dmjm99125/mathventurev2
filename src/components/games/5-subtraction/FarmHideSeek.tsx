@@ -89,7 +89,7 @@ export function FarmHideSeek({ onComplete }: { onComplete?: () => void }) {
                         <span className="text-2xl">🏆</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl hidden md:flex h-9 px-3" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl h-9 px-3" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}

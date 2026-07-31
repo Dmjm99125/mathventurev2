@@ -327,47 +327,47 @@ export function QuizPage() {
           )}
 
           {/* Navigation */}
-          <div className="flex gap-3 items-center">
+          <div className="grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
             <Button
               variant="outline"
               size="lg"
-              className="gap-2 font-bold"
+              className="w-full min-w-0 gap-2 font-bold sm:col-start-1 sm:row-start-1 sm:w-auto"
               disabled={slideIndex === 0}
               onClick={() => setSlideIndex(i => i - 1)}
             >
-              <ChevronLeft className="h-5 w-5" /> Back
+              <ChevronLeft className="h-5 w-5 shrink-0" /> Back
             </Button>
-
-            {/* Dot pagination */}
-            <div className="flex gap-1.5 mx-2">
-              {slides.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSlideIndex(i)}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 ${i === slideIndex ? 'bg-primary w-5' : 'bg-muted-foreground/30 hover:bg-muted-foreground/60'}`}
-                />
-              ))}
-            </div>
 
             {isLast || !slides.length ? (
               <Button
                 variant="jungle"
                 size="lg"
-                className="gap-2 font-bold h-12 px-6 rounded-full shadow-lg hover:scale-105 transition-transform"
+                className="h-12 w-full min-w-0 gap-2 rounded-full px-4 text-center font-bold shadow-lg transition-transform hover:scale-105 sm:col-start-3 sm:row-start-1 sm:w-auto sm:px-6"
                 onClick={goToQuiz}
               >
-                Start Activities <ChevronRight className="h-5 w-5" />
+                Start Activities <ChevronRight className="h-5 w-5 shrink-0" />
               </Button>
             ) : (
               <Button
                 variant="outline"
                 size="lg"
-                className="gap-2 font-bold"
+                className="w-full min-w-0 gap-2 font-bold sm:col-start-3 sm:row-start-1 sm:w-auto"
                 onClick={() => setSlideIndex(i => i + 1)}
               >
-                Next <ChevronRight className="h-5 w-5" />
+                Next <ChevronRight className="h-5 w-5 shrink-0" />
               </Button>
             )}
+
+            {/* Dot pagination */}
+            <div className="col-span-2 flex flex-wrap items-center justify-center gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:mx-2 sm:flex-nowrap">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSlideIndex(i)}
+                  className={`h-2 w-2 rounded-full transition-all duration-200 ${i === slideIndex ? 'bg-primary w-5' : 'bg-muted-foreground/30 hover:bg-muted-foreground/60'}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </GameLayout>
