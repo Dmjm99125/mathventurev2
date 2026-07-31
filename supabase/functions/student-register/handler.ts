@@ -1,10 +1,13 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
-  normalizeClassCode,
+  normalizeTeacherFirstName,
   STUDENT_VERIFY_TYPE,
 } from "../_shared/student_auth.ts";
 import {
+  defaultTeacherScopedStudentLookupPersistence,
   defaultHiddenStudentProvisionPersistence,
+  findExistingStudentEmailInClass as findExistingStudentEmailInTeacherClass,
+  findTeacherClassByFirstName as resolveTeacherClassByFirstName,
   normalizeStudentIdentity,
   provisionHiddenStudentForClass,
   type NormalizedStudentIdentity,
@@ -18,8 +21,14 @@ type StudentRegisterSession = {
 };
 
 type StudentRegisterDeps = {
-  findClassByCode(joinCode: string): Promise<{ id: string; name: string } | null>;
-  hasStudentWithNormalizedName(normalizedLastName: string, normalizedFirstName: string): Promise<boolean>;
+  findTeacherClassByFirstName(
+    normalizedTeacherFirstName: string,
+  ): Promise<{ teacherId: string; classId: string } | null | "ambiguous">;
+  findExistingStudentEmailInClass(input: {
+    classId: string;
+    normalizedLastName: string;
+    normalizedFirstName: string;
+  }): Promise<string | null | "ambiguous">;
   provisionStudentForClass(input: {
     classId: string;
     identity: NormalizedStudentIdentity;
@@ -28,27 +37,17 @@ type StudentRegisterDeps = {
 };
 
 const defaultDeps: StudentRegisterDeps = {
-  async findClassByCode(joinCode) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("classes")
-      .select("id, name")
-      .eq("join_code", joinCode)
-      .maybeSingle();
-    if (error) throw error;
-    return data;
+  async findTeacherClassByFirstName(normalizedTeacherFirstName) {
+    return resolveTeacherClassByFirstName(
+      defaultTeacherScopedStudentLookupPersistence,
+      normalizedTeacherFirstName,
+    );
   },
-  async hasStudentWithNormalizedName(normalizedLastName, normalizedFirstName) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("profiles")
-      .select("id")
-      .eq("role", "student")
-      .eq("normalized_last_name", normalizedLastName)
-      .eq("normalized_first_name", normalizedFirstName)
-      .limit(1);
-    if (error) throw error;
-    return (data?.length ?? 0) > 0;
+  async findExistingStudentEmailInClass(input) {
+    return findExistingStudentEmailInTeacherClass(
+      defaultTeacherScopedStudentLookupPersistence,
+      input,
+    );
   },
   async provisionStudentForClass(input) {
     return provisionHiddenStudentForClass(
@@ -86,35 +85,45 @@ export function createStudentRegisterHandler(deps: StudentRegisterDeps = default
 
     try {
       const body = await req.json().catch(() => null);
-      const normalizedClassCode = normalizeClassCode(typeof body?.classCode === "string" ? body.classCode : "");
+      const normalizedTeacherFirstName = normalizeTeacherFirstName(
+        typeof body?.teacherFirstName === "string" ? body.teacherFirstName : "",
+      );
       const identity = normalizeStudentIdentity({
         lastName: typeof body?.lastName === "string" ? body.lastName : "",
         firstName: typeof body?.firstName === "string" ? body.firstName : "",
       });
 
-      if (!normalizedClassCode) {
-        return errorResponse("We couldn't find that class code.", 422);
+      if (!normalizedTeacherFirstName || !identity) {
+        return errorResponse(
+          "Please enter the teacher's first name plus the student's last name and first name.",
+          422,
+        );
       }
 
-      if (!identity) {
-        return errorResponse("Please enter the student's last name and first name.", 422);
-      }
-
-      const existingStudent = await deps.hasStudentWithNormalizedName(
-        identity.normalizedLastName,
-        identity.normalizedFirstName,
+      const teacherClass = await deps.findTeacherClassByFirstName(
+        normalizedTeacherFirstName,
       );
-      if (existingStudent) {
-        return jsonResponse({ status: "already_registered" }, 409);
+      if (!teacherClass || teacherClass === "ambiguous") {
+        return errorResponse("We couldn't find that teacher classroom.", 404);
       }
 
-      const klass = await deps.findClassByCode(normalizedClassCode);
-      if (!klass) {
-        return errorResponse("We couldn't find that class code.", 404);
+      const existingEmail = await deps.findExistingStudentEmailInClass({
+        classId: teacherClass.classId,
+        normalizedLastName: identity.normalizedLastName,
+        normalizedFirstName: identity.normalizedFirstName,
+      });
+      if (existingEmail === "ambiguous") {
+        return errorResponse(
+          "We couldn't resolve that student in the teacher classroom.",
+          409,
+        );
+      }
+      if (existingEmail) {
+        return jsonResponse(await deps.issueStudentSession(existingEmail), 201);
       }
 
       const created = await deps.provisionStudentForClass({
-        classId: klass.id,
+        classId: teacherClass.classId,
         identity,
       });
       return jsonResponse(await deps.issueStudentSession(created.email), 201);

@@ -1,9 +1,9 @@
 import { assertEquals } from "jsr:@std/assert";
 import { createStudentLoginHandler } from "./handler.ts";
 
-Deno.test("student-login returns invalid_credentials when the student name is unknown", async () => {
+Deno.test("student-login returns invalid_credentials when the teacher first name is unknown", async () => {
   const handler = createStudentLoginHandler({
-    findStudentEmailByNormalizedName: async () => null,
+    findStudentEmailByTeacherAndName: async () => null,
     issueStudentSession: async () => {
       throw new Error("should not issue session");
     },
@@ -11,16 +11,20 @@ Deno.test("student-login returns invalid_credentials when the student name is un
 
   const response = await handler(new Request("http://local/student-login", {
     method: "POST",
-    body: JSON.stringify({ lastName: "Santos", firstName: "Maria" }),
+    body: JSON.stringify({
+      teacherFirstName: "Missing",
+      lastName: "Santos",
+      firstName: "Maria",
+    }),
   }));
 
   assertEquals(response.status, 401);
   assertEquals(await response.json(), { status: "invalid_credentials" });
 });
 
-Deno.test("student-login returns invalid_credentials when the student name is ambiguous", async () => {
+Deno.test("student-login returns invalid_credentials when the student name is ambiguous inside the teacher classroom", async () => {
   const handler = createStudentLoginHandler({
-    findStudentEmailByNormalizedName: async () => "ambiguous",
+    findStudentEmailByTeacherAndName: async () => "ambiguous",
     issueStudentSession: async () => {
       throw new Error("should not issue session");
     },
@@ -28,18 +32,22 @@ Deno.test("student-login returns invalid_credentials when the student name is am
 
   const response = await handler(new Request("http://local/student-login", {
     method: "POST",
-    body: JSON.stringify({ lastName: "Santos", firstName: "Maria" }),
+    body: JSON.stringify({
+      teacherFirstName: "Ana",
+      lastName: "Santos",
+      firstName: "Maria",
+    }),
   }));
 
   assertEquals(response.status, 401);
 });
 
-Deno.test("student-login returns a token hash when the student name matches", async () => {
+Deno.test("student-login uses teacher first name plus student name to issue the session", async () => {
   const handler = createStudentLoginHandler({
-    findStudentEmailByNormalizedName: async () => "student.test-key@auth.mathventure.invalid",
-    issueStudentSession: async () => ({
+    findStudentEmailByTeacherAndName: async () => "student.test-key@auth.mathventure.invalid",
+    issueStudentSession: async (email) => ({
       status: "ok" as const,
-      email: "student.test-key@auth.mathventure.invalid",
+      email,
       tokenHash: "token-hash",
       verifyType: "email" as const,
     }),
@@ -47,7 +55,11 @@ Deno.test("student-login returns a token hash when the student name matches", as
 
   const response = await handler(new Request("http://local/student-login", {
     method: "POST",
-    body: JSON.stringify({ lastName: "Santos", firstName: "Maria" }),
+    body: JSON.stringify({
+      teacherFirstName: "Ana",
+      lastName: "Santos",
+      firstName: "Maria",
+    }),
   }));
 
   assertEquals(response.status, 200);
@@ -61,7 +73,7 @@ Deno.test("student-login returns a token hash when the student name matches", as
 
 Deno.test("student-login returns a JSON 500 with CORS headers when a dependency throws", async () => {
   const handler = createStudentLoginHandler({
-    findStudentEmailByNormalizedName: async () => {
+    findStudentEmailByTeacherAndName: async () => {
       throw new Error("boom");
     },
     issueStudentSession: async () => {
@@ -71,7 +83,11 @@ Deno.test("student-login returns a JSON 500 with CORS headers when a dependency 
 
   const response = await handler(new Request("http://local/student-login", {
     method: "POST",
-    body: JSON.stringify({ lastName: "Santos", firstName: "Maria" }),
+    body: JSON.stringify({
+      teacherFirstName: "Ana",
+      lastName: "Santos",
+      firstName: "Maria",
+    }),
   }));
 
   assertEquals(response.status, 500);

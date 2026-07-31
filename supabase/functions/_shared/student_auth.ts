@@ -4,16 +4,20 @@ export function normalizeClassCode(input: string): string {
   return input.trim().toUpperCase();
 }
 
-function normalizeStudentName(input: string): string {
+function normalizePersonName(input: string): string {
   return input.trim().replace(/\s+/g, " ").toUpperCase();
 }
 
+export function normalizeTeacherFirstName(input: string): string {
+  return normalizePersonName(input);
+}
+
 export function normalizeFirstName(input: string): string {
-  return normalizeStudentName(input);
+  return normalizePersonName(input);
 }
 
 export function normalizeLastName(input: string): string {
-  return normalizeStudentName(input);
+  return normalizePersonName(input);
 }
 
 function cleanStudentName(input: string): string {

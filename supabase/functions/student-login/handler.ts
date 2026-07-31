@@ -2,8 +2,13 @@ import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import {
   normalizeFirstName,
   normalizeLastName,
+  normalizeTeacherFirstName,
   STUDENT_VERIFY_TYPE,
 } from "../_shared/student_auth.ts";
+import {
+  defaultTeacherScopedStudentLookupPersistence,
+  findStudentEmailByTeacherAndName as resolveStudentEmailByTeacherAndName,
+} from "../_shared/hidden_student_provision.ts";
 
 type StudentLoginSession = {
   status: "ok";
@@ -15,36 +20,20 @@ type StudentLoginSession = {
 type StudentEmailLookup = string | null | "ambiguous";
 
 type StudentLoginDeps = {
-  findStudentEmailByNormalizedName(
-    normalizedLastName: string,
-    normalizedFirstName: string,
-  ): Promise<StudentEmailLookup>;
+  findStudentEmailByTeacherAndName(input: {
+    normalizedTeacherFirstName: string;
+    normalizedLastName: string;
+    normalizedFirstName: string;
+  }): Promise<StudentEmailLookup>;
   issueStudentSession(email: string): Promise<StudentLoginSession>;
 };
 
 const defaultDeps: StudentLoginDeps = {
-  async findStudentEmailByNormalizedName(normalizedLastName, normalizedFirstName) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("profiles")
-      .select("id")
-      .eq("role", "student")
-      .eq("normalized_last_name", normalizedLastName)
-      .eq("normalized_first_name", normalizedFirstName)
-      .limit(2);
-    if (error) throw error;
-    if (!data?.length) {
-      return null;
-    }
-    if (data.length > 1) {
-      return "ambiguous";
-    }
-
-    const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(data[0].id as string);
-    if (userError || !userData.user.email) {
-      throw userError ?? new Error("Failed to load student auth user");
-    }
-    return userData.user.email;
+  async findStudentEmailByTeacherAndName(input) {
+    return resolveStudentEmailByTeacherAndName(
+      defaultTeacherScopedStudentLookupPersistence,
+      input,
+    );
   },
   async issueStudentSession(email) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -76,14 +65,21 @@ export function createStudentLoginHandler(deps: StudentLoginDeps = defaultDeps) 
 
     try {
       const body = await req.json().catch(() => null);
+      const normalizedTeacherFirstName = normalizeTeacherFirstName(
+        typeof body?.teacherFirstName === "string" ? body.teacherFirstName : "",
+      );
       const normalizedLastName = normalizeLastName(typeof body?.lastName === "string" ? body.lastName : "");
       const normalizedFirstName = normalizeFirstName(typeof body?.firstName === "string" ? body.firstName : "");
 
-      if (!normalizedLastName || !normalizedFirstName) {
+      if (!normalizedTeacherFirstName || !normalizedLastName || !normalizedFirstName) {
         return jsonResponse({ status: "invalid_credentials" }, 401);
       }
 
-      const studentEmail = await deps.findStudentEmailByNormalizedName(normalizedLastName, normalizedFirstName);
+      const studentEmail = await deps.findStudentEmailByTeacherAndName({
+        normalizedTeacherFirstName,
+        normalizedLastName,
+        normalizedFirstName,
+      });
       if (!studentEmail || studentEmail === "ambiguous") {
         return jsonResponse({ status: "invalid_credentials" }, 401);
       }

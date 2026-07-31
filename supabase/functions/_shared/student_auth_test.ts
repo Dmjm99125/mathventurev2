@@ -4,11 +4,13 @@ import {
   normalizeClassCode,
   normalizeFirstName,
   normalizeLastName,
+  normalizeTeacherFirstName,
   studentDisplayName,
 } from "./student_auth.ts";
 
-Deno.test("normalizeClassCode and student names uppercase trimmed values", () => {
+Deno.test("normalizeClassCode and person names uppercase trimmed values", () => {
   assertEquals(normalizeClassCode(" ab12cd "), "AB12CD");
+  assertEquals(normalizeTeacherFirstName(" ana   maria "), "ANA MARIA");
   assertEquals(normalizeFirstName(" juan   miguel "), "JUAN MIGUEL");
   assertEquals(normalizeLastName(" dela   Cruz "), "DELA CRUZ");
 });
