@@ -8,10 +8,10 @@ Deno.test("classes-add-students rejects non-teacher callers", async () => {
       role: "student",
       full_name: "Student One",
     }),
-    findOwnedClass: async () => ({
-      id: "class-1",
+    getTeacherClassroom: async () => ({
+      id: "classroom-1",
       teacherId: "teacher-1",
-      name: "Class A",
+      name: "Classroom",
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => {
@@ -24,7 +24,6 @@ Deno.test("classes-add-students rejects non-teacher callers", async () => {
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
-        classId: "class-1",
         students: [{ lastName: "Santos", firstName: "Maria" }],
       }),
     }),
@@ -44,10 +43,10 @@ Deno.test("classes-add-students creates every student and returns a summary", as
       role: "teacher",
       full_name: "Teacher One",
     }),
-    findOwnedClass: async () => ({
-      id: "class-1",
+    getTeacherClassroom: async () => ({
+      id: "classroom-1",
       teacherId: "teacher-1",
-      name: "Class A",
+      name: "Classroom",
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async ({ identity }) => {
@@ -66,7 +65,6 @@ Deno.test("classes-add-students creates every student and returns a summary", as
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
-        classId: "class-1",
         students: [
           { lastName: "Santos", firstName: "Maria" },
           { lastName: "Cruz", firstName: "Paolo" },
@@ -77,8 +75,6 @@ Deno.test("classes-add-students creates every student and returns a summary", as
 
   assertEquals(response.status, 201);
   assertEquals(await response.json(), {
-    classId: "class-1",
-    className: "Class A",
     createdCount: 2,
   });
   assertEquals(provisioned, ["SANTOS:MARIA", "CRUZ:PAOLO"]);
@@ -93,10 +89,10 @@ Deno.test("classes-add-students rolls back already-created students when a later
       role: "teacher",
       full_name: "Teacher One",
     }),
-    findOwnedClass: async () => ({
-      id: "class-1",
+    getTeacherClassroom: async () => ({
+      id: "classroom-1",
       teacherId: "teacher-1",
-      name: "Class A",
+      name: "Classroom",
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => {
@@ -118,7 +114,6 @@ Deno.test("classes-add-students rolls back already-created students when a later
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
-        classId: "class-1",
         students: [
           { lastName: "Santos", firstName: "Maria" },
           { lastName: "Cruz", firstName: "Paolo" },
@@ -138,10 +133,10 @@ Deno.test("classes-add-students rejects duplicate normalized names inside the sa
       role: "teacher",
       full_name: "Teacher One",
     }),
-    findOwnedClass: async () => ({
-      id: "class-1",
+    getTeacherClassroom: async () => ({
+      id: "classroom-1",
       teacherId: "teacher-1",
-      name: "Class A",
+      name: "Classroom",
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => {
@@ -154,7 +149,6 @@ Deno.test("classes-add-students rejects duplicate normalized names inside the sa
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
-        classId: "class-1",
         students: [
           { lastName: " Santos ", firstName: "Maria" },
           { lastName: "Santos", firstName: " Maria " },
@@ -166,5 +160,30 @@ Deno.test("classes-add-students rejects duplicate normalized names inside the sa
   assertEquals(response.status, 409);
   assertEquals(await response.json(), {
     error: "Each student name can appear only once per batch.",
+  });
+});
+
+Deno.test("classes-add-students creates students without requiring classId", async () => {
+  const handler = createClassesAddStudentsHandler({
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Ana Cruz" }),
+    getTeacherClassroom: async () => ({ id: "classroom-1", teacherId: "teacher-1", name: "Classroom" }),
+    hasStudentWithNormalizedName: async () => false,
+    provisionStudentForClass: async () => ({
+      studentId: "student-1",
+      email: "student.1@auth.mathventure.invalid",
+    }),
+    deleteHiddenStudent: async () => {},
+  });
+
+  const response = await handler(new Request("http://local/classes-add-students", {
+    method: "POST",
+    body: JSON.stringify({
+      students: [{ lastName: "Santos", firstName: "Maria" }],
+    }),
+  }));
+
+  assertEquals(response.status, 201);
+  assertEquals(await response.json(), {
+    createdCount: 1,
   });
 });

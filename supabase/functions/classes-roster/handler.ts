@@ -5,6 +5,7 @@ import {
   calculateDetailedCompletionPct,
   calculateDetailedLastPlayedPct,
 } from "../../../src/lib/teacher-progress.ts";
+import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
 
 type RosterStudentRow = {
   id: string;
@@ -24,7 +25,9 @@ type DetailedGameResultRow = {
 
 type ClassesRosterDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  findOwnedClass(classId: string): Promise<{ id: string; teacherId: string } | null>;
+  getTeacherClassroom(
+    teacherId: string,
+  ): Promise<{ id: string; teacherId: string; name: string } | null>;
   listRosterStudents(classId: string): Promise<RosterStudentRow[]>;
   listDetailedGameResults(studentIds: string[]): Promise<DetailedGameResultRow[]>;
 };
@@ -60,22 +63,35 @@ const defaultDeps: ClassesRosterDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async findOwnedClass(classId) {
+  async getTeacherClassroom(teacherId) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
-      .select("id, teacher_id")
-      .eq("id", classId)
-      .maybeSingle();
+      .select("id, teacher_id, name, created_at")
+      .eq("teacher_id", teacherId);
 
     if (error) {
       throw error;
     }
-    if (!data) {
+    const classrooms = (data ?? []).map((row) => ({
+      id: row.id as string,
+      teacherId: row.teacher_id as string,
+      name: row.name as string,
+      createdAt: row.created_at as string,
+    }));
+    if (!classrooms.length) {
       return null;
     }
 
-    return { id: data.id as string, teacherId: data.teacher_id as string };
+    const classroom = await getTeacherSingletonClass(
+      { listTeacherClasses: async () => classrooms },
+      teacherId,
+    );
+    return {
+      id: classroom.id,
+      teacherId: classroom.teacherId,
+      name: classroom.name,
+    };
   },
   async listRosterStudents(classId) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -148,20 +164,12 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
         return errorResponse("Only teachers can view rosters", 403);
       }
 
-      const classId = new URL(req.url).searchParams.get("classId");
-      if (!classId) {
-        return errorResponse("classId is required", 422);
+      const classroom = await deps.getTeacherClassroom(profile.id);
+      if (!classroom) {
+        return errorResponse("Classroom not found", 404);
       }
 
-      const klass = await deps.findOwnedClass(classId);
-      if (!klass) {
-        return errorResponse("Class not found", 404);
-      }
-      if (klass.teacherId !== profile.id) {
-        return errorResponse("Forbidden", 403);
-      }
-
-      const students = await deps.listRosterStudents(classId);
+      const students = await deps.listRosterStudents(classroom.id);
       const detailedRows = await deps.listDetailedGameResults(
         students.map((student) => student.id),
       );

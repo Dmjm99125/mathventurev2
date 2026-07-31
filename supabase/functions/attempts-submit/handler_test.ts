@@ -17,10 +17,28 @@ Deno.test("resolveAttemptClassId uses the assignment class when the student stil
         studentId: null,
       }),
       isStudentEnrolledInClass: async () => true,
+      getStudentSingletonClassId: async () => null,
     },
   );
 
   assertEquals(classId, "class-a");
+});
+
+Deno.test("resolveAttemptClassId infers the classroom for free-play attempts when classId is omitted", async () => {
+  const classId = await resolveAttemptClassId(
+    {
+      studentId: "student-a",
+      assignmentId: null,
+      requestedClassId: null,
+    },
+    {
+      getAssignmentContext: async () => null,
+      isStudentEnrolledInClass: async () => true,
+      getStudentSingletonClassId: async () => "classroom-1",
+    },
+  );
+
+  assertEquals(classId, "classroom-1");
 });
 
 Deno.test("attempts-submit rejects malformed detailed game results", async () => {

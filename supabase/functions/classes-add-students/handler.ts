@@ -6,11 +6,12 @@ import {
   provisionHiddenStudentForClass,
   type NormalizedStudentIdentity,
 } from "../_shared/hidden_student_provision.ts";
+import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
 
 type ClassesAddStudentsDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  findOwnedClass(
-    classId: string,
+  getTeacherClassroom(
+    teacherId: string,
   ): Promise<{ id: string; teacherId: string; name: string } | null>;
   hasStudentWithNormalizedName(
     normalizedLastName: string,
@@ -28,26 +29,31 @@ const defaultDeps: ClassesAddStudentsDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async findOwnedClass(classId) {
+  async getTeacherClassroom(teacherId) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
-      .select("id, teacher_id, name")
-      .eq("id", classId)
-      .maybeSingle();
+      .select("id, teacher_id, name, created_at")
+      .eq("teacher_id", teacherId);
 
     if (error) {
       throw error;
     }
-    if (!data) {
+    const classrooms = (data ?? []).map((row) => ({
+      id: row.id as string,
+      teacherId: row.teacher_id as string,
+      name: row.name as string,
+      createdAt: row.created_at as string,
+    }));
+    if (!classrooms.length) {
       return null;
     }
 
-    return {
-      id: data.id as string,
-      teacherId: data.teacher_id as string,
-      name: data.name as string,
-    };
+    const classroom = await getTeacherSingletonClass(
+      { listTeacherClasses: async () => classrooms },
+      teacherId,
+    );
+    return { id: classroom.id, teacherId: classroom.teacherId, name: classroom.name };
   },
   async hasStudentWithNormalizedName(normalizedLastName, normalizedFirstName) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -106,21 +112,17 @@ export function createClassesAddStudentsHandler(
       }
 
       const body = await req.json().catch(() => null);
-      const classId = typeof body?.classId === "string" ? body.classId : "";
       const students = Array.isArray(body?.students)
         ? body.students as Record<string, unknown>[]
         : [];
 
-      if (!classId || !students.length) {
-        return errorResponse("classId and at least one student are required", 422);
+      if (!students.length) {
+        return errorResponse("At least one student is required", 422);
       }
 
-      const klass = await deps.findOwnedClass(classId);
-      if (!klass) {
-        return errorResponse("Class not found", 404);
-      }
-      if (klass.teacherId !== profile.id) {
-        return errorResponse("Forbidden", 403);
+      const classroom = await deps.getTeacherClassroom(profile.id);
+      if (!classroom) {
+        return errorResponse("Classroom not found", 404);
       }
 
       const identities = students.map((student: Record<string, unknown>) =>
@@ -165,7 +167,7 @@ export function createClassesAddStudentsHandler(
       try {
         for (const identity of normalizedIdentities) {
           const created = await deps.provisionStudentForClass({
-            classId: klass.id,
+            classId: classroom.id,
             identity,
           });
           createdStudentIds.push(created.studentId);
@@ -179,14 +181,7 @@ export function createClassesAddStudentsHandler(
         throw error;
       }
 
-      return jsonResponse(
-        {
-          classId: klass.id,
-          className: klass.name,
-          createdCount: createdStudentIds.length,
-        },
-        201,
-      );
+      return jsonResponse({ createdCount: createdStudentIds.length }, 201);
     } catch (error) {
       console.error("classes-add-students failed", error);
       return errorResponse("We couldn't add those students right now.", 500);

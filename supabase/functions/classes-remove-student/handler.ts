@@ -1,9 +1,12 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
+import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
 
 type ClassesRemoveStudentDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  findOwnedClass(classId: string): Promise<{ id: string; teacherId: string } | null>;
+  getTeacherClassroom(
+    teacherId: string,
+  ): Promise<{ id: string; teacherId: string; name: string } | null>;
   removeMembership(input: { classId: string; studentId: string }): Promise<void>;
 };
 
@@ -12,22 +15,31 @@ const defaultDeps: ClassesRemoveStudentDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async findOwnedClass(classId) {
+  async getTeacherClassroom(teacherId) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
-      .select("id, teacher_id")
-      .eq("id", classId)
-      .maybeSingle();
+      .select("id, teacher_id, name, created_at")
+      .eq("teacher_id", teacherId);
 
     if (error) {
       throw error;
     }
-    if (!data) {
+    const classrooms = (data ?? []).map((row) => ({
+      id: row.id as string,
+      teacherId: row.teacher_id as string,
+      name: row.name as string,
+      createdAt: row.created_at as string,
+    }));
+    if (!classrooms.length) {
       return null;
     }
 
-    return { id: data.id as string, teacherId: data.teacher_id as string };
+    const classroom = await getTeacherSingletonClass(
+      { listTeacherClasses: async () => classrooms },
+      teacherId,
+    );
+    return { id: classroom.id, teacherId: classroom.teacherId, name: classroom.name };
   },
   async removeMembership({ classId, studentId }) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -64,22 +76,18 @@ export function createClassesRemoveStudentHandler(
       }
 
       const body = await req.json().catch(() => null);
-      const classId = typeof body?.classId === "string" ? body.classId : "";
       const studentId = typeof body?.studentId === "string" ? body.studentId : "";
 
-      if (!classId || !studentId) {
-        return errorResponse("classId and studentId are required", 422);
+      if (!studentId) {
+        return errorResponse("studentId is required", 422);
       }
 
-      const klass = await deps.findOwnedClass(classId);
-      if (!klass) {
-        return errorResponse("Class not found", 404);
-      }
-      if (klass.teacherId !== profile.id) {
-        return errorResponse("Forbidden", 403);
+      const classroom = await deps.getTeacherClassroom(profile.id);
+      if (!classroom) {
+        return errorResponse("Classroom not found", 404);
       }
 
-      await deps.removeMembership({ classId, studentId });
+      await deps.removeMembership({ classId: classroom.id, studentId });
       return jsonResponse({ removed: true });
     } catch (error) {
       console.error("classes-remove-student failed", error);

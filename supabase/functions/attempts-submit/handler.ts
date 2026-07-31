@@ -61,6 +61,7 @@ type ResolveAttemptClassIdInput = {
 type ResolveAttemptClassIdDeps = {
   getAssignmentContext(assignmentId: string): Promise<AssignmentContext | null>;
   isStudentEnrolledInClass(studentId: string, classId: string): Promise<boolean>;
+  getStudentSingletonClassId(studentId: string): Promise<string | null>;
 };
 
 class AttemptsSubmitHttpError extends Error {
@@ -110,6 +111,22 @@ const defaultResolveAttemptClassIdDeps: ResolveAttemptClassIdDeps = {
 
     return Boolean(data);
   },
+  async getStudentSingletonClassId(studentId) {
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data, error } = await adminClient
+      .from("class_students")
+      .select("class_id")
+      .eq("student_id", studentId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return (data?.class_id as string | null | undefined) ?? null;
+  },
 };
 
 export async function resolveAttemptClassId(
@@ -155,7 +172,7 @@ export async function resolveAttemptClassId(
   }
 
   if (!input.requestedClassId) {
-    return null;
+    return deps.getStudentSingletonClassId(input.studentId);
   }
 
   const isEnrolled = await deps.isStudentEnrolledInClass(
