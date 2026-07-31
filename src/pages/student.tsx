@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useStudentDashboard, useAssignments, useJoinClass, useClasses } from '@/lib/hooks';
+import { useStudentDashboard, useAssignments, useClasses, useStudentClassroom } from '@/lib/hooks';
 import { Card, Button, Badge } from '@/components/ui';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Play, CheckCircle2, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
-import type { AssignmentForStudent, StudentClassSummary } from '@/lib/api';
+import type { AssignmentForStudent, StudentClassSummary, StudentClassroomSummary } from '@/lib/api';
 import { useClassPosts } from '@/lib/hooks';
 import { allTopics } from '@/data';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
@@ -16,32 +15,14 @@ import { useLanguage } from '@/lib/useLanguage';
 export function StudentDashboard() {
   const { data: dashboard, isLoading: dashLoading, error: dashboardError } = useStudentDashboard();
   const { data: assignmentsData, isLoading: assignLoading, error: assignmentsError } = useAssignments();
-  const { data: classesData, isLoading: classLoading, error: classesError } = useClasses();
-  const joinClass = useJoinClass();
+  const { data: classroomData, isLoading: classLoading, error: classesError } = useStudentClassroom();
   const { t } = useLanguage();
-  const [joinCode, setJoinCode] = useState('');
-  const [isJoining, setIsJoining] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState('');
   const [, setLocation] = useLocation();
-
-  const handleJoinClass = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!joinCode.trim()) return;
-    try {
-      await joinClass.mutateAsync(joinCode);
-      setJoinCode('');
-      setIsJoining(false);
-    } catch (err: any) {
-      setDialogMessage(err.message || 'Could not join class');
-      setDialogOpen(true);
-    }
-  };
 
   if (dashLoading || assignLoading || classLoading) return <StudentPortalLoading />;
 
   const assignments = (assignmentsData?.assignments || []) as AssignmentForStudent[];
-  const myClasses = (classesData?.classes || []) as StudentClassSummary[];
+  const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
   const dashboardSummary = dashboard ?? {
     completedLessons: 0,
     streakDays: 0,
@@ -50,20 +31,16 @@ export function StudentDashboard() {
   const showDashboardNotice = Boolean(dashboardError || assignmentsError || classesError || !dashboard);
   const topics = buildPortalTopicEntries({
     assignments,
-    classes: myClasses.map((klass) => ({
-      id: klass.id,
-      name: klass.name,
-      teacherName: klass.teacherName,
-    })),
+    classes: classroom
+      ? [{ id: classroom.id, name: 'Classroom', teacherName: classroom.teacherName }]
+      : [],
     recentAttempts: dashboardSummary.recentAttempts || [],
   });
   const railSummary = summarizePortalRail({
     assignments,
-    classes: myClasses.map((klass) => ({
-      id: klass.id,
-      name: klass.name,
-      teacherName: klass.teacherName,
-    })),
+    classroom: classroom
+      ? { id: classroom.id, name: 'Classroom', teacherName: classroom.teacherName }
+      : null,
     dashboard: {
       completedLessons: dashboardSummary.completedLessons,
       streakDays: dashboardSummary.streakDays,
@@ -90,15 +67,9 @@ export function StudentDashboard() {
       <div className="grid gap-4 lg:grid-cols-[minmax(260px,25%)_minmax(0,1fr)]">
         <StudentPortalRail
           summary={railSummary}
-          classes={myClasses}
-          joinCode={joinCode}
-          isJoining={isJoining}
-          isJoinPending={joinClass.isPending}
-          onJoinCodeChange={setJoinCode}
-          onJoinSubmit={handleJoinClass}
-          onStartJoin={() => setIsJoining(true)}
+          classroom={classroom}
           onOpenAssignment={(href) => setLocation(href)}
-          onOpenClass={(classId) => setLocation(`/student/classes/${classId}`)}
+          onOpenClassroom={() => setLocation('/student/classroom')}
         />
 
         <div className="relative overflow-hidden rounded-[32px] border-4 border-white/60 shadow-[0_24px_60px_rgba(34,94,49,0.16)]">
@@ -120,22 +91,6 @@ export function StudentDashboard() {
           </div>
         </div>
       </div>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Notification</DialogTitle>
-            <DialogDescription className="font-bold text-base mt-2">
-              {dialogMessage}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button>OK</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -219,9 +174,10 @@ export function StudentLessons() {
   );
 }
 
-export function StudentClassDetail({ classId }: { classId: string }) {
-  const { data: classesData, isLoading: classLoading } = useClasses();
-  const { data: postsData, isLoading: postsLoading } = useClassPosts(classId);
+export function StudentClassroomPage() {
+  const { data: classroomData, isLoading: classLoading } = useStudentClassroom();
+  const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
+  const { data: postsData, isLoading: postsLoading } = useClassPosts(classroom?.id ?? '');
   const { data: assignmentsData, isLoading: assignLoading } = useAssignments();
   const [, setLocation] = useLocation();
 
@@ -229,13 +185,10 @@ export function StudentClassDetail({ classId }: { classId: string }) {
     return <div className="p-8 text-center font-bold">Loading class details...</div>;
   }
 
-  const classes = (classesData?.classes || []) as StudentClassSummary[];
-  const cls = classes.find(c => c.id === classId);
-
-  if (!cls) {
+  if (!classroom) {
     return (
       <div className="p-8 text-center space-y-4">
-        <p className="font-bold text-muted-foreground">Class not found.</p>
+        <p className="font-bold text-muted-foreground">Classroom not found.</p>
         <Button variant="outline" onClick={() => setLocation('/student')}>Back to Dashboard</Button>
       </div>
     );
@@ -252,8 +205,8 @@ export function StudentClassDetail({ classId }: { classId: string }) {
           <ArrowLeft className="h-6 w-6 text-foreground" />
         </Button>
         <div>
-          <h1 className="text-3xl font-display font-extrabold text-foreground">{cls.name}</h1>
-          <p className="text-muted-foreground font-bold">Teacher: {cls.teacherName}</p>
+          <h1 className="text-3xl font-display font-extrabold text-foreground">Classroom</h1>
+          <p className="text-muted-foreground font-bold">Teacher: {classroom.teacherName}</p>
         </div>
       </header>
 
@@ -304,7 +257,7 @@ export function StudentClassDetail({ classId }: { classId: string }) {
                           buildStudentLessonHref({
                             lessonId: a.lessonId as import('@/lib/student-portal').PortalTopicId,
                             assignmentId: a.id,
-                            classId: classId,
+                            classId: classroom.id,
                             returnTo: 'class',
                           }),
                         )}
@@ -322,4 +275,8 @@ export function StudentClassDetail({ classId }: { classId: string }) {
       </div>
     </div>
   );
+}
+
+export function StudentClassDetail(_: { classId: string }) {
+  return <StudentClassroomPage />;
 }

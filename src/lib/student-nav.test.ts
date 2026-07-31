@@ -7,10 +7,15 @@ Deno.test("student nav exposes only the basecamp route", () => {
   ]);
 });
 
-Deno.test("student nav keeps basecamp active across lesson and class drill-down routes", () => {
+Deno.test("student nav keeps basecamp active across lesson and classroom drill-down routes", () => {
   assertEquals(isStudentNavActive("/student", "/student"), true);
   assertEquals(isStudentNavActive("/student/lessons", "/student"), true);
   assertEquals(isStudentNavActive("/student/lessons/colors?classId=class-1", "/student"), true);
-  assertEquals(isStudentNavActive("/student/classes/class-1", "/student"), true);
+  assertEquals(isStudentNavActive("/student/classroom", "/student"), true);
   assertEquals(isStudentNavActive("/teacher", "/student"), false);
+});
+
+Deno.test("student nav stays active on the classroom route", () => {
+  assertEquals(isStudentNavActive("/student/classroom", "/student"), true);
+  assertEquals(isStudentNavActive("/student/lessons/colors?returnTo=class", "/student"), true);
 });

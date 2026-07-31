@@ -1,35 +1,22 @@
 import React from "react";
 
-import { Button, Card, Input } from "@/components/ui";
-import type { StudentClassSummary } from "@/lib/api";
+import { Button, Card } from "@/components/ui";
+import type { StudentClassroomSummary } from "@/lib/api";
 import type { PortalRailSummary } from "@/lib/student-portal";
 import { useLanguage } from "@/lib/useLanguage";
 
 export function StudentPortalRail({
   summary,
-  classes,
-  joinCode,
-  isJoining,
-  isJoinPending,
-  onJoinCodeChange,
-  onJoinSubmit,
-  onStartJoin,
+  classroom,
   onOpenAssignment,
-  onOpenClass,
+  onOpenClassroom,
 }: {
   summary: PortalRailSummary;
-  classes: StudentClassSummary[];
-  joinCode: string;
-  isJoining: boolean;
-  isJoinPending: boolean;
-  onJoinCodeChange: (value: string) => void;
-  onJoinSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  onStartJoin: () => void;
+  classroom: StudentClassroomSummary | null;
   onOpenAssignment: (href: string) => void;
-  onOpenClass: (classId: string) => void;
+  onOpenClassroom: () => void;
 }) {
   const { t } = useLanguage();
-  const primaryClass = summary.primaryClass;
 
   return (
     <aside className="flex flex-col gap-4">
@@ -60,48 +47,21 @@ export function StudentPortalRail({
 
       <Card className="rounded-[28px] bg-white/92 p-5 shadow-[0_20px_45px_rgba(59,109,42,0.1)]">
         <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
-          {t("student.portal.myClass")}
+          Your Classroom
         </p>
-        {primaryClass ? (
-          <>
-            <button
-              type="button"
-              className="mt-3 w-full rounded-2xl bg-muted/50 px-4 py-3 text-left"
-              onClick={() => onOpenClass(primaryClass.id)}
-            >
-              <span className="block text-lg font-extrabold text-foreground">{primaryClass.name}</span>
-              <span className="block text-sm font-bold text-muted-foreground">{primaryClass.teacherName}</span>
-            </button>
-            {classes.length > 1 && (
-              <p className="mt-3 text-xs font-bold text-muted-foreground">
-                +{classes.length - 1} more class{classes.length > 2 ? "es" : ""}
-              </p>
-            )}
-          </>
+        {classroom ? (
+          <button
+            type="button"
+            className="mt-3 w-full rounded-2xl bg-muted/50 px-4 py-3 text-left"
+            onClick={onOpenClassroom}
+          >
+            <span className="block text-lg font-extrabold text-foreground">Classroom</span>
+            <span className="block text-sm font-bold text-muted-foreground">{classroom.teacherName}</span>
+          </button>
         ) : (
-          <>
-            <p className="mt-3 text-sm font-bold text-muted-foreground">{t("student.portal.noClasses")}</p>
-            <p className="mt-1 text-sm font-bold text-muted-foreground">{t("student.portal.joinPrompt")}</p>
-          </>
-        )}
-
-        {isJoining ? (
-          <form onSubmit={onJoinSubmit} className="mt-4 grid gap-2">
-            <Input
-              value={joinCode}
-              onChange={(event) => onJoinCodeChange(event.target.value.toUpperCase())}
-              className="font-mono uppercase"
-              placeholder={t("teacher.joinCode")}
-              autoFocus
-            />
-            <Button type="submit" variant="outline" disabled={isJoinPending || !joinCode.trim()}>
-              {t("common.join")}
-            </Button>
-          </form>
-        ) : (
-          <Button className="mt-4 w-full" variant="outline" onClick={onStartJoin}>
-            {t("student.portal.joinClass")}
-          </Button>
+          <p className="mt-3 text-sm font-bold text-muted-foreground">
+            Your classroom will appear here once your teacher adds you.
+          </p>
         )}
       </Card>
 

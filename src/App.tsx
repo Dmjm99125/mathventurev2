@@ -13,7 +13,7 @@ import {
   TeacherReportsOverviewPage,
   TeacherSettingsPlaceholder,
 } from '@/pages/teacher';
-import { StudentDashboard, StudentClassDetail } from '@/pages/student';
+import { StudentDashboard, StudentClassroomPage } from '@/pages/student';
 import { QuizPage } from '@/pages/QuizPage';
 import NotFound from '@/pages/not-found';
 
@@ -39,6 +39,9 @@ function AppRoutes() {
       <Route path="/student">
         {() => <AppLayout sidebarMode="hidden"><StudentDashboard /></AppLayout>}
       </Route>
+      <Route path="/student/classroom">
+        {() => <AppLayout><StudentClassroomPage /></AppLayout>}
+      </Route>
       <Route path="/student/lessons">
         {() => <Redirect to="/student" replace />}
       </Route>
@@ -46,7 +49,7 @@ function AppRoutes() {
         {() => <QuizPage />}
       </Route>
       <Route path="/student/classes/:classId">
-        {params => <AppLayout><StudentClassDetail classId={params.classId} /></AppLayout>}
+        {() => <Redirect to="/student/classroom" replace />}
       </Route>
       
       <Route path="/teacher">

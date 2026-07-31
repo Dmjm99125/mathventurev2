@@ -52,13 +52,12 @@ export type PortalRailSummary = {
   nextAction:
     | { kind: "assignment"; lessonId: PortalTopicId; href: string; dueAt: string | null }
     | { kind: "free-play"; href: string };
-  primaryClass: PortalClass | null;
-  classCount: number;
+  classroom: PortalClass | null;
   completedLessons: number;
   streakDays: number;
   recentLessonId: PortalTopicId | null;
   recentScorePct: number | null;
-  showJoinPrompt: boolean;
+  showClassroomPrompt: boolean;
 };
 
 export const LEGACY_TOPIC_META: ReadonlyArray<{
@@ -132,7 +131,7 @@ export function buildStudentLessonHref(input: {
   if (input.classId) {
     params.set("classId", input.classId);
   }
-  if (input.returnTo === "class" && input.classId) {
+  if (input.returnTo === "class") {
     params.set("returnTo", input.returnTo);
   }
 
@@ -146,8 +145,8 @@ export function buildStudentLessonExitHref(input: {
   classId?: string | null;
   returnTo?: string | null;
 }): string {
-  if (input.returnTo === "class" && input.classId) {
-    return `/student/classes/${input.classId}`;
+  if (input.returnTo === "class") {
+    return "/student/classroom";
   }
 
   return "/student";
@@ -194,7 +193,7 @@ export function buildPortalTopicEntries(input: {
 
 export function summarizePortalRail(input: {
   assignments: PortalAssignment[];
-  classes: PortalClass[];
+  classroom: PortalClass | null;
   dashboard: PortalDashboardSummary;
 }): PortalRailSummary {
   const nextAssignment = sortPendingAssignments(input.assignments).find((assignment) => {
@@ -204,8 +203,6 @@ export function summarizePortalRail(input: {
   const nextLessonId = nextAssignment ? toPortalTopicId(nextAssignment.lessonId) : null;
   const recentAttempt = input.dashboard.recentAttempts[0] ?? null;
   const recentLessonId = recentAttempt ? toPortalTopicId(recentAttempt.lessonId) : null;
-  const primaryClass = input.classes[0] ?? null;
-  const singleClassId = getSingleClassId(input.classes);
 
   return {
     nextAction: nextAssignment && nextLessonId
@@ -223,14 +220,13 @@ export function summarizePortalRail(input: {
           kind: "free-play",
           href: "/student",
         },
-    primaryClass,
-    classCount: input.classes.length,
+    classroom: input.classroom,
     completedLessons: input.dashboard.completedLessons,
     streakDays: input.dashboard.streakDays,
     recentLessonId,
     recentScorePct: recentAttempt
       ? toScorePct(recentAttempt.score, recentAttempt.maxScore)
       : null,
-    showJoinPrompt: input.classes.length === 0,
+    showClassroomPrompt: false,
   };
 }

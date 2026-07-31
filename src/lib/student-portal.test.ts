@@ -100,8 +100,8 @@ Deno.test("buildStudentLessonHref only encodes class return targets when the les
 Deno.test("buildStudentLessonExitHref returns to basecamp by default and only uses class routes when explicitly requested", () => {
   assertEquals(buildStudentLessonExitHref({}), "/student");
   assertEquals(buildStudentLessonExitHref({ returnTo: "dashboard", classId: "class-1" }), "/student");
-  assertEquals(buildStudentLessonExitHref({ returnTo: "class", classId: "class-1" }), "/student/classes/class-1");
-  assertEquals(buildStudentLessonExitHref({ returnTo: "class" }), "/student");
+  assertEquals(buildStudentLessonExitHref({ returnTo: "class", classId: "class-1" }), "/student/classroom");
+  assertEquals(buildStudentLessonExitHref({ returnTo: "class" }), "/student/classroom");
 });
 
 Deno.test("summarizePortalRail prefers the first pending assignment and keeps class context", () => {
@@ -110,9 +110,7 @@ Deno.test("summarizePortalRail prefers the first pending assignment and keeps cl
       { id: "asg-1", lessonId: "colors", classId: "class-1", dueAt: "2026-07-29T00:00:00.000Z", completed: false },
       { id: "asg-2", lessonId: "numbers", dueAt: null, completed: false },
     ],
-    classes: [
-      { id: "class-1", name: "Section Sunflower", teacherName: "Teacher Mia" },
-    ],
+    classroom: { id: "class-1", name: "Classroom", teacherName: "Teacher Mia" },
     dashboard: {
       completedLessons: 4,
       streakDays: 3,
@@ -126,7 +124,7 @@ Deno.test("summarizePortalRail prefers the first pending assignment and keeps cl
     href: "/student/lessons/colors?assignmentId=asg-1&classId=class-1",
     dueAt: "2026-07-29T00:00:00.000Z",
   });
-  assertEquals(summary.primaryClass?.name, "Section Sunflower");
+  assertEquals(summary.classroom?.name, "Classroom");
   assertEquals(summary.completedLessons, 4);
   assertEquals(summary.recentScorePct, 100);
 });
@@ -151,7 +149,7 @@ Deno.test("summarizePortalRail picks the earliest due pending assignment regardl
         completed: false,
       },
     ],
-    classes: [],
+    classroom: null,
     dashboard: {
       completedLessons: 0,
       streakDays: 0,
@@ -170,9 +168,7 @@ Deno.test("summarizePortalRail picks the earliest due pending assignment regardl
 Deno.test("summarizePortalRail passes single-class context into free play launches", () => {
   const summary = summarizePortalRail({
     assignments: [],
-    classes: [
-      { id: "class-1", name: "Section Sunflower", teacherName: "Teacher Mia" },
-    ],
+    classroom: { id: "class-1", name: "Classroom", teacherName: "Teacher Mia" },
     dashboard: {
       completedLessons: 0,
       streakDays: 0,
@@ -189,7 +185,7 @@ Deno.test("summarizePortalRail passes single-class context into free play launch
 Deno.test("summarizePortalRail falls back to free play messaging and join prompt when data is sparse", () => {
   const summary = summarizePortalRail({
     assignments: [],
-    classes: [],
+    classroom: null,
     dashboard: {
       completedLessons: 0,
       streakDays: 0,
@@ -201,8 +197,30 @@ Deno.test("summarizePortalRail falls back to free play messaging and join prompt
     kind: "free-play",
     href: "/student",
   });
-  assertEquals(summary.primaryClass, null);
-  assertEquals(summary.showJoinPrompt, true);
+  assertEquals(summary.classroom, null);
+  assertEquals(summary.showClassroomPrompt, false);
   assertEquals(summary.recentLessonId, null);
   assertEquals(summary.recentScorePct, null);
+});
+
+Deno.test("buildStudentLessonExitHref returns /student/classroom for classroom exits", () => {
+  assertEquals(
+    buildStudentLessonExitHref({ returnTo: "class" }),
+    "/student/classroom",
+  );
+});
+
+Deno.test("summarizePortalRail no longer exposes join prompts or multi-class counts", () => {
+  const summary = summarizePortalRail({
+    assignments: [],
+    classroom: null,
+    dashboard: {
+      completedLessons: 0,
+      streakDays: 0,
+      recentAttempts: [],
+    },
+  });
+
+  assertEquals(summary.classroom, null);
+  assertEquals(summary.showClassroomPrompt, false);
 });

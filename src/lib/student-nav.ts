@@ -9,7 +9,7 @@ export function isStudentNavActive(pathname: string, href: string): boolean {
     return cleanPath === "/student"
       || cleanPath === "/student/lessons"
       || cleanPath.startsWith("/student/lessons/")
-      || cleanPath.startsWith("/student/classes/");
+      || cleanPath === "/student/classroom";
   }
 
   return cleanPath === href;
