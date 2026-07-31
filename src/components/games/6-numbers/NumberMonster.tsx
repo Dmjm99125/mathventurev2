@@ -128,9 +128,9 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#faf5ff] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative overflow-hidden text-[#334155] font-display">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#6b21a8] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#6b21a8] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}

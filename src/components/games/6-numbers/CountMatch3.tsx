@@ -134,9 +134,9 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
     <div className="w-full max-w-4xl flex flex-col items-center p-6 md:p-8 bg-[#fde2c4] bg-[repeating-linear-gradient(45deg,#ffd7a7_0px,#ffd7a7_20px,#ffeac5_20px,#ffeac5_40px)] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-[#f2b279] relative overflow-hidden">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#633c1e] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#633c1e] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
