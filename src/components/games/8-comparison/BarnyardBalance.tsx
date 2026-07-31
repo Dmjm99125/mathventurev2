@@ -133,9 +133,9 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-gradient-to-b from-[#f0fdf4] to-[#dcfce7] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
