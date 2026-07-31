@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui';
+import { ArrowLeft } from 'lucide-react';
 
 const GALAXY_COLORS = [
   { name: 'red', emoji: '❤️', planet: 'Mars Red', hex: '#ef4444' },
@@ -144,6 +145,15 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
       {/* Game Screen */}
       {screen === 'game' && (
         <div className="relative z-10 w-full h-full flex flex-col items-center p-4 pt-16 animate-in fade-in">
+          <div className="absolute top-4 left-4 z-20">
+            <Button
+              variant="outline"
+              className="bg-black/60 text-white border border-gray-500 font-bold"
+              onClick={() => setScreen('start')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+          </div>
           
           {/* HUD */}
           <div className="absolute top-4 left-0 w-full px-4 flex justify-between gap-2 z-20">

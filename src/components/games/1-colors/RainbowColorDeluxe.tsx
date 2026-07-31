@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui';
+import { ArrowLeft } from 'lucide-react';
 
 const DIFFICULTY_COLORS = {
   easy: ["#ef4444", "#3b82f6", "#22c55e", "#eab308"],
@@ -197,6 +198,15 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
 
         {screen === 'game' && (
           <div className="w-full max-w-2xl flex flex-col items-center animate-in fade-in">
+            <div className="mb-4 flex w-full justify-start">
+              <Button
+                variant="outline"
+                className="rounded-xl bg-white/90 font-bold text-gray-700"
+                onClick={() => setScreen('difficulty')}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+            </div>
             {/* Top Bar */}
             <div className="flex flex-wrap justify-center gap-4 text-xl font-bold text-gray-700 mb-4">
               <div className="bg-white/90 px-6 py-2 rounded-2xl shadow-sm">Score: <span className="text-orange-500">{score}</span></div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Heart, Star } from 'lucide-react';
+import { ArrowLeft, Heart, Star } from 'lucide-react';
 
 const SHAPES = ['circle', 'square', 'triangle', 'star'];
 const REWARDS = ["👑", "💍", "🍦", "🍗", "🍕", "🎮", "🎸", "🚲", "🎨", "🚀", "🛸"];
@@ -168,6 +168,15 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
         {/* GAME SCREEN */}
         {screen === 'game' && (
           <motion.div key="game" className={getScreenClasses()} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+            <div className="absolute top-20 left-4 z-20">
+              <Button
+                variant="outline"
+                className="bg-white/90 border-2 border-green-300 text-green-800 font-bold shadow-sm rounded-xl"
+                onClick={() => setScreen('start')}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+            </div>
             
             <motion.div animate={{ y: [-5, 5, -5] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="text-[80px] drop-shadow-xl z-20 mt-8 md:mt-4">
               🐲
