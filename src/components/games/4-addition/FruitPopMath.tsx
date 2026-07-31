@@ -120,7 +120,7 @@ export function FruitPopMath({ onComplete }: { onComplete?: () => void }) {
                         </div>
                         
                         {/* Math Equation */}
-                        <div className="flex items-center justify-center gap-4 text-5xl md:text-6xl font-bold text-slate-700 mb-6 font-display">
+                        <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-3 text-3xl md:text-6xl font-bold text-slate-700 mb-6 font-display">
                             <span className="text-fuchsia-600">{num1}</span>
                             <span className="text-pink-400">+</span>
                             <span className="text-fuchsia-600">{num2}</span>
@@ -132,7 +132,7 @@ export function FruitPopMath({ onComplete }: { onComplete?: () => void }) {
                                 onChange={(e) => setUserAnswer(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 disabled={message.type !== ''}
-                                className={`w-28 h-20 text-center text-4xl md:text-5xl font-bold rounded-2xl border-4 shadow-inner outline-none transition-all
+                                className={`w-24 h-16 text-center text-3xl md:w-28 md:h-20 md:text-5xl font-bold rounded-2xl border-4 shadow-inner outline-none transition-all
                                     ${message.type === 'error' ? 'border-rose-400 bg-rose-50 text-rose-500' : 
                                       message.type === 'success' ? 'border-emerald-400 bg-emerald-50 text-emerald-500' : 
                                       'border-slate-300 bg-slate-50 focus:border-fuchsia-400 focus:ring-4 focus:ring-fuchsia-200 text-slate-700'}
