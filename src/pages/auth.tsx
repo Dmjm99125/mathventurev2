@@ -11,6 +11,7 @@ export function Login() {
   const [role, setRole] = useState<Role>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [teacherFirstName, setTeacherFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [error, setError] = useState('');
@@ -27,7 +28,7 @@ export function Login() {
       if (role === 'teacher') {
         await teacherSignIn(email, password);
       } else {
-        await studentSignIn({ lastName, firstName });
+        await studentSignIn({ teacherFirstName, lastName, firstName });
       }
       await refreshProfile();
       setLocation('/'); // App.tsx will redirect based on role
@@ -109,6 +110,15 @@ export function Login() {
             <>
               <p className="text-center text-sm font-bold text-muted-foreground">{t('auth.studentLoginHelp')}</p>
               <div className="space-y-2">
+                <Label htmlFor="teacherFirstName">{t('auth.teacherFirstName')}</Label>
+                <Input
+                  id="teacherFirstName"
+                  required
+                  value={teacherFirstName}
+                  onChange={(e) => setTeacherFirstName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="lastName">{t('auth.lastName')}</Label>
                 <Input
                   id="lastName"
@@ -149,7 +159,7 @@ export function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [classCode, setClassCode] = useState('');
+  const [teacherFirstName, setTeacherFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [error, setError] = useState('');
@@ -167,7 +177,7 @@ export function Signup() {
         await teacherSignUp(email, password, fullName);
         await teacherSignIn(email, password);
       } else {
-        await studentRegister({ classCode, lastName, firstName });
+        await studentRegister({ teacherFirstName, lastName, firstName });
       }
       await refreshProfile();
       setLocation('/'); 
@@ -252,6 +262,15 @@ export function Signup() {
             <>
               <p className="text-center text-sm font-bold text-muted-foreground">{t('auth.studentSignupHelp')}</p>
               <div className="space-y-2">
+                <Label htmlFor="teacherFirstName">{t('auth.teacherFirstName')}</Label>
+                <Input
+                  id="teacherFirstName"
+                  required
+                  value={teacherFirstName}
+                  onChange={(e) => setTeacherFirstName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="lastName">{t('auth.lastName')}</Label>
                 <Input
                   id="lastName"
@@ -267,15 +286,6 @@ export function Signup() {
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="classCode">{t('auth.classCode')}</Label>
-                <Input
-                  id="classCode"
-                  required
-                  value={classCode}
-                  onChange={(e) => setClassCode(e.target.value)}
                 />
               </div>
             </>

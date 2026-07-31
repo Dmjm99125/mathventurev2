@@ -11,10 +11,8 @@ import type {
 
 export type Role = 'student' | 'teacher';
 
-export interface TeacherClassSummary {
+export interface TeacherClassroomSummary {
   id: string;
-  name: string;
-  joinCode: string;
   createdAt: string;
   studentCount: number;
 }
@@ -28,11 +26,19 @@ export interface AttemptGameResultInput {
   completedAt?: string;
 }
 
-export interface StudentClassSummary {
+export interface StudentClassroomSummary {
   id: string;
-  name: string;
   teacherName: string;
   joinedAt: string;
+}
+
+export interface TeacherClassSummary extends TeacherClassroomSummary {
+  name: string;
+  joinCode: string;
+}
+
+export interface StudentClassSummary extends StudentClassroomSummary {
+  name: string;
 }
 
 export interface TeacherClassStudent {
@@ -121,25 +127,31 @@ export async function invokeFunction<T>(
 
 export const api = {
   classes: {
-    list: () => invokeFunction<{ classes: (TeacherClassSummary | StudentClassSummary)[] }>('classes-list'),
-    create: (name: string) =>
-      invokeFunction<{ class: TeacherClassSummary }>('classes-create', { method: 'POST', body: { name } }),
-    join: (joinCode: string) =>
-      invokeFunction<{ class: { id: string; name: string } }>('classes-join', {
+    list: () =>
+      invokeFunction<{
+        classroom: TeacherClassroomSummary | StudentClassroomSummary | null;
+      }>('classes-list'),
+    create: (name?: string) =>
+      invokeFunction<{ classroom: TeacherClassroomSummary }>('classes-create', {
         method: 'POST',
-        body: { joinCode },
+        body: name ? { name } : undefined,
       }),
-    roster: (classId: string) =>
-      invokeFunction<{ students: TeacherClassStudent[] }>('classes-roster', { searchParams: { classId } }),
-    addStudents: (classId: string, students: TeacherAddStudentDraft[]) =>
+    join: (joinCode?: string) =>
+      invokeFunction<unknown>('classes-join', {
+        method: 'POST',
+        body: joinCode ? { joinCode } : undefined,
+      }),
+    roster: () =>
+      invokeFunction<{ students: TeacherClassStudent[] }>('classes-roster'),
+    addStudents: (students: TeacherAddStudentDraft[]) =>
       invokeFunction<TeacherAddStudentsResult>('classes-add-students', {
         method: 'POST',
-        body: { classId, students },
+        body: { students },
       }),
-    removeStudent: (classId: string, studentId: string) =>
+    removeStudent: (studentId: string) =>
       invokeFunction<{ removed: true }>('classes-remove-student', {
         method: 'POST',
-        body: { classId, studentId },
+        body: { studentId },
       }),
   },
   assignments: {

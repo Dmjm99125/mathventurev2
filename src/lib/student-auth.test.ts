@@ -23,5 +23,5 @@ Deno.test("isStudentSessionPayload narrows only successful responses", () => {
     }),
     true,
   );
-  assertEquals(isStudentSessionPayload({ status: "already_registered" }), false);
+  assertEquals(isStudentSessionPayload({ status: "invalid_credentials" }), false);
 });

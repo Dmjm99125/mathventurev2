@@ -1,20 +1,82 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from './api';
+import {
+  api,
+  type StudentClassSummary,
+  type StudentClassroomSummary,
+  type TeacherClassSummary,
+  type TeacherClassroomSummary,
+} from './api';
 import type { TeacherAddStudentDraft } from './teacher-add-students';
 import type { TeacherReportsWindowKey } from './teacher-reports';
+
+function toLegacyClassesResponse(input: {
+  classroom: TeacherClassroomSummary | StudentClassroomSummary | null;
+}): { classes: (TeacherClassSummary | StudentClassSummary)[] } {
+  if (!input.classroom) {
+    return { classes: [] };
+  }
+
+  if ('teacherName' in input.classroom) {
+    return {
+      classes: [{
+        id: input.classroom.id,
+        name: 'Classroom',
+        teacherName: input.classroom.teacherName,
+        joinedAt: input.classroom.joinedAt,
+      }],
+    };
+  }
+
+  return {
+    classes: [{
+      id: input.classroom.id,
+      name: 'Classroom',
+      joinCode: '',
+      createdAt: input.classroom.createdAt,
+      studentCount: input.classroom.studentCount,
+    }],
+  };
+}
 
 export function useClasses() {
   return useQuery({
     queryKey: ['classes'],
-    queryFn: () => api.classes.list(),
+    queryFn: async () => toLegacyClassesResponse(await api.classes.list()),
   });
 }
 
-export function useClassRoster(classId: string) {
+export function useTeacherClassroom() {
   return useQuery({
-    queryKey: ['classes', classId, 'roster'],
-    queryFn: () => api.classes.roster(classId),
-    enabled: !!classId,
+    queryKey: ['classroom', 'teacher'],
+    queryFn: async () => {
+      const data = await api.classes.list();
+      return {
+        classroom: data.classroom && 'createdAt' in data.classroom
+          ? data.classroom
+          : null,
+      };
+    },
+  });
+}
+
+export function useStudentClassroom() {
+  return useQuery({
+    queryKey: ['classroom', 'student'],
+    queryFn: async () => {
+      const data = await api.classes.list();
+      return {
+        classroom: data.classroom && 'teacherName' in data.classroom
+          ? data.classroom
+          : null,
+      };
+    },
+  });
+}
+
+export function useClassRoster(classId?: string) {
+  return useQuery({
+    queryKey: ['classroom', 'roster', classId ?? 'singleton'],
+    queryFn: () => api.classes.roster(),
   });
 }
 
@@ -59,6 +121,7 @@ export function useCreateClass() {
   return useMutation({
     mutationFn: (name: string) => api.classes.create(name),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher'] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
     },
@@ -70,6 +133,7 @@ export function useJoinClass() {
   return useMutation({
     mutationFn: (joinCode: string) => api.classes.join(joinCode),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classroom', 'student'] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
     },
   });
@@ -91,8 +155,9 @@ export function useRemoveStudentFromClass() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ classId, studentId }: { classId: string; studentId: string }) =>
-      api.classes.removeStudent(classId, studentId),
+      api.classes.removeStudent(studentId),
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
       queryClient.invalidateQueries({ queryKey: ['classes', variables.classId, 'roster'] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
@@ -109,8 +174,11 @@ export function useAddStudentsToClass() {
     }: {
       classId: string;
       students: TeacherAddStudentDraft[];
-    }) => api.classes.addStudents(classId, students),
+    }) => api.classes.addStudents(students),
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['classroom', 'roster'],
+      });
       queryClient.invalidateQueries({
         queryKey: ['classes', variables.classId, 'roster'],
       });

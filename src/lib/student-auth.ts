@@ -5,9 +5,7 @@ export type StudentSessionPayload = {
   verifyType: "email";
 };
 
-export type StudentRegisterResponse =
-  | StudentSessionPayload
-  | { status: "already_registered" };
+export type StudentRegisterResponse = StudentSessionPayload;
 
 export type StudentLoginResponse =
   | StudentSessionPayload

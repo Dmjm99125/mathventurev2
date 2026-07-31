@@ -34,18 +34,23 @@ async function completeStudentSession(payload: StudentSessionPayload) {
   return data;
 }
 
-export async function studentRegister(input: { classCode: string; lastName: string; firstName: string }) {
+export async function studentRegister(input: {
+  teacherFirstName: string;
+  lastName: string;
+  firstName: string;
+}) {
   const response = await invokeFunction<StudentRegisterResponse>('student-register', {
     method: 'POST',
     body: input,
   });
-  if (response.status === 'already_registered') {
-    throw new Error('You already have an account. Try logging in.');
-  }
   return completeStudentSession(response);
 }
 
-export async function studentSignIn(input: { lastName: string; firstName: string }) {
+export async function studentSignIn(input: {
+  teacherFirstName: string;
+  lastName: string;
+  firstName: string;
+}) {
   const response = await invokeFunction<StudentLoginResponse>('student-login', {
     method: 'POST',
     body: input,

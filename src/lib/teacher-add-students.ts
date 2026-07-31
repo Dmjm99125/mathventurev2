@@ -4,9 +4,9 @@ export type TeacherAddStudentDraft = {
 };
 
 export type TeacherAddStudentsResult = {
-  classId: string;
-  className: string;
   createdCount: number;
+  classId?: string;
+  className?: string;
 };
 
 function cleanStudentCell(value: unknown): string {
