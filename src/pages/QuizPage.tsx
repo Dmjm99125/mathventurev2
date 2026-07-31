@@ -83,7 +83,7 @@ import { BuildClock } from '@/components/games/9-clock/BuildClock';
 import { ClockMultiple } from '@/components/games/9-clock/ClockMultiple';
 import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
-import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, SkipForward, Pencil } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, Pencil } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useSubmitAttempt } from '@/lib/api/hooks';
 import {
@@ -255,7 +255,7 @@ export function QuizPage() {
   if (gameState === 'video') {
     return (
       <GameLayout topic={topic} stage="video" onExit={handleExit}>
-        <div className="w-full max-w-3xl flex flex-col items-center gap-6 animate-in fade-in duration-500">
+        <div className="w-full max-w-5xl flex flex-col items-center gap-6 animate-in fade-in duration-500">
           {/* Title */}
           <div className="text-center space-y-1">
             <h1 className="text-3xl font-display font-extrabold text-foreground capitalize">{topic}</h1>
@@ -270,7 +270,7 @@ export function QuizPage() {
                 src={lesson.videoSrc as string}
                 controls
                 className="w-full rounded-xl"
-                style={{ maxHeight: '380px' }}
+                style={{ maxHeight: '520px' }}
                 onError={() => {/* graceful — controls still show */}}
               />
             </Card>
@@ -288,15 +288,7 @@ export function QuizPage() {
           )}
 
           {/* Navigation */}
-          <div className="flex gap-3 w-full justify-center">
-            <Button
-              variant="ghost"
-              size="lg"
-              className="gap-2 text-muted-foreground font-bold"
-              onClick={goToLesson}
-            >
-              <SkipForward className="h-4 w-4" /> Skip Video
-            </Button>
+          <div className="flex w-full justify-center">
             <Button
               size="lg"
               variant="jungle"

@@ -8,3 +8,10 @@ Deno.test("natural grouped lesson media avoids horizontal scrolling and lets ima
   assertEquals(source.includes("overflow-hidden"), true);
   assertEquals(source.includes("shrink object-contain"), true);
 });
+
+Deno.test("lesson slide cards no longer reference the legacy language badge images", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/components/LessonSlideCard.tsx", import.meta.url));
+
+  assertEquals(source.includes("1eng.png"), false);
+  assertEquals(source.includes("1fil.png"), false);
+});
