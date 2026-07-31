@@ -80,16 +80,16 @@ export function FarmHideSeek({ onComplete }: { onComplete?: () => void }) {
         <div className="w-full max-w-lg mx-auto bg-gradient-to-b from-sky-200 via-green-100 to-green-50 p-4 md:p-8 rounded-[2rem] shadow-2xl flex flex-col items-center relative border-8 border-amber-700 min-h-[650px] overflow-hidden">
             
             {/* Header / HUD */}
-            <div className="w-full flex justify-between items-center mb-4 bg-white/90 p-3 rounded-2xl shadow-sm border-2 border-amber-600">
+            <div className="w-full flex justify-between items-center mb-4 bg-white/90 p-3 rounded-2xl shadow-sm border-2 border-amber-600 flex-wrap gap-4">
                 <div className="text-sm md:text-base font-bold text-green-600 uppercase tracking-widest flex items-center gap-2">
                     <span className="text-2xl">⭐</span> Score: {score}
                 </div>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                     <div className="text-sm md:text-base font-bold text-red-500 uppercase tracking-widest flex items-center gap-1">
                         <span className="text-2xl">🏆</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl h-9 px-3" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl h-9 px-3" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}

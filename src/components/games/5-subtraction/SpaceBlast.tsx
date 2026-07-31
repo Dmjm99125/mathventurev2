@@ -136,16 +136,16 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
         <div className="w-full max-w-lg mx-auto bg-gradient-to-b from-indigo-950 to-slate-900 p-4 md:p-8 rounded-[2rem] shadow-[0_0_20px_rgba(14,165,233,0.4)] flex flex-col items-center relative border-4 border-sky-500 min-h-[600px] overflow-hidden text-slate-100">
 
             {/* Header / HUD */}
-            <div className="w-full flex justify-between items-center mb-4 bg-slate-900/80 p-3 rounded-2xl shadow-sm border border-slate-700">
+            <div className="w-full flex justify-between items-center mb-4 bg-slate-900/80 p-3 rounded-2xl shadow-sm border border-slate-700 flex-wrap gap-4">
                 <div className="text-sm md:text-base font-bold text-rose-500 uppercase tracking-widest flex items-center gap-2">
                     <span className="text-2xl">⭐</span> Score: {score}
                 </div>
-                <div className="flex gap-4 items-center">
+                <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                     <div className="text-sm md:text-base font-bold text-sky-400 uppercase tracking-widest flex items-center gap-1">
                         <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && (
-                        <Button variant="outline" className="border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl h-9 px-3 bg-transparent" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl h-9 px-3 bg-transparent" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}

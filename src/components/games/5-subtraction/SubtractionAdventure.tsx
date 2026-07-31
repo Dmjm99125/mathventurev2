@@ -90,7 +90,7 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                     🎮 Subtraction Adventure
                 </h2>
                 {gameState === 'playing' && (
-                    <div className="flex gap-4 items-center">
+                    <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
                         <div className="flex flex-col items-end">
                             <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Question {Math.min(currentQuestion, MAX_SCORE)} / {MAX_SCORE}</span>
                             <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-700 bg-yellow-100 px-4 py-1 rounded-full shadow-sm mt-1 border-2 border-yellow-400">
@@ -99,7 +99,7 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                             </div>
                         </div>
                         {onComplete && (
-                            <Button variant="outline" className="border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
+                            <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
                                 Skip ➡️
                             </Button>
                         )}

@@ -89,12 +89,19 @@ export function DinoEgg({ onComplete }: { onComplete?: () => void }) {
         <div className="w-full max-w-lg mx-auto bg-gradient-to-b from-sky-200 to-green-200 p-4 md:p-8 rounded-[2rem] shadow-2xl flex flex-col items-center relative border-8 border-green-700 min-h-[650px]">
             
             {/* HUD */}
-            <div className="w-full flex justify-between items-center mb-4 bg-white/80 p-3 rounded-2xl shadow-sm border-2 border-green-700">
+            <div className="w-full flex flex-wrap items-center justify-between gap-3 mb-4 bg-white/80 p-3 rounded-2xl shadow-sm border-2 border-green-700">
                 <div className="text-sm md:text-base font-bold text-orange-600 uppercase tracking-widest flex items-center gap-1">
                     <span className="text-2xl">🥚</span> Hatched: {score}
                 </div>
-                <div className="text-sm md:text-base font-bold text-green-700 uppercase tracking-widest flex items-center gap-1">
-                    <span className="text-2xl">🦴</span> Target: {MAX_SCORE}
+                <div className="flex w-full flex-wrap items-center justify-between gap-3 md:w-auto md:justify-end">
+                    <div className="text-sm md:text-base font-bold text-green-700 uppercase tracking-widest flex items-center gap-1">
+                        <span className="text-2xl">🦴</span> Target: {MAX_SCORE}
+                    </div>
+                    {onComplete && (
+                        <Button variant="ghost" className="w-full sm:w-auto text-green-800 font-bold hover:bg-green-300/50 rounded-xl" onClick={onComplete}>
+                            Skip Game ➡️
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -148,11 +155,6 @@ export function DinoEgg({ onComplete }: { onComplete?: () => void }) {
                     ))}
                 </div>
 
-                {onComplete && (
-                    <Button variant="ghost" className="text-green-800 font-bold hover:bg-green-300/50 rounded-xl" onClick={onComplete}>
-                        Skip Game ➡️
-                    </Button>
-                )}
             </div>
 
             {/* Success Overlay Popups */}
