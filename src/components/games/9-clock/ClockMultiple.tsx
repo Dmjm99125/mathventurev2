@@ -172,24 +172,24 @@ export function ClockMultiple({ onComplete }: ClockMultipleProps) {
     <div className="w-full max-w-5xl flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#e0f7fa] to-[#b2ebf2] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none overflow-hidden text-center">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
       </div>
 
-      <div className="w-full flex justify-start text-xl font-bold text-[#00838f] mb-2 px-4 absolute top-6 left-6">
+      <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-[#00838f] md:justify-start md:px-4 md:text-xl">
         Score: {score} / {MAX_SCORE}
       </div>
 
       <div className="mb-12 mt-8 flex flex-col items-center">
-        <h2 className="text-[#006064] text-4xl md:text-5xl font-black mb-4 drop-shadow-sm font-['Comic_Sans_MS']">
+        <h2 className="text-[#006064] text-2xl md:text-5xl font-black mb-4 drop-shadow-sm font-['Comic_Sans_MS']">
           What time is it?
         </h2>
-        <div className="bg-white/80 backdrop-blur-md px-8 py-4 rounded-3xl border-4 border-white shadow-md">
-          <p className="text-[#d32f2f] text-4xl md:text-5xl font-extrabold font-['Comic_Sans_MS']">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-md px-4 md:px-8 py-4 rounded-3xl border-4 border-white shadow-md">
+          <p className="text-[#d32f2f] text-2xl md:text-5xl font-extrabold font-['Comic_Sans_MS'] text-center break-words">
             ({targetHour}:00) {NUMBER_WORDS[targetHour]} o'clock?
           </p>
         </div>

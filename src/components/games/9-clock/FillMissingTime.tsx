@@ -210,19 +210,19 @@ export function FillMissingTime({ onComplete }: FillMissingTimeProps) {
     <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#e8f5e9] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none overflow-hidden text-center">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#2e7d32] font-bold bg-[#2e7d32]/10 hover:bg-[#2e7d32]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2e7d32] font-bold bg-[#2e7d32]/10 hover:bg-[#2e7d32]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
       </div>
 
-      <div className="w-full flex justify-start text-xl font-bold text-[#2e7d32] mb-2 px-4 absolute top-6 left-6">
+      <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-[#2e7d32] md:justify-start md:px-4 md:text-xl">
         Score: {score} / {MAX_SCORE}
       </div>
 
-      <h1 className="text-[#2e7d32] text-3xl md:text-4xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
+      <h1 className="text-[#2e7d32] text-2xl md:text-4xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
         Fill in the missing time!
       </h1>
       
@@ -230,11 +230,11 @@ export function FillMissingTime({ onComplete }: FillMissingTimeProps) {
       <MainClock hour={targetHour} />
 
       {/* Sentence & Drop Zone */}
-      <div className="flex items-center text-4xl md:text-5xl font-bold text-[#37474f] mb-10 bg-white px-8 py-4 rounded-[2rem] shadow-sm font-['Comic_Sans_MS']">
+      <div className="flex flex-wrap items-center justify-center gap-3 text-2xl md:text-5xl font-bold text-[#37474f] mb-10 bg-white px-4 md:px-8 py-4 rounded-[2rem] shadow-sm font-['Comic_Sans_MS']">
         It is
         <div 
           ref={dropZoneRef}
-          className={`w-24 h-24 border-4 border-dashed rounded-[1rem] flex items-center justify-center text-4xl font-bold transition-colors mx-4 shadow-inner
+          className={`w-20 h-20 md:w-24 md:h-24 border-4 border-dashed rounded-[1rem] flex items-center justify-center text-3xl md:text-4xl font-bold transition-colors mx-1 md:mx-4 shadow-inner
             ${dragState === 'dragging' ? 'bg-[#fff59d] border-[#fbc02d] scale-105' : ''}
             ${dragState === 'success' ? 'bg-[#c8e6c9] border-[#4caf50] text-[#1565c0]' : 'bg-[#e3f2fd] border-[#90caf9] text-[#bbdefb]'}`
           }

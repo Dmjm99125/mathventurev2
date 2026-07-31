@@ -66,7 +66,10 @@ const MiniClock = ({ hour }: { hour: number }) => {
   const hourAngle = (hour % 12) * 30; 
   
   return (
-    <svg width="120" height="120" viewBox="0 0 120 120" className="drop-shadow-md pointer-events-none">
+    <svg
+      viewBox="0 0 120 120"
+      className="h-[92px] w-[92px] md:h-[120px] md:w-[120px] drop-shadow-md pointer-events-none"
+    >
       <circle cx="60" cy="60" r="55" fill="white" stroke="#29b6f6" strokeWidth="6" />
       
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => {
@@ -220,26 +223,26 @@ export function DragMatchingClock({ onComplete }: DragMatchingClockProps) {
     <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#fff3e0] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none overflow-hidden text-center">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#e65100] font-bold bg-[#e65100]/10 hover:bg-[#e65100]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#e65100] font-bold bg-[#e65100]/10 hover:bg-[#e65100]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
       </div>
 
-      <div className="w-full flex justify-start text-xl font-bold text-[#e65100] mb-2 px-4 absolute top-6 left-6">
+      <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-[#e65100] md:justify-start md:px-4 md:text-xl">
         Score: {score} / {MAX_SCORE}
       </div>
 
-      <h1 className="text-[#e65100] text-3xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
+      <h1 className="text-[#e65100] text-2xl md:text-3xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
         Drag or tap the matching clock!
       </h1>
       
       {/* Drop Zone */}
       <div 
         ref={dropZoneRef}
-        className={`w-64 h-40 border-4 border-dashed rounded-[20px] flex items-center justify-center text-5xl font-bold transition-colors mb-12 shadow-inner
+        className={`w-full max-w-xs h-32 md:w-64 md:h-40 border-4 border-dashed rounded-[20px] flex items-center justify-center text-4xl md:text-5xl font-bold transition-colors mb-12 shadow-inner
           ${dragState === 'dragging' ? 'bg-[#fff9c4] border-[#ffb74d] scale-105' : ''}
           ${dragState === 'success' ? 'bg-[#c8e6c9] border-[#4caf50] text-[#2e7d32]' : 'bg-[#fff9c4] border-[#ffb74d] text-[#e65100]'}`
         }
@@ -248,7 +251,7 @@ export function DragMatchingClock({ onComplete }: DragMatchingClockProps) {
       </div>
 
       {/* Clocks Container */}
-      <div className="flex justify-center gap-6 w-full max-w-[600px] h-32 relative z-10">
+      <div className="flex flex-wrap justify-center gap-3 md:gap-6 w-full max-w-[600px] min-h-[220px] md:h-32 relative z-10">
         <AnimatePresence mode="popLayout">
           {dragState !== 'success' && options.map((opt, index) => (
             <motion.div

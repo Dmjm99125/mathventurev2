@@ -180,19 +180,19 @@ export function TimeMatcher({ onComplete }: TimeMatcherProps) {
     <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#e0f7fa] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none overflow-hidden text-center">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#006064] font-bold bg-[#006064]/10 hover:bg-[#006064]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#006064] font-bold bg-[#006064]/10 hover:bg-[#006064]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
       </div>
 
-      <div className="w-full flex justify-start text-xl font-bold text-[#006064] mb-2 px-4 absolute top-6 left-6">
+      <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-[#006064] md:justify-start md:px-4 md:text-xl">
         Score: {score} / {MAX_SCORE}
       </div>
 
-      <h1 className="text-[#006064] text-4xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
+      <h1 className="text-[#006064] text-2xl md:text-4xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
         What time is it?
       </h1>
       

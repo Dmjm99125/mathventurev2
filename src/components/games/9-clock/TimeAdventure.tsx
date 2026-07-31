@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -16,8 +16,10 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
     osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
     gain.gain.setValueAtTime(0.2, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
   } else if (type === 'wrong') {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -25,21 +27,25 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
     osc.frequency.setValueAtTime(150, now);
     gain.gain.setValueAtTime(0.1, now);
     gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
   } else if (type === 'fanfare') {
     const notes = [440, 554.37, 659.25, 880];
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + (idx * 0.1));
-      gain.gain.setValueAtTime(0.2, now + (idx * 0.1));
-      gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.1) + 0.4);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now + (idx * 0.1)); osc.stop(now + (idx * 0.1) + 0.4);
+      osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+      gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.1);
+      osc.stop(now + idx * 0.1 + 0.4);
     });
-  } else if (type === 'pop') {
+  } else {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
@@ -47,8 +53,10 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
     osc.frequency.exponentialRampToValueAtTime(600, now + 0.05);
     gain.gain.setValueAtTime(0.1, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.1);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.1);
   }
 };
 
@@ -64,10 +72,8 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [character, setCharacter] = useState(CHARACTERS[0]);
-  
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<string[]>([]);
-  
   const [isCompleted, setIsCompleted] = useState(false);
   const [canClick, setCanClick] = useState(true);
   const [feedback, setFeedback] = useState<'none' | 'correct' | 'wrong'>('none');
@@ -79,7 +85,6 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
   };
 
   const setupRound = (currentScore: number) => {
-    // Pick random hour
     const hour = Math.floor(Math.random() * 12) + 1;
     setTargetHour(hour);
 
@@ -94,17 +99,17 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
 
     const shuffled = Array.from(newOptions).sort(() => Math.random() - 0.5);
     setOptions(shuffled);
-    
-    // Update level
     setLevel(Math.floor(currentScore / 5) + 1);
-    
     setFeedback('none');
     setSelectedIndex(null);
     setCanClick(true);
   };
 
   const handleChoice = (index: number, option: string) => {
-    if (!canClick) return;
+    if (!canClick) {
+      return;
+    }
+
     setCanClick(false);
     setSelectedIndex(index);
 
@@ -143,54 +148,46 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
     setGameState('menu');
   };
 
-  // SVG Clock component for cleaner rendering
   const ClockFace = ({ hour }: { hour: number }) => {
-    const hourAngle = (hour % 12) * 30; // 360 / 12 = 30 degrees per hour
-    
+    const hourAngle = (hour % 12) * 30;
+
     return (
       <svg width="250" height="250" viewBox="0 0 250 250" className="drop-shadow-lg">
-        {/* Background */}
         <circle cx="125" cy="125" r="115" fill="white" stroke="#333" strokeWidth="6" />
-        
-        {/* Numbers */}
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => {
-          const angle = (num * Math.PI) / 6 - Math.PI / 2; // Shift by -90deg so 12 is at top
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => {
+          const angle = (num * Math.PI) / 6 - Math.PI / 2;
           const x = 125 + Math.cos(angle) * 85;
           const y = 125 + Math.sin(angle) * 85;
           return (
-            <text 
+            <text
               key={num}
-              x={x} 
-              y={y} 
-              fill="#333" 
-              fontSize="24" 
-              fontWeight="bold" 
+              x={x}
+              y={y}
+              fill="#333"
+              fontSize="24"
+              fontWeight="bold"
               fontFamily="Arial"
-              textAnchor="middle" 
+              textAnchor="middle"
               alignmentBaseline="central"
             >
               {num}
             </text>
           );
         })}
-        
-        {/* Minute Hand (always at 12 for full hours) */}
         <line x1="125" y1="125" x2="125" y2="35" stroke="#777" strokeWidth="5" strokeLinecap="round" />
-        
-        {/* Hour Hand */}
-        <motion.line 
-          x1="125" y1="125" 
-          x2="125" y2="65" 
-          stroke="#000" 
-          strokeWidth="10" 
-          strokeLinecap="round" 
+        <motion.line
+          x1="125"
+          y1="125"
+          x2="125"
+          y2="65"
+          stroke="#000"
+          strokeWidth="10"
+          strokeLinecap="round"
           initial={{ rotate: hourAngle }}
           animate={{ rotate: hourAngle }}
-          transition={{ type: "spring", stiffness: 100, damping: 12 }}
-          style={{ originX: "125px", originY: "125px" }}
+          transition={{ type: 'spring', stiffness: 100, damping: 12 }}
+          style={{ originX: '125px', originY: '125px' }}
         />
-        
-        {/* Center Pin */}
         <circle cx="125" cy="125" r="8" fill="#333" />
       </svg>
     );
@@ -198,34 +195,47 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
 
   if (gameState === 'menu') {
     return (
-      <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
-        {/* Skip Button */}
-        <div className="absolute top-6 right-6 z-50">
+      <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-[3rem] border-4 border-white bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] p-6 font-display text-center shadow-sm select-none">
+        <div className="z-10 mb-4 flex w-full justify-center md:justify-end">
           {onComplete && (
-            <Button variant="ghost" className="text-white font-bold bg-white/20 hover:bg-white/40" onClick={onComplete}>
-              Skip <ChevronRight className="ml-1 w-5 h-5" />
+            <Button
+              variant="ghost"
+              className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
+              onClick={onComplete}
+            >
+              Skip <ChevronRight className="ml-1 h-5 w-5" />
             </Button>
           )}
         </div>
-        
-        <h1 className="text-white text-5xl md:text-6xl font-black mb-8 drop-shadow-lg tracking-wide">⏰ Time Adventure ⏰</h1>
-        <p className="text-2xl text-white font-bold mb-6 drop-shadow-md">Piliin ang nais mong gamiting mukha:</p>
-        
-        <div className="flex gap-4 mb-12">
-          {CHARACTERS.map(char => (
+
+        <h1 className="text-3xl md:text-4xl mb-6 font-black tracking-wide text-white drop-shadow-lg">
+          ⏰ Time Adventure ⏰
+        </h1>
+        <p className="mb-4 max-w-md text-lg font-bold leading-snug text-white drop-shadow-md md:mb-6 md:text-2xl">
+          Piliin ang nais mong gamiting mukha:
+        </p>
+
+        <div className="mb-10 grid w-full max-w-md grid-cols-2 gap-3 md:mb-12 md:flex md:w-auto md:max-w-none md:gap-4">
+          {CHARACTERS.map((char) => (
             <motion.button
               key={char}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => setCharacter(char)}
-              className={`text-6xl p-4 bg-white/40 backdrop-blur-md rounded-2xl border-4 transition-colors ${character === char ? 'border-[#333] bg-white/60' : 'border-transparent'}`}
+              className={`flex h-24 w-full items-center justify-center rounded-2xl border-4 bg-white/40 p-3 text-5xl backdrop-blur-md transition-colors md:h-auto md:w-auto md:p-4 md:text-6xl ${
+                character === char ? 'border-[#333] bg-white/60' : 'border-transparent'
+              }`}
             >
               {char}
             </motion.button>
           ))}
         </div>
 
-        <Button size="lg" onClick={startGame} className="bg-white text-[#a6c1ee] hover:bg-gray-100 text-2xl font-bold h-16 px-10 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+        <Button
+          size="lg"
+          onClick={startGame}
+          className="h-16 rounded-full bg-white px-10 text-2xl font-bold text-[#a6c1ee] shadow-lg transition-all hover:-translate-y-1 hover:bg-gray-100 hover:shadow-xl"
+        >
           ▶️ Start Game
         </Button>
       </div>
@@ -233,72 +243,83 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
   }
 
   return (
-    <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
-      <div className="absolute top-6 left-6 z-50">
+    <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center overflow-hidden rounded-[3rem] border-4 border-white bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] p-6 font-display text-center shadow-sm select-none">
+      <div className="z-10 mb-2 flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <Button
           variant="ghost"
-          className="text-white font-bold bg-white/20 hover:bg-white/40"
+          className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
           onClick={resetGame}
         >
-          <ArrowLeft className="mr-1 w-5 h-5" /> Back
+          <ArrowLeft className="mr-1 h-5 w-5" /> Back
         </Button>
-      </div>
-      
-      {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
         {onComplete && (
-          <Button variant="ghost" className="text-white font-bold bg-white/20 hover:bg-white/40" onClick={onComplete}>
-            Skip <ChevronRight className="ml-1 w-5 h-5" />
+          <Button
+            variant="ghost"
+            className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
+            onClick={onComplete}
+          >
+            Skip <ChevronRight className="ml-1 h-5 w-5" />
           </Button>
         )}
       </div>
 
-      <div className="w-full flex justify-between text-xl font-bold text-white mb-2 drop-shadow-md px-4">
-        <div>Score: <span>{score}</span></div>
-        <div>Level: <span>{level}</span></div>
+      <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-white drop-shadow-md md:justify-between md:px-4 md:text-xl">
+        <div>
+          Score: <span>{score}</span>
+        </div>
+        <div>
+          Level: <span>{level}</span>
+        </div>
       </div>
 
-      <h1 className="text-white text-4xl font-black mb-2 drop-shadow-lg tracking-wide">⏰ Time Adventure ⏰</h1>
-      
-      {/* Character Helper */}
-      <motion.div 
+      <h1 className="text-3xl md:text-4xl mb-2 font-black tracking-wide text-white drop-shadow-lg">
+        ⏰ Time Adventure ⏰
+      </h1>
+
+      <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
-        className="text-[4rem] leading-none mb-4 drop-shadow-lg"
+        className="mb-4 text-[4rem] leading-none drop-shadow-lg"
       >
         {character}
       </motion.div>
 
-      <div className="w-full max-w-[500px] flex flex-col items-center z-10 flex-grow bg-white/40 backdrop-blur-md border-[4px] border-white/60 rounded-3xl p-6 shadow-xl relative">
-        
-        {/* Feedback Message */}
-        <div className="h-[40px] flex items-center justify-center font-bold text-2xl mb-2">
+      <div className="relative z-10 flex w-full max-w-[500px] flex-grow flex-col items-center rounded-3xl border-[4px] border-white/60 bg-white/40 p-6 shadow-xl backdrop-blur-md">
+        <div className="mb-2 flex h-[40px] items-center justify-center text-xl font-bold md:text-2xl">
           <AnimatePresence mode="wait">
             {feedback === 'correct' && (
-              <motion.div key="correct" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="text-[#2e7d32]">
+              <motion.div
+                key="correct"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="text-[#2e7d32]"
+              >
                 ⭐ Great Job! ⭐
               </motion.div>
             )}
             {feedback === 'wrong' && (
-              <motion.div key="wrong" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="text-[#c62828]">
+              <motion.div
+                key="wrong"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="text-[#c62828]"
+              >
                 Look closely at the short hand!
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Clock Area */}
         <div className="mb-8">
           <ClockFace hour={targetHour} />
         </div>
 
-        {/* Options Grid */}
-        <div className="grid grid-cols-2 gap-4 w-full">
+        <div className="grid w-full grid-cols-2 gap-4">
           {options.map((opt, index) => {
             const isSelected = selectedIndex === index;
-            const bgColor = isSelected 
-              ? (feedback === 'correct' ? '#a5d6a7' : '#ef9a9a')
-              : '#ffffff';
+            const bgColor = isSelected ? (feedback === 'correct' ? '#a5d6a7' : '#ef9a9a') : '#ffffff';
 
             return (
               <motion.button
@@ -306,7 +327,7 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
                 whileHover={canClick ? { scale: 1.05 } : {}}
                 whileTap={canClick ? { scale: 0.95 } : {}}
                 animate={{ backgroundColor: bgColor }}
-                className="py-4 text-3xl font-bold text-[#333] border-4 border-[#a6c1ee] rounded-2xl shadow-sm"
+                className="rounded-2xl border-4 border-[#a6c1ee] py-4 text-2xl font-bold text-[#333] shadow-sm md:text-3xl"
                 onClick={() => handleChoice(index, opt)}
               >
                 {opt}
@@ -314,36 +335,41 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
             );
           })}
         </div>
-
       </div>
 
-      {/* End Game Overlay */}
       <AnimatePresence>
         {isCompleted && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-white/95 z-[100] flex flex-col items-center justify-center text-center p-6 backdrop-blur-sm rounded-[3rem]"
+            className="absolute inset-0 z-[100] flex flex-col items-center justify-center rounded-[3rem] bg-white/95 p-6 text-center backdrop-blur-sm"
           >
             <motion.div
               animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
               transition={{ repeat: Infinity, duration: 1.5 }}
-              className="text-[6rem] leading-none mb-4 drop-shadow-lg"
+              className="mb-4 text-[6rem] leading-none drop-shadow-lg"
             >
               ⏰
             </motion.div>
-            <h1 className="text-[#a6c1ee] text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-sm">Time Master!</h1>
-            <p className="text-2xl text-gray-700 font-bold mb-8">You learned how to read the clock perfectly!</p>
-            
+            <h1 className="mb-4 text-4xl font-extrabold text-[#a6c1ee] drop-shadow-sm md:text-5xl">
+              Time Master!
+            </h1>
+            <p className="mb-8 text-2xl font-bold text-gray-700">
+              You learned how to read the clock perfectly!
+            </p>
+
             <div className="flex gap-4">
-              <Button size="lg" onClick={resetGame} className="bg-[#a6c1ee] hover:bg-[#85a8df] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#7598cf] hover:shadow-[0_2px_0_#7598cf] hover:translate-y-1 transition-all">
+              <Button
+                size="lg"
+                onClick={resetGame}
+                className="h-16 rounded-full bg-[#a6c1ee] px-10 text-2xl font-bold text-white shadow-[0_4px_0_#7598cf] transition-all hover:translate-y-1 hover:bg-[#85a8df] hover:shadow-[0_2px_0_#7598cf]"
+              >
                 Play Again 🔄
               </Button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

@@ -201,19 +201,19 @@ export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
     <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#ede7f6] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none overflow-hidden text-center">
       
       {/* Skip Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
-          <Button variant="ghost" className="text-[#4527a0] font-bold bg-[#4527a0]/10 hover:bg-[#4527a0]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#4527a0] font-bold bg-[#4527a0]/10 hover:bg-[#4527a0]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
       </div>
 
-      <div className="w-full flex justify-start text-xl font-bold text-[#4527a0] mb-2 px-4 absolute top-6 left-6">
+      <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-[#4527a0] md:justify-start md:px-4 md:text-xl">
         Score: {score} / {MAX_SCORE}
       </div>
 
-      <h1 className="text-[#4527a0] text-3xl md:text-4xl font-black mb-6 tracking-wide font-['Comic_Sans_MS']">
+      <h1 className="text-[#4527a0] text-2xl md:text-4xl font-black mb-6 tracking-wide font-['Comic_Sans_MS']">
         Daily Routine Time!
       </h1>
       
@@ -224,13 +224,13 @@ export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className="bg-white border-4 border-[#7e57c2] rounded-[1rem] px-8 py-4 mb-8 flex flex-col items-center shadow-md"
+          className="bg-white border-4 border-[#7e57c2] rounded-[1rem] px-4 md:px-8 py-4 mb-8 flex flex-col items-center shadow-md"
         >
           <div className="text-6xl mb-2">{currentRoutine.emoji}</div>
-          <div className="text-2xl font-bold text-[#4527a0] font-['Comic_Sans_MS'] mb-2">
+          <div className="text-xl md:text-2xl font-bold text-[#4527a0] font-['Comic_Sans_MS'] mb-2 text-center">
             {currentRoutine.text}
           </div>
-          <div className="bg-[#ffcdd2] text-[#d32f2f] text-3xl font-bold px-6 py-2 rounded-xl">
+          <div className="bg-[#ffcdd2] text-[#d32f2f] text-2xl md:text-3xl font-bold px-6 py-2 rounded-xl">
             {currentRoutine.hour}:00
           </div>
         </motion.div>
@@ -240,12 +240,12 @@ export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
       <InteractiveClock hour={clockHour} isShaking={isShaking} />
 
       {/* Controls */}
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         <motion.button 
           whileHover={canClick ? { scale: 1.05, filter: 'brightness(1.1)' } : {}}
           whileTap={canClick ? { scale: 0.95 } : {}}
           onClick={handleAddHour}
-          className="bg-[#29b6f6] border-4 border-[#0288d1] text-white font-bold text-3xl px-8 py-4 rounded-2xl shadow-md font-['Comic_Sans_MS']"
+          className="bg-[#29b6f6] border-4 border-[#0288d1] text-white font-bold text-2xl md:text-3xl px-6 md:px-8 py-3 md:py-4 rounded-2xl shadow-md font-['Comic_Sans_MS']"
         >
           +1 Hour
         </motion.button>
@@ -254,7 +254,7 @@ export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
           whileHover={canClick ? { scale: 1.05, filter: 'brightness(1.1)' } : {}}
           whileTap={canClick ? { scale: 0.95 } : {}}
           onClick={handleSetAlarm}
-          className="bg-[#66bb6a] border-4 border-[#388e3c] text-white font-bold text-3xl px-8 py-4 rounded-2xl shadow-md font-['Comic_Sans_MS']"
+          className="bg-[#66bb6a] border-4 border-[#388e3c] text-white font-bold text-2xl md:text-3xl px-6 md:px-8 py-3 md:py-4 rounded-2xl shadow-md font-['Comic_Sans_MS']"
         >
           Set Alarm!
         </motion.button>
