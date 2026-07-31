@@ -4,7 +4,6 @@ import { useStudentDashboard, useAssignments, useClasses, useStudentClassroom, u
 import { Card, Button, Badge } from '@/components/ui';
 import { Play, CheckCircle2, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
 import type { AssignmentForStudent, StudentClassSummary, StudentClassroomSummary } from '@/lib/api';
-import type { AssignmentForStudent, StudentClassSummary, StudentClassroomSummary } from '@/lib/api';
 import { allTopics } from '@/data';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
