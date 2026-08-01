@@ -17,3 +17,11 @@ Deno.test("lesson slide navigation uses a responsive mobile grid with a separate
   assertEquals(source.includes("w-full min-w-0 gap-2 font-bold sm:col-start-1 sm:row-start-1 sm:w-auto"), true);
   assertEquals(source.includes("w-full min-w-0 gap-2 font-bold sm:col-start-3 sm:row-start-1 sm:w-auto"), true);
 });
+
+Deno.test("colors quiz ends after the first multiple-choice activity", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("topic === 'colors' ? Array(6).fill({})"), true);
+  assertEquals(source.includes("topic === 'colors' && currentIndex === 6"), false);
+  assertEquals(source.includes("<MultipleChoice"), false);
+});
