@@ -145,14 +145,14 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
 
          {/* The Train */}
          <motion.div 
-            className="flex items-end gap-1 md:gap-2 absolute bottom-4"
+            className="flex items-end gap-0.5 sm:gap-1 md:gap-2 absolute bottom-4"
             initial={false}
             animate={{ 
                 x: trainStatus === 'waiting' ? '-150%' : trainStatus === 'idle' ? '0%' : '150%' 
             }}
             transition={{ duration: 0.8, type: 'spring', bounce: 0.2 }}
          >
-             <div className="text-6xl md:text-7xl -mr-2 md:-mr-4 drop-shadow-lg z-20">🚂</div>
+             <div className="text-4xl sm:text-6xl md:text-7xl -mr-1 sm:-mr-2 md:-mr-4 drop-shadow-lg z-20">🚂</div>
              
              {pattern.map((item, idx) => {
                  const isMissing = missingIndices.includes(idx);
@@ -163,7 +163,7 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
                      return (
                          <div 
                              key={idx}
-                             className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-3xl font-bold cursor-pointer transition-all border-4 z-10 bg-rose-50 text-rose-400 relative
+                             className={`w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-2xl sm:text-3xl font-bold cursor-pointer transition-all border-4 z-10 bg-rose-50 text-rose-400 relative
                                 ${isActive ? 'border-amber-400 bg-amber-50 scale-110 shadow-lg' : 'border-rose-400 border-dashed'}
                              `}
                              onClick={() => setActiveSlot(idx)}
@@ -178,7 +178,7 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
                  return (
                      <div 
                          key={idx}
-                         className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-xl flex items-center justify-center text-3xl md:text-4xl shadow-[0_4px_0_0_#0284c7] border-2 border-sky-600 z-10 relative"
+                         className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white rounded-xl flex items-center justify-center text-2xl sm:text-3xl md:text-4xl shadow-[0_4px_0_0_#0284c7] border-2 border-sky-600 z-10 relative"
                      >
                          {isFilled ? filledSlots[idx] : item}
                          {/* Train Wheels */}

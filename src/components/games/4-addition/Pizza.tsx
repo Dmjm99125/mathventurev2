@@ -110,15 +110,15 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                     <div className="bg-white/90 border-4 border-blue-600 rounded-[2rem] p-6 md:p-8 w-full shadow-lg relative flex flex-col items-center mb-6">
                         
                         {/* Kitchen Stage */}
-                        <div className="flex items-center justify-center w-full bg-slate-50 p-8 rounded-3xl border-4 border-slate-300 min-h-[220px] shadow-inner mb-6 relative overflow-hidden">
+                        <div className="flex items-center justify-center w-full bg-slate-50 p-4 md:p-8 rounded-3xl border-4 border-slate-300 min-h-[240px] md:min-h-[260px] shadow-inner mb-6 relative overflow-hidden">
                             
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-6xl drop-shadow-md z-0 opacity-20 hidden md:block">👨‍🍳</div>
                             
                             {/* Pizza Crust */}
-                            <div className="w-[180px] h-[180px] bg-yellow-100 border-[12px] border-yellow-500 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.15)] flex relative overflow-hidden z-10">
+                            <div className="w-[220px] h-[220px] md:w-[240px] md:h-[240px] bg-yellow-100 border-[12px] border-yellow-500 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.15)] flex relative overflow-hidden z-10">
                                 
                                 {/* Left Half */}
-                                <div className="w-1/2 h-full bg-red-600/10 border-r-4 border-dashed border-yellow-500/50 flex flex-wrap content-center justify-center gap-2 p-2 relative">
+                                <div className="w-1/2 h-full bg-red-600/10 border-r-4 border-dashed border-yellow-500/50 flex flex-wrap content-center justify-center gap-1 sm:gap-2 p-1.5 sm:p-2 relative">
                                     <AnimatePresence>
                                         {Array.from({ length: num1 }).map((_, i) => (
                                             <motion.div
@@ -126,7 +126,7 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                                                 initial={{ scale: 0, y: -50, rotate: -20 }}
                                                 animate={{ scale: 1, y: 0, rotate: 0 }}
                                                 transition={{ type: 'spring', bounce: 0.6, delay: i * 0.1 }}
-                                                className="text-3xl filter drop-shadow-sm"
+                                                className="text-2xl sm:text-3xl leading-none filter drop-shadow-sm"
                                             >
                                                 {icon1}
                                             </motion.div>
@@ -135,7 +135,7 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                                 </div>
                                 
                                 {/* Right Half */}
-                                <div className="w-1/2 h-full bg-red-600/5 flex flex-wrap content-center justify-center gap-2 p-2 relative">
+                                <div className="w-1/2 h-full bg-red-600/5 flex flex-wrap content-center justify-center gap-1 sm:gap-2 p-1.5 sm:p-2 relative">
                                     <AnimatePresence>
                                         {Array.from({ length: num2 }).map((_, i) => (
                                             <motion.div
@@ -143,7 +143,7 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                                                 initial={{ scale: 0, y: -50, rotate: 20 }}
                                                 animate={{ scale: 1, y: 0, rotate: 0 }}
                                                 transition={{ type: 'spring', bounce: 0.6, delay: (i * 0.1) + 0.3 }}
-                                                className="text-3xl filter drop-shadow-sm"
+                                                className="text-2xl sm:text-3xl leading-none filter drop-shadow-sm"
                                             >
                                                 {icon2}
                                             </motion.div>
