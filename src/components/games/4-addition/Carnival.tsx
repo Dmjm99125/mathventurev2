@@ -108,7 +108,7 @@ export function Carnival({ onComplete }: { onComplete?: () => void }) {
                 </div>
             </div>
 
-            <p className="text-xl font-bold text-slate-600 mb-6 font-display drop-shadow-sm text-center">Count all the balloons together!</p>
+            <p className="text-xl font-bold text-slate-600 mb-6 font-display drop-shadow-sm text-center">Count all the items together!</p>
 
             {!isCompleted ? (
                 <div className="flex flex-col items-center w-full max-w-2xl">
