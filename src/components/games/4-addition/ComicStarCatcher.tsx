@@ -148,10 +148,10 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                         </div>
 
                         {/* Spaceship Stage */}
-                        <div className="flex items-center justify-center gap-4 md:gap-8 w-full bg-[radial-gradient(circle_at_center,_#1e293b_0%,_#0f172a_100%)] p-6 rounded-3xl border-4 border-slate-700 min-h-[160px] shadow-inner relative overflow-hidden">
+                        <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-8 w-full bg-[radial-gradient(circle_at_center,_#1e293b_0%,_#0f172a_100%)] p-3 sm:p-4 md:p-6 rounded-3xl border-4 border-slate-700 min-h-[160px] shadow-inner relative overflow-hidden">
                             
                             {/* Left Tank */}
-                            <div className="w-[100px] h-[100px] bg-white/5 border-4 border-amber-500/70 rounded-2xl flex flex-wrap content-center justify-center gap-1 p-1">
+                            <div className="w-[84px] min-h-[144px] sm:w-[116px] sm:min-h-[124px] bg-white/5 border-4 border-amber-500/70 rounded-[2rem] grid grid-cols-2 content-start justify-items-center gap-x-1 gap-y-0.5 p-2 sm:p-2.5">
                                 <AnimatePresence>
                                     {leftStars.map(id => (
                                         <motion.button
@@ -159,7 +159,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                                             initial={{ scale: 0, filter: "brightness(3)" }}
                                             animate={{ scale: 1, filter: "brightness(1)" }}
                                             exit={{ scale: 0, opacity: 0 }}
-                                            className="text-2xl hover:scale-110 transition-transform cursor-pointer"
+                                            className="text-lg sm:text-xl leading-none hover:scale-110 transition-transform cursor-pointer"
                                             onClick={() => removeStar('left', id)}
                                         >
                                             ⭐
@@ -172,13 +172,13 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                             <motion.div 
                                 animate={isLaunching ? { y: -300, scale: 1.5 } : { y: 0, scale: 1 }}
                                 transition={isLaunching ? { duration: 0.8, ease: "easeIn" } : { duration: 0 }}
-                                className="text-6xl md:text-7xl z-10"
+                                className="text-5xl sm:text-6xl md:text-7xl z-10 shrink-0"
                             >
                                 🚀
                             </motion.div>
                             
                             {/* Right Tank */}
-                            <div className="w-[100px] h-[100px] bg-white/5 border-4 border-purple-400/70 rounded-2xl flex flex-wrap content-center justify-center gap-1 p-1">
+                            <div className="w-[84px] min-h-[144px] sm:w-[116px] sm:min-h-[124px] bg-white/5 border-4 border-purple-400/70 rounded-[2rem] grid grid-cols-2 content-start justify-items-center gap-x-1 gap-y-0.5 p-2 sm:p-2.5">
                                 <AnimatePresence>
                                     {rightStars.map(id => (
                                         <motion.button
@@ -186,7 +186,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                                             initial={{ scale: 0, filter: "brightness(3)" }}
                                             animate={{ scale: 1, filter: "brightness(1)" }}
                                             exit={{ scale: 0, opacity: 0 }}
-                                            className="text-2xl hover:scale-110 transition-transform cursor-pointer"
+                                            className="text-lg sm:text-xl leading-none hover:scale-110 transition-transform cursor-pointer"
                                             onClick={() => removeStar('right', id)}
                                         >
                                             ✨
