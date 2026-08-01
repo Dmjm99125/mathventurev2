@@ -28,6 +28,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
 
     const [isCompleted, setIsCompleted] = useState(false);
     const [wrongGuesses, setWrongGuesses] = useState<number[]>([]);
+    const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<number | null>(null);
 
     const MAX_SCORE = 5;
 
@@ -84,6 +85,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
         const correctAnswer = n1 - n2;
 
         setWrongGuesses([]);
+        setSelectedCorrectAnswer(null);
 
         const opts = new Set<number>();
         opts.add(correctAnswer);
@@ -107,6 +109,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
 
         if (selected === correctAnswer) {
             playLaserSound(true);
+            setSelectedCorrectAnswer(selected);
 
             const newScore = score + 1;
             setScore(newScore);
@@ -180,7 +183,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
                     <div className="grid grid-cols-2 gap-4 w-full">
                         {options.map((opt, index) => {
                             const isWrong = wrongGuesses.includes(opt);
-                            const isCorrect = score > 0 && opt === num1 - num2 && !wrongGuesses.includes(opt);
+                            const isCorrect = selectedCorrectAnswer === opt;
 
                             return (
                                 <Button
@@ -195,7 +198,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
                                         }
                                     `}
                                     onClick={() => !isWrong && checkAnswer(opt)}
-                                    disabled={isWrong || (isCorrect && currentQuestion > score)} // disabled briefly on correct
+                                    disabled={isWrong || isCorrect}
                                 >
                                     {opt}
                                 </Button>
