@@ -133,8 +133,8 @@ export const lessonContent: Record<string, TopicLesson> = {
       { id: 'add-418', image: '418.png', labelEn: 'Example 14' },
       { id: 'add-419', image: '419.png', labelEn: 'Example 15' },
       { id: 'add-420', image: '420.png', labelEn: 'Example 16' },
-      { id: 'add-v1', video: '4v1.mp4', labelEn: 'Video Activity 1' },
-      { id: 'add-v2', video: '4v2.mp4', labelEn: 'Video Activity 2' },
+      { id: 'add-v1', video: '4v1.mp4', labelEn: 'Video 1' },
+      { id: 'add-v2', video: '4v2.mp4', labelEn: 'Video 2' },
     ],
   },
 
@@ -148,8 +148,8 @@ export const lessonContent: Record<string, TopicLesson> = {
     slides: [
       { id: 'sub-concept', image: 'bawas.png', labelEn: 'Subtraction means taking away' },
       { id: 'sub-a', image: '5o.png', labelEn: 'Taking away objects' },
-      { id: 'sub-v1', video: '5subv.mp4', labelEn: 'Video Activity 1' },
-      { id: 'sub-v2', video: '5v1.mp4', labelEn: 'Video Activity 2' },
+      { id: 'sub-v1', video: '5subv.mp4', labelEn: 'Video 1' },
+      { id: 'sub-v2', video: '5v1.mp4', labelEn: 'Video 2' },
       { id: 'sub-b', image: '5pa.png', labelEn: 'Example 1' },
       { id: 'sub-c', image: '5pb.jpg', labelEn: 'Example 2' },
       { id: 'sub-d', image: '5pc.jpg', labelEn: 'Example 3' },
