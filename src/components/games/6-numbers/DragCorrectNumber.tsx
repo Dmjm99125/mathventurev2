@@ -10,10 +10,10 @@ const playSound = (type: 'correct' | 'wrong') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  
+
   osc.connect(gain);
   gain.connect(ctx.destination);
-  
+
   if (type === 'correct') {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(440, ctx.currentTime);
@@ -45,19 +45,19 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
   const [isCompleted, setIsCompleted] = useState(false);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [wrongShake, setWrongShake] = useState(false);
-  
+
   const MAX_SCORE = 5;
 
   const generateGame = () => {
     const answer = Math.floor(Math.random() * 10) + 1;
     setTargetNumber(answer);
-    
+
     const opts = new Set<number>();
     opts.add(answer);
     while (opts.size < 4) {
       opts.add(Math.floor(Math.random() * 10) + 1);
     }
-    
+
     setOptions(Array.from(opts).sort(() => Math.random() - 0.5));
   };
 
@@ -77,7 +77,7 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
       playSound('correct');
       setScore(s => s + 1);
       setStars(s => s + 1);
-      
+
       if (score + 1 >= MAX_SCORE) {
         setIsCompleted(true);
         confetti({
@@ -111,7 +111,7 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
   if (isCompleted) {
     return (
       <div className="w-full flex flex-col items-center justify-center min-h-[500px]">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="text-center"
@@ -132,7 +132,7 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
 
   return (
     <div className="w-full max-w-4xl flex flex-col items-center p-8 bg-gradient-to-b from-teal-100 to-green-100 rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative overflow-hidden">
-      
+
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
@@ -162,9 +162,9 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
       </h1>
 
       <div className="flex flex-col items-center gap-12 w-full max-w-2xl z-10">
-        
+
         {/* Apples Container */}
-        <motion.div 
+        <motion.div
           key={`apples-${targetNumber}`}
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -181,19 +181,6 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
               🍎
             </motion.div>
           ))}
-        </motion.div>
-
-        {/* Dropzone */}
-        <motion.div
-          animate={wrongShake ? { x: [-10, 10, -10, 10, 0] } : {}}
-          transition={{ duration: 0.4 }}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          className={`w-64 h-32 border-4 border-dashed rounded-3xl flex items-center justify-center text-2xl font-bold transition-colors ${
-            wrongShake ? 'border-red-400 bg-red-50 text-red-500' : 'border-teal-400 bg-white/80 text-teal-600 hover:bg-teal-50'
-          }`}
-        >
-          Drop Here 👇
         </motion.div>
 
         {/* Options */}

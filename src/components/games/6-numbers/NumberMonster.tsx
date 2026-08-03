@@ -44,7 +44,7 @@ const playMonsterSound = (style: 'chomp' | 'error' | 'fanfare') => {
   }
 };
 
-const monsterEmojis = ['👾', '👹', '🤖', '👽', '🦊', '🦁'];
+const monsterEmojis = ['👾', '🤖', '👽', '🦊', '🦁', '🧙', '👧'];
 const monsterColors = ['#a855f7', '#22c55e', '#f97316', '#ec4899', '#06b6d4'];
 const snackPool = ['🍔', '🍕', '🍩', '🍪', '🍓', '🍉', '🥕', '🍦'];
 const badgePool = ['🏅', '🥇', '⭐', '💎', '👑', '🔮', '🚀', '🎁'];
@@ -55,7 +55,7 @@ interface NumberMonsterProps {
 
 export function NumberMonster({ onComplete }: NumberMonsterProps) {
   const MAX_SCORE = 5;
-  
+
   const [score, setScore] = useState(0);
   const [targetNumber, setTargetNumber] = useState(2);
   const [activeSnack, setActiveSnack] = useState('🍔');
@@ -64,7 +64,7 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
   const [isCorrectlyGuessed, setIsCorrectlyGuessed] = useState(false);
   const [monsterKey, setMonsterKey] = useState(0); // For chewing animation
   const [borderColor, setBorderColor] = useState(monsterColors[0]);
-  
+
   const [badgeUnlocked, setBadgeUnlocked] = useState(false);
   const [wonBadge, setWonBadge] = useState('');
   const [shelfBadges, setShelfBadges] = useState<string[]>([]);
@@ -101,7 +101,7 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
       playMonsterSound('chomp');
       setIsCorrectlyGuessed(true);
       setMonsterKey(prev => prev + 1); // Trigger chew
-      
+
       const newScore = score + 1;
       setScore(newScore);
 
@@ -126,7 +126,7 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
 
   return (
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#faf5ff] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative overflow-hidden text-[#334155] font-display">
-      
+
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && (
@@ -136,12 +136,12 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
         )}
       </div>
 
-      <motion.div 
+      <motion.div
         animate={{ borderColor }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md mt-auto mb-auto bg-white border-[5px] rounded-[32px] p-5 shadow-[0_15px_30px_rgba(168,85,247,0.15)] relative"
       >
-        
+
         {/* Stats */}
         <div className="flex justify-between text-lg font-bold text-[#6b21a8] mb-3">
           <div>Score: <span className="text-[#a855f7]">{score}</span></div>
@@ -151,7 +151,7 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
         {/* Monster Area */}
         <div className="bg-[#f3e8ff] rounded-3xl p-4 mb-5 relative flex flex-col items-center">
           <div className="relative">
-            <motion.div 
+            <motion.div
               key={monsterKey}
               initial={{ scale: 1, rotate: 0 }}
               animate={isCorrectlyGuessed ? { scale: [1, 1.3, 1], rotate: [0, 10, -5, 0] } : {}}
@@ -160,7 +160,7 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
             >
               {monsterEmojis[score % monsterEmojis.length]}
             </motion.div>
-            
+
             {/* Target Number Bubble */}
             <div className="absolute top-0 -right-6 bg-white border-4 border-[#cb6ce6] rounded-full w-16 h-16 text-3xl font-black text-[#9333ea] flex justify-center items-center shadow-[0_4px_10px_rgba(0,0,0,0.1)] z-20">
               {targetNumber}
@@ -181,13 +181,12 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
                 whileHover={!isWrong && !isCorrectlyGuessed ? { scale: 1.02 } : {}}
                 whileTap={!isWrong && !isCorrectlyGuessed ? { scale: 0.98, y: 4 } : {}}
                 onClick={() => handleChoice(count)}
-                className={`rounded-2xl p-3 min-h-[60px] flex justify-center items-center flex-wrap gap-2 cursor-pointer transition-colors ${
-                  isCorrect 
-                    ? 'bg-[#dcfce7] border-4 border-[#22c55e] shadow-[0_4px_0_#16a34a]' 
-                    : isWrong 
-                      ? 'bg-[#f1f5f9] border-4 border-[#cbd5e1] shadow-[0_4px_0_#94a3b8] opacity-60 pointer-events-none translate-y-1 shadow-[0_0px_0_#94a3b8]'
-                      : 'bg-[#f8fafc] border-4 border-[#e2e8f0] shadow-[0_4px_0_#cbd5e1]'
-                }`}
+                className={`rounded-2xl p-3 min-h-[60px] flex justify-center items-center flex-wrap gap-2 cursor-pointer transition-colors ${isCorrect
+                  ? 'bg-[#dcfce7] border-4 border-[#22c55e] shadow-[0_4px_0_#16a34a]'
+                  : isWrong
+                    ? 'bg-[#f1f5f9] border-4 border-[#cbd5e1] shadow-[0_4px_0_#94a3b8] opacity-60 pointer-events-none translate-y-1 shadow-[0_0px_0_#94a3b8]'
+                    : 'bg-[#f8fafc] border-4 border-[#e2e8f0] shadow-[0_4px_0_#cbd5e1]'
+                  }`}
               >
                 {Array.from({ length: count }).map((_, i) => (
                   <motion.span
@@ -235,15 +234,15 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
             >
               <h2 className="text-[#9333ea] text-4xl font-extrabold mb-2">🎉 Number Master! 🎉</h2>
               <p className="text-[#64748b] text-xl font-bold mb-6">You counted beautifully! You won a badge:</p>
-              
-              <motion.div 
+
+              <motion.div
                 animate={{ y: [0, -15, 0] }}
                 transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
                 className="text-8xl drop-shadow-xl mb-8"
               >
                 {wonBadge}
               </motion.div>
-              
+
               <Button size="lg" onClick={resetGame} className="bg-[#a855f7] hover:bg-[#7e22ce] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#7e22ce] hover:shadow-[0_2px_0_#7e22ce] hover:translate-y-1 transition-all">
                 Play Again! 🔄
               </Button>
