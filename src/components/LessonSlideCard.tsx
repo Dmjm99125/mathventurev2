@@ -64,7 +64,9 @@ export function LessonSlideCard({ slide, index, total }: LessonSlideProps) {
       <div className={`grid ${slide.labelFil ? 'grid-cols-2' : 'grid-cols-1 max-w-sm mx-auto'} gap-4 w-full`}>
         {/* English */}
         <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
-          <span className="text-sm font-bold text-blue-700 uppercase tracking-wider">English</span>
+          {slide.labelFil && (
+            <span className="text-sm font-bold text-blue-700 uppercase tracking-wider">English</span>
+          )}
           <p className="text-2xl font-display font-extrabold text-blue-900 text-center">{slide.labelEn}</p>
           {slide.audioEn && (
             <AudioButton src={slide.audioEn} className="h-12 w-12" />
