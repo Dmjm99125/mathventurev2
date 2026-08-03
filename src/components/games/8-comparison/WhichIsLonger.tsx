@@ -132,7 +132,7 @@ export function WhichIsLonger({ onComplete }: WhichIsLongerProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#e0f7fa] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
+    <div className="w-full max-w-4xl flex flex-col items-center p-4 sm:p-6 bg-[#e0f7fa] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display text-center select-none overflow-hidden">
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
@@ -143,13 +143,13 @@ export function WhichIsLonger({ onComplete }: WhichIsLongerProps) {
         )}
       </div>
 
-      <div className="w-full max-w-[500px] mt-4 flex flex-col items-center z-10 flex-grow bg-white rounded-3xl p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] relative">
+      <div className="w-full max-w-[500px] mt-4 flex flex-col items-center z-10 flex-grow bg-white rounded-3xl p-4 sm:p-6 shadow-[0_4px_10px_rgba(0,0,0,0.1)] relative">
         
-        <h1 className="text-[#006064] text-3xl font-black mb-2">🐛 Which is Longer? 🐛</h1>
-        <div className="text-xl text-[#00838f] mb-6 font-bold">Tap or click on the LONGER caterpillar!</div>
+        <h1 className="text-[#006064] text-2xl sm:text-3xl font-black mb-2">🐛 Which is Longer? 🐛</h1>
+        <div className="text-lg sm:text-xl text-[#00838f] mb-4 sm:mb-6 font-bold">Tap or click on the LONGER caterpillar!</div>
 
         {/* Feedback Message */}
-        <div className="h-[40px] flex items-center justify-center font-bold text-2xl">
+        <div className="h-[40px] flex items-center justify-center font-bold text-xl sm:text-2xl">
           <AnimatePresence mode="wait">
             {feedback === 'correct' && (
               <motion.div key="correct" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="text-[#2e7d32]">
@@ -173,10 +173,10 @@ export function WhichIsLonger({ onComplete }: WhichIsLongerProps) {
               ? (feedback === 'correct' ? '#a5d6a7' : '#ef9a9a') 
               : '#b2ebf2'
           }}
-          className="w-full flex items-center justify-start rounded-xl p-4 my-3 cursor-pointer min-h-[80px] overflow-hidden"
+          className="w-full flex items-center justify-start rounded-xl p-3 sm:p-4 my-2 sm:my-3 cursor-pointer min-h-[65px] sm:min-h-[80px] overflow-hidden"
           onClick={() => handleChoice(1, length1)}
         >
-          <div className="text-4xl sm:text-5xl whitespace-nowrap">
+          <div className="text-2xl sm:text-4xl md:text-5xl whitespace-nowrap tracking-tighter leading-none">
             {generateCaterpillar(length1)}
           </div>
         </motion.div>
@@ -190,15 +190,15 @@ export function WhichIsLonger({ onComplete }: WhichIsLongerProps) {
               ? (feedback === 'correct' ? '#a5d6a7' : '#ef9a9a') 
               : '#b2ebf2'
           }}
-          className="w-full flex items-center justify-start rounded-xl p-4 my-3 cursor-pointer min-h-[80px] overflow-hidden"
+          className="w-full flex items-center justify-start rounded-xl p-3 sm:p-4 my-2 sm:my-3 cursor-pointer min-h-[65px] sm:min-h-[80px] overflow-hidden"
           onClick={() => handleChoice(2, length2)}
         >
-          <div className="text-4xl sm:text-5xl whitespace-nowrap">
+          <div className="text-2xl sm:text-4xl md:text-5xl whitespace-nowrap tracking-tighter leading-none">
             {generateCaterpillar(length2)}
           </div>
         </motion.div>
 
-        <div className="text-2xl font-bold text-[#ff6f00] mt-6">Score: <span>{score}</span> / {MAX_SCORE}</div>
+        <div className="text-xl sm:text-2xl font-bold text-[#ff6f00] mt-4 sm:mt-6">Score: <span>{score}</span> / {MAX_SCORE}</div>
       </div>
 
       {/* End Game Overlay */}
