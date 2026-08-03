@@ -14,7 +14,7 @@ const translations = {
     'landing.subtitle': 'A jungle expedition for curious minds to learn colors, shapes, numbers, and sequencing.',
     'landing.student': 'I am a Student',
     'landing.teacher': 'I am a Teacher',
-    'auth.signin': 'Sign In',
+    'auth.signin': 'Log In',
     'auth.signup': 'Sign Up',
     'auth.email': 'Email',
     'auth.password': 'Password',
@@ -143,7 +143,7 @@ const translations = {
 
 const LanguageContext = createContext<LanguageContextType>({
   lang: 'en',
-  setLang: () => {},
+  setLang: () => { },
   t: () => '',
 });
 

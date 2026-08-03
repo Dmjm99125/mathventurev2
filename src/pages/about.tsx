@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TopNav } from '@/components/layout';
-import { Users, Home, BookOpen, Github, FileText, Lock } from 'lucide-react';
+import { Users, Home, BookOpen, Github, FileText, Lock, ChevronDown } from 'lucide-react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
+type Tab = 'mathventure' | 'counting';
+
+const TABS: { value: Tab; label: string }[] = [
+  { value: 'mathventure', label: 'MathVenture' },
+  { value: 'counting', label: 'Counting the Uncounted' },
+];
+
 export function About() {
+  const [activeTab, setActiveTab] = useState<Tab>('mathventure');
+
+  const activeLabel = TABS.find(t => t.value === activeTab)?.label ?? '';
+
   return (
     <div
       className="min-h-[100dvh] flex flex-col bg-cover bg-center"
@@ -22,7 +33,7 @@ export function About() {
               <span className="hidden sm:inline">Home</span>
             </Button>
           </Link>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2 font-bold bg-white/70 backdrop-blur-md border-white/50 hover:bg-white/90">
@@ -61,7 +72,8 @@ export function About() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/10 w-96 h-96 rounded-full blur-3xl -z-10" />
 
         <div className="w-full max-w-6xl mx-auto px-4">
-          <div className="text-center mb-16 relative">
+          {/* Header */}
+          <div className="text-center mb-10 relative">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-jungle-yellow/30 w-64 h-64 rounded-full blur-3xl -z-10" />
             <div className="inline-flex items-center justify-center p-3 bg-jungle-orange text-white rounded-2xl shadow-lg rotate-[-5deg] hover:rotate-0 transition-transform mb-6">
               <Users className="w-8 h-8" />
@@ -70,39 +82,88 @@ export function About() {
               About The Researchers
             </h2>
             <p className="text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto">
-              The creative minds and developers behind MathVenture.
+              The creative mind and developer behind MathVenture.
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-12 items-center lg:items-start justify-center">
-            {/* Main Researcher (MR) */}
-            <div className="flex flex-col items-center gap-6 bg-white/70 backdrop-blur-md p-8 rounded-[3rem] shadow-xl border-4 border-white transform transition-transform hover:scale-105">
-              <img src="/assets/images/MR.png" alt="Researcher MR" className="w-[300px] sm:w-[400px] object-contain rounded-2xl" />
-              <img src="/assets/images/MR.gif" alt="Researcher Details" className="w-[300px] sm:w-[400px] object-contain rounded-2xl" />
-              <img src="/assets/images/re3.png" alt="Avatar" className="w-[120px] object-contain" />
+          {/* Tab Switcher — pill tabs on md+, dropdown on mobile */}
+          <div className="flex justify-center mb-10">
+            {/* Mobile dropdown */}
+            <div className="relative md:hidden">
+              <select
+                value={activeTab}
+                onChange={e => setActiveTab(e.target.value as Tab)}
+                className="appearance-none bg-white/70 backdrop-blur-md border-2 border-white rounded-2xl px-5 py-3 pr-10 font-bold text-base shadow-lg text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-jungle-orange/50"
+              >
+                {TABS.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             </div>
 
-            {/* Team Members */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-3xl">
-              <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                <img src="/assets/images/gy.png" alt="Researcher GY" className="w-[200px] object-contain rounded-2xl" />
-                <img src="/assets/images/re4.gif" alt="Avatar" className="w-[150px] object-contain mt-auto" />
-              </div>
-              <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                <img src="/assets/images/alr.png" alt="Researcher ALR" className="w-[200px] object-contain rounded-2xl" />
-                <img src="/assets/images/re5.gif" alt="Avatar" className="w-[150px] object-contain mt-auto" />
-              </div>
-              <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                <img src="/assets/images/dmm.png" alt="Researcher DMM" className="w-[200px] object-contain rounded-2xl" />
-                <img src="/assets/images/re6.gif" alt="Avatar" className="w-[150px] object-contain mt-auto" />
-              </div>
-              <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                <img src="/assets/images/gv.png" alt="Researcher GV" className="w-[200px] object-contain rounded-2xl" />
-                <img src="/assets/images/re7.gif" alt="Avatar" className="w-[150px] object-contain mt-auto" />
-              </div>
+            {/* Desktop pill tabs */}
+            <div className="hidden md:inline-flex bg-white/60 backdrop-blur-md border-2 border-white rounded-2xl p-1.5 gap-1 shadow-lg">
+              {TABS.map(t => (
+                <button
+                  key={t.value}
+                  onClick={() => setActiveTab(t.value)}
+                  className={`px-6 py-2.5 rounded-xl font-bold text-sm md:text-base transition-all duration-300 ${activeTab === t.value
+                      ? 'bg-jungle-orange text-white shadow-md scale-105'
+                      : 'text-muted-foreground hover:bg-white/70'
+                    }`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* MathVenture Tab — only Donna May Mesina */}
+          {activeTab === 'mathventure' && (
+            <div className="flex justify-center animate-in fade-in duration-300">
+              <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-8 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2 max-w-xs w-full">
+                <img src="/assets/images/dmm.png" alt="Donna May Mesina" className="w-[220px] object-contain rounded-2xl" />
+                <img src="/assets/images/re6.gif" alt="Avatar" className="w-[150px] object-contain mt-auto" />
+              </div>
+            </div>
+          )}
+
+          {/* Counting the Uncounted Tab — MR left (tall), 2x2 grid right with DMM first */}
+          {activeTab === 'counting' && (
+            <div className="flex justify-center animate-in fade-in duration-300">
+              <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[auto_1fr] gap-8 items-stretch">
+
+                {/* Left: Ma'am Rachelle — tall card */}
+                <div className="flex flex-col items-center justify-start gap-2 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2 md:w-64">
+                  <img src="/assets/images/MR.png" alt="Ma'am Rachelle Ignacio" className="w-[200px] object-contain rounded-2xl" />
+                  <img src="/assets/images/MR.gif" alt="Details" className="w-[200px] object-contain" />
+                  <img src="/assets/images/re3.png" alt="Avatar" className="w-[100px] object-contain" />
+                </div>
+
+                {/* Right: 2×2 grid — DMM first */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
+                    <img src="/assets/images/dmm.png" alt="Donna May Mesina" className="w-full max-w-[180px] object-contain rounded-2xl" />
+                    <img src="/assets/images/re6.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
+                  </div>
+                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
+                    <img src="/assets/images/gy.png" alt="Researcher GY" className="w-full max-w-[180px] object-contain rounded-2xl" />
+                    <img src="/assets/images/re4.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
+                  </div>
+                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
+                    <img src="/assets/images/alr.png" alt="Researcher ALR" className="w-full max-w-[180px] object-contain rounded-2xl" />
+                    <img src="/assets/images/re5.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
+                  </div>
+                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
+                    <img src="/assets/images/gv.png" alt="Researcher GV" className="w-full max-w-[180px] object-contain rounded-2xl" />
+                    <img src="/assets/images/re7.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
