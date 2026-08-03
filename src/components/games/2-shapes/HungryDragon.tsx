@@ -158,7 +158,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
               className="bg-white/90 border-2 border-green-300 text-green-800 font-bold shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"
               onClick={() => setScreen('start')}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Lair
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to start
             </Button>
           )}
 
@@ -278,7 +278,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
               className="bg-[#e74c3c] hover:bg-[#c0392b] text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#922b21] active:translate-y-2 active:shadow-none transition-all"
               onClick={() => setScreen('start')}
             >
-              BACK TO LAIR
+              BACK TO START OF GAME
             </Button>
           </motion.div>
         )}

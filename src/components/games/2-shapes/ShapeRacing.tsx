@@ -90,9 +90,9 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
       case 'Circle':
         return <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#ff6b6b] shadow-md border-2 border-white/40" />;
       case 'Square':
-        return <div className="w-10 h-10 md:w-14 md:h-14 bg-[#4ecdc4] shadow-md rounded-md border-2 border-white/40" />;
+        return <div className="w-10 h-10 md:w-14 md:h-14 bg-[#4ecdc4] shadow-md rounded-none border-2 border-white/40" />;
       case 'Rectangle':
-        return <div className="w-14 h-8 md:w-20 md:h-12 bg-[#ffd93d] shadow-md rounded-md border-2 border-white/40" />;
+        return <div className="w-14 h-8 md:w-20 md:h-12 bg-[#ffd93d] shadow-md rounded-none border-2 border-white/40" />;
       case 'Triangle':
         return (
           <div className="drop-shadow-md">
