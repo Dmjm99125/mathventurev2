@@ -194,7 +194,7 @@ export function IceCreamShop({ onComplete }: { onComplete?: () => void }) {
                             onClick={checkAnswer}
                             disabled={message.type !== ''}
                         >
-                            Ring Bell & Serve! <BellRing className="ml-2 w-6 h-6" />
+                            Serve! <BellRing className="ml-2 w-6 h-6" />
                         </Button>
                     </div>
 
@@ -242,17 +242,17 @@ export function IceCreamShop({ onComplete }: { onComplete?: () => void }) {
                     </div>
 
                     <Button
-                            size="lg"
-                            className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full"
-                            onClick={() => {
-                                setScore(0);
-                                setCurrentQuestion(1);
-                                setIsCompleted(false);
-                                setPrize(SHOP_PRIZES[Math.floor(Math.random() * SHOP_PRIZES.length)]);
-                                generateQuestion();
-                            }}
-                        > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        size="lg"
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full"
+                        onClick={() => {
+                            setScore(0);
+                            setCurrentQuestion(1);
+                            setIsCompleted(false);
+                            setPrize(SHOP_PRIZES[Math.floor(Math.random() * SHOP_PRIZES.length)]);
+                            generateQuestion();
+                        }}
+                    > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
+                    </Button>
                 </motion.div>
             )}
         </div>
