@@ -116,6 +116,7 @@ export const lessonContent: Record<string, TopicLesson> = {
     videoCredit: 'Teacher Nim',
     slides: [
       { id: 'add-concept', image: 'dag.png', labelEn: 'Addition means adding' },
+      { id: 'add-a', image: '4a.png', labelEn: 'Adding groups' },
       { id: 'add-b', image: '4b.png', labelEn: 'Example 1' },
       { id: 'add-c', image: '4c.png', labelEn: 'Example 2' },
       { id: 'add-d', image: '4d.png', labelEn: 'Example 3' },
