@@ -59,7 +59,7 @@ export function Paghahambing1({ onComplete }: Paghahambing1Props) {
   
   const [score, setScore] = useState(0);
   const [targetType, setTargetType] = useState('long');
-  const [bars, setBars] = useState<{ id: string, width: number, color: string }[]>([]);
+  const [bars, setBars] = useState<{ id: string, width: string, color: string }[]>([]);
   const [feedback, setFeedback] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
   const [stars, setStars] = useState<{ id: number, x: number, y: number }[]>([]);
@@ -85,9 +85,9 @@ export function Paghahambing1({ onComplete }: Paghahambing1Props) {
     setFeedback("");
     
     const lengths = [
-      { id: 'long', width: 100 },
-      { id: 'longer', width: 200 },
-      { id: 'longest', width: 300 }
+      { id: 'long', width: '32%' },
+      { id: 'longer', width: '62%' },
+      { id: 'longest', width: '95%' }
     ];
     
     // Shuffle lengths and assign colors
@@ -171,7 +171,7 @@ export function Paghahambing1({ onComplete }: Paghahambing1Props) {
         </div>
 
         {/* Game Area */}
-        <div className="flex flex-col gap-6 w-full items-start px-6 bg-white rounded-3xl py-8 shadow-inner border-4 border-[#e5e7eb]">
+        <div className="flex flex-col gap-6 w-full items-start px-4 md:px-6 bg-white rounded-3xl py-8 shadow-inner border-4 border-[#e5e7eb]">
           {bars.map((bar) => (
             <motion.div
               key={bar.id}
@@ -180,13 +180,15 @@ export function Paghahambing1({ onComplete }: Paghahambing1Props) {
               onClick={() => handleChoice(bar.id)}
               className="flex items-center w-full cursor-pointer"
             >
-              <div className="text-3xl mr-4">📏</div>
-              <motion.div 
-                className={`h-[45px] rounded-r-[25px] shadow-[4px_4px_0px_rgba(0,0,0,0.1)] ${bar.color}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${bar.width}px` }}
-                transition={{ type: "spring", stiffness: 100 }}
-              />
+              <div className="text-3xl mr-3 md:mr-4 shrink-0">📏</div>
+              <div className="flex-grow flex items-center min-w-0">
+                <motion.div 
+                  className={`h-[45px] rounded-r-[25px] shadow-[4px_4px_0px_rgba(0,0,0,0.1)] ${bar.color}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: bar.width }}
+                  transition={{ type: "spring", stiffness: 100 }}
+                />
+              </div>
             </motion.div>
           ))}
         </div>
