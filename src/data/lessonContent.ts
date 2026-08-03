@@ -116,7 +116,6 @@ export const lessonContent: Record<string, TopicLesson> = {
     videoCredit: 'Teacher Nim',
     slides: [
       { id: 'add-concept', image: 'dag.png', labelEn: 'Addition means adding' },
-      { id: 'add-a', image: '4a.png', labelEn: 'Adding groups' },
       { id: 'add-b', image: '4b.png', labelEn: 'Example 1' },
       { id: 'add-c', image: '4c.png', labelEn: 'Example 2' },
       { id: 'add-d', image: '4d.png', labelEn: 'Example 3' },
@@ -147,7 +146,6 @@ export const lessonContent: Record<string, TopicLesson> = {
     videoCredit: 'Pinoy BK Channel',
     slides: [
       { id: 'sub-concept', image: 'bawas.png', labelEn: 'Subtraction means taking away' },
-      { id: 'sub-a', image: '5o.png', labelEn: 'Taking away objects' },
       { id: 'sub-v1', video: '5subv.mp4', labelEn: 'Video 1' },
       { id: 'sub-v2', video: '5v1.mp4', labelEn: 'Video 2' },
       { id: 'sub-b', image: '5pa.png', labelEn: 'Example 1' },
