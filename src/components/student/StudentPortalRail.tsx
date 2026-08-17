@@ -20,30 +20,20 @@ export function StudentPortalRail({
 
   return (
     <aside className="flex flex-col gap-4">
-      <Card className="rounded-[28px] border-white/70 bg-[#fff7db]/95 p-5 shadow-[0_20px_45px_rgba(59,109,42,0.12)]">
-        <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-jungle-orange">
-          {t("student.portal.nextAssignment")}
-        </p>
-        {summary.nextAction.kind === "assignment" ? (
-          <>
-            <h2 className="mt-2 text-2xl font-extrabold capitalize text-primary">
-              {summary.nextAction.lessonId}
-            </h2>
-            <p className="mt-1 text-sm font-bold text-primary/75">{t("student.portal.playThisNext")}</p>
-            <Button className="mt-4 w-full" variant="jungle" onClick={() => onOpenAssignment(summary.nextAction.href)}>
-              {t("student.playNow")}
-            </Button>
-          </>
-        ) : (
-          <>
-            <h2 className="mt-2 text-2xl font-extrabold text-primary">{t("student.portal.noAssignmentsTitle")}</h2>
-            <p className="mt-1 text-sm font-bold text-primary/75">{t("student.portal.noAssignmentsBody")}</p>
-            <Button className="mt-4 w-full" onClick={() => onOpenAssignment(summary.nextAction.href)}>
-              {t("student.portal.tapAnyLesson")}
-            </Button>
-          </>
-        )}
-      </Card>
+      {summary.nextAction.kind === "assignment" && (
+        <Card className="rounded-[28px] border-white/70 bg-[#fff7db]/95 p-5 shadow-[0_20px_45px_rgba(59,109,42,0.12)]">
+          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-jungle-orange">
+            {t("student.portal.nextAssignment")}
+          </p>
+          <h2 className="mt-2 text-2xl font-extrabold capitalize text-primary">
+            {summary.nextAction.lessonId}
+          </h2>
+          <p className="mt-1 text-sm font-bold text-primary/75">{t("student.portal.playThisNext")}</p>
+          <Button className="mt-4 w-full" variant="jungle" onClick={() => onOpenAssignment(summary.nextAction.href)}>
+            {t("student.playNow")}
+          </Button>
+        </Card>
+      )}
 
       <Card className="rounded-[28px] bg-white/92 p-5 shadow-[0_20px_45px_rgba(59,109,42,0.1)]">
         <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
