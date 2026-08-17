@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Calculator, Trophy, Star } from 'lucide-react';
+import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 
 export function AdditionFunGame({ onComplete }: { onComplete?: () => void }) {
     const [num1, setNum1] = useState(0);
@@ -21,8 +22,9 @@ export function AdditionFunGame({ onComplete }: { onComplete?: () => void }) {
 
     const newQuestion = () => {
         // Random numbers between 1 and 9 (0 is a bit too easy/boring)
-        setNum1(Math.floor(Math.random() * 9) + 1);
-        setNum2(Math.floor(Math.random() * 9) + 1);
+        const [num1, num2] = getBoundedAdditionOperands();
+        setNum1(num1);
+        setNum2(num2);
         setUserAnswer('');
         setMessage({ text: '', type: '' });
         setTimeout(() => inputRef.current?.focus(), 100);

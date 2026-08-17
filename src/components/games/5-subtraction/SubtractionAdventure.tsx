@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Play, CheckCircle2, XCircle, Star } from 'lucide-react';
+import { getBoundedSubtractionOperands } from '@/lib/games/arithmeticBounds';
 
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍍"];
@@ -24,9 +25,7 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
     const MAX_SCORE = 5;
 
     const generateQuestion = (currentLevel: number = 1) => {
-        const max = 5 + currentLevel; // Slight difficulty scaling
-        const n1 = Math.floor(Math.random() * max) + 2;
-        const n2 = Math.floor(Math.random() * (n1 + 1));
+        const [n1, n2] = getBoundedSubtractionOperands();
         const correctAnswer = n1 - n2;
         
         const f = FRUITS[Math.floor(Math.random() * FRUITS.length)];

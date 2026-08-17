@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Star } from 'lucide-react';
+import { getBoundedSubtractionOperands } from '@/lib/games/arithmeticBounds';
 
 const COLORS = [
     'bg-[#FF6B6B] border-[#e65c5c]', 
@@ -31,8 +32,7 @@ export function GentleMathDrift({ onComplete }: { onComplete?: () => void }) {
     const MAX_SCORE = 5;
 
     const generateQuestion = () => {
-        const n1 = Math.floor(Math.random() * 10) + 5; // 5 to 14
-        const n2 = Math.floor(Math.random() * (n1 + 1)); // 0 to n1
+        const [n1, n2] = getBoundedSubtractionOperands();
         const correctAnswer = n1 - n2;
         
         // Generate options (3 options)
@@ -40,7 +40,7 @@ export function GentleMathDrift({ onComplete }: { onComplete?: () => void }) {
         opts.add(correctAnswer);
         
         while (opts.size < 3) {
-            let fake = Math.floor(Math.random() * 15); // 0 to 14
+            let fake = Math.floor(Math.random() * 11); // 0 to 10
             opts.add(fake);
         }
         

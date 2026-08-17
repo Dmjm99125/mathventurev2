@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Play, CheckCircle2, XCircle, Star, Map } from 'lucide-react';
+import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍍'];
@@ -24,9 +25,7 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
     const MAX_SCORE = 5;
 
     const generateQuestion = () => {
-        const max = 5 + level;
-        const n1 = Math.floor(Math.random() * max) + 1;
-        const n2 = Math.floor(Math.random() * max) + 1;
+        const [n1, n2] = getBoundedAdditionOperands();
         const correctAnswer = n1 + n2;
         const selectedFruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
         
@@ -34,7 +33,7 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
         const opts = new Set<number>();
         opts.add(correctAnswer);
         while (opts.size < 4) {
-            opts.add(Math.floor(Math.random() * (max * 2)) + 1);
+            opts.add(Math.floor(Math.random() * 11));
         }
         
         setNum1(n1);

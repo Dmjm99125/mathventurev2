@@ -1,7 +1,7 @@
 // Auto-generated free play questions
 import type { Question } from './question';
 
-export const freePlayTopics: Record<string, Question[]> = {
+const rawFreePlayTopics: Record<string, Question[]> = {
   "colors": [
     {
       "id": "1b9_fp",
@@ -4782,3 +4782,40 @@ export const freePlayTopics: Record<string, Question[]> = {
     }
   ]
 };
+
+const ARITHMETIC_PATTERN = /(<br\/>)(\d+)\s*([+-])\s*(\d+)\s*=\s*\?/;
+
+function normalizeArithmeticQuestion(question: Question): Question | null {
+  const match = question.prompt.match(ARITHMETIC_PATTERN);
+  if (!match) return question;
+
+  const originalLeft = Number(match[2]);
+  const originalRight = Number(match[4]);
+  const operator = match[3];
+  const left = Math.min(10, originalLeft);
+  const right = operator === "+"
+    ? Math.min(10, 10 - left, originalRight)
+    : Math.min(left, 10, originalRight);
+  const result = operator === "+" ? left + right : left - right;
+  const prompt = question.prompt.replace(
+    ARITHMETIC_PATTERN,
+    `$1${left} ${operator} ${right} = ?`,
+  );
+
+  return {
+    ...question,
+    prompt,
+    options: question.options.map((option) =>
+      option.isCorrect ? { ...option, image: `6${result}.png` } : option
+    ),
+  };
+}
+
+export const freePlayTopics: Record<string, Question[]> = Object.fromEntries(
+  Object.entries(rawFreePlayTopics).map(([topic, questions]) => [
+    topic,
+    topic === "addition" || topic === "subtraction"
+      ? questions.map(normalizeArithmeticQuestion).filter((question): question is Question => question !== null)
+      : questions,
+  ]),
+);
