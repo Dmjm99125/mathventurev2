@@ -103,7 +103,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
   };
 
   const getSVG = (type: string) => {
-    const colors = { circle: '#e74c3c', square: '#fff', triangle: '#2ecc71', star: '#f1c40f' };
+    const colors = { circle: '#e74c3c', square: '#fff', triangle: '#2ecc71' };
     if (type === 'circle') {
       return (
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
@@ -122,13 +122,6 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
       return (
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
           <polygon points="50,15 85,85 15,85" fill={colors.triangle} />
-        </svg>
-      );
-    }
-    if (type === 'star') {
-      return (
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
-          <polygon points="50,5 63,35 95,35 70,55 80,85 50,70 20,85 30,55 5,35 37,35" fill={colors.star} />
         </svg>
       );
     }

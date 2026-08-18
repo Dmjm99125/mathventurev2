@@ -10,8 +10,6 @@ const ITEMS = [
     { id: 4, name: "box", emoji: "📦", shape: "square" },
     { id: 5, name: "triangle", emoji: "🔺", shape: "triangle" },
     { id: 6, name: "tent", emoji: "⛺", shape: "triangle" },
-    { id: 7, name: "star", emoji: "⭐", shape: "star" },
-    { id: 8, name: "sparkle", emoji: "🌟", shape: "star" }
 ];
 
 const SHAPES = ["circle", "square", "triangle"];
@@ -19,7 +17,6 @@ const SHAPE_EMOJI: Record<string, string> = {
     circle: "⚪",
     square: "🟦",
     triangle: "🔺",
-    star: "⭐"
 };
 
 export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {

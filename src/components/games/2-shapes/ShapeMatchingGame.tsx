@@ -7,8 +7,6 @@ const SHAPES = [
     { name: 'CIRCLE/BILOG', color: '#f94144', symbol: '●' },
     { name: 'SQUARE/PARISUKAT', color: '#228B22', symbol: '■' },
     { name: 'TRIANGLE/TATSULOK', color: '#2196F3', symbol: '▲' },
-    { name: 'STAR/BITUIN', color: '#FFD700', symbol: '★' },
-    { name: 'HEART/HUGIS-PUSO', color: '#FF69B4', symbol: '♥' }
 ];
 
 const ICONS = ['☀️', '🎈', '🐱', '⭐', '🌈', '🍦', '🐶', '🐝'];

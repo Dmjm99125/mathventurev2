@@ -83,7 +83,7 @@ export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
             <div className="w-24 h-24 md:w-32 md:h-32 bg-[#6c5ce7]" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
           </motion.div>
         );
-      case 'Star':
+      case 'DisabledShape':
         return (
           <motion.div 
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}

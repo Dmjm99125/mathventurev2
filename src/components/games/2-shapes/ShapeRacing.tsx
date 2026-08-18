@@ -99,7 +99,7 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
             <div className="w-10 h-10 md:w-14 md:h-14 bg-[#6c5ce7]" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
           </div>
         );
-      case 'Star':
+      case 'DisabledShape':
         return <div className="text-[40px] md:text-[50px] text-[#ff9f43] leading-none drop-shadow-md">★</div>;
     }
   };
