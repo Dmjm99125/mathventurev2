@@ -14,7 +14,7 @@ const ITEMS = [
     { id: 8, name: "sparkle", emoji: "🌟", shape: "star" }
 ];
 
-const SHAPES = ["circle", "square", "triangle", "star"];
+const SHAPES = ["circle", "square", "triangle"];
 const SHAPE_EMOJI: Record<string, string> = {
     circle: "⚪",
     square: "🟦",

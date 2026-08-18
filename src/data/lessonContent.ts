@@ -75,9 +75,6 @@ export const lessonContent: Record<string, TopicLesson> = {
       { id: 's-square', image: '2sq.png', labelEn: 'Square', labelFil: 'Parisukat', audioEn: aud('2sq.mp3'), audioFil: aud('2pari.MP3') },
       { id: 's-rectangle', image: '2r.png', labelEn: 'Rectangle', labelFil: 'Parihaba', audioEn: aud('2r.mp3'), audioFil: aud('2parih.MP3') },
       { id: 's-oval', image: '2ov.png', labelEn: 'Oval', labelFil: 'Habilog o Obalo', audioEn: aud('2o.mp3'), audioFil: aud('2hab.MP3') },
-      { id: 's-diamond', image: '2d.png', labelEn: 'Diamond', labelFil: 'Hugis Diyamante', audioEn: aud('2d.mp3'), audioFil: aud('2dia.MP3') },
-      { id: 's-heart', image: '2h.png', labelEn: 'Heart', labelFil: 'Hugis Puso', audioEn: aud('2h.mp3'), audioFil: aud('2pu.MP3') },
-      { id: 's-star', image: '2s.png', labelEn: 'Star', labelFil: 'Hugis Tala o Bituin', audioEn: aud('2s.mp3'), audioFil: aud('2tala.MP3') },
     ],
   },
 

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
-const SHAPES = ["Circle", "Square", "Rectangle", "Triangle", "Star"];
+const SHAPES = ["Circle", "Square", "Rectangle", "Triangle"];
 const REWARDS = ["🎈", "🐰", "🦄", "🐶", "⭐", "🎁", "🐱", "🌈"];
 
 export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { ArrowLeft, Heart, Star } from 'lucide-react';
 
-const SHAPES = ['circle', 'square', 'triangle', 'star'];
+const SHAPES = ['circle', 'square', 'triangle'];
 const REWARDS = ['👑', '💍', '🍦', '🍗', '🍕', '🎮', '🎸', '🚲', '🎨', '🚀', '🛸'];
 
 export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
@@ -186,7 +186,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
             </motion.div>
 
             <h1 className="text-5xl md:text-7xl font-display font-extrabold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] mb-8 tracking-widest text-center">
-              Hungry Dragon
+              Hungry Dinosaur
             </h1>
 
             <Button size="lg" className="bg-[#9b59b6] hover:bg-[#8e44ad] text-white font-bold text-2xl md:text-3xl py-8 px-12 md:px-16 rounded-full shadow-[0_8px_0_0_#7d3c98] active:translate-y-2 active:shadow-none transition-all" onClick={startGame}>
@@ -237,7 +237,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
               TREASURE!
             </h1>
             <p className="text-xl md:text-2xl text-white font-bold mb-8 text-center drop-shadow-md">
-              The Dragon gave you a gift for 100 points!
+              The Dinosaur gave you a gift for 100 points!
             </p>
             <motion.div
               initial={{ rotate: -180, scale: 0 }}
@@ -266,7 +266,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
               Game Over!
             </h1>
             <div className="text-2xl md:text-3xl text-gray-300 font-bold mb-12 drop-shadow-md text-center max-w-lg">
-              The Dragon got too hungry and went to sleep!
+              The Dinosaur got too hungry and went to sleep!
               <br />
               <br />
               <span className="text-white">

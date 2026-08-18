@@ -4,10 +4,10 @@ import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 
 const ITEMS = [
-    { id: "dice", emoji: "🎲", match: "cube" },
-    { id: "drum", emoji: "🥁", match: "cylinder" },
+    { id: "window", emoji: "🪟", match: "cube" },
+    { id: "candy", emoji: "🍬", match: "cylinder" },
     { id: "ball", emoji: "🏀", match: "sphere" },
-    { id: "cone", emoji: "🍦", match: "cone" },
+    { id: "pizza", emoji: "🍕", match: "cone" },
     { id: "earth", emoji: "🌍", match: "sphere" }
 ];
 

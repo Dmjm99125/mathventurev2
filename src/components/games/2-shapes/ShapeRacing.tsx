@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Trophy, Star, Navigation } from 'lucide-react';
 
-const SHAPES = ["Circle", "Square", "Rectangle", "Triangle", "Star"];
+const SHAPES = ["Circle", "Square", "Rectangle", "Triangle"];
 const REWARDS = ["🎈", "🐰", "🦄", "🌈", "🐱", "🎁", "⭐", "🚀"];
 const TRACKS = [
   { id: 'jungle', class: 'from-[#8fd694] to-[#4caf50]' },

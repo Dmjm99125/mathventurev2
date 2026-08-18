@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import { ArrowLeft, Heart, Star, Trophy } from 'lucide-react';
 
 const CHARACTERS = ['🐰', '🐼', '🦕', '🦄'];
-const SHAPES = ['circle', 'square', 'triangle', 'star'];
+const SHAPES = ['circle', 'square', 'triangle'];
 const GIFTS = ['🍦', '🚁', '🚲', '🎨', '🎮', '🎸', '🏆', '💎', '👑', '🍕'];
 
 const WORLDS = [
