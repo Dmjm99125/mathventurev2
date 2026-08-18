@@ -3,3 +3,5 @@ node_modules
 dist
 supabase/.temp
 .worktrees/
+revisions.md
+revisions/

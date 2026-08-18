@@ -1,6 +1,6 @@
 export function getBoundedAdditionOperands(): [number, number] {
-  const first = Math.floor(Math.random() * 10);
-  const second = Math.floor(Math.random() * (11 - first));
+  const first = Math.floor(Math.random() * 5) + 1;
+  const second = Math.floor(Math.random() * 5) + 1;
   return [first, second];
 }
 

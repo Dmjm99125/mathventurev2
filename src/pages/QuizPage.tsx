@@ -28,17 +28,21 @@ import { SurpriseSequencing } from '@/components/games/3-sequencing/SurpriseSequ
 import { AnimalVehicleBuilder } from '@/components/games/3-sequencing/AnimalVehicleBuilder';
 import { PatternTrainAcademy } from '@/components/games/3-sequencing/PatternTrainAcademy';
 import { SandwichMaker } from '@/components/games/3-sequencing/SandwichMaker';
+import { UnderTheSea } from '@/components/games/4-addition/UnderTheSea';
+import { Carnival } from '@/components/games/4-addition/Carnival';
+import { IceCreamShop } from '@/components/games/4-addition/IceCreamShop';
+import { Pizza } from '@/components/games/4-addition/Pizza';
+import { ComicStarCatcher } from '@/components/games/4-addition/ComicStarCatcher';
 import { AdditionFunGame } from '@/components/games/4-addition/AdditionFunGame';
 import { AppleAddition } from '@/components/games/4-addition/AppleAddition';
 import { FruitPopMath } from '@/components/games/4-addition/FruitPopMath';
 import { AdditionAdventure } from '@/components/games/4-addition/AdditionAdventure';
 import { SecondAdditionRound } from '@/components/games/4-addition/SecondAdditionRound';
 import { AnimalSafari } from '@/components/games/4-addition/AnimalSafari';
-import { UnderTheSea } from '@/components/games/4-addition/UnderTheSea';
-import { Carnival } from '@/components/games/4-addition/Carnival';
-import { IceCreamShop } from '@/components/games/4-addition/IceCreamShop';
-import { Pizza } from '@/components/games/4-addition/Pizza';
-import { ComicStarCatcher } from '@/components/games/4-addition/ComicStarCatcher';
+import { AdditionReplacementOne } from '@/components/games/4-addition/AdditionReplacementOne';
+import { AdditionReplacementTwo } from '@/components/games/4-addition/AdditionReplacementTwo';
+import { AdditionReplacementThree } from '@/components/games/4-addition/AdditionReplacementThree';
+import { AdditionReplacementFour } from '@/components/games/4-addition/AdditionReplacementFour';
 import { SubtractionBalloon } from '@/components/games/5-subtraction/SubtractionBalloon';
 import { FruitSubtraction } from '@/components/games/5-subtraction/FruitSubtraction';
 import { GentleMathDrift } from '@/components/games/5-subtraction/GentleMathDrift';
@@ -476,28 +480,36 @@ export function QuizPage() {
             }} 
           />
         ) : topic === 'addition' && currentIndex === 0 ? (
-          <AdditionFunGame onComplete={handleStructuredGameComplete} />
+          <AdditionReplacementOne onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 1 ? (
-          <AppleAddition onComplete={handleStructuredGameComplete} />
+          <AdditionReplacementTwo onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 2 ? (
-          <FruitPopMath onComplete={handleStructuredGameComplete} />
+          <AdditionReplacementThree onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 3 ? (
-          <AdditionAdventure onComplete={handleStructuredGameComplete} />
+          <AdditionReplacementFour onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 4 ? (
-          <SecondAdditionRound onComplete={handleStructuredGameComplete} />
+          <AdditionFunGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 5 ? (
-          <AnimalSafari onComplete={handleStructuredGameComplete} />
+          <AppleAddition onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 6 ? (
-          <UnderTheSea onComplete={handleStructuredGameComplete} />
+          <FruitPopMath onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 7 ? (
-          <Carnival onComplete={handleStructuredGameComplete} />
+          <AdditionAdventure onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 8 ? (
-          <IceCreamShop onComplete={handleStructuredGameComplete} />
+          <SecondAdditionRound onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 9 ? (
-          <Pizza onComplete={handleStructuredGameComplete} />
+          <AnimalSafari onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 10 ? (
-          <ComicStarCatcher onComplete={handleStructuredGameComplete} />
+          <UnderTheSea onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 11 ? (
+          <Carnival onComplete={handleStructuredGameComplete} />
+        ) : topic === 'addition' && currentIndex === 12 ? (
+          <IceCreamShop onComplete={handleStructuredGameComplete} />
+        ) : topic === 'addition' && currentIndex === 13 ? (
+          <Pizza onComplete={handleStructuredGameComplete} />
+        ) : topic === 'addition' && currentIndex === 14 ? (
+          <ComicStarCatcher onComplete={handleStructuredGameComplete} />
+        ) : topic === 'addition' && currentIndex === 15 ? (
           <DrawingCanvas onComplete={handleNext} />
         ) : topic === 'subtraction' && currentIndex === 0 ? (
           <SubtractionBalloon onComplete={handleStructuredGameComplete} />

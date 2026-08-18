@@ -2,7 +2,7 @@ const GAME_COUNT_BY_TOPIC = {
   colors: 7,
   shapes: 9,
   sequencing: 10,
-  addition: 12,
+  addition: 16,
   subtraction: 10,
   numbers: 9,
   measurement: 7,

@@ -18,7 +18,7 @@ const EMOJI_POOL = [
   // Yellow
   { emoji: '🌞', color: 'yellow' }, { emoji: '🍌', color: 'yellow' }, { emoji: '🍋', color: 'yellow' }, { emoji: '🧀', color: 'yellow' }, { emoji: '🌻', color: 'yellow' },
   // Blue
-  { emoji: '💧', color: 'blue' }, { emoji: '🦋', color: 'red' }, { emoji: '🐟', color: 'blue' }, { emoji: '🧢', color: 'blue' }, { emoji: '🧊', color: 'blue' },
+  { emoji: '💧', color: 'blue' }, { emoji: '🐞', color: 'red' }, { emoji: '🐟', color: 'blue' }, { emoji: '🧢', color: 'blue' }, { emoji: '🧊', color: 'blue' },
 ];
 
 const COLORS = [
