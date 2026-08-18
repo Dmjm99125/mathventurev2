@@ -51,3 +51,12 @@ Deno.test("sequencing lesson keeps only the intended legacy intro sections", () 
     [],
   );
 });
+
+Deno.test("sequencing lesson uses Alpabasa video attribution", () => {
+  assertEquals(lessonContent.sequencing.videoSrc, "/assets/videos/alpa.mp4");
+  assertEquals(lessonContent.sequencing.videoTitle, "Awit ng Alpabasa");
+  assertEquals(
+    lessonContent.sequencing.videoCredit,
+    "Original Musical Arrangement and Recording by Lester Delgado\nLyrics by Aina Valencia and Tisha Cruz\nSung by Eliza Tiongson\nStarring Alexa G. Cruz\n\nVisit www.alpabasa.com to learn more about the Alpabasa Reading Program.",
+  );
+});

@@ -289,7 +289,7 @@ export function QuizPage() {
               <p className="text-3xl font-display font-extrabold text-foreground text-center">
                 {lesson.videoTitle}
               </p>
-              <p className="text-sm text-muted-foreground font-bold italic">
+              <p className="text-sm text-muted-foreground font-bold italic whitespace-pre-line">
                 {lesson.videoCredit}
               </p>
             </div>

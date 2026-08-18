@@ -86,8 +86,8 @@ export const lessonContent: Record<string, TopicLesson> = {
   sequencing: {
     topic: 'sequencing',
     videoSrc: '/assets/videos/alpa.mp4',
-    videoTitle: 'Alpabetong Pilipino / Ang Bagong Alpabetong Filipino / Tagalog / Awiting Pambata',
-    videoCredit: 'Musikwela Kids TV',
+    videoTitle: 'Awit ng Alpabasa',
+    videoCredit: 'Original Musical Arrangement and Recording by Lester Delgado\nLyrics by Aina Valencia and Tisha Cruz\nSung by Eliza Tiongson\nStarring Alexa G. Cruz\n\nVisit www.alpabasa.com to learn more about the Alpabasa Reading Program.',
     slides: [
       {
         id: 'sq-count',
