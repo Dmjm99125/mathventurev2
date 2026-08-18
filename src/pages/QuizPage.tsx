@@ -54,12 +54,12 @@ import { FeedTheHippo } from '@/components/games/5-subtraction/FeedTheHippo';
 import { SpaceBlast } from '@/components/games/5-subtraction/SpaceBlast';
 import { DragCorrectNumber } from '@/components/games/6-numbers/DragCorrectNumber';
 import { CountMatch } from '@/components/games/6-numbers/CountMatch';
-import { CountMatch2 } from '@/components/games/6-numbers/CountMatch2';
-import { CountMatch3 } from '@/components/games/6-numbers/CountMatch3';
-import { CountMatch4 } from '@/components/games/6-numbers/CountMatch4';
 import { DeepDive } from '@/components/games/6-numbers/DeepDive';
 import { ToyFactory } from '@/components/games/6-numbers/ToyFactory';
 import { NumberMonster } from '@/components/games/6-numbers/NumberMonster';
+import { NumberReplacementAnimalPop } from '@/components/games/6-numbers/NumberReplacementAnimalPop';
+import { NumberReplacementHungryMonster } from '@/components/games/6-numbers/NumberReplacementHungryMonster';
+import { NumberReplacementWhackMole } from '@/components/games/6-numbers/NumberReplacementWhackMole';
 import { SlowFun } from '@/components/games/7-measurement/SlowFun';
 import { SmallShort } from '@/components/games/7-measurement/SmallShort';
 import { LightHeavy } from '@/components/games/7-measurement/LightHeavy';
@@ -536,11 +536,11 @@ export function QuizPage() {
         ) : topic === 'numbers' && currentIndex === 1 ? (
           <CountMatch onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 2 ? (
-          <CountMatch2 onComplete={handleStructuredGameComplete} />
+          <NumberReplacementAnimalPop onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 3 ? (
-          <CountMatch3 onComplete={handleStructuredGameComplete} />
+          <NumberReplacementHungryMonster onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 4 ? (
-          <CountMatch4 onComplete={handleStructuredGameComplete} />
+          <NumberReplacementWhackMole onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 5 ? (
           <DeepDive onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 6 ? (

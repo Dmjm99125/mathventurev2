@@ -1,0 +1,2 @@
+import { NumberReplacementGame } from './NumberReplacementGame';
+export function NumberReplacementAnimalPop({ onComplete }: { onComplete?: () => void }) { return <NumberReplacementGame onComplete={onComplete} theme={{ title: 'Animal Pop', subtitle: 'Count the animal friends!', icon: '🐾', item: '🐶', answerLabel: 'How many friends do you see?', colors: { panel: 'bg-orange-50', border: 'border-orange-300', button: 'bg-orange-500 hover:bg-orange-600' } }} />; }

@@ -1,0 +1,2 @@
+import { NumberReplacementGame } from './NumberReplacementGame';
+export function NumberReplacementWhackMole({ onComplete }: { onComplete?: () => void }) { return <NumberReplacementGame onComplete={onComplete} theme={{ title: 'Whack-a-Mole', subtitle: 'Count the circles and choose the matching number!', icon: '🔨', item: '🔵', answerLabel: 'Which mole has this number?', colors: { panel: 'bg-green-50', border: 'border-green-300', button: 'bg-green-600 hover:bg-green-700' } }} />; }

@@ -18,21 +18,21 @@ export const numbersData: Question[] = [
   },
   {
     id: 'numbers_game_2',
-    prompt: 'CountMatch2',
+    prompt: 'AnimalPop',
     options: [],
     correctFeedback: '',
     wrongFeedback: ''
   },
   {
     id: 'numbers_game_3',
-    prompt: 'CountMatch3',
+    prompt: 'HungryMonster',
     options: [],
     correctFeedback: '',
     wrongFeedback: ''
   },
   {
     id: 'numbers_game_4',
-    prompt: 'CountMatch4',
+    prompt: 'WhackMole',
     options: [],
     correctFeedback: '',
     wrongFeedback: ''
@@ -59,7 +59,7 @@ export const numbersData: Question[] = [
     wrongFeedback: ''
   },
   {
-    id: 'numbers_drawing',
+    id: 'numbers_game_8',
     prompt: 'Drawing Board',
     options: [],
     correctFeedback: '',
