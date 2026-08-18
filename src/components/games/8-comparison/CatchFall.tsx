@@ -143,7 +143,7 @@ export function CatchFall({ onComplete }: CatchFallProps) {
   const fallDuration = Math.max(1.5, 4.0 - (score * 0.25));
 
   return (
-    <div className="w-full max-w-4xl flex flex-col items-center p-4 md:p-6 bg-[#282c34] rounded-[2rem] shadow-sm min-h-0 border-4 border-[#ffca28] relative font-display text-center select-none overflow-hidden">
+    <div className="w-full max-w-4xl h-[calc(100dvh-7rem)] max-h-[760px] min-h-0 flex flex-col items-center p-3 md:p-5 bg-[#282c34] rounded-[2rem] shadow-sm border-4 border-[#ffca28] relative font-display text-center select-none overflow-hidden">
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
@@ -163,7 +163,7 @@ export function CatchFall({ onComplete }: CatchFallProps) {
       <p className="m-0 font-bold text-white/80 text-sm md:text-base mb-4">Tap the correct bin before it hits the floor!</p>
 
       {/* Game Area */}
-      <div className="w-full max-w-[500px] h-[clamp(220px,45vh,350px)] relative bg-gradient-to-b from-[#87ceeb] to-[#e0f7fa] rounded-[24px] overflow-hidden border-[6px] border-white shadow-inner mb-4">
+      <div className="w-full max-w-[500px] h-[min(38vh,300px)] min-h-[170px] relative bg-gradient-to-b from-[#87ceeb] to-[#e0f7fa] rounded-[24px] overflow-hidden border-[6px] border-white shadow-inner mb-3">
         
         {/* Feedback Display */}
         <AnimatePresence>
@@ -204,7 +204,7 @@ export function CatchFall({ onComplete }: CatchFallProps) {
           whileHover={canClick ? { scale: 1.05 } : {}}
           whileTap={canClick ? { scale: 0.95 } : {}}
           onClick={() => handleChoice('short')}
-          className="flex-1 bg-[#4caf50] text-white border-[5px] border-white rounded-2xl h-[80px] text-xl md:text-2xl font-black flex flex-col justify-center items-center shadow-[0_6px_0_#2e7d32] active:shadow-none active:translate-y-[6px]"
+          className="flex-1 bg-[#4caf50] text-white border-[5px] border-white rounded-2xl h-[min(12vh,72px)] text-lg md:text-2xl font-black flex flex-col justify-center items-center shadow-[0_6px_0_#2e7d32] active:shadow-none active:translate-y-[6px]"
         >
           🐜 SHORT
         </motion.button>
@@ -212,7 +212,7 @@ export function CatchFall({ onComplete }: CatchFallProps) {
           whileHover={canClick ? { scale: 1.05 } : {}}
           whileTap={canClick ? { scale: 0.95 } : {}}
           onClick={() => handleChoice('tall')}
-          className="flex-1 bg-[#f44336] text-white border-[5px] border-white rounded-2xl h-[80px] text-xl md:text-2xl font-black flex flex-col justify-center items-center shadow-[0_6px_0_#c62828] active:shadow-none active:translate-y-[6px]"
+          className="flex-1 bg-[#f44336] text-white border-[5px] border-white rounded-2xl h-[min(12vh,72px)] text-lg md:text-2xl font-black flex flex-col justify-center items-center shadow-[0_6px_0_#c62828] active:shadow-none active:translate-y-[6px]"
         >
           🦒 TALL
         </motion.button>

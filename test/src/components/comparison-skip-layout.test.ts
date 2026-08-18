@@ -29,6 +29,7 @@ Deno.test("comparison games keep skip buttons in flow instead of overlapping the
 Deno.test("CatchFall fits its game board and controls within the available viewport", async () => {
   const source = await readSource("src/components/games/8-comparison/CatchFall.tsx");
   assertEquals(source.includes("min-h-[600px]"), false);
-  assertEquals(source.includes("h-[clamp(220px,45vh,350px)]"), true);
-  assertEquals(source.includes("h-[80px]"), true);
+  assertEquals(source.includes("h-[calc(100dvh-7rem)]"), true);
+  assertEquals(source.includes("h-[min(38vh,300px)]"), true);
+  assertEquals(source.includes("h-[min(12vh,72px)]"), true);
 });
