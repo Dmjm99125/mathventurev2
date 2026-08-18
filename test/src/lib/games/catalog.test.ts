@@ -21,5 +21,7 @@ Deno.test("GAME_CATALOG exposes every playable game in stable topic order", () =
   assertEquals(getGameCatalogEntry("addition", 16), null);
   assertEquals(getGameCatalogEntry("numbers", 8)?.gameId, "numbers:8");
   assertEquals(getGameCatalogEntry("numbers", 9), null);
+  assertEquals(getGameCatalogEntry("subtraction", 9)?.gameId, "subtraction:9");
+  assertEquals(getGameCatalogEntry("subtraction", 10), null);
   assertEquals(getGameCatalogEntry("clock", 7), null);
 });

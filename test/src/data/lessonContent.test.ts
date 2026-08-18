@@ -60,3 +60,14 @@ Deno.test("sequencing lesson uses Alpabasa video attribution", () => {
     "Original Musical Arrangement and Recording by Lester Delgado\nLyrics by Aina Valencia and Tisha Cruz\nSung by Eliza Tiongson\nStarring Alexa G. Cruz\n\nVisit www.alpabasa.com to learn more about the Alpabasa Reading Program.",
   );
 });
+
+Deno.test("subtraction lesson uses the supplied replacements for examples 2, 3, 5, 7, 8, and 10", () => {
+  const slides = lessonContent.subtraction.slides;
+  const images = slides.map((slide) => slide.image).filter(Boolean);
+  for (const replacement of ["sub-replacement-1.png", "sub-replacement-2.png", "sub-replacement-3.png", "sub-replacement-4.png", "sub-replacement-5.png", "sub-replacement-6.png"]) {
+    assertEquals(images.includes(replacement), true);
+  }
+  for (const kept of ["5pa.png", "5pd.png", "5f.jpg", "5g.jpg", "5i.jpg", "5k.jpg", "sub-replacement-6.png"]) {
+    assertEquals(images.includes(kept), true);
+  }
+});
