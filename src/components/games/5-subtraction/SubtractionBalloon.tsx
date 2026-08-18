@@ -29,7 +29,7 @@ export function SubtractionBalloon({ onComplete }: { onComplete?: () => void }) 
     const MAX_SCORE = 5;
 
     const generateQuestion = () => {
-        const n1 = Math.floor(Math.random() * 10) + 1; // 1 to 10
+        const n1 = Math.floor(Math.random() * 7) + 1; // 1 to 7
         const n2 = Math.floor(Math.random() * n1); // 0 to n1 - 1
         const correctAnswer = n1 - n2;
         

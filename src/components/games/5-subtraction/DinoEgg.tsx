@@ -28,7 +28,7 @@ export function DinoEgg({ onComplete }: { onComplete?: () => void }) {
             answer = Math.floor(Math.random() * 6) + 2; // 2 to 7
             text = `Find the nest with ${answer} eggs!`;
         } else {
-            const num1 = Math.floor(Math.random() * 4) + 5; // 5 to 8
+            const num1 = Math.floor(Math.random() * 3) + 5; // 5 to 7
             const num2 = Math.floor(Math.random() * 4) + 1; // 1 to 4
             answer = num1 - num2;
             text = `Which nest has ${num1} - ${num2} eggs?`;

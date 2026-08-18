@@ -23,7 +23,7 @@ export function FarmHideSeek({ onComplete }: { onComplete?: () => void }) {
     const MAX_SCORE = 5;
 
     const generateQuestion = () => {
-        const n1 = Math.floor(Math.random() * 5) + 4; // 4 to 8
+        const n1 = Math.floor(Math.random() * 4) + 4; // 4 to 7
         const n2 = Math.floor(Math.random() * n1) + 1; // 1 to n1
         const correctAnswer = n1 - n2;
         

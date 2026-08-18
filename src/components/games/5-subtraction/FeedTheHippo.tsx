@@ -43,7 +43,7 @@ export function FeedTheHippo({ onComplete }: { onComplete?: () => void }) {
     };
 
     const generateQuestion = () => {
-        const n1 = Math.floor(Math.random() * 6) + 3; // 3 to 8
+        const n1 = Math.floor(Math.random() * 5) + 3; // 3 to 7
         const n2 = Math.floor(Math.random() * (n1 + 1)); // 0 to n1
         const correctAnswer = n1 - n2;
         
