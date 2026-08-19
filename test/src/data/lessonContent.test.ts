@@ -53,7 +53,7 @@ Deno.test("sequencing lesson keeps only the intended legacy intro sections", () 
 });
 
 Deno.test("sequencing lesson uses Alpabasa video attribution", () => {
-  assertEquals(lessonContent.sequencing.videoSrc, "/assets/videos/alpa.mp4");
+  assertEquals(lessonContent.sequencing.videoSrc, "/assets/videos/alpabasa.mp4");
   assertEquals(lessonContent.sequencing.videoTitle, "Awit ng Alpabasa");
   assertEquals(
     lessonContent.sequencing.videoCredit,

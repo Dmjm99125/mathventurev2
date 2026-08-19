@@ -82,7 +82,7 @@ export const lessonContent: Record<string, TopicLesson> = {
   // Source: 3n.html / 3a.html — alphabet, number sequence, size ordering
   sequencing: {
     topic: 'sequencing',
-    videoSrc: '/assets/videos/alpa.mp4',
+    videoSrc: '/assets/videos/alpabasa.mp4',
     videoTitle: 'Awit ng Alpabasa',
     videoCredit: 'Original Musical Arrangement and Recording by Lester Delgado\nLyrics by Aina Valencia and Tisha Cruz\nSung by Eliza Tiongson\nStarring Alexa G. Cruz\n\nVisit www.alpabasa.com to learn more about the Alpabasa Reading Program.',
     slides: [
