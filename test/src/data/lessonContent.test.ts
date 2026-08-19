@@ -79,14 +79,12 @@ Deno.test("addition lesson uses all supplied example replacements", () => {
 });
 
 Deno.test("shapes lesson uses every supplied replacement example", () => {
-  const images = lessonContent.shapes.slides.map((slide) => slide.image).filter(Boolean);
-  assertEquals(images, [
-    "shape-replacement-1.png",
-    "shape-replacement-2.png",
-    "shape-replacement-3.png",
-    "shape-replacement-4.png",
-    "shape-replacement-5.png",
+  const slides = lessonContent.shapes.slides;
+  assertEquals(slides.map((slide) => slide.image), [
+    "shape-replacement-1.png", "shape-replacement-2.png", "shape-replacement-3.png",
+    "shape-replacement-4.png", "shape-replacement-5.png",
   ]);
+  assertEquals(slides.every((slide) => slide.audioEn && slide.audioFil), true);
 });
 
 Deno.test("subtraction lesson uses the supplied replacements for examples 2, 3, 5, 7, 8, and 10", () => {

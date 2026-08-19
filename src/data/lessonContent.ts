@@ -70,11 +70,11 @@ export const lessonContent: Record<string, TopicLesson> = {
     videoTitle: '(KinderTV Sing-along!) "Mga Hugis"',
     videoCredit: 'SMES KinderTV',
     slides: [
-      { id: 's-triangle', image: 'shape-replacement-1.png', labelEn: 'Triangle', labelFil: 'Tatsulok' },
-      { id: 's-circle', image: 'shape-replacement-2.png', labelEn: 'Circle', labelFil: 'Bilog' },
-      { id: 's-square', image: 'shape-replacement-3.png', labelEn: 'Square', labelFil: 'Parisukat' },
-      { id: 's-rectangle', image: 'shape-replacement-4.png', labelEn: 'Rectangle', labelFil: 'Parihaba' },
-      { id: 's-oval', image: 'shape-replacement-5.png', labelEn: 'Oval', labelFil: 'Habilog o Obalo' },
+      { id: 's-triangle', image: 'shape-replacement-1.png', labelEn: 'Triangle', labelFil: 'Tatsulok', audioEn: aud('2t.mp3'), audioFil: aud('2tat.MP3') },
+      { id: 's-circle', image: 'shape-replacement-2.png', labelEn: 'Circle', labelFil: 'Bilog', audioEn: aud('2c.mp3'), audioFil: aud('2bil.MP3') },
+      { id: 's-square', image: 'shape-replacement-3.png', labelEn: 'Square', labelFil: 'Parisukat', audioEn: aud('2sq.mp3'), audioFil: aud('2pari.MP3') },
+      { id: 's-rectangle', image: 'shape-replacement-4.png', labelEn: 'Rectangle', labelFil: 'Parihaba', audioEn: aud('2r.mp3'), audioFil: aud('2parih.MP3') },
+      { id: 's-oval', image: 'shape-replacement-5.png', labelEn: 'Oval', labelFil: 'Habilog o Obalo', audioEn: aud('2o.mp3'), audioFil: aud('2hab.MP3') },
     ],
   },
 
