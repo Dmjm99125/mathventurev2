@@ -98,9 +98,9 @@ export const lessonContent: Record<string, TopicLesson> = {
         groupedImageSizing: 'natural',
         labelEn: 'Size Order',
       },
-      { id: 'sq-pattern-1', image: 'r.png', labelEn: 'Example 1' },
-      { id: 'sq-pattern-2', image: 'r1.png', labelEn: 'Example 2' },
-      { id: 'sq-pattern-3', image: 'r2.png', labelEn: 'Example 3' },
+      { id: 'sq-pattern-1', image: 'r.png', labelEn: 'Alin ang susunod?' },
+      { id: 'sq-pattern-2', image: 'r1.png', labelEn: 'Alin ang susunod?' },
+      { id: 'sq-pattern-3', image: 'r2.png', labelEn: 'Alin ang susunod?' },
     ],
   },
 
