@@ -61,6 +61,23 @@ Deno.test("sequencing lesson uses Alpabasa video attribution", () => {
   );
 });
 
+Deno.test("addition lesson uses all supplied example replacements", () => {
+  const images = lessonContent.addition.slides.map((slide) => slide.image).filter(Boolean);
+  for (const replacement of [
+    "add-replacement-1.png",
+    "add-replacement-2.png",
+    "add-replacement-3.png",
+    "add-replacement-4.png",
+    "add-replacement-5.png",
+    "add-replacement-6.png",
+  ]) {
+    assertEquals(images.includes(replacement), true);
+  }
+  for (const kept of ["411.png", "412.png", "413.png", "414.png", "415.png", "416.png", "417.png", "418.png", "419.png", "420.png"]) {
+    assertEquals(images.includes(kept), true);
+  }
+});
+
 Deno.test("subtraction lesson uses the supplied replacements for examples 2, 3, 5, 7, 8, and 10", () => {
   const slides = lessonContent.subtraction.slides;
   const images = slides.map((slide) => slide.image).filter(Boolean);
