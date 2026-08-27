@@ -151,7 +151,7 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
         </div>
 
         <div className="flex w-full flex-col gap-2 md:w-auto">
-          {screen === 'game' && (
+          {screen === 'game' && allowSkip !== false && (
             <Button
               variant="outline"
               className="bg-white/90 border-2 border-green-300 text-green-800 font-bold shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"

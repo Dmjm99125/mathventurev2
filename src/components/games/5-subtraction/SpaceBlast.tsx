@@ -28,6 +28,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
     const [currentQuestion, setCurrentQuestion] = useState(1);
 
     const [isCompleted, setIsCompleted] = useState(false);
+    const [isAnswerLocked, setIsAnswerLocked] = useState(false);
     const [wrongGuesses, setWrongGuesses] = useState<number[]>([]);
     const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<number | null>(null);
 
@@ -86,6 +87,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
         const correctAnswer = n1 - n2;
 
         setWrongGuesses([]);
+        setIsAnswerLocked(false);
         setSelectedCorrectAnswer(null);
 
         const opts = new Set<number>();
@@ -106,7 +108,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
     }, []);
 
     const checkAnswer = (selected: number) => {
-        if (wrongGuesses.includes(selected)) return;
+        if (isAnswerLocked || wrongGuesses.includes(selected)) return;
 
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
@@ -114,6 +116,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
 
         if (selected === correctAnswer) {
             playLaserSound(true);
+            setIsAnswerLocked(true);
             setSelectedCorrectAnswer(selected);
 
             const newScore = score + 1;
@@ -204,7 +207,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
                                         }
                                     `}
                                     onClick={() => !isWrong && checkAnswer(opt)}
-                                    disabled={isWrong || isCorrect}
+                                    disabled={isAnswerLocked || isWrong || isCorrect}
                                 >
                                     {opt}
                                 </Button>

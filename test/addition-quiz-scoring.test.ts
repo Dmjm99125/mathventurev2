@@ -49,4 +49,17 @@ Deno.test("addition quiz games report scored terminal results without scoring sk
     assert(source.includes("onComplete?.(newScore, newAttempts)"), `${path} reports attempts at automatic terminal completion`);
     assert(source.includes("onComplete?.(score, attempts)"), `${path} reports attempts from the completion overlay`);
   }
+
+  const adventureSource = await readSource("src/components/games/4-addition/AdditionAdventure.tsx");
+  const backButtonIndex = adventureSource.indexOf("<ArrowLeft className=\"mr-2 h-4 w-4\" /> Back");
+  assert(
+    backButtonIndex >= 0 &&
+      adventureSource.lastIndexOf("{allowSkip !== false && (", backButtonIndex) >= 0,
+    "AdditionAdventure does not expose Back during an assigned quiz",
+  );
+
+  for (const path of wrapperGames) {
+    const source = await readSource(path);
+    assert(source.includes("allowSkip={allowSkip}"), `${path} forwards assigned-mode completion rules`);
+  }
 });

@@ -39,7 +39,7 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
     firstName: "Maria",
     lastName: "Santos",
     joinedAt: "2026-07-20T00:00:00.000Z",
-    appCompletionPct: 2,
+    appCompletionPct: 3,
     lastPlayedPct: 75,
   });
 });

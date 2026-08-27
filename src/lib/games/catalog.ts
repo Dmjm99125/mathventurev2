@@ -1,11 +1,11 @@
-const GAME_COUNT_BY_TOPIC = {
-  colors: 7,
-  shapes: 9,
-  sequencing: 10,
-  addition: 16,
-  subtraction: 10,
-  numbers: 9,
-  measurement: 7,
+export const GAME_COUNT_BY_TOPIC = {
+  colors: 6,
+  shapes: 8,
+  sequencing: 9,
+  addition: 15,
+  subtraction: 9,
+  numbers: 8,
+  measurement: 6,
   comparison: 11,
   clock: 7,
 } as const;

@@ -14,7 +14,7 @@ Deno.test("addition operands use 1 through 5 and never exceed a sum of 10", () =
   }
 });
 
-Deno.test("addition flow puts four replacement games first and drawing canvas last", async () => {
+Deno.test("addition flow puts four replacement games first and excludes drawing canvas", async () => {
   const source = await readSource("src/pages/QuizPage.tsx");
   const expected = [
     "<AdditionReplacementOne onComplete={handleStructuredGameComplete} />",
@@ -32,7 +32,6 @@ Deno.test("addition flow puts four replacement games first and drawing canvas la
     "<IceCreamShop onComplete={handleStructuredGameComplete} />",
     "<Pizza onComplete={handleStructuredGameComplete} />",
     "<ComicStarCatcher onComplete={handleStructuredGameComplete} />",
-    "<DrawingCanvas onComplete={handleStructuredGameComplete} />",
   ];
 
   let previous = -1;
@@ -42,6 +41,7 @@ Deno.test("addition flow puts four replacement games first and drawing canvas la
     previous = current;
   }
   assertEquals(source.includes("topic === 'addition' && currentIndex === 0"), true);
+  assertEquals(source.includes("DrawingCanvas"), false);
 });
 
 Deno.test("replacement addition games expose the Skip Game action", async () => {

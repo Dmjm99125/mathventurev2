@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRoute, useSearch, useLocation } from 'wouter';
 import { allTopics } from '@/data';
+import { GAME_COUNT_BY_TOPIC, type TeacherTopicId } from '@/lib/games/catalog';
 
 import { lessonContent } from '@/data/lessonContent';
 import { GameLayout } from '@/components/GameLayout';
@@ -84,9 +85,8 @@ import { FillMissingTime } from '@/components/games/9-clock/FillMissingTime';
 import { DailyRoutineTime } from '@/components/games/9-clock/DailyRoutineTime';
 import { BuildClock } from '@/components/games/9-clock/BuildClock';
 import { ClockMultiple } from '@/components/games/9-clock/ClockMultiple';
-import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
-import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, Pencil } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
   useAssignmentQuiz,
@@ -150,9 +150,10 @@ export function QuizPage() {
 
   const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
 
-  const questions = topic === 'sequencing' ? rawQuestions.slice(0, 10) 
-    : topic === 'colors' ? Array(6).fill({})
-    : rawQuestions;
+  const topicGameCount = GAME_COUNT_BY_TOPIC[topic as TeacherTopicId];
+  const questions = topic === 'colors'
+    ? Array(topicGameCount).fill({})
+    : rawQuestions.slice(0, topicGameCount);
 
   const lesson = lessonContent[topic];
 
@@ -595,8 +596,6 @@ export function QuizPage() {
           <ShapeWizard onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 7 ? (
           <HungryDragon onComplete={handleStructuredGameComplete} />
-        ) : topic === 'shapes' && currentIndex === 8 ? (
-          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 0 ? (
           <ArrangeNumbers onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 1 ? (
@@ -615,12 +614,6 @@ export function QuizPage() {
           <PatternTrainAcademy onComplete={handleStructuredGameComplete} />
         ) : topic === 'sequencing' && currentIndex === 8 ? (
           <SandwichMaker onComplete={handleStructuredGameComplete} />
-        ) : topic === 'sequencing' && currentIndex === 9 ? (
-          <DrawingCanvas 
-            title="Sequencing Canvas"
-            icon={Pencil}
-            onComplete={() => void completeStructuredGame(1, 1)}
-          />
         ) : topic === 'addition' && currentIndex === 0 ? (
           <AdditionReplacementOne onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 1 ? (
@@ -651,8 +644,6 @@ export function QuizPage() {
           <Pizza onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 14 ? (
           <ComicStarCatcher onComplete={handleStructuredGameComplete} />
-        ) : topic === 'addition' && currentIndex === 15 ? (
-          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 0 ? (
           <SubtractionBalloon onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 1 ? (
@@ -671,8 +662,6 @@ export function QuizPage() {
           <FeedTheHippo onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 8 ? (
           <SpaceBlast onComplete={handleStructuredGameComplete} />
-        ) : topic === 'subtraction' && currentIndex === 9 ? (
-          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 0 ? (
           <DragCorrectNumber onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 1 ? (
@@ -689,8 +678,6 @@ export function QuizPage() {
           <ToyFactory onComplete={handleStructuredGameComplete} />
         ) : topic === 'numbers' && currentIndex === 7 ? (
           <NumberMonster onComplete={handleStructuredGameComplete} />
-        ) : topic === 'numbers' && currentIndex === 8 ? (
-          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 0 ? (
           <SlowFun onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 1 ? (
@@ -703,8 +690,6 @@ export function QuizPage() {
           <MagicRainbowBridge onComplete={handleStructuredGameComplete} />
         ) : topic === 'measurement' && currentIndex === 5 ? (
           <SnakeGame onComplete={handleStructuredGameComplete} />
-        ) : topic === 'measurement' && currentIndex === 6 ? (
-          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 0 ? (
           <Paghahambing1 onComplete={handleStructuredGameComplete} />
         ) : topic === 'comparison' && currentIndex === 1 ? (

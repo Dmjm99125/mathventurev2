@@ -7,8 +7,9 @@ async function readSource(relativePath: string) {
 Deno.test("hungry dragon keeps the game back action in the hud action stack", async () => {
   const source = await readSource("src/components/games/2-shapes/HungryDragon.tsx");
 
+  assertEquals(source.includes("screen === 'game' && allowSkip !== false"), true);
   assertEquals(source.includes("onClick={() => setScreen('start')}"), true);
-  assertEquals(source.includes("Back to home"), true);
+  assertEquals(source.includes("Back to start"), true);
   assertEquals(source.includes("w-full max-w-sm justify-center md:w-auto"), true);
 });
 

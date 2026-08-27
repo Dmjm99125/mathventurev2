@@ -11,5 +11,5 @@ Deno.test("SpaceBlast tracks correct selections per round instead of score", asy
   assertEquals(source.includes("setSelectedCorrectAnswer(null);"), true);
   assertEquals(source.includes("setSelectedCorrectAnswer(selected);"), true);
   assertEquals(source.includes("const isCorrect = selectedCorrectAnswer === opt;"), true);
-  assertEquals(source.includes("disabled={isWrong || isCorrect}"), true);
+  assertEquals(source.includes("disabled={isAnswerLocked || isWrong || isCorrect}"), true);
 });

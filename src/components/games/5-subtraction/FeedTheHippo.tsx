@@ -16,6 +16,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
     const [hippoFace, setHippoFace] = useState('🦛');
     
     const [isCompleted, setIsCompleted] = useState(false);
+    const [isAnswerLocked, setIsAnswerLocked] = useState(false);
     const [wrongGuesses, setWrongGuesses] = useState<number[]>([]);
     const [prize, setPrize] = useState('');
     
@@ -50,6 +51,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
         
         setHippoFace('🦛');
         setWrongGuesses([]);
+        setIsAnswerLocked(false);
         
         const opts = new Set<number>();
         opts.add(correctAnswer);
@@ -69,7 +71,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
     }, []);
 
     const checkAnswer = (selected: number) => {
-        if (wrongGuesses.includes(selected)) return;
+        if (isAnswerLocked || wrongGuesses.includes(selected)) return;
 
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
@@ -80,6 +82,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
             setHippoFace('😋');
             
             const newScore = score + 1;
+            setIsAnswerLocked(true);
             setScore(newScore);
             
             if (currentQuestion >= MAX_SCORE) {

@@ -218,13 +218,15 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                             </AnimatePresence>
                         </div>
                         
-                        <Button 
-                            variant="ghost" 
-                            className="mt-2 text-slate-500 hover:bg-white/50 font-bold"
-                            onClick={() => setGameState('menu')}
-                        >
-                            <ArrowLeft className="w-5 h-5 mr-2" /> Back
-                        </Button>
+                        {allowSkip !== false && (
+                            <Button
+                                variant="ghost"
+                                className="mt-2 text-slate-500 hover:bg-white/50 font-bold"
+                                onClick={() => setGameState('menu')}
+                            >
+                                <ArrowLeft className="w-5 h-5 mr-2" /> Back
+                            </Button>
+                        )}
                     </motion.div>
                 )}
 

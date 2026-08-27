@@ -29,7 +29,7 @@ Deno.test("addition and subtraction games keep their skip buttons visible on mob
 
   for (const path of expectations) {
     const source = await readSource(path);
-    assertEquals(source.includes("onClick={onComplete}"), true);
+    assertEquals(source.includes("onClick={() => onComplete?.()}"), true);
     assertEquals(source.includes("hidden md:flex"), false);
   }
 });

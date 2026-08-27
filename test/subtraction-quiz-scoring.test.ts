@@ -39,3 +39,17 @@ Deno.test("subtraction completion keeps strict mode terminal and retry guards", 
     assertEquals(source.includes("setAttempts(prev => prev + 1)"), true, `${fileName} increments attempts for active interactions`);
   }
 });
+
+Deno.test("subtraction choice games lock the question after a correct answer", async () => {
+  for (const fileName of ["FarmHideSeek.tsx", "FeedTheHippo.tsx", "SpaceBlast.tsx"]) {
+    const source = await readGameSource(fileName);
+
+    assertMatch(source, /const \[isAnswerLocked, setIsAnswerLocked\] = useState\(false\)/);
+    assertMatch(source, /if \(isAnswerLocked \|\|/);
+    assertMatch(source, /setIsAnswerLocked\(true\)/);
+    assertMatch(source, /setIsAnswerLocked\(false\)/);
+    if (fileName !== "FeedTheHippo.tsx") {
+      assertMatch(source, /disabled=\{[^}]*isAnswerLocked/);
+    }
+  }
+});

@@ -93,13 +93,15 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
                 </h2>
                 {gameState === 'playing' && (
                     <div className="flex w-full flex-wrap justify-center gap-4 items-center md:w-auto md:justify-end">
-                        <Button
-                            variant="outline"
-                            className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white"
-                            onClick={() => setGameState('menu')}
-                        >
-                            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                        </Button>
+                        {allowSkip !== false && (
+                            <Button
+                                variant="outline"
+                                className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white"
+                                onClick={() => setGameState('menu')}
+                            >
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                            </Button>
+                        )}
                         <div className="flex items-center gap-2 text-lg md:text-xl font-bold text-slate-700 bg-indigo-100 px-4 py-2 rounded-full shadow-sm">
                             <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
                             <span className="text-indigo-700">{score} / {MAX_SCORE}</span>

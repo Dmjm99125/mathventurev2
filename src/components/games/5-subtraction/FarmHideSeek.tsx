@@ -19,6 +19,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
     const [hideAnimals, setHideAnimals] = useState(false);
     
     const [isCompleted, setIsCompleted] = useState(false);
+    const [isAnswerLocked, setIsAnswerLocked] = useState(false);
     const [wrongGuesses, setWrongGuesses] = useState<number[]>([]);
     
     const MAX_SCORE = 5;
@@ -30,6 +31,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
         
         setActiveAnimal(FARM_ANIMALS[Math.floor(Math.random() * FARM_ANIMALS.length)]);
         setHideAnimals(false);
+        setIsAnswerLocked(false);
         setWrongGuesses([]);
         
         const opts = new Set<number>();
@@ -55,7 +57,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
     }, []);
 
     const checkAnswer = (selected: number) => {
-        if (wrongGuesses.includes(selected)) return;
+        if (isAnswerLocked || wrongGuesses.includes(selected)) return;
 
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
@@ -64,6 +66,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
         if (selected === correctAnswer) {
             const newScore = score + 1;
             setScore(newScore);
+            setIsAnswerLocked(true);
             
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
@@ -162,7 +165,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
                                         }
                                     `}
                                     onClick={() => !isWrong && checkAnswer(opt)}
-                                    disabled={isWrong}
+                                    disabled={isAnswerLocked || isWrong}
                                 >
                                     {opt}
                                 </Button>

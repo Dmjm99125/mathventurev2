@@ -55,3 +55,15 @@ Deno.test("shape game-over screens can submit scored assigned quizzes", async ()
     assertEquals(source.match(/Continue Quiz/g)?.length ?? 0, 2);
   }
 });
+
+Deno.test("assigned shape games do not expose an active-attempt escape control", async () => {
+  for (const fileName of ["ShapeWizard.tsx", "HungryDragon.tsx"]) {
+    const source = await readGameSource(fileName);
+
+    assertEquals(
+      source.includes("screen === 'game' && allowSkip !== false &&"),
+      true,
+      `${fileName} must hide its active-game back control in assigned mode`,
+    );
+  }
+});

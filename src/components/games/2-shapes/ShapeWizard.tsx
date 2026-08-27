@@ -145,7 +145,7 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
         </div>
 
         <div className="flex w-full flex-col gap-2 md:w-auto">
-          {screen === 'game' && (
+          {screen === 'game' && allowSkip !== false && (
             <Button
               variant="outline"
               className="bg-white/90 border-2 border-purple-300 text-purple-700 font-bold shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"

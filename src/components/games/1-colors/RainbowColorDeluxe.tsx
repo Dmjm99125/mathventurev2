@@ -222,15 +222,17 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
 
         {screen === 'game' && (
           <div className="w-full max-w-2xl flex flex-col items-center animate-in fade-in">
-            <div className="mb-4 flex w-full justify-start">
-              <Button
-                variant="outline"
-                className="rounded-xl bg-white/90 font-bold text-gray-700"
-                onClick={() => setScreen('difficulty')}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back
-              </Button>
-            </div>
+            {allowSkip !== false && (
+              <div className="mb-4 flex w-full justify-start">
+                <Button
+                  variant="outline"
+                  className="rounded-xl bg-white/90 font-bold text-gray-700"
+                  onClick={() => setScreen('difficulty')}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                </Button>
+              </div>
+            )}
             {/* Top Bar */}
             <div className="mb-4 grid w-full grid-cols-1 gap-3 text-lg font-bold text-gray-700 sm:grid-cols-3 sm:text-xl">
               <div className="rounded-2xl bg-white/90 px-4 py-3 text-center shadow-sm sm:px-6 sm:py-2">Score: <span className="text-orange-500">{score}</span></div>

@@ -43,3 +43,9 @@ Deno.test("clock quiz games report actual score and attempts at strict completio
     assertMatch(source, /onComplete\?\.\([^,\n]+, newAttempts\)/, path);
   }
 });
+
+Deno.test("time adventure hides its active-game back control in assigned quizzes", async () => {
+  const source = await readSource("src/components/games/9-clock/TimeAdventure.tsx");
+
+  assertMatch(source, /allowSkip !== false[\s\S]{0,300}onClick=\{resetGame\}/);
+});

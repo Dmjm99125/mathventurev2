@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 
 interface MultipleChoiceProps {
   onComplete?: (score?: number, maxScore?: number) => void;
+  allowSkip?: boolean;
 }
 
 export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
@@ -60,7 +61,7 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
           </p>
           <div className="flex flex-col gap-3">
             {onComplete && (
-              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, totalAttempts)}>
+              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, Math.max(1, totalAttempts))}>
                 Continue <Play className="ml-2 w-5 h-5 fill-current" />
               </Button>
             )}

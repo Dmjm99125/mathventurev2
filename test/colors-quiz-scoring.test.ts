@@ -1,6 +1,6 @@
 import { assertEquals, assertMatch } from "jsr:@std/assert";
 
-const renderedColorGames = [
+const quizRenderedColorGames = [
   "src/components/games/1-colors/ColorMatchingGame.tsx",
   "src/components/games/1-colors/BalloonFindingGame.tsx",
   "src/components/games/1-colors/RainbowColorCatcher.tsx",
@@ -9,12 +9,17 @@ const renderedColorGames = [
   "src/components/games/1-colors/ChooseWhichColor.tsx",
 ];
 
+const allColorGames = [
+  ...quizRenderedColorGames,
+  "src/components/games/1-colors/MultipleChoice.tsx",
+];
+
 async function readSource(relativePath: string) {
   return await Deno.readTextFile(new URL(`../${relativePath}`, import.meta.url));
 }
 
 Deno.test("rendered colors quiz games report scored terminal completion", async () => {
-  for (const path of renderedColorGames) {
+  for (const path of quizRenderedColorGames) {
     const source = await readSource(path);
 
     assertMatch(source, /onComplete\?: \(score\?: number, maxScore\?: number\) => void/);
@@ -32,6 +37,7 @@ Deno.test("colors quiz games track wrong interactions in total attempts", async 
     "src/components/games/1-colors/RainbowColorDeluxe.tsx": /attemptsRef\.current \+= 1/,
     "src/components/games/1-colors/RainbowGalaxyExplorer.tsx": /attemptsRef\.current \+= 1/,
     "src/components/games/1-colors/ChooseWhichColor.tsx": /setTotalAttempts\(attempts => attempts \+ 1\)/,
+    "src/components/games/1-colors/MultipleChoice.tsx": /setTotalAttempts\(attempts => attempts \+ 1\)/,
   };
 
   for (const [path, expected] of Object.entries(expectations)) {
@@ -51,4 +57,23 @@ Deno.test("timed-out or exhausted color games still expose scored assigned-quiz 
   assertMatch(timedOutSource, /onComplete\(correctItems, totalItems\)/);
   assertEquals(explorationSource.includes("onComplete && (allowSkip !== false || isCompleted)"), false);
   assertMatch(explorationSource, /onComplete\(correctItems, totalItems\)/);
+});
+
+Deno.test("every colors game exposes the assigned-quiz navigation contract", async () => {
+  for (const path of allColorGames) {
+    const source = await readSource(path);
+
+    assertMatch(source, /allowSkip\?: boolean/, path);
+    assertEquals(source.includes("onClick={onComplete}"), false, path);
+  }
+});
+
+Deno.test("color gameplay back controls are hidden in assigned quizzes", async () => {
+  for (const path of [
+    "src/components/games/1-colors/RainbowGalaxyExplorer.tsx",
+    "src/components/games/1-colors/RainbowColorDeluxe.tsx",
+  ]) {
+    const source = await readSource(path);
+    assertEquals(source.includes("{allowSkip !== false && ("), true, path);
+  }
 });

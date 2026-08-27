@@ -251,13 +251,15 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
   return (
     <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center overflow-hidden rounded-[3rem] border-4 border-white bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] p-6 font-display text-center shadow-sm select-none">
       <div className="z-10 mb-2 flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <Button
-          variant="ghost"
-          className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
-          onClick={resetGame}
-        >
-          <ArrowLeft className="mr-1 h-5 w-5" /> Back
-        </Button>
+        {allowSkip !== false && (
+          <Button
+            variant="ghost"
+            className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
+            onClick={resetGame}
+          >
+            <ArrowLeft className="mr-1 h-5 w-5" /> Back
+          </Button>
+        )}
         {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
