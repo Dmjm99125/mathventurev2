@@ -154,6 +154,8 @@ export function QuizPage() {
   const [startTime, setStartTime] = useState(0);
   const [gameResults, setGameResults] = useState<AttemptGameResultInput[]>([]);
   const [quizPersistenceError, setQuizPersistenceError] = useState<string | null>(null);
+  const [isSavingGame, setIsSavingGame] = useState(false);
+  const isSavingGameRef = useRef(false);
 
   const question = questions[currentIndex];
   const slides = lesson?.slides ?? [];
@@ -298,22 +300,30 @@ export function QuizPage() {
   };
 
   const completeStructuredGame = async (gameScore = 1, gameMaxScore = 1) => {
+    if (isSavingGameRef.current) return;
+    isSavingGameRef.current = true;
+    setIsSavingGame(true);
     const nextResults = withCurrentGameResult(gameResults, gameScore, gameMaxScore);
     setGameResults(nextResults);
 
-    if (currentIndex < questions.length - 1) {
-      const nextScore = score + gameScore;
-      if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], nextScore))) return;
-      setScore(nextScore);
-      setCurrentIndex((value) => value + 1);
-      setSelectedOption(null);
-      setGameState('playing');
-      return;
-    }
+    try {
+      if (currentIndex < questions.length - 1) {
+        const nextScore = score + gameScore;
+        if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], nextScore))) return;
+        setScore(nextScore);
+        setCurrentIndex((value) => value + 1);
+        setSelectedOption(null);
+        setGameState('playing');
+        return;
+      }
 
-    const finalScore = score + gameScore;
-    setScore(finalScore);
-    await finishAttempt(nextResults, finalScore);
+      const finalScore = score + gameScore;
+      setScore(finalScore);
+      await finishAttempt(nextResults, finalScore);
+    } finally {
+      isSavingGameRef.current = false;
+      setIsSavingGame(false);
+    }
   };
 
   const handleStructuredGameComplete = () => {
@@ -321,17 +331,25 @@ export function QuizPage() {
   };
 
   const handleNext = async () => {
+    if (isSavingGameRef.current) return;
+    isSavingGameRef.current = true;
+    setIsSavingGame(true);
     const questionScore = selectedOption?.isCorrect ? 1 : 0;
     const nextResults = withCurrentGameResult(gameResults, questionScore, 1);
     setGameResults(nextResults);
 
-    if (currentIndex < questions.length - 1) {
-      if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], score))) return;
-      setCurrentIndex(c => c + 1);
-      setSelectedOption(null);
-      setGameState('playing');
-    } else {
-      await finishAttempt(nextResults);
+    try {
+      if (currentIndex < questions.length - 1) {
+        if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], score))) return;
+        setCurrentIndex(c => c + 1);
+        setSelectedOption(null);
+        setGameState('playing');
+      } else {
+        await finishAttempt(nextResults);
+      }
+    } finally {
+      isSavingGameRef.current = false;
+      setIsSavingGame(false);
     }
   };
 
@@ -543,17 +561,7 @@ export function QuizPage() {
         ) : topic === 'colors' && currentIndex === 4 ? (
           <RainbowGalaxyExplorer onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 5 ? (
-          <ChooseWhichColor onComplete={() => {
-            setScore(s => s + 10);
-            if (currentIndex < questions.length - 1) {
-              setCurrentIndex(c => c + 1);
-              setSelectedOption(null);
-              setGameState('playing');
-            } else {
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }
-          }} />
+          <ChooseWhichColor onComplete={() => void completeStructuredGame(1, 1)} />
         ) : topic === 'shapes' && currentIndex === 0 ? (
           <ShapeMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 1 ? (
@@ -594,11 +602,7 @@ export function QuizPage() {
           <DrawingCanvas 
             title="Sequencing Canvas"
             icon={Pencil}
-            onComplete={() => {
-              setScore(s => s + 1);
-              setSelectedOption({ image: '', isCorrect: true });
-              setTimeout(handleNext, 0);
-            }} 
+            onComplete={() => void completeStructuredGame(1, 1)}
           />
         ) : topic === 'addition' && currentIndex === 0 ? (
           <AdditionReplacementOne onComplete={handleStructuredGameComplete} />
@@ -776,6 +780,7 @@ export function QuizPage() {
                 variant={selectedOption?.isCorrect ? 'jungle' : 'secondary'}
                 className="h-16 px-12 text-xl rounded-full shadow-lg"
                 onClick={handleNext}
+                disabled={isSavingGame}
               >
                 {selectedOption?.isCorrect ? 'Great! Next Question' : 'Try the next one'}{' '}
                 <Play className="ml-2 h-6 w-6 fill-current" />

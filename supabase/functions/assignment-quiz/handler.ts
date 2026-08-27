@@ -283,6 +283,7 @@ function parseGameResult(value: unknown, lessonId: string): AssignmentQuizGameRe
     || !result.gameId
     || !Number.isInteger(result.gameOrder)
     || result.gameOrder < 0
+    || result.gameId !== `${lessonId}:${result.gameOrder}`
     || !Number.isFinite(result.score)
     || !Number.isFinite(result.maxScore)
     || result.maxScore <= 0
@@ -380,11 +381,21 @@ export function createAssignmentQuizHandler(deps: AssignmentQuizDeps = defaultDe
           throw new AssignmentQuizHttpError(422, "score and maxScore must be valid numbers");
         }
         const submittedResults = Array.isArray(body?.gameResults) ? body.gameResults : [];
-        for (const value of submittedResults) {
-          const result = parseGameResult(value, lessonId);
+        const parsedResults: AssignmentQuizGameResult[] = submittedResults.map((value: unknown) => parseGameResult(value, lessonId));
+        if (parsedResults.some((result) => result.gameOrder > attempt.currentGameOrder)) {
+          throw new AssignmentQuizHttpError(409, "Cannot complete games out of order");
+        }
+        const currentGameWasSubmitted = [
+          ...existingResults,
+          ...parsedResults,
+        ].some((result) => result.gameOrder === attempt.currentGameOrder);
+        if (!currentGameWasSubmitted) {
+          throw new AssignmentQuizHttpError(409, "Complete the current game before submitting the quiz");
+        }
+        for (const result of parsedResults) {
           await deps.upsertGameResult({ ...result, attemptId: attempt.id, studentId: profile.id });
         }
-        const nextOrder = submittedResults.reduce((highest: number, value: AssignmentQuizGameResult) => {
+        const nextOrder = parsedResults.reduce((highest: number, value: AssignmentQuizGameResult) => {
           return Math.max(highest, value.gameOrder + 1);
         }, attempt.currentGameOrder);
         const completedAt = new Date().toISOString();

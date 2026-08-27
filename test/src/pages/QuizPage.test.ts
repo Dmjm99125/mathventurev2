@@ -43,3 +43,11 @@ Deno.test("assigned completion removes replay while free play keeps the existing
   assertEquals(source.includes("Quiz submitted — this assignment can only be taken once."), true);
   assertEquals(source.includes("submitAttempt.mutateAsync"), true);
 });
+
+Deno.test("assigned special games use the checkpointed completion path", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("onComplete={() => void completeStructuredGame(1, 1)}"), true);
+  assertEquals(source.includes("if (isSavingGameRef.current) return;"), true);
+  assertEquals(source.includes("setIsSavingGame(true)"), true);
+});

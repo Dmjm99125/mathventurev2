@@ -132,6 +132,45 @@ Deno.test("assignment-quiz checkpoint advances only from the current game", asyn
   assertEquals((await outOfOrder.json()).error, "Checkpoint is out of order");
 });
 
+Deno.test("assignment-quiz rejects a checkpoint whose game id does not match the current game", async () => {
+  const { deps } = makeDeps(makeAttempt());
+  const handler = createAssignmentQuizHandler(deps);
+
+  const response = await handler(request({
+    action: "checkpoint",
+    assignmentId: "assignment-1",
+    lessonId: "sequencing",
+    score: 1,
+    gameResult: {
+      topicId: "sequencing",
+      gameId: "addition:0",
+      gameOrder: 0,
+      score: 1,
+      maxScore: 1,
+    },
+  }));
+
+  assertEquals(response.status, 422);
+  assertEquals((await response.json()).error, "gameResult is invalid");
+});
+
+Deno.test("assignment-quiz completion requires the current game result", async () => {
+  const { deps } = makeDeps(makeAttempt({ currentGameOrder: 1 }));
+  const handler = createAssignmentQuizHandler(deps);
+
+  const response = await handler(request({
+    action: "complete",
+    assignmentId: "assignment-1",
+    lessonId: "sequencing",
+    score: 1,
+    maxScore: 10,
+    gameResults: [],
+  }));
+
+  assertEquals(response.status, 409);
+  assertEquals((await response.json()).error, "Complete the current game before submitting the quiz");
+});
+
 Deno.test("assignment-quiz completion locks the assignment and repeats return the saved result", async () => {
   const completed = makeAttempt({
     status: "completed",
