@@ -49,7 +49,7 @@ const EmojiPiece = ({ char, parts, orderIndex, isMerged }: { char: string, parts
     );
 };
 
-export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [selectedLevels, setSelectedLevels] = useState<typeof LIBRARY>([]);
   const [currentPuzzle, setCurrentPuzzle] = useState<typeof LIBRARY[0] | null>(null);

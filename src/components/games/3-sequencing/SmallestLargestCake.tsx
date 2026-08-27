@@ -30,7 +30,7 @@ const Cake = ({ size }: { size: number }) => {
   );
 }
 
-export function SmallestLargestCake({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function SmallestLargestCake({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');

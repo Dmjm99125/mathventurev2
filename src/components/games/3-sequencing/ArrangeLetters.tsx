@@ -6,7 +6,7 @@ import { CheckCircle2, XCircle, TrainFront } from 'lucide-react';
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-export function ArrangeLetters({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [sequence, setSequence] = useState<string[]>([]);
   const [shuffled, setShuffled] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);

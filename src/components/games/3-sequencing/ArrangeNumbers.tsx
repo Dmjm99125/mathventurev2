@@ -6,7 +6,7 @@ import { Play, CheckCircle2, XCircle } from 'lucide-react';
 
 const SEQUENCE = [1, 2, 3, 4, 5];
 
-export function ArrangeNumbers({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');

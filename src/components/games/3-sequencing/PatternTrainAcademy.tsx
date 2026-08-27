@@ -8,7 +8,7 @@ const ITEMS_2D = [{a:"🍰",b:"🧆"}, {a:"🍎",b:"🍐"}, {a:"🍩",b:"🍪"},
 const ITEMS_3D = [{a:"🔴",b:"🟦",c:"⭐"}, {a:"🦁",b:"🐵",c:"🐘"}, {a:"🍌",b:"🍇",c:"🍓"}];
 const ITEMS_HARD = [{a:"🍦",b:"🍭"}, {a:"🎈",b:"🎁"}, {a:"🐸",b:"🐥"}];
 
-export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [sessions, setSessions] = useState<{ s2: typeof ITEMS_2D, s3: typeof ITEMS_3D, sh: typeof ITEMS_HARD } | null>(null);
   
   const [level, setLevel] = useState(1);

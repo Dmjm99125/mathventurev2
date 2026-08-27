@@ -18,7 +18,7 @@ const FILLINGS: ItemType[] = ['ham', 'cheese', 'lettuce', 'tomato', 'egg'];
 
 const getRandomFilling = () => FILLINGS[Math.floor(Math.random() * FILLINGS.length)];
 
-export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [activePattern, setActivePattern] = useState<ItemType[]>([]);
   const [currentStep, setCurrentStep] = useState(0);

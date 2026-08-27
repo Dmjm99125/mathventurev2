@@ -7,7 +7,7 @@ import { Play, CheckCircle2, XCircle, Maximize2, Minimize2, Scaling } from 'luci
 const SIZES = [50, 80, 110, 140, 170];
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
 
-export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<{size: number, color: string}[]>([]);
   const [order, setOrder] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);

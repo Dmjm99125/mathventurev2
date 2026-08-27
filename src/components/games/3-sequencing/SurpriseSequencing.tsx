@@ -23,7 +23,7 @@ const BANKS = {
   }
 };
 
-export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [bankGuide, setBankGuide] = useState('');
   const [sequence, setSequence] = useState<string[]>([]);
