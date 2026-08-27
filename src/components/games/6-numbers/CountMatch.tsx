@@ -42,7 +42,7 @@ const playSound = (type: 'correct' | 'wrong' | 'pop') => {
 };
 
 interface CountMatchProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -51,6 +51,7 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
   
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [matches, setMatches] = useState<number[]>([]);
+  const [attempts, setAttempts] = useState(0);
   const [shuffledDots, setShuffledDots] = useState<number[]>([]);
   const [wrongShake, setWrongShake] = useState<number | null>(null);
   const [message, setMessage] = useState("Tap a number, then tap the matching dots!");
@@ -61,6 +62,7 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
 
   const resetGame = () => {
     setMatches([]);
+    setAttempts(0);
     setShuffledDots([...NUMBERS].sort(() => Math.random() - 0.5));
     setMessage("Tap a number, then tap the matching dots!");
     setSelectedNumber(null);
@@ -80,6 +82,8 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
       setMessage("Pindutin muna ang numero sa kaliwa!");
       return;
     }
+
+    setAttempts(prev => prev + 1);
 
     if (selectedNumber === num) {
       playSound('correct');
@@ -121,7 +125,7 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
           </h2>
           <div className="flex gap-4 justify-center">
             {allowSkip === false && onComplete && (
-              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(matches.length, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                 Next Game <ChevronRight className="ml-2 h-6 w-6" />
               </Button>
             )}
@@ -140,7 +144,7 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-amber-800 font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-amber-800 font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}

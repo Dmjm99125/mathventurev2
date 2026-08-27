@@ -18,8 +18,9 @@ const TARGETS = [
     { shape: "sphere", name: "SPHERE", icon: "🔵" }
 ];
 
-export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [matches, setMatches] = useState<Record<string, string>>({});
+  const [attempts, setAttempts] = useState(0);
   const [message, setMessage] = useState('');
   const [shuffledItems, setShuffledItems] = useState(ITEMS);
   const [shuffledTargets, setShuffledTargets] = useState(TARGETS);
@@ -32,12 +33,14 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: ()
 
   const resetGame = () => {
     setMatches({});
+    setAttempts(0);
     setMessage('');
     setShuffledItems([...ITEMS].sort(() => Math.random() - 0.5));
     setShuffledTargets([...TARGETS].sort(() => Math.random() - 0.5));
   };
 
   const handleDragEnd = (event: any, info: any, item: typeof ITEMS[0]) => {
+    if (Object.keys(matches).length === ITEMS.length) return;
     let droppedShape = null;
     for (const [shape, ref] of Object.entries(targetRefs.current)) {
       if (!ref) continue;
@@ -55,6 +58,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: ()
     }
 
     if (droppedShape) {
+      setAttempts((currentAttempts) => currentAttempts + 1);
       if (droppedShape === item.match) {
         setMatches(prev => {
           const next = { ...prev, [item.id]: droppedShape };
@@ -90,7 +94,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: ()
           <Button 
             variant="outline" 
             className="border-2 border-orange-300 text-orange-700 font-bold hover:bg-orange-100 rounded-xl bg-white shadow-sm w-full justify-center md:w-auto"
-            onClick={onComplete}
+            onClick={() => onComplete?.()}
           >
             Next Game ➡️
           </Button>
@@ -174,7 +178,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: ()
             <Button
               size="lg"
               className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
-              onClick={onComplete}
+              onClick={() => onComplete?.(ITEMS.length, attempts)}
             >
               Continue
             </Button>

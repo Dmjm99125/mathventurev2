@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui';
 
 const COLORS = [
@@ -21,7 +21,7 @@ interface Walker {
 }
 
 interface RainbowColorCatcherProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -38,6 +38,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
   const [collectedAnimals, setCollectedAnimals] = useState<string[]>([]);
   const [showRainbow, setShowRainbow] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const attemptsRef = useRef(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("colorHighScore");
@@ -88,7 +89,9 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
   }, [gameRunning]);
 
   const checkAnswer = (color: typeof COLORS[0]) => {
-    if (!gameRunning) return;
+    if (!gameRunning || isCompleted) return;
+
+    attemptsRef.current += 1;
 
     if (color.name === answer.name) {
       const newScore = score + 1;
@@ -137,8 +140,12 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
     setIsCompleted(false);
     setCollectedAnimals([]);
     setMessage("");
+    attemptsRef.current = 0;
     newRound();
   };
+
+  const correctItems = score;
+  const totalItems = attemptsRef.current;
 
   return (
     <div className="w-full max-w-4xl mx-auto h-[600px] flex flex-col relative rounded-3xl overflow-hidden shadow-xl border-4 border-white" style={{ background: 'linear-gradient(#dff6ff, #fffde8)' }}>
@@ -184,7 +191,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
           <Button 
             variant="default" 
             className="absolute top-3 right-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 hidden md:flex"
-            onClick={onComplete}
+            onClick={() => onComplete()}
           >
             Next Game ➡️
           </Button>
@@ -196,7 +203,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
         <Button 
           variant="default" 
           className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 md:hidden mx-auto mt-2"
-          onClick={onComplete}
+          onClick={() => onComplete()}
         >
           Next Game ➡️
         </Button>
@@ -215,7 +222,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
             🎉 Great job!<br />
             <span className="text-2xl mt-2 text-gray-600">You caught 10 colors!</span>
             {onComplete && (
-              <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={onComplete}>
+              <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={() => onComplete(correctItems, totalItems)}>
                 Continue
               </Button>
             )}

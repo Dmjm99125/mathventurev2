@@ -13,12 +13,13 @@ const BALLOON_COLORS = [
     'bg-pink-400 border-pink-500'
 ];
 
-export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<{ id: number, value: number, color: string }[]>([]);
     
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -63,6 +64,9 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
 
     const checkAnswer = (opt: { id: number, value: number, color: string }) => {
         if (message.type !== '' || poppedId !== null) return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
         setPoppedId(opt.id);
@@ -75,6 +79,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -112,7 +117,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -209,6 +214,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
                             className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0ea5e9] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -219,7 +225,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
                             <Button
                                 size="lg"
                                 className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

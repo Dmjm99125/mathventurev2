@@ -7,13 +7,15 @@ import { Play, CheckCircle2, XCircle, Maximize2, Minimize2, Scaling } from 'luci
 const SIZES = [50, 80, 110, 140, 170];
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
 
-export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<{size: number, color: string}[]>([]);
   const [order, setOrder] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mode, setMode] = useState<'smallToBig' | 'bigToSmall'>('smallToBig');
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   useEffect(() => {
     startRound();
@@ -34,6 +36,8 @@ export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: () =
     
     setCurrentIndex(0);
     setErrorMsg('');
+    setCorrectItems(0);
+    setWrongAttempts(0);
   };
 
   const handleCircleClick = (size: number) => {
@@ -42,13 +46,16 @@ export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: () =
     if (size === order[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
+      setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === order.length) {
+        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         setScore(s => s + 1);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }
     } else {
       // Wrong!
+      setWrongAttempts(prev => prev + 1);
       setErrorMsg('❌ Oops! Try the correct size!');
       setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -67,7 +74,7 @@ export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: () =
         <div className="flex gap-4 items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-orange-500">{score}</span></div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-50 rounded-xl w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
               Next Game ➡️
             </Button>
           )}

@@ -43,7 +43,7 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare') => {
 };
 
 interface Paghahambing1Props {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -59,6 +59,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [targetType, setTargetType] = useState('long');
   const [bars, setBars] = useState<{ id: string, width: string, color: string }[]>([]);
   const [feedback, setFeedback] = useState("");
@@ -118,6 +119,8 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
     if (feedback === "Ang galing! ⭐") return; // Prevent multiple clicks
 
     if (id === targetType) {
+      const newAttempts = attempts + 1;
+      setAttempts(prev => prev + 1);
       playSound('correct');
       setFeedback("Ang galing! ⭐");
       triggerStarBurst();
@@ -134,6 +137,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
         setTimeout(setupRound, 1200);
       }
     } else {
+      setAttempts(prev => prev + 1);
       playSound('wrong');
       setFeedback("Subukan muli! 💪");
     }
@@ -141,6 +145,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -153,7 +158,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -236,7 +241,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

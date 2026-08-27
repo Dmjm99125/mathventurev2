@@ -8,13 +8,15 @@ const LEFT_TOPPINGS = ['🍕', '🍅', '🍄', '🫑'];
 const RIGHT_TOPPINGS = ['🍍', '🧀', '🧅', '🌽'];
 const KITCHEN_PRIZES = ['🍳', '🧑‍🍳', '🥣', '🥤', '🧂', '🔪', '🥖', '🍩'];
 
-export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function Pizza({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [icon1, setIcon1] = useState('🍅');
     const [icon2, setIcon2] = useState('🧀');
     const [options, setOptions] = useState<number[]>([]);
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -52,9 +54,11 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => voi
     }, []);
 
     const checkAnswer = (selected: number) => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
         
         const correctAnswer = num1 + num2;
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Bellissimo! 👨‍🍳', type: 'success' });
@@ -64,6 +68,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => voi
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#dc2626', '#eab308', '#2563eb', '#ffffff'] });
                 }, 1000);
             } else {
@@ -95,7 +100,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => voi
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -224,6 +229,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => voi
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 setPrize(KITCHEN_PRIZES[Math.floor(Math.random() * KITCHEN_PRIZES.length)]);
@@ -235,7 +241,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => voi
                             <Button
                                 size="lg"
                                 className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

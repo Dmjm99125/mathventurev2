@@ -6,11 +6,13 @@ import { Play, CheckCircle2, XCircle } from 'lucide-react';
 
 const SEQUENCE = [1, 2, 3, 4, 5];
 
-export function ArrangeNumbers({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ArrangeNumbers({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   useEffect(() => {
     startRound();
@@ -19,6 +21,8 @@ export function ArrangeNumbers({ onComplete, allowSkip = true }: { onComplete?: 
   const startRound = () => {
     setCurrentIndex(0);
     setErrorMsg('');
+    setCorrectItems(0);
+    setWrongAttempts(0);
     // Shuffle logic, ensuring it's not already sorted if possible
     let newShuffled = [...SEQUENCE].sort(() => Math.random() - 0.5);
     while (JSON.stringify(newShuffled) === JSON.stringify(SEQUENCE) && SEQUENCE.length > 1) {
@@ -33,13 +37,16 @@ export function ArrangeNumbers({ onComplete, allowSkip = true }: { onComplete?: 
     if (num === SEQUENCE[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
+      setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === SEQUENCE.length) {
+        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         setScore(s => s + 1);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }
     } else {
       // Wrong!
+      setWrongAttempts(prev => prev + 1);
       setErrorMsg('❌ Oops! Try the next lowest number!');
       setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -58,7 +65,7 @@ export function ArrangeNumbers({ onComplete, allowSkip = true }: { onComplete?: 
         <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-cyan-600">{score}</span></div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
               Next Game ➡️
             </Button>
           )}

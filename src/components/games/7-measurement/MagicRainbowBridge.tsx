@@ -91,7 +91,7 @@ const playSound = (type: 'build' | 'success' | 'fail' | 'bounce' | 'crash' | 'fa
 };
 
 interface MagicRainbowBridgeProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -100,6 +100,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
   const BRIDGE_START_X = 70;
 
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [message, setMessage] = useState('Press and HOLD to build!');
   const [msgColor, setMsgColor] = useState('#1565c0');
@@ -200,6 +201,8 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
     }
 
     isBuildingRef.current = false;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     if (requestRef.current) {
       cancelAnimationFrame(requestRef.current);
     }
@@ -209,6 +212,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
   };
 
   const testMeasurement = () => {
+    const newAttempts = attempts;
     setRainbowWidth((finalWidth) => {
       const gapStart = targetX - BRIDGE_START_X;
       const gapEnd = gapStart + 60;
@@ -251,6 +255,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
             setScore(newScore);
             if (newScore >= MAX_SCORE) {
               setIsCompleted(true);
+              if (allowSkip !== false) onComplete?.(newScore, newAttempts);
               playSound('fanfare');
               confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
             } else {
@@ -266,6 +271,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     startRound();
   };
@@ -277,7 +283,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
           <Button
             variant="ghost"
             className="w-full max-w-sm justify-center bg-white/50 font-bold text-[#00796b] hover:bg-white md:w-auto"
-            onClick={onComplete}
+            onClick={() => onComplete?.()}
           >
             Skip <ChevronRight className="ml-1 h-5 w-5" />
           </Button>
@@ -392,7 +398,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

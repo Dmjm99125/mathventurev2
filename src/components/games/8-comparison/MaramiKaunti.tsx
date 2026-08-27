@@ -53,7 +53,7 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 };
 
 interface MaramiKauntiProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -63,6 +63,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [isLookingForMore, setIsLookingForMore] = useState(true);
   const [leftFlowers, setLeftFlowers] = useState<{ emoji: string, id: number }[]>([]);
   const [rightFlowers, setRightFlowers] = useState<{ emoji: string, id: number }[]>([]);
@@ -110,6 +111,8 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
     if (feedback === "Ang galing! ⭐") return;
 
     if (side === targetPatch) {
+      const newAttempts = attempts + 1;
+      setAttempts(prev => prev + 1);
       playSound('correct');
       setFeedback("Ang galing! ⭐");
       triggerStarBurst();
@@ -126,6 +129,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
         setTimeout(setupRound, 1200);
       }
     } else {
+      setAttempts(prev => prev + 1);
       playSound('wrong');
       setFeedback("Subukan muli! 💪");
     }
@@ -133,6 +137,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -171,7 +176,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -293,7 +298,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

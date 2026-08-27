@@ -6,13 +6,14 @@ import { Play, CheckCircle2, XCircle, Star, Sparkles } from 'lucide-react';
 
 const EMOJIS = ['🎈', '🍎', '⭐', '🐻', '🚗', '🦆'];
 
-export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [emoji, setEmoji] = useState('🎈');
     const [options, setOptions] = useState<number[]>([]);
     
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -52,6 +53,9 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
 
     const checkAnswer = (selected: number) => {
         if (message.type === 'success' || disabledOptions.has(selected)) return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
         
@@ -63,6 +67,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -97,7 +102,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-teal-400 text-teal-700 font-bold hover:bg-teal-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-teal-400 text-teal-700 font-bold hover:bg-teal-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip ➡️
                         </Button>
                     )}
@@ -206,6 +211,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
                             className="bg-teal-500 hover:bg-teal-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0d9488] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -216,7 +222,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
                             <Button
                                 size="lg"
                                 className="bg-teal-500 hover:bg-teal-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                            onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

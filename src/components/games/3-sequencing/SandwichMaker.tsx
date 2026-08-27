@@ -18,11 +18,13 @@ const FILLINGS: ItemType[] = ['ham', 'cheese', 'lettuce', 'tomato', 'egg'];
 
 const getRandomFilling = () => FILLINGS[Math.floor(Math.random() * FILLINGS.length)];
 
-export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [activePattern, setActivePattern] = useState<ItemType[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   
   useEffect(() => {
     startLevel(1);
@@ -32,6 +34,10 @@ export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: (
     setLevel(lvl);
     setCurrentStep(0);
     setErrorMsg('');
+    if (lvl === 1) {
+      setCorrectItems(0);
+      setWrongAttempts(0);
+    }
 
     let pattern: ItemType[] = [];
     if (lvl === 1) {
@@ -56,13 +62,18 @@ export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: (
     if (type === activePattern[currentStep]) {
         // Correct!
         setCurrentStep(prev => prev + 1);
+        setCorrectItems(prev => prev + 1);
         setErrorMsg('');
         
         if (currentStep + 1 === activePattern.length) {
+            if (level === 3) {
+                onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+            }
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         }
     } else {
         // Wrong!
+        setWrongAttempts(prev => prev + 1);
         setErrorMsg('❌ Oops! Check the recipe!');
         setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -90,7 +101,7 @@ export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: (
              Level: {level}
           </div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl bg-white" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
               Finish Module ➡️
             </Button>
           )}

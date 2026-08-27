@@ -6,12 +6,13 @@ import { Play, Star, ChevronRight } from 'lucide-react';
 
 const FARM_ANIMALS = ['🐄', '🐖', '🐑', '🐓', '🦆', '🐎'];
 
-export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [activeAnimal, setActiveAnimal] = useState('🐄');
     const [options, setOptions] = useState<number[]>([]);
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     // State to trigger the walk-away animation
@@ -54,6 +55,10 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: ()
     }, []);
 
     const checkAnswer = (selected: number) => {
+        if (wrongGuesses.includes(selected)) return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         const correctAnswer = num1 - num2;
         
         if (selected === correctAnswer) {
@@ -63,6 +68,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: ()
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#4ad66d', '#ef4444', '#f59e0b', '#bae6fd'] });
                 }, 800);
             } else {
@@ -89,7 +95,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: ()
                         <span className="text-2xl">🏆</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl h-9 px-3" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl h-9 px-3" onClick={() => onComplete?.()}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}
@@ -186,6 +192,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: ()
                             className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -197,7 +204,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: ()
                             <Button
                                 size="lg"
                                 className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

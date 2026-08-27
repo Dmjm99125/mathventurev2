@@ -72,7 +72,7 @@ const timePairs = [
 const spacePrizes = ['🪐', '🚀', '⭐', '🛸', '🛰️', '☄️', '🌍', '👽'];
 
 interface SkyExplorerProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -80,6 +80,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
   const MAX_SCORE = 10;
 
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [isLookingForDay, setIsLookingForDay] = useState(true);
   const [currentPair, setCurrentPair] = useState(timePairs[0]);
   const [isLeftDay, setIsLeftDay] = useState(true);
@@ -104,6 +105,8 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
     }
 
     setCanClick(false);
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     const isCorrect = isDay === isLookingForDay;
 
     if (isCorrect) {
@@ -131,6 +134,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
@@ -143,7 +147,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
           <Button
             variant="ghost"
             className="w-full max-w-sm justify-center bg-white/50 font-bold text-[#2c3e50] hover:bg-white md:w-auto"
-            onClick={onComplete}
+            onClick={() => onComplete?.()}
           >
             Skip <ChevronRight className="ml-1 h-5 w-5" />
           </Button>
@@ -254,7 +258,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

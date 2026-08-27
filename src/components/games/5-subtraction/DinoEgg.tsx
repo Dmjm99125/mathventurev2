@@ -7,12 +7,13 @@ import { Play, Star } from 'lucide-react';
 const BABY_DINOS = ['🦕', '🦖', '👶', '🐉', '🐊'];
 const FOSSILS = ['🦴', '🦕', '🦖', '🌋', '🌴', '💎', '👑'];
 
-export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [targetAnswer, setTargetAnswer] = useState(0);
     const [promptText, setPromptText] = useState('');
     const [nests, setNests] = useState<{ id: number, count: number, isHatched: boolean, baby: string, isWrong: boolean }[]>([]);
     
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     const [isCompleted, setIsCompleted] = useState(false);
     const [fossilPrize, setFossilPrize] = useState('');
@@ -62,6 +63,9 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => v
 
     const handleTapNest = (id: number, count: number) => {
         if (nests.find(n => n.isHatched)) return; // Prevent clicking after correct answer
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         
         if (count === targetAnswer) {
             // Correct
@@ -73,6 +77,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => v
                 setTimeout(() => {
                     setFossilPrize(FOSSILS[Math.floor(Math.random() * FOSSILS.length)]);
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#f97316', '#15803d', '#fef08a'] });
                 }, 1200);
             } else {
@@ -98,7 +103,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => v
                         <span className="text-2xl">🦴</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="ghost" className="w-full sm:w-auto text-green-800 font-bold hover:bg-green-300/50 rounded-xl" onClick={onComplete}>
+                        <Button variant="ghost" className="w-full sm:w-auto text-green-800 font-bold hover:bg-green-300/50 rounded-xl" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -182,6 +187,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => v
                                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#c2410c] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                                 onClick={() => {
                                     setScore(0);
+                                    setAttempts(0);
                                     setCurrentQuestion(1);
                                     setIsCompleted(false);
                                     generateQuestion();
@@ -193,7 +199,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => v
                                 <Button
                                     size="lg"
                                     className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                    onClick={onComplete}
+                                    onClick={() => onComplete?.(score, attempts)}
                                 >
                                     Continue to Next Game
                                 </Button>

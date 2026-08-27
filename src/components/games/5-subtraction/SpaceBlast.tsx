@@ -19,11 +19,12 @@ function createAudioContext() {
     return AudioContextCtor ? new AudioContextCtor() : null;
 }
 
-export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<number[]>([]);
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
 
     const [isCompleted, setIsCompleted] = useState(false);
@@ -105,6 +106,10 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () =
     }, []);
 
     const checkAnswer = (selected: number) => {
+        if (wrongGuesses.includes(selected)) return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         const correctAnswer = num1 - num2;
 
         if (selected === correctAnswer) {
@@ -118,6 +123,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () =
                 setTimeout(() => {
                     playChimeSound();
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#f43f5e', '#0ea5e9', '#10b981', '#f59e0b'] });
                 }, 800);
             } else {
@@ -148,7 +154,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () =
                         <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl h-9 px-3 bg-transparent" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl h-9 px-3 bg-transparent" onClick={() => onComplete?.()}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                     )}
@@ -227,8 +233,9 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () =
                         size="lg"
                         className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.6)] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                         onClick={() => {
-                            setScore(0);
-                            setCurrentQuestion(1);
+                                setScore(0);
+                                setAttempts(0);
+                                setCurrentQuestion(1);
                             setIsCompleted(false);
                             generateQuestion();
                         }}
@@ -239,7 +246,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () =
                         <Button
                             size="lg"
                             className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
-                            onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                         >
                             Continue to Next Game
                         </Button>

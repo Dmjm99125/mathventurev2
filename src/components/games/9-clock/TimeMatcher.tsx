@@ -43,7 +43,7 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 };
 
 interface TimeMatcherProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -51,6 +51,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
   const MAX_SCORE = 10;
 
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<number[]>([]);
   
@@ -88,6 +89,8 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
     if (!canClick) return;
     setCanClick(false);
     setSelectedIndex(index);
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     const isCorrect = opt === targetHour;
 
@@ -100,6 +103,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1500);
@@ -119,6 +123,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -183,7 +188,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#006064] font-bold bg-[#006064]/10 hover:bg-[#006064]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#006064] font-bold bg-[#006064]/10 hover:bg-[#006064]/20" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -261,7 +266,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
             
             <div className="flex gap-4 mt-8">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

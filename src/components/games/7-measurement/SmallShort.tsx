@@ -74,13 +74,14 @@ const gameData = [
 ];
 
 interface SmallShortProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
 export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
   const MAX_SCORE = 10;
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [targetSize, setTargetSize] = useState<'BIG' | 'SMALL'>('BIG');
   const [activeItem, setActiveItem] = useState(gameData[0]);
@@ -112,6 +113,8 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
 
   const handleChoice = (size: 'BIG' | 'SMALL') => {
     if (trainState !== 'waiting' || car2Content !== null) return;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     if (size === targetSize) {
       playTrainSound('correct');
@@ -129,6 +132,7 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
 
           if (newScore >= MAX_SCORE) {
             setIsCompleted(true);
+            if (allowSkip !== false) onComplete?.(newScore, newAttempts);
             playTrainSound('fanfare');
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
           } else {
@@ -144,6 +148,7 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     generateLevel();
   };
@@ -152,7 +157,7 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#81d4fa] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative overflow-hidden font-display z-0">
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#0288d1] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#0288d1] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -247,7 +252,7 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

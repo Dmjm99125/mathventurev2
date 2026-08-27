@@ -61,7 +61,7 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 };
 
 interface TimeAdventureProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -71,6 +71,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
 
   const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [level, setLevel] = useState(1);
   const [character, setCharacter] = useState(CHARACTERS[0]);
   const [targetHour, setTargetHour] = useState(12);
@@ -113,6 +114,8 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
 
     setCanClick(false);
     setSelectedIndex(index);
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     const isCorrect = option === `${targetHour}:00`;
 
@@ -125,6 +128,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1000);
@@ -144,6 +148,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setLevel(1);
     setIsCompleted(false);
     setGameState('menu');
@@ -202,7 +207,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
             <Button
               variant="ghost"
               className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
-              onClick={onComplete}
+              onClick={() => onComplete?.()}
             >
               Skip <ChevronRight className="ml-1 h-5 w-5" />
             </Button>
@@ -257,7 +262,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
           <Button
             variant="ghost"
             className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
-            onClick={onComplete}
+            onClick={() => onComplete?.()}
           >
             Skip <ChevronRight className="ml-1 h-5 w-5" />
           </Button>
@@ -361,7 +366,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

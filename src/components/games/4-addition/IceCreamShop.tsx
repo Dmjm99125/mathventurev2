@@ -6,7 +6,8 @@ import { Play, Star, IceCream2, BellRing, CheckCircle2, XCircle } from 'lucide-r
 
 const SHOP_PRIZES = ['🍒', '🍫', '🍓', '🍌', '🍪', '🧇', '🍯', '✨'];
 
-export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
 
@@ -15,6 +16,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
     const [rightScoops, setRightScoops] = useState<number[]>([]);
 
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
 
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -41,7 +43,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
     }, []);
 
     const addScoop = (side: 'left' | 'right') => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
 
         if (side === 'left') {
             if (leftScoops.length < 6) setLeftScoops([...leftScoops, Date.now()]);
@@ -51,7 +53,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
     };
 
     const removeScoop = (side: 'left' | 'right', id: number) => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
 
         if (side === 'left') {
             setLeftScoops(leftScoops.filter(s => s !== id));
@@ -61,7 +63,10 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
     };
 
     const checkAnswer = () => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
 
         if (leftScoops.length === num1 && rightScoops.length === num2) {
             setMessage({ text: 'Perfect Sundae! 🍨', type: 'success' });
@@ -71,6 +76,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f472b6', '#38bdf8', '#d97706', '#fef08a'] });
                 }, 1000);
             } else {
@@ -102,7 +108,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-purple-400 text-purple-700 font-bold hover:bg-purple-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-purple-400 text-purple-700 font-bold hover:bg-purple-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -246,6 +252,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
                         className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full"
                         onClick={() => {
                             setScore(0);
+                            setAttempts(0);
                             setCurrentQuestion(1);
                             setIsCompleted(false);
                             setPrize(SHOP_PRIZES[Math.floor(Math.random() * SHOP_PRIZES.length)]);
@@ -257,7 +264,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: ()
                         <Button
                             size="lg"
                             className="bg-purple-500 hover:bg-purple-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                            onClick={onComplete}
+                            onClick={() => onComplete?.(score, attempts)}
                         >
                             Continue to Next Game
                         </Button>

@@ -6,7 +6,8 @@ import { Play, CheckCircle2, XCircle, Star, Rocket, Sparkles } from 'lucide-reac
 
 const GALAXY_PRIZES = ['🪐', '🌍', '☄️', '🛸', '👽', '☀️', '🌕'];
 
-export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     
@@ -15,6 +16,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
     const [rightStars, setRightStars] = useState<number[]>([]);
     
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -45,7 +47,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
     }, []);
 
     const addStar = (side: 'left' | 'right') => {
-        if (message.type !== '' || isLaunching) return;
+        if (message.type !== '' || isLaunching || isCompleted) return;
         
         if (side === 'left') {
             if (leftStars.length < 6) setLeftStars([...leftStars, Date.now()]);
@@ -55,7 +57,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
     };
 
     const removeStar = (side: 'left' | 'right', id: number) => {
-        if (message.type !== '' || isLaunching) return;
+        if (message.type !== '' || isLaunching || isCompleted) return;
         
         if (side === 'left') {
             setLeftStars(leftStars.filter(s => s !== id));
@@ -65,8 +67,10 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
     };
 
     const checkAnswer = () => {
-        if (message.type !== '' || isLaunching) return;
+        if (message.type !== '' || isLaunching || isCompleted) return;
         
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         if (leftStars.length === num1 && rightStars.length === num2) {
             setMessage({ text: 'Hyperdrive Engaged! 🚀', type: 'success' });
             setIsLaunching(true);
@@ -76,6 +80,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, colors: ['#22d3ee', '#f59e0b', '#c084fc', '#ffffff'] });
                 }, 1200);
             } else {
@@ -107,7 +112,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -253,7 +258,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
                         <Button
                             size="lg"
                             className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
-                            onClick={onComplete}
+                            onClick={() => onComplete?.(score, attempts)}
                         >
                             Continue to Next Game
                         </Button>
@@ -264,6 +269,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
                             className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0891b2] active:translate-y-1 active:shadow-none transition-all w-full uppercase"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 setPrize(GALAXY_PRIZES[Math.floor(Math.random() * GALAXY_PRIZES.length)]);

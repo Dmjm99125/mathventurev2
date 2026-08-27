@@ -8,7 +8,7 @@ import { getBoundedSubtractionOperands } from '@/lib/games/arithmeticBounds';
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍍"];
 
-export function SubtractionAdventure({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SubtractionAdventure({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'completed'>('menu');
     const [character, setCharacter] = useState('🐻');
     
@@ -18,6 +18,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
     const [options, setOptions] = useState<number[]>([]);
     
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -48,6 +49,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
 
     const startGame = () => {
         setScore(0);
+        setAttempts(0);
         setCurrentQuestion(1);
         generateQuestion(1);
         setGameState('playing');
@@ -55,6 +57,9 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
 
     const checkAnswer = (selected: number) => {
         if (message.type !== '') return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
         
@@ -66,6 +71,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -98,7 +104,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                             </div>
                         </div>
                         {onComplete && allowSkip !== false && (
-                            <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                                 Skip ➡️
                             </Button>
                         )}
@@ -247,7 +253,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                                 <Button
                                     size="lg"
                                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                    onClick={onComplete}
+                                    onClick={() => onComplete?.(score, attempts)}
                                 >
                                     Continue to Next Game
                                 </Button>

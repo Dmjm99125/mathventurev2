@@ -14,9 +14,10 @@ export type AdditionReplacementTheme = {
 
 export function AdditionReplacementGame({ theme, onComplete, allowSkip = true }: {
   theme: AdditionReplacementTheme;
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }) {
+  // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
   const [operands, setOperands] = useState<[number, number]>([1, 1]);
   const [choices, setChoices] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -39,13 +40,14 @@ export function AdditionReplacementGame({ theme, onComplete, allowSkip = true }:
   useEffect(() => { nextQuestion(); }, []);
 
   const choose = (choice: number) => {
-    if (selected !== null) return;
+    if (selected !== null || isCompleted) return;
     setSelected(choice);
-    if (choice === answer) setScore(value => value + 1);
+    const newScore = score + (choice === answer ? 1 : 0);
+    if (choice === answer) setScore(newScore);
     setTimeout(() => {
       if (round + 1 >= maxRounds) {
         if (allowSkip === false) setIsCompleted(true);
-        else onComplete?.();
+        else onComplete?.(newScore, maxRounds);
       }
       else { setRound(value => value + 1); nextQuestion(); }
     }, 700);
@@ -60,7 +62,7 @@ export function AdditionReplacementGame({ theme, onComplete, allowSkip = true }:
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 font-bold shadow-sm"><Star className="h-5 w-5 fill-amber-400 text-amber-400" /> {score} / {maxRounds}</div>
-          {onComplete && allowSkip !== false && <Button variant="outline" className="font-bold" onClick={onComplete}>Skip Game</Button>}
+          {onComplete && allowSkip !== false && <Button variant="outline" className="font-bold" onClick={() => onComplete?.()}>Skip Game</Button>}
         </div>
       </div>
       {!isCompleted ? (
@@ -89,7 +91,7 @@ export function AdditionReplacementGame({ theme, onComplete, allowSkip = true }:
           <h3 className={`text-3xl font-black ${theme.colors.accent}`}>Game Complete!</h3>
           <p className="text-lg font-bold text-slate-600">You completed all {maxRounds} rounds.</p>
           {onComplete && allowSkip === false && (
-            <Button className={`${theme.colors.button} font-bold text-white`} onClick={onComplete}>Continue to Next Game</Button>
+            <Button className={`${theme.colors.button} font-bold text-white`} onClick={() => onComplete?.(score, maxRounds)}>Continue to Next Game</Button>
           )}
         </div>
       )}

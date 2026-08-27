@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -40,7 +40,7 @@ const generateRandomItems = (): Item[] => {
 };
 
 interface ColorMatchingGameProps {
-  onComplete?: (isCorrect: boolean) => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -49,17 +49,24 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState(0);
 
   // Randomize items on mount
   useEffect(() => {
+    setTotalAttempts(0);
     setItems(generateRandomItems());
   }, []);
 
   const handleMatch = (colorId: string) => {
-    if (!selectedItemId) return;
+    if (!selectedItemId || isCompleted) return;
 
     const item = items.find(i => i.id === selectedItemId);
-    if (item && item.color === colorId) {
+    if (!item) {
+      setSelectedItemId(null);
+      return;
+    }
+    setTotalAttempts(attempts => attempts + 1);
+    if (item.color === colorId) {
       setItems(prev => prev.map(i => i.id === selectedItemId ? { ...i, matched: true } : i));
       setSelectedItemId(null);
     } else {
@@ -68,6 +75,11 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
   };
 
   const allMatched = items.length > 0 && items.every(i => i.matched);
+  const correctItems = items.filter(item => item.matched).length;
+  const totalItems = totalAttempts;
+  const completeGame = () => {
+    if (onComplete) onComplete(correctItems, totalItems);
+  };
 
   useEffect(() => {
     if (allMatched && !isCompleted) {
@@ -77,6 +89,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
       if (allowSkip !== false) {
         setTimeout(() => {
           setProgress(p => p + 1);
+          setTotalAttempts(0);
           setItems(generateRandomItems());
           setIsCompleted(false);
         }, 2000);
@@ -96,11 +109,20 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
 
   const handleDrop = (e: React.DragEvent, colorId: string) => {
     e.preventDefault();
+    if (isCompleted) return;
     const itemId = e.dataTransfer.getData('itemId');
 
     const item = items.find(i => i.id === itemId);
-    if (item && item.color === colorId) {
+    if (!item) {
+      setSelectedItemId(null);
+      return;
+    }
+    setTotalAttempts(attempts => attempts + 1);
+    if (item.color === colorId) {
       setItems(prev => prev.map(i => i.id === itemId ? { ...i, matched: true } : i));
+    } else {
+      setSelectedItemId(null);
+      return;
     }
     setSelectedItemId(null);
   };
@@ -116,7 +138,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
           <Button 
             variant="default" 
             className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-6 h-10 w-full justify-center md:w-auto"
-            onClick={() => onComplete(true)}
+            onClick={() => onComplete()}
           >
             Next Game ➡️
           </Button>
@@ -182,7 +204,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
         <Button
           size="lg"
           className="mt-6 rounded-full px-10 text-xl"
-          onClick={() => onComplete(true)}
+          onClick={completeGame}
         >
           Continue <CheckCircle2 className="ml-2 h-6 w-6" />
         </Button>

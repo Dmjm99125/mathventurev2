@@ -20,8 +20,9 @@ interface Character {
     dy: number;
 }
 
-export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [targetShape, setTargetShape] = useState(SHAPES[0]);
     const [options, setOptions] = useState<typeof SHAPES>([]);
     const [characters, setCharacters] = useState<Character[]>([]);
@@ -114,6 +115,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
 
     const handleChoice = (shape: typeof SHAPES[0], e: React.MouseEvent<HTMLButtonElement>) => {
         if (score >= 10) return;
+        setAttempts((currentAttempts) => currentAttempts + 1);
 
         if (shape.name === targetShape.name) {
             playBeep(true);
@@ -142,7 +144,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                     <Button
                         variant="outline"
                         className="absolute right-4 top-4 md:right-6 md:top-6 border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 hidden md:flex"
-                        onClick={onComplete}
+                        onClick={() => onComplete?.()}
                     >
                         Next Game ➡️
                     </Button>
@@ -165,7 +167,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                     <Button
                         variant="outline"
                         className="mt-4 w-full justify-center border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 flex md:hidden"
-                        onClick={onComplete}
+                        onClick={() => onComplete?.()}
                     >
                         Next Game ➡️
                     </Button>
@@ -214,6 +216,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                         <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#2e7d32]" onClick={() => {
                             setScore(0);
+                            setAttempts(0);
                             physicsChars.current = [];
                             setCharacters([]);
                             generateRound();
@@ -221,7 +224,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                             Play Again
                         </Button>
                         {onComplete && (
-                            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#e68a00] animate-[pulse_2s_ease-in-out_infinite]" onClick={onComplete}>
+                            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#e68a00] animate-[pulse_2s_ease-in-out_infinite]" onClick={() => onComplete?.(score, attempts)}>
                                 Next Game ➡️
                             </Button>
                         )}

@@ -4,11 +4,13 @@ import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Star, Target } from 'lucide-react';
 
-export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<number[]>([]);
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -43,9 +45,11 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
     }, []);
 
     const checkAnswer = (selected: number) => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
         
         const correctAnswer = num1 + num2;
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Great Job! 🎈', type: 'success' });
@@ -55,6 +59,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -93,7 +98,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-400 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-400 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -191,6 +196,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -201,7 +207,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
                             <Button
                                 size="lg"
                                 className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

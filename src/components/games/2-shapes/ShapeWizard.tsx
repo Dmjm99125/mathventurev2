@@ -13,9 +13,10 @@ const WORLDS = [
   { id: 'space', name: '🚀 Space', cost: 100, color: 'from-[#2c3e50] to-[#1a252f]', text: 'text-white' },
 ];
 
-export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [screen, setScreen] = useState('start');
   const [stars, setStars] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
   const [character, setCharacter] = useState('🐰');
@@ -60,6 +61,8 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: () 
   };
 
   const handleShapeClick = (shape: string) => {
+    if (screen !== 'game' || timeLeft <= 0) return;
+    setAttempts((currentAttempts) => currentAttempts + 1);
     if (shape === targetShape) {
       const oldStars = stars;
       const newStars = stars + 10;
@@ -155,7 +158,7 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: () 
             <Button
               variant="outline"
               className="bg-white/90 border-2 border-purple-300 text-purple-700 font-bold hover:bg-purple-100 shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"
-              onClick={onComplete}
+              onClick={() => onComplete?.()}
             >
               Next Game ➡️
             </Button>
@@ -319,7 +322,7 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: () 
               <Button
                 size="lg"
                 className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
-                onClick={onComplete}
+                onClick={() => onComplete?.(Math.floor(stars / 10), attempts)}
               >
                 Continue Quiz
               </Button>

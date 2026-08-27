@@ -50,7 +50,7 @@ const snackPool = ['🍔', '🍕', '🍩', '🍪', '🍓', '🍉', '🥕', '🍦
 const badgePool = ['🏅', '🥇', '⭐', '💎', '👑', '🔮', '🚀', '🎁'];
 
 interface NumberMonsterProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -58,6 +58,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
   const MAX_SCORE = 5;
 
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [targetNumber, setTargetNumber] = useState(2);
   const [activeSnack, setActiveSnack] = useState('🍔');
   const [counts, setCounts] = useState<number[]>([]);
@@ -87,6 +88,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setBadgeUnlocked(false);
     generateLevel();
   };
@@ -97,6 +99,8 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
 
   const handleChoice = (count: number) => {
     if (isCorrectlyGuessed || wrongChoices.includes(count) || badgeUnlocked) return;
+
+    setAttempts(prev => prev + 1);
 
     if (count === targetNumber) {
       playMonsterSound('chomp');
@@ -131,7 +135,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#6b21a8] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#6b21a8] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -245,7 +249,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
               </motion.div>
 
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-14 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

@@ -8,10 +8,12 @@ import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍍'];
 
-export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'completed'>('menu');
     const [character, setCharacter] = useState('🐻');
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [level, setLevel] = useState(1);
     
     // Question state
@@ -46,15 +48,18 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
     const startGame = (char: string) => {
         setCharacter(char);
         setScore(0);
+        setAttempts(0);
         setLevel(1);
         setGameState('playing');
         generateQuestion();
     };
 
     const checkAnswer = (selected: number) => {
-        if (message.type !== '') return;
+        if (gameState !== 'playing' || message.type !== '') return;
         
         const correctAnswer = num1 + num2;
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Tama! (Correct!) 🎉', type: 'success' });
@@ -64,6 +69,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
             if (newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -100,7 +106,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
                             <span className="text-indigo-700">{score} / {MAX_SCORE}</span>
                         </div>
                         {onComplete && allowSkip !== false && (
-                            <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white" onClick={onComplete}>
+                            <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                                 Skip Game ➡️
                             </Button>
                         )}
@@ -212,7 +218,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
                             <Button
                                 size="lg"
                                 className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

@@ -6,9 +6,10 @@ import confetti from 'canvas-confetti';
 const SHAPES = ["Circle", "Square", "Rectangle", "Triangle"];
 const REWARDS = ["🎈", "🐰", "🦄", "🐶", "⭐", "🎁", "🐱", "🌈"];
 
-export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [targetShape, setTargetShape] = useState('');
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [message, setMessage] = useState('');
   const [earnedRewards, setEarnedRewards] = useState<string[]>([]);
   const [shuffledShapes, setShuffledShapes] = useState<string[]>([]);
@@ -27,6 +28,7 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: () 
   const handleShapeClick = (shape: string) => {
     if (allowSkip === false && score >= 10) return;
     if (message === "🎉 Great Job!") return; // Prevent clicking during success delay
+    setAttempts((currentAttempts) => currentAttempts + 1);
 
     if (shape === targetShape) {
       const newScore = score + 1;
@@ -112,7 +114,7 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: () 
             <Button 
               variant="outline" 
               className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-100 rounded-xl bg-white shadow-sm w-full justify-center md:w-auto"
-              onClick={onComplete}
+              onClick={() => onComplete?.()}
             >
               Next Game ➡️
             </Button>
@@ -179,7 +181,7 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: () 
         <Button
           size="lg"
           className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
-          onClick={onComplete}
+          onClick={() => onComplete?.(score, attempts)}
         >
           Continue
         </Button>

@@ -53,7 +53,7 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 };
 
 interface AyusinAngLakiProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -70,6 +70,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [isSmallToBig, setIsSmallToBig] = useState(true);
   const [currentEmoji, setCurrentEmoji] = useState("🍎");
   const [bankItems, setBankItems] = useState<Size[]>([]);
@@ -151,6 +152,8 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   };
 
   const checkWin = (placed: Size[]) => {
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     let correct = false;
     if (isSmallToBig) {
       correct = (placed[0] === 'small' && placed[1] === 'medium' && placed[2] === 'large');
@@ -168,6 +171,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1000);
@@ -189,6 +193,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -199,7 +204,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -347,7 +352,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

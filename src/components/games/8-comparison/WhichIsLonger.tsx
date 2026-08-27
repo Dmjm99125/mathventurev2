@@ -53,7 +53,7 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 };
 
 interface WhichIsLongerProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -61,6 +61,7 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [length1, setLength1] = useState(0);
   const [length2, setLength2] = useState(0);
   const [canClick, setCanClick] = useState(true);
@@ -97,6 +98,8 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
     if (!canClick) return;
     setCanClick(false);
     setSelectedIndex(index);
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     const isLonger = length === Math.max(length1, length2);
 
@@ -109,6 +112,7 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1000);
@@ -128,6 +132,7 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -138,7 +143,7 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -222,7 +227,7 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

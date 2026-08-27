@@ -49,7 +49,7 @@ const EmojiPiece = ({ char, parts, orderIndex, isMerged }: { char: string, parts
     );
 };
 
-export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [selectedLevels, setSelectedLevels] = useState<typeof LIBRARY>([]);
   const [currentPuzzle, setCurrentPuzzle] = useState<typeof LIBRARY[0] | null>(null);
@@ -58,6 +58,8 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [isMerged, setIsMerged] = useState(false);
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   useEffect(() => {
     setupGame();
@@ -67,6 +69,8 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
     const shuffledLib = [...LIBRARY].sort(() => Math.random() - 0.5);
     const selected = shuffledLib.slice(0, 5).sort((a, b) => a.parts - b.parts);
     setSelectedLevels(selected);
+    setCorrectItems(0);
+    setWrongAttempts(0);
     startLevel(1, selected);
   };
 
@@ -93,10 +97,14 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
     if (orderIndex === currentIndex) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
+      setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       
       if (currentIndex + 1 === currentPuzzle.parts) {
         setIsMerged(true);
+        if (level === 5) {
+          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+        }
         confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
         
         if (level < 5) {
@@ -105,6 +113,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
       }
     } else {
       // Wrong!
+      setWrongAttempts(prev => prev + 1);
       setErrorMsg(`❌ Oops! Find the next piece!`);
       setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -130,7 +139,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
              Puzzle: <span className="text-sky-600">{level}/5</span>
           </div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
               Next Game ➡️
             </Button>
           )}

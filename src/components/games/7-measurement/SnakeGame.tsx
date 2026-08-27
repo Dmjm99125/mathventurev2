@@ -42,13 +42,14 @@ const playSound = (type: 'eat' | 'crash' | 'levelup') => {
 };
 
 interface SnakeGameProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
 export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(1);
+  const [attempts, setAttempts] = useState(0);
   const [speedLevel, setSpeedLevel] = useState(1);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -109,6 +110,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
     dirRef.current = { x: 1, y: 0 };
     speedRef.current = 400;
     setScore(1);
+    setAttempts(0);
     setSpeedLevel(1);
     setIsGameOver(false);
     setIsCompleted(false);
@@ -139,6 +141,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
       snake.unshift(head);
 
       if (head.x === foodRef.current.x && head.y === foodRef.current.y) {
+        setAttempts(prev => prev + 1);
         playSound('eat');
         placeFood();
         setScore(s => {
@@ -204,7 +207,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#1b5e20] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#1b5e20] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -253,7 +256,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
                 <div className="text-lg mb-6">Your inchworm reached <span className="text-[#ffeb3b] font-black text-2xl">{score}</span> units!</div>
 
                 {onComplete && (
-                  <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                  <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-14 rounded-full shadow-lg">
                     Next Game <ChevronRight className="ml-2 h-6 w-6" />
                   </Button>
                 )}

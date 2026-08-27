@@ -110,13 +110,14 @@ const MiniClock = ({ hour }: { hour: number }) => {
 };
 
 interface DragMatchingClockProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
 export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatchingClockProps) {
   const MAX_SCORE = 10;
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -151,6 +152,8 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
   };
 
   const handleDragEnd = (event: any, info: any, opt: number) => {
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     if (!dropZoneRef.current) {
       setDragState('idle');
       return;
@@ -174,6 +177,7 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
         if (newScore >= MAX_SCORE) {
           setTimeout(() => {
             setIsCompleted(true);
+            if (allowSkip !== false) onComplete?.(newScore, newAttempts);
             playSound('fanfare');
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
           }, 1000);
@@ -192,6 +196,8 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
 
   // Allow clicking as an alternative to dragging for mobile accessibility
   const handleClick = (opt: number) => {
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     if (dragState !== 'idle') return;
     
     if (opt === targetHour) {
@@ -203,6 +209,7 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1000);
@@ -216,6 +223,7 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -226,7 +234,7 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#e65100] font-bold bg-[#e65100]/10 hover:bg-[#e65100]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#e65100] font-bold bg-[#e65100]/10 hover:bg-[#e65100]/20" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -296,7 +304,7 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
             
             <div className="flex gap-4 mt-8">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

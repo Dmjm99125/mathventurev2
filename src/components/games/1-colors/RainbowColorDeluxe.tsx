@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui';
 import { ArrowLeft } from 'lucide-react';
 
@@ -22,7 +22,7 @@ const COLOR_NAMES: Record<string, string> = {
 const TIME_CONFIG = { easy: 45, medium: 30, hard: 20 };
 
 interface RainbowColorDeluxeProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -42,6 +42,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
   const [isGameOver, setIsGameOver] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [stars, setStars] = useState<{ id: string, x: number, y: number }[]>([]);
+  const attemptsRef = useRef(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("rainbowHighScoreDeluxe");
@@ -55,6 +56,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
     setIsGameOver(false);
     setIsCompleted(false);
     setMessage("");
+    attemptsRef.current = 0;
     generateBoard(level);
     setScreen('game');
   };
@@ -82,7 +84,9 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
   }, [screen, isGameOver]);
 
   const handleColorClick = (color: string, e: React.MouseEvent) => {
-    if (isGameOver) return;
+    if (screen !== 'game' || isGameOver || isCompleted) return;
+
+    attemptsRef.current += 1;
 
     if (color === targetColor) {
       const newScore = score + 1;
@@ -112,6 +116,9 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
       setMessageColor("text-red-500");
     }
   };
+
+  const correctItems = score;
+  const totalItems = attemptsRef.current;
 
   useEffect(() => {
     if (isGameOver && score > highScore) {
@@ -159,7 +166,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
         <Button 
           variant="default" 
           className="absolute top-4 right-4 hidden md:flex bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50"
-          onClick={onComplete}
+          onClick={() => onComplete()}
         >
           Next Game ➡️
         </Button>
@@ -170,7 +177,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
           <Button
             variant="default"
             className="mb-4 w-full max-w-sm justify-center bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50 md:hidden"
-            onClick={onComplete}
+            onClick={() => onComplete()}
           >
             Next Game ➡️
           </Button>
@@ -271,7 +278,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
                 Menu
               </Button>
               {onComplete && allowSkip !== false && (
-                <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white mt-4" onClick={onComplete}>
+                <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white mt-4" onClick={() => onComplete()}>
                   Next Game ➡️
                 </Button>
               )}
@@ -286,7 +293,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
             <h2 className="text-4xl font-display font-bold text-green-600 mb-4">Great job!</h2>
             <p className="text-2xl font-bold text-gray-600 mb-8">You found 10 colors!</p>
             {onComplete && (
-              <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white" onClick={onComplete}>
+              <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white" onClick={() => onComplete(correctItems, totalItems)}>
                 Continue
               </Button>
             )}

@@ -29,11 +29,13 @@ const Caterpillar = ({ size }: { size: number }) => {
   );
 }
 
-export function ShortestLongest({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ShortestLongest({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   useEffect(() => {
     startRound();
@@ -47,6 +49,8 @@ export function ShortestLongest({ onComplete, allowSkip = true }: { onComplete?:
     setShuffled(newShuffled);
     setCurrentIndex(0);
     setErrorMsg('');
+    setCorrectItems(0);
+    setWrongAttempts(0);
   };
 
   const handleCaterpillarClick = (size: number) => {
@@ -55,13 +59,16 @@ export function ShortestLongest({ onComplete, allowSkip = true }: { onComplete?:
     if (size === SIZES[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
+      setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === SIZES.length) {
+        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         setScore(s => s + 1);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }
     } else {
       // Wrong!
+      setWrongAttempts(prev => prev + 1);
       setErrorMsg('❌ Oops! Piliin ang pinakamaikling uod!');
       setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -80,7 +87,7 @@ export function ShortestLongest({ onComplete, allowSkip = true }: { onComplete?:
         <div className="flex gap-4 items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-green-600">{score}</span></div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-green-300 text-green-700 font-bold hover:bg-green-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
+          <Button variant="outline" className="border-2 border-green-300 text-green-700 font-bold hover:bg-green-50 rounded-xl w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
               Next Game ➡️
             </Button>
           )}

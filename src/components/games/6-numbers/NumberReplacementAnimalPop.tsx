@@ -1,7 +1,7 @@
 import { NumberReplacementGame } from './NumberReplacementGame';
 
 interface NumberReplacementAnimalPopProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 

@@ -66,7 +66,7 @@ const farmPairs = [
 const farmPrizes = ['🌻', '🍎', '🌽', '🥚', '🥕', '🍯', '🥛', '🍉'];
 
 interface BarnyardBalanceProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -74,6 +74,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [isLookingForHeavy, setIsLookingForHeavy] = useState(true);
   const [currentPair, setCurrentPair] = useState(farmPairs[0]);
   const [isLeftHeavy, setIsLeftHeavy] = useState(true);
@@ -95,6 +96,8 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
 
   const handleCardClick = (isHeavy: boolean) => {
     if (!canClick) return;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     setCanClick(false);
 
     const isCorrect = isHeavy === isLookingForHeavy;
@@ -111,6 +114,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 800);
@@ -125,6 +129,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
@@ -136,7 +141,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -228,7 +233,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

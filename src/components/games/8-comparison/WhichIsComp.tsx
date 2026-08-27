@@ -70,7 +70,7 @@ const items = [
 const rewardsList = ['🐬', '🐙', '🦀', '🐳', '🦑', '🐡', '🐢', '🦈', '🐠', '🦭'];
 
 interface WhichIsCompProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -78,6 +78,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [askingHeavier, setAskingHeavier] = useState(true);
   const [currentOptions, setCurrentOptions] = useState([items[0], items[1]]);
   const [shelfItems, setShelfItems] = useState<string[]>([]);
@@ -116,6 +117,8 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
     if (!canClick) return;
     setCanClick(false);
     setSelectedIndex(index);
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     const otherIndex = index === 0 ? 1 : 0;
     const isCorrect = askingHeavier 
@@ -135,6 +138,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1000);
@@ -154,6 +158,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
@@ -165,7 +170,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#01579b] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#01579b] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -265,7 +270,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

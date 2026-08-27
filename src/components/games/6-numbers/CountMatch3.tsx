@@ -41,14 +41,16 @@ const playSound = (type: 'correct' | 'wrong' | 'pop') => {
 };
 
 interface CountMatch3Props {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
+  allowSkip?: boolean;
 }
 
-export function CountMatch3({ onComplete }: CountMatch3Props) {
+export function CountMatch3({ onComplete, allowSkip = true }: CountMatch3Props) {
   const NUMBERS = [11, 12, 13, 14, 15];
   
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [matches, setMatches] = useState<number[]>([]);
+  const [attempts, setAttempts] = useState(0);
   const [shuffledCupcakes, setShuffledCupcakes] = useState<number[]>([]);
   const [wrongShake, setWrongShake] = useState<number | null>(null);
   const [message, setMessage] = useState("Tap number → Tap cupcakes");
@@ -59,6 +61,7 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
 
   const resetGame = () => {
     setMatches([]);
+    setAttempts(0);
     setShuffledCupcakes([...NUMBERS].sort(() => Math.random() - 0.5));
     setMessage("Tap number → Tap cupcakes");
     setSelectedNumber(null);
@@ -78,6 +81,8 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
       setMessage("Pindutin muna ang numero!");
       return;
     }
+
+    setAttempts(prev => prev + 1);
 
     if (selectedNumber === num) {
       playSound('correct');
@@ -121,6 +126,11 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
             Natapos mo na ang 11 hanggang 15!
           </p>
           <div className="flex gap-4 justify-center">
+            {allowSkip === false && onComplete && (
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(matches.length, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                Next Game <ChevronRight className="ml-2 h-6 w-6" />
+              </Button>
+            )}
             <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
               Play Again! 🔄
             </Button>
@@ -135,8 +145,8 @@ export function CountMatch3({ onComplete }: CountMatch3Props) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#633c1e] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+        {onComplete && allowSkip !== false && (
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#633c1e] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}

@@ -6,13 +6,15 @@ import { Play, CheckCircle2, XCircle, Star, Waves } from 'lucide-react';
 
 const OCEAN_ITEMS = ['🫧', '🐠', '🐙', '🦀', '🐳', '🐢'];
 
-export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [icon1, setIcon1] = useState('🐠');
     const [icon2, setIcon2] = useState('🫧');
     const [options, setOptions] = useState<number[]>([]);
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     // Track which items have been counted by the user
@@ -63,6 +65,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
     }, []);
 
     const toggleCounted = (group: 1 | 2, index: number) => {
+        if (isCompleted) return;
         if (group === 1) {
             const newCounted = [...counted1];
             newCounted[index] = !newCounted[index];
@@ -75,9 +78,11 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
     };
 
     const checkAnswer = (selected: number) => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
         
         const correctAnswer = num1 + num2;
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Wonderful! 🧜', type: 'success' });
@@ -87,6 +92,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#38bdf8', '#818cf8', '#ffffff'] });
                 }, 1000);
             } else {
@@ -125,7 +131,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -238,6 +244,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
                             className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#0284c7] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -248,7 +255,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
                             <Button
                                 size="lg"
                                 className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

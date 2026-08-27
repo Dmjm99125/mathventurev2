@@ -75,3 +75,11 @@ Deno.test("all assigned-quiz games guard direct bypass callbacks", async () => {
     }
   }
 });
+
+Deno.test("structured quiz totals use the detailed game maxima", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("const handleStructuredGameComplete = (gameScore = 1, gameMaxScore = 1)"), true);
+  assertEquals(source.includes("const maxScore = nextResults.reduce((sum, result) => sum + result.maxScore, 0);"), true);
+  assertEquals(source.includes("out of ${maxScore}"), true);
+});

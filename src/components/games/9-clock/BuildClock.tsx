@@ -54,12 +54,13 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pick') => {
 const COLORS = ['#e91e63', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ff9800'];
 
 interface BuildClockProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
 export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
   const [placedNumbers, setPlacedNumbers] = useState<number[]>([]);
+  const [attempts, setAttempts] = useState(0);
   const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [draggedNumber, setDraggedNumber] = useState<number | null>(null);
@@ -68,6 +69,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
 
   const initGame = () => {
     setPlacedNumbers([]);
+    setAttempts(0);
     setIsCompleted(false);
     
     // Shuffle 1-12
@@ -98,9 +100,11 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
     const isOverlapping = 
       x >= dropRect.left - 20 && x <= dropRect.right + 20 &&
       y >= dropRect.top - 20 && y <= dropRect.bottom + 20;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     if (isOverlapping) {
-      placeNumber(num);
+      placeNumber(num, newAttempts);
     } else {
       playSound('wrong');
     }
@@ -108,7 +112,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
     setDraggedNumber(null);
   };
 
-  const placeNumber = (num: number) => {
+  const placeNumber = (num: number, newAttempts = attempts) => {
     playSound('correct');
     const newPlaced = [...placedNumbers, num];
     setPlacedNumbers(newPlaced);
@@ -116,17 +120,19 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
 
     if (newPlaced.length === 12) {
       setTimeout(() => {
-        setIsCompleted(true);
+          setIsCompleted(true);
         playSound('fanfare');
         confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
         
         // Auto-complete after showing celebration
         if (onComplete && allowSkip !== false) {
-          setTimeout(() => onComplete(), 4000);
+          setTimeout(() => onComplete?.(12, newAttempts), 4000);
         }
       }, 500);
     }
   };
+
+  const score = placedNumbers.length;
 
   return (
     <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#e0f7fa] rounded-[3rem] shadow-sm min-h-[700px] border-4 border-white relative font-display select-none overflow-hidden text-center">
@@ -134,7 +140,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
+        <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -240,7 +246,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
           className="mt-6"
         >
           {allowSkip === false && onComplete && (
-            <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+            <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
               Next Game <ChevronRight className="ml-2 h-6 w-6" />
             </Button>
           )}

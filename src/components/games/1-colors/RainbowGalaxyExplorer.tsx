@@ -12,7 +12,7 @@ const GALAXY_COLORS = [
 ];
 
 interface RainbowGalaxyExplorerProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -20,12 +20,15 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
   const [screen, setScreen] = useState<'start' | 'game' | 'end'>('start');
   const [pilot, setPilot] = useState('🐰');
   const [score, setScore] = useState(0);
+  const [correctItems, setCorrectItems] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [level, setLevel] = useState(0);
   const [timer, setTimer] = useState(30);
   const [endMessage, setEndMessage] = useState('');
   const [options, setOptions] = useState<string[]>([]);
   const [shake, setShake] = useState(false);
   const [stars, setStars] = useState<{ id: string, left: string, top: string, opacity: number }[]>([]);
+  const attemptsRef = React.useRef(0);
 
   useEffect(() => {
     // Generate background stars
@@ -70,6 +73,9 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
   const startGame = (p: string) => {
     setPilot(p);
     setScore(0);
+    setCorrectItems(0);
+    setIsCompleted(false);
+    attemptsRef.current = 0;
     setLevel(0);
     setTimer(30);
     generateAsteroids(0);
@@ -77,15 +83,20 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
   };
 
   const handleChoice = (colorHex: string) => {
+    if (screen !== 'game' || timer <= 0) return;
+
     const target = GALAXY_COLORS[level];
+    attemptsRef.current += 1;
     if (colorHex === target.hex) {
       setScore(s => s + 10);
+      setCorrectItems(items => items + 1);
       
       if (level < GALAXY_COLORS.length - 1) {
         setLevel(l => l + 1);
         generateAsteroids(level + 1);
       } else {
         setEndMessage("You restored the Rainbow Galaxy!");
+        setIsCompleted(true);
         setScreen('end');
       }
     } else {
@@ -118,7 +129,7 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
         <Button 
           variant="outline" 
           className="absolute top-16 right-4 hidden md:flex bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] z-50"
-          onClick={onComplete}
+          onClick={() => onComplete()}
         >
           Next Game ➡️
         </Button>
@@ -131,7 +142,7 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
             <Button
               variant="outline"
               className="mb-6 w-full max-w-sm justify-center bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] md:hidden"
-              onClick={onComplete}
+                onClick={() => onComplete()}
             >
               Next Game ➡️
             </Button>
@@ -224,8 +235,8 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
             <Button size="lg" className="bg-[#ff00ff] hover:bg-[#ff00ff]/80 text-white font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#ff00ff]" onClick={() => setScreen('start')}>
               Play Again
             </Button>
-            {onComplete && (
-              <Button size="lg" className="bg-[#00f2ff] hover:bg-[#00f2ff]/80 text-black font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#00f2ff]" onClick={onComplete}>
+            {onComplete && (allowSkip !== false || isCompleted) && (
+              <Button size="lg" className="bg-[#00f2ff] hover:bg-[#00f2ff]/80 text-black font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#00f2ff]" onClick={() => onComplete(correctItems, attemptsRef.current)}>
                 Next Game ➡️
               </Button>
             )}

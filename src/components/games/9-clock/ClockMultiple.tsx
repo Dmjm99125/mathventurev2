@@ -91,13 +91,14 @@ const MiniClock = ({ hour }: { hour: number }) => {
 };
 
 interface ClockMultipleProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
 export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultipleProps) {
   const MAX_SCORE = 12;
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -132,6 +133,8 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
 
   const handleChoice = (index: number, opt: number) => {
     if (!canClick) return;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     setCanClick(false);
     setSelectedIndex(index);
 
@@ -146,6 +149,7 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
         }, 1500);
@@ -165,6 +169,7 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -175,7 +180,7 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -245,7 +250,7 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
                 Play Again 🔄
               </Button>
               {onComplete && (
-                <Button size="lg" onClick={onComplete} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
+                <Button size="lg" onClick={() => onComplete?.(score, attempts)} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
                   Next <ChevronRight className="ml-2 w-6 h-6" />
                 </Button>
               )}

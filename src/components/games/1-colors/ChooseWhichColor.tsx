@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Play } from 'lucide-react';
 import { colorsData } from '@/data/colors';
 import confetti from 'canvas-confetti';
 
 interface ChooseWhichColorProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -13,15 +13,20 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
   const [internalIndex, setInternalIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<any>(null);
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
+  const [correctItems, setCorrectItems] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState(0);
+  const totalItems = totalAttempts;
 
   const questions = colorsData;
   const question = questions[internalIndex];
 
   const handleSelect = (opt: any) => {
-    if (gameState === 'feedback') return;
+    if (gameState !== 'playing') return;
+    setTotalAttempts(attempts => attempts + 1);
     setSelectedOption(opt);
     setGameState('feedback');
     if (opt.isCorrect) {
+      setCorrectItems(items => items + 1);
       confetti({
         particleCount: 100,
         spread: 70,
@@ -55,7 +60,7 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
           You have successfully completed all the color challenges!
         </p>
         {onComplete && (
-          <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-2xl py-8 rounded-2xl px-16 shadow-[0_6px_0_0_#e68a00] hover:-translate-y-1 transition-all" onClick={onComplete}>
+          <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-2xl py-8 rounded-2xl px-16 shadow-[0_6px_0_0_#e68a00] hover:-translate-y-1 transition-all" onClick={() => onComplete(correctItems, totalItems)}>
             Return to Main Menu ➡️
           </Button>
         )}
@@ -74,7 +79,7 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
             Question {internalIndex + 1} of {questions.length}
          </span>
          {onComplete && allowSkip !== false && (
-            <Button variant="outline" className="text-sky-600 border-2 border-sky-200 hover:bg-sky-100 font-bold text-lg rounded-xl" onClick={onComplete}>
+             <Button variant="outline" className="text-sky-600 border-2 border-sky-200 hover:bg-sky-100 font-bold text-lg rounded-xl" onClick={() => onComplete()}>
               Skip to End ➡️
             </Button>
          )}

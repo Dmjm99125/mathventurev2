@@ -23,7 +23,7 @@ const BANKS = {
   }
 };
 
-export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [bankGuide, setBankGuide] = useState('');
   const [sequence, setSequence] = useState<string[]>([]);
@@ -31,6 +31,8 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   useEffect(() => {
     startLevel(1);
@@ -40,6 +42,10 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
     setLevel(lvl);
     setCurrentIndex(0);
     setErrorMsg('');
+    if (lvl === 1) {
+      setCorrectItems(0);
+      setWrongAttempts(0);
+    }
 
     let count = 3;
     if (lvl >= 3) count = 4;
@@ -69,10 +75,14 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
     if (item === sequence[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
+      setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       setScore(s => s + 5);
       
       if (currentIndex + 1 === sequence.length) {
+        if (level === 5) {
+          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+        }
         setScore(s => s + 50); // huge points!
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         
@@ -82,6 +92,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
       }
     } else {
       // Wrong!
+      setWrongAttempts(prev => prev + 1);
       setErrorMsg(`❌ Oops! Try the next one!`);
       setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -102,7 +113,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
           <div className="text-lg md:text-xl font-bold text-slate-700 bg-pink-100 px-4 py-1 rounded-full">Level: <span className="text-pink-600">{level}/5</span></div>
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-pink-600">{score}</span></div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-pink-300 text-pink-700 font-bold hover:bg-pink-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-pink-300 text-pink-700 font-bold hover:bg-pink-50 rounded-xl w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
               Next Game ➡️
             </Button>
           )}

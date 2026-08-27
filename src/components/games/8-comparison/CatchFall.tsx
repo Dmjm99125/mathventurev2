@@ -66,7 +66,7 @@ const itemsDatabase = [
 ];
 
 interface CatchFallProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -74,6 +74,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [currentItem, setCurrentItem] = useState(itemsDatabase[0]);
   const [itemKey, setItemKey] = useState(0); // Used to force re-render/re-animation of the falling item
   const [feedback, setFeedback] = useState<'none' | 'correct' | 'wrong' | 'missed'>('none');
@@ -98,6 +99,8 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
 
   const handleChoice = (chosenType: 'short' | 'tall') => {
     if (!canClick) return;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     setCanClick(false);
     hasInteractedRef.current = true;
 
@@ -110,6 +113,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 800);
@@ -127,6 +131,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
     // If the animation finishes and the user hasn't clicked, it means they missed it
     if (!hasInteractedRef.current && canClick) {
       setCanClick(false);
+      setAttempts(prev => prev + 1);
       hasInteractedRef.current = true;
       playSound('wrong');
       setFeedback('missed');
@@ -136,6 +141,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     spawnNextItem();
   };
@@ -149,7 +155,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-white font-bold bg-white/20 hover:bg-white/40" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-white font-bold bg-white/20 hover:bg-white/40" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -239,7 +245,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

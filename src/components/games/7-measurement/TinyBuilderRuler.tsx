@@ -56,7 +56,7 @@ const brickLabels = ['🧱 BLOCK', '📦 BOX', '🪵 LOG', 'BAR ✨', 'BEAM 🛠
 const toolPrizes = ['🔨', '🪚', '🧰', '🧱', '🚜', '📐', '🔧', '🦺'];
 
 interface TinyBuilderRulerProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -64,6 +64,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [correctLength, setCorrectLength] = useState(0);
   const [choices, setChoices] = useState<number[]>([]);
   const [toyLabel, setToyLabel] = useState('');
@@ -93,6 +94,8 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
 
   const handleChoice = (guess: number) => {
     if (isRevealed || guessedIncorrectly.includes(guess)) return;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
 
     if (guess === correctLength) {
       playSound('correct');
@@ -103,6 +106,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
+          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           const prize = toolPrizes[Math.floor(Math.random() * toolPrizes.length)];
           setEarnedTools(prev => [...prev, prize]);
@@ -119,6 +123,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setIsCompleted(false);
     setEarnedTools([]);
     setupRound();
@@ -132,7 +137,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#334155] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#334155] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -227,7 +232,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

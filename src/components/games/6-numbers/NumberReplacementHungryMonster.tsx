@@ -1,7 +1,7 @@
 import { NumberReplacementGame } from './NumberReplacementGame';
 
 interface NumberReplacementHungryMonsterProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 

@@ -8,7 +8,7 @@ const ITEMS_2D = [{a:"🍰",b:"🧆"}, {a:"🍎",b:"🍐"}, {a:"🍩",b:"🍪"},
 const ITEMS_3D = [{a:"🔴",b:"🟦",c:"⭐"}, {a:"🦁",b:"🐵",c:"🐘"}, {a:"🍌",b:"🍇",c:"🍓"}];
 const ITEMS_HARD = [{a:"🍦",b:"🍭"}, {a:"🎈",b:"🎁"}, {a:"🐸",b:"🐥"}];
 
-export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [sessions, setSessions] = useState<{ s2: typeof ITEMS_2D, s3: typeof ITEMS_3D, sh: typeof ITEMS_HARD } | null>(null);
   
   const [level, setLevel] = useState(1);
@@ -18,6 +18,8 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [choices, setChoices] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
+  const [correctItems, setCorrectItems] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   
   // 'waiting' = offscreen left, 'idle' = on screen, 'exit' = offscreen right
   const [trainStatus, setTrainStatus] = useState<'waiting' | 'idle' | 'exit'>('waiting');
@@ -38,6 +40,10 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
     setTrainStatus('waiting');
     setFilledSlots({});
     setErrorMsg('');
+    if (lvl === 1) {
+        setCorrectItems(0);
+        setWrongAttempts(0);
+    }
 
     let pat: string[] = [];
     let missing: number[] = [];
@@ -73,6 +79,7 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
         // Correct!
         const newFilled = { ...filledSlots, [activeSlot]: item };
         setFilledSlots(newFilled);
+        setCorrectItems(prev => prev + 1);
 
         const remaining = missingIndices.filter(i => !newFilled[i]);
         if (remaining.length > 0) {
@@ -84,6 +91,9 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
             
             setTimeout(() => {
                 setTrainStatus('exit');
+                if (level === 11) {
+                    onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+                }
                 setTimeout(() => {
                     if (level < 11) {
                         startLevel(level + 1);
@@ -92,6 +102,7 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
             }, 1000);
         }
     } else {
+        setWrongAttempts(prev => prev + 1);
         setErrorMsg('❌ Oops! Try the other one!');
         setTimeout(() => setErrorMsg(''), 2000);
     }
@@ -122,7 +133,7 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
              <span className={`text-sm text-white px-3 py-1 rounded-full shadow-sm ${diffStyle.bg}`}>{diffStyle.text}</span>
           </div>
           {onComplete && allowSkip && (
-            <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={onComplete}>
+            <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
               Next Game ➡️
             </Button>
           )}

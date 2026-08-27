@@ -19,10 +19,11 @@ const SHAPE_EMOJI: Record<string, string> = {
     triangle: "🔺",
 };
 
-export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [currentShape, setCurrentShape] = useState('circle');
   const [choices, setChoices] = useState<typeof ITEMS>([]);
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [gameState, setGameState] = useState<'playing'|'correct'|'wrong'|'completed'>('playing');
   const [roundId, setRoundId] = useState(0); // to force remount of items
   
@@ -67,6 +68,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: () 
       y <= mouthRect.bottom + pad;
 
     if (isOverMouth) {
+      setAttempts((currentAttempts) => currentAttempts + 1);
       if (item.shape === currentShape) {
         const newScore = score + 1;
         setScore(newScore);
@@ -96,7 +98,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: () 
               <Button 
                 variant="outline" 
                 className="bg-white/80 border-2 border-orange-300 text-orange-800 font-bold hover:bg-orange-100 rounded-xl w-full justify-center md:w-auto"
-                onClick={onComplete}
+                onClick={() => onComplete?.()}
               >
                 Next Game ➡️
               </Button>
@@ -161,7 +163,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: () 
             <Button
               size="lg"
               className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-xl py-8 rounded-2xl shadow-[0_6px_0_0_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-4 active:translate-y-1 active:shadow-none transition-all"
-              onClick={onComplete}
+              onClick={() => onComplete?.(score, attempts)}
             >
               Continue
             </Button>

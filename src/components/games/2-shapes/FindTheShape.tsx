@@ -6,12 +6,13 @@ import { Play } from 'lucide-react';
 
 const SHAPES = ["⬛", "⭕", "🔺", "⭐", "🟩", "🔶"];
 
-export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [targetShape, setTargetShape] = useState('');
     const [choices, setChoices] = useState<string[]>([]);
     const [message, setMessage] = useState('Tap the correct shape!');
     const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
 
     const startRound = () => {
         const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -27,6 +28,7 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: ()
 
     const handleChoice = (shape: string) => {
         if (gameState !== 'playing') return;
+        setAttempts((currentAttempts) => currentAttempts + 1);
 
         if (shape === targetShape) {
             setMessage('🎉 Correct!');
@@ -48,7 +50,7 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: ()
                 <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
                     <div className="text-xl font-bold text-gray-700">Score: <span className="text-orange-500">{score}</span></div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-100 w-full justify-center md:w-auto" onClick={onComplete}>
+                        <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-100 w-full justify-center md:w-auto" onClick={() => onComplete?.()}>
                             Next Game ➡️
                         </Button>
                     )}
@@ -103,7 +105,7 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: ()
                     <Button
                         size="lg"
                         className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl px-12 md:px-16 py-8 rounded-full shadow-[0_6px_0_0_#2e7d32] active:translate-y-2 active:shadow-none transition-all hover:scale-105"
-                        onClick={onComplete}
+                        onClick={() => onComplete?.(score, attempts)}
                     >
                         Continue <Play className="ml-3 h-8 w-8 fill-current" />
                     </Button>

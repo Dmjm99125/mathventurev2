@@ -5,11 +5,13 @@ import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Star, Apple } from 'lucide-react';
 import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 
-export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [userAnswer, setUserAnswer] = useState('');
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
     const [isCompleted, setIsCompleted] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -37,9 +39,11 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
     };
 
     const checkAnswer = () => {
-        if (userAnswer === '' || message.type !== '') return;
+        if (userAnswer === '' || message.type !== '' || isCompleted) return;
         
         const answer = parseInt(userAnswer, 10);
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         
         if (answer === num1 + num2) {
             setMessage({ text: '🎉 Correct! You counted well!', type: 'success' });
@@ -49,6 +53,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
             if (newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -96,7 +101,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
                         <span className="text-orange-700">{score} / {MAX_SCORE}</span>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -187,6 +192,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setIsCompleted(false);
                                 newQuestion();
                             }}
@@ -196,7 +202,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
                             <Button
                                 size="lg"
                                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

@@ -7,13 +7,15 @@ import { Play, CheckCircle2, XCircle, Star, Trees } from 'lucide-react';
 const ANIMAL_POOL_1 = ['🦁', '🐯', '🐒', '🦓'];
 const ANIMAL_POOL_2 = ['🐘', '🦒', '🦛', '🦘'];
 
-export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
+    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [animal1, setAnimal1] = useState('🦁');
     const [animal2, setAnimal2] = useState('🐘');
     const [options, setOptions] = useState<number[]>([]);
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     // Track which animals have been counted by the user
@@ -60,6 +62,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: ()
     }, []);
 
     const toggleCounted = (group: 1 | 2, index: number) => {
+        if (isCompleted) return;
         if (group === 1) {
             const newCounted = [...counted1];
             newCounted[index] = !newCounted[index];
@@ -72,9 +75,11 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: ()
     };
 
     const checkAnswer = (selected: number) => {
-        if (message.type !== '') return;
+        if (message.type !== '' || isCompleted) return;
         
         const correctAnswer = num1 + num2;
+        const newAttempts = attempts + 1;
+        setAttempts(value => value + 1);
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Spectacular! 🥳', type: 'success' });
@@ -84,6 +89,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: ()
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -122,7 +128,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: ()
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-green-400 text-green-700 font-bold hover:bg-green-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-green-400 text-green-700 font-bold hover:bg-green-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -231,6 +237,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: ()
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -241,7 +248,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: ()
                             <Button
                                 size="lg"
                                 className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

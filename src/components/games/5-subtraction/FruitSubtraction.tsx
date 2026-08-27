@@ -6,13 +6,14 @@ import { Play, CheckCircle2, XCircle, Star, Sparkles } from 'lucide-react';
 
 const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍍"];
 
-export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [fruit, setFruit] = useState("🍎");
     const [options, setOptions] = useState<number[]>([]);
     
     const [score, setScore] = useState(0);
+    const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
@@ -49,6 +50,9 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
 
     const checkAnswer = (selected: number) => {
         if (message.type !== '') return;
+
+        const newAttempts = attempts + 1;
+        setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
         
@@ -60,6 +64,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
+                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -91,7 +96,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
                         </div>
                     </div>
                     {onComplete && allowSkip !== false && (
-                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white" onClick={onComplete}>
+                        <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white" onClick={() => onComplete?.()}>
                             Skip Game ➡️
                         </Button>
                     )}
@@ -219,6 +224,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
                             className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#ea580c] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
                                 setScore(0);
+                                setAttempts(0);
                                 setCurrentQuestion(1);
                                 setIsCompleted(false);
                                 generateQuestion();
@@ -229,7 +235,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
                             <Button
                                 size="lg"
                                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={onComplete}
+                                onClick={() => onComplete?.(score, attempts)}
                             >
                                 Continue to Next Game
                             </Button>

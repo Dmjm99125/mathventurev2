@@ -94,7 +94,7 @@ interface CardData {
 }
 
 interface MatchingTypeAProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -102,6 +102,7 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
   const [cards, setCards] = useState<CardData[]>([]);
   const [flippedIds, setFlippedIds] = useState<string[]>([]);
   const [matches, setMatches] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [animals, setAnimals] = useState<{ id: string, emoji: string, left: string }[]>([]);
   
   const [isCompleted, setIsCompleted] = useState(false);
@@ -112,6 +113,7 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
     setIsCompleted(false);
     setFlippedIds([]);
     setMatches(0);
+    setAttempts(0);
     setAnimals([]);
     setGiftState('hidden');
 
@@ -140,6 +142,8 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
     setFlippedIds(newFlipped);
 
     if (newFlipped.length === 2) {
+      const newAttempts = attempts + 1;
+      setAttempts(prev => prev + 1);
       const card1 = cards.find(c => c.id === newFlipped[0])!;
       const card2 = cards.find(c => c.id === newFlipped[1])!;
 
@@ -171,6 +175,7 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
           if (newMatches === 6) {
             setTimeout(() => {
               setIsCompleted(true);
+              if (allowSkip !== false) onComplete?.(newMatches, newAttempts);
               setGiftState('box');
               playSound('fanfare');
               confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
@@ -202,7 +207,7 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -309,7 +314,7 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(matches, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

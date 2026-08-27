@@ -56,7 +56,7 @@ const playSlowFunSound = (type: 'pop' | 'success' | 'error' | 'fanfare') => {
 const items = ["✏️", "🍎", "🚗", "🦴", "🎁"];
 
 interface SlowFunProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -64,6 +64,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
   const MAX_SCORE = 5;
 
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameActive, setGameActive] = useState(false);
   const [currentGoal, setCurrentGoal] = useState<"BIG" | "SMALL">("BIG");
@@ -76,6 +77,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
 
   const startGame = () => {
     setScore(0);
+    setAttempts(0);
     setGameStarted(true);
     setGameActive(true);
     setIsCompleted(false);
@@ -83,6 +85,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
 
   const resetToStart = () => {
     setScore(0);
+    setAttempts(0);
     setGameStarted(false);
     setGameActive(false);
     setIsCompleted(false);
@@ -118,6 +121,8 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
 
   const handleWhack = (mole: typeof moles[0]) => {
     if (!gameActive || !mole.up) return;
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
     
     if (mole.size === currentGoal) {
       playSlowFunSound('success');
@@ -131,6 +136,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
       if (newScore >= MAX_SCORE) {
         setGameActive(false);
         setIsCompleted(true);
+        if (allowSkip !== false) onComplete?.(newScore, newAttempts);
         setTimeout(() => {
           playSlowFunSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
@@ -155,7 +161,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#3e4e22] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#3e4e22] font-bold bg-white/50 hover:bg-white" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -214,7 +220,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
         ) : isCompleted ? (
           <div className="mt-6 flex gap-4">
             {allowSkip === false && onComplete && (
-              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                 Next Game <ChevronRight className="ml-2 h-6 w-6" />
               </Button>
             )}

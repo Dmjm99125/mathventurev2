@@ -1,0 +1,45 @@
+import { assertEquals, assertMatch } from "jsr:@std/assert";
+
+const clockGames = [
+  "src/components/games/9-clock/TimeAdventure.tsx",
+  "src/components/games/9-clock/TimeMatcher.tsx",
+  "src/components/games/9-clock/DragMatchingClock.tsx",
+  "src/components/games/9-clock/FillMissingTime.tsx",
+  "src/components/games/9-clock/DailyRoutineTime.tsx",
+  "src/components/games/9-clock/BuildClock.tsx",
+  "src/components/games/9-clock/ClockMultiple.tsx",
+];
+
+async function readSource(relativePath: string) {
+  return await Deno.readTextFile(new URL(`../${relativePath}`, import.meta.url));
+}
+
+Deno.test("clock quiz games expose scored completion callbacks", async () => {
+  for (const path of clockGames) {
+    const source = await readSource(path);
+
+    assertMatch(source, /onComplete\?: \(score\?: number, maxScore\?: number\) => void/);
+    assertEquals(source.includes("allowSkip?: boolean;"), true, path);
+    assertEquals(source.includes("onClick={onComplete}"), false, path);
+    assertMatch(source, /onComplete\?\.\([^,\n]+, [^)\n]+\)/, path);
+    assertEquals(source.includes("onClick={() => onComplete?.()}"), true, path);
+  }
+});
+
+Deno.test("clock quiz games count active wrong choices and drags", async () => {
+  for (const path of clockGames) {
+    const source = await readSource(path);
+
+    assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/, path);
+    assertMatch(source, /setAttempts\(prev => prev \+ 1\)/, path);
+  }
+});
+
+Deno.test("clock quiz games report actual score and attempts at strict completion", async () => {
+  for (const path of clockGames) {
+    const source = await readSource(path);
+
+    assertMatch(source, /onComplete\?\.\(score, attempts\)/, path);
+    assertMatch(source, /onComplete\?\.\([^,\n]+, newAttempts\)/, path);
+  }
+});

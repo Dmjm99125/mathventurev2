@@ -13,8 +13,9 @@ const TRACKS = [
   { id: 'desert', class: 'from-[#f4d03f] to-[#e67e22]' },
 ];
 
-export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
+export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [level, setLevel] = useState(1);
   const [trophies, setTrophies] = useState(0);
   const [targetShape, setTargetShape] = useState('');
@@ -44,6 +45,7 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: () 
 
   const handleRace = (choice: string) => {
     if (isRacing || isCompleted) return;
+    setAttempts((currentAttempts) => currentAttempts + 1);
     setIsRacing(true);
 
     const newDurations: Record<string, number> = {};
@@ -129,7 +131,7 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: () 
             <Button 
               variant="outline" 
               className="border-2 border-gray-300 font-bold hover:bg-gray-100 rounded-xl bg-white shadow-sm w-full md:w-auto"
-              onClick={onComplete}
+              onClick={() => onComplete?.()}
             >
               Next Game ➡️
             </Button>
@@ -211,7 +213,7 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: () 
           <Button
             size="lg"
             className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
-            onClick={onComplete}
+            onClick={() => onComplete?.(score, attempts)}
           >
             Continue
           </Button>

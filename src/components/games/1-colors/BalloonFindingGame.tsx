@@ -22,7 +22,7 @@ interface Balloon {
 }
 
 interface BalloonFindingGameProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -33,6 +33,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
   const [isWin, setIsWin] = useState(false);
   
   const scoreRef = useRef(0);
+  const totalAttemptsRef = useRef(0);
   const targetColorRef = useRef(COLORS[0]);
   const isWinRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -82,6 +83,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
     setBalloons([]);
     setScore(0);
     scoreRef.current = 0;
+    totalAttemptsRef.current = 0;
     setIsWin(false);
     isWinRef.current = false;
     
@@ -101,7 +103,9 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
   const handleInteraction = (e: React.MouseEvent | React.TouchEvent, balloon: Balloon) => {
     e.preventDefault();
     if (isWinRef.current) return;
-    
+
+    totalAttemptsRef.current += 1;
+
     if (balloon.colorData.name === targetColorRef.current.name) {
       playPop(true);
       scoreRef.current += 1;
@@ -127,6 +131,10 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
     setBalloons(prev => prev.filter(b => b.id !== id));
     createBalloon(Math.random() > 0.6);
   };
+
+  const correctItems = scoreRef.current;
+  const totalAttempts = totalAttemptsRef.current;
+  const totalItems = totalAttempts;
 
   return (
     <div className="w-full max-w-4xl mx-auto h-[600px] flex flex-col relative rounded-3xl overflow-hidden bg-[#e0f4ff] shadow-xl border-4 border-white">
@@ -158,7 +166,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
           <Button 
             variant="default" 
             className="absolute top-4 right-4 hidden md:flex bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20"
-            onClick={onComplete}
+            onClick={() => onComplete()}
           >
             Next Game ➡️
           </Button>
@@ -167,7 +175,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
           <Button
             variant="default"
             className="mt-4 w-full max-w-sm justify-center bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 md:hidden"
-            onClick={onComplete}
+            onClick={() => onComplete()}
           >
             Next Game ➡️
           </Button>
@@ -209,7 +217,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
               Play Again
             </Button>
             {onComplete && (
-              <Button size="lg" variant="default" className="text-xl h-14 px-8 rounded-full bg-orange-500 hover:bg-orange-600 shadow-[0_0_0_0_rgba(255,152,0,0.7)] animate-[pulse_1.5s_infinite]" onClick={onComplete}>
+            <Button size="lg" variant="default" className="text-xl h-14 px-8 rounded-full bg-orange-500 hover:bg-orange-600 shadow-[0_0_0_0_rgba(255,152,0,0.7)] animate-[pulse_1.5s_infinite]" onClick={() => onComplete(correctItems, totalItems)}>
                 Next Game ➡️
               </Button>
             )}

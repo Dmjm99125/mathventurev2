@@ -48,7 +48,7 @@ const countEmojis = ['⭐', '🐚', '🐠', '🦀', '🪙', '💎'];
 const rewardGems = ['💎', '👑', '🔮', '🔱', '💰', '⚔️', '🧱', '🏺'];
 
 interface DeepDiveProps {
-  onComplete?: () => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }
 
@@ -56,6 +56,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
   const MAX_SCORE = 5;
   
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [correctNumber, setCorrectNumber] = useState(1);
   const [useWordClue, setUseWordClue] = useState(false);
   const [activeIcon, setActiveIcon] = useState('🐠');
@@ -85,6 +86,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
 
   const resetGame = () => {
     setScore(0);
+    setAttempts(0);
     setChestUnlocked(false);
     generateLevel();
   };
@@ -95,6 +97,8 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
 
   const handlePop = (val: number) => {
     if (wrongBubbles.includes(val) || poppedBubble !== null || chestUnlocked) return;
+
+    setAttempts(prev => prev + 1);
 
     if (val === correctNumber) {
       playOceanSound('pop');
@@ -127,7 +131,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
         {onComplete && allowSkip !== false && (
-          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-white font-bold bg-white/20 hover:bg-white/40" onClick={onComplete}>
+          <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-white font-bold bg-white/20 hover:bg-white/40" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
         )}
@@ -253,7 +257,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
               </motion.div>
               
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

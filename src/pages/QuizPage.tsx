@@ -252,6 +252,8 @@ export function QuizPage() {
     buildAttemptGameResult(topic, currentIndex, gameScore, gameMaxScore),
   );
 
+  const maxScore = gameResults.reduce((sum, result) => sum + result.maxScore, 0);
+
   const handleSelect = (option: { image: string; isCorrect: boolean }) => {
     if (gameState !== 'playing') return;
     setSelectedOption(option);
@@ -283,7 +285,7 @@ export function QuizPage() {
     finalScore = score,
   ) => {
     const durationSeconds = Math.round((Date.now() - startTime) / 1000);
-    const maxScore = questions.length;
+    const maxScore = nextResults.reduce((sum, result) => sum + result.maxScore, 0);
     try {
       if (assignmentId) {
         await completeAssignmentQuiz.mutateAsync({
@@ -340,8 +342,8 @@ export function QuizPage() {
     }
   };
 
-  const handleStructuredGameComplete = () => {
-    void completeStructuredGame();
+  const handleStructuredGameComplete = (gameScore = 1, gameMaxScore = 1) => {
+    void completeStructuredGame(gameScore, gameMaxScore);
   };
 
   const handleNext = async () => {
@@ -576,7 +578,7 @@ export function QuizPage() {
         ) : topic === 'colors' && currentIndex === 4 ? (
           <RainbowGalaxyExplorer onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 5 ? (
-          <ChooseWhichColor onComplete={() => void completeStructuredGame(1, 1)} />
+          <ChooseWhichColor onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 0 ? (
           <ShapeMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 1 ? (
@@ -816,8 +818,8 @@ export function QuizPage() {
           <h1 className="text-4xl font-display font-extrabold mb-2 text-foreground">Excellent!</h1>
           <p className="text-xl font-bold text-muted-foreground mb-8">
             {isAssignedQuiz
-              ? `Quiz submitted — this assignment can only be taken once. You scored ${score} out of ${questions.length}.`
-              : `You scored ${score} out of ${questions.length}`}
+              ? `Quiz submitted — this assignment can only be taken once. You scored ${score} out of ${maxScore}.`
+              : `You scored ${score} out of ${maxScore}`}
           </p>
           {quizPersistenceError && (
             <p className="mb-6 text-sm font-extrabold text-destructive">{quizPersistenceError}</p>

@@ -6,7 +6,7 @@ import { colorsData } from '@/data/colors';
 import confetti from 'canvas-confetti';
 
 interface MultipleChoiceProps {
-  onComplete?: (score: number) => void;
+  onComplete?: (score?: number, maxScore?: number) => void;
 }
 
 export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
@@ -14,6 +14,7 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
   const [selectedOption, setSelectedOption] = useState<{ image: string; isCorrect: boolean } | null>(null);
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
   const [score, setScore] = useState(0);
+  const [totalAttempts, setTotalAttempts] = useState(0);
 
   const question = colorsData[currentIndex];
 
@@ -22,6 +23,7 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
     
     setSelectedOption(opt);
     setGameState('feedback');
+    setTotalAttempts(attempts => attempts + 1);
     
     if (opt.isCorrect) {
       setScore(s => s + 1);
@@ -58,7 +60,7 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
           </p>
           <div className="flex flex-col gap-3">
             {onComplete && (
-              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score)}>
+              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, totalAttempts)}>
                 Continue <Play className="ml-2 w-5 h-5 fill-current" />
               </Button>
             )}
@@ -69,6 +71,7 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
               onClick={() => {
                 setCurrentIndex(0);
                 setScore(0);
+                setTotalAttempts(0);
                 setGameState('playing');
                 setSelectedOption(null);
               }}
