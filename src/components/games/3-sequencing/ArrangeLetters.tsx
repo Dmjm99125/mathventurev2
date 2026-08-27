@@ -6,7 +6,7 @@ import { CheckCircle2, XCircle, TrainFront } from 'lucide-react';
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-export function ArrangeLetters({ onComplete }: { onComplete?: () => void }) {
+export function ArrangeLetters({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [sequence, setSequence] = useState<string[]>([]);
   const [shuffled, setShuffled] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,7 +62,7 @@ export function ArrangeLetters({ onComplete }: { onComplete?: () => void }) {
         </h2>
         <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-cyan-600">{score}</span></div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-cyan-300 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -180,9 +180,9 @@ export function ArrangeLetters({ onComplete }: { onComplete?: () => void }) {
               <Button 
                 size="lg" 
                 className="bg-[#fdd06b] hover:bg-[#f6c24d] text-amber-900 border-4 border-[#cc8b3c] font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#9e632b] active:translate-y-1 active:shadow-none transition-all"
-                onClick={startRound}
+                onClick={allowSkip ? startRound : () => onComplete?.()}
               >
-                NEXT TRAIN ➔
+                {allowSkip ? 'NEXT TRAIN ➔' : 'NEXT GAME ➔'}
               </Button>
             </motion.div>
           ) : (

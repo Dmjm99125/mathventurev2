@@ -62,9 +62,10 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 
 interface TimeAdventureProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function TimeAdventure({ onComplete }: TimeAdventureProps) {
+export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventureProps) {
   const MAX_SCORE = 10;
   const CHARACTERS = ['🐻', '🐱', '🐸'];
 
@@ -197,7 +198,7 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
     return (
       <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-[3rem] border-4 border-white bg-gradient-to-t from-[#a6c1ee] to-[#fbc2eb] p-6 font-display text-center shadow-sm select-none">
         <div className="z-10 mb-4 flex w-full justify-center md:justify-end">
-          {onComplete && (
+          {onComplete && allowSkip !== false && (
             <Button
               variant="ghost"
               className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
@@ -252,7 +253,7 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
         >
           <ArrowLeft className="mr-1 h-5 w-5" /> Back
         </Button>
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
             className="w-full max-w-sm justify-center md:w-auto bg-white/20 font-bold text-white hover:bg-white/40"
@@ -359,6 +360,11 @@ export function TimeAdventure({ onComplete }: TimeAdventureProps) {
             </p>
 
             <div className="flex gap-4">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button
                 size="lg"
                 onClick={resetGame}

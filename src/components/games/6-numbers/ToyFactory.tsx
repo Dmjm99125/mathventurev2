@@ -49,9 +49,10 @@ const milestonePrizes = ['🏰', '🛹', '🎸', '🎮', '🦕', '🧩', '🥁',
 
 interface ToyFactoryProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function ToyFactory({ onComplete }: ToyFactoryProps) {
+export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
   const MAX_SCORE = 5;
   
   const [score, setScore] = useState(0);
@@ -143,7 +144,7 @@ export function ToyFactory({ onComplete }: ToyFactoryProps) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#3b82f6] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -254,6 +255,11 @@ export function ToyFactory({ onComplete }: ToyFactoryProps) {
                 {wonToy}
               </motion.div>
               
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#3b82f6] hover:bg-[#1d4ed8] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#1d4ed8] hover:shadow-[0_2px_0_#1d4ed8] hover:translate-y-1 transition-all">
                 Play Again! 🔄
               </Button>

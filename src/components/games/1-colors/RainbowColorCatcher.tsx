@@ -22,9 +22,10 @@ interface Walker {
 
 interface RainbowColorCatcherProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
+export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowColorCatcherProps) {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -36,6 +37,7 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
   const [walkers, setWalkers] = useState<Walker[]>([]);
   const [collectedAnimals, setCollectedAnimals] = useState<string[]>([]);
   const [showRainbow, setShowRainbow] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("colorHighScore");
@@ -106,8 +108,14 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
         setShowRainbow(false);
         setTimeout(() => setShowRainbow(true), 50);
       }
+
+      const reachedAssignedGoal = allowSkip === false && newScore >= 10;
+      if (reachedAssignedGoal) {
+        setIsCompleted(true);
+        setGameRunning(false);
+      }
       
-      setTimeout(newRound, 400);
+      if (!reachedAssignedGoal) setTimeout(newRound, 400);
     } else {
       const newLives = lives - 1;
       setLives(newLives);
@@ -126,6 +134,7 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
     setLives(3);
     setTimeLeft(30);
     setGameRunning(true);
+    setIsCompleted(false);
     setCollectedAnimals([]);
     setMessage("");
     newRound();
@@ -171,7 +180,7 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
         <div>⏱️ {timeLeft}</div>
         <div>{'❤️'.repeat(lives)}</div>
         
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button 
             variant="default" 
             className="absolute top-3 right-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 hidden md:flex"
@@ -183,7 +192,7 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
       </div>
       
       {/* Mobile Next button */}
-      {onComplete && (
+      {onComplete && allowSkip !== false && (
         <Button 
           variant="default" 
           className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 md:hidden mx-auto mt-2"
@@ -200,6 +209,16 @@ export function RainbowColorCatcher({ onComplete }: RainbowColorCatcherProps) {
         {gameRunning ? (
           <div className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-sm">
             Find: <span style={{ color: answer.value }}>{answer.name}</span>
+          </div>
+        ) : isCompleted ? (
+          <div className="text-3xl md:text-4xl font-bold mb-4 flex flex-col items-center bg-white/80 p-6 rounded-2xl drop-shadow-lg mx-auto max-w-sm">
+            🎉 Great job!<br />
+            <span className="text-2xl mt-2 text-gray-600">You caught 10 colors!</span>
+            {onComplete && (
+              <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={onComplete}>
+                Continue
+              </Button>
+            )}
           </div>
         ) : (
           <div className="text-3xl md:text-4xl font-bold mb-4 flex flex-col items-center bg-white/80 p-6 rounded-2xl drop-shadow-lg mx-auto max-w-sm">

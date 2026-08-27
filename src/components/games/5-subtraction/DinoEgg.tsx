@@ -7,7 +7,7 @@ import { Play, Star } from 'lucide-react';
 const BABY_DINOS = ['🦕', '🦖', '👶', '🐉', '🐊'];
 const FOSSILS = ['🦴', '🦕', '🦖', '🌋', '🌴', '💎', '👑'];
 
-export function DinoEgg({ onComplete }: { onComplete?: () => void }) {
+export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [targetAnswer, setTargetAnswer] = useState(0);
     const [promptText, setPromptText] = useState('');
     const [nests, setNests] = useState<{ id: number, count: number, isHatched: boolean, baby: string, isWrong: boolean }[]>([]);
@@ -97,7 +97,7 @@ export function DinoEgg({ onComplete }: { onComplete?: () => void }) {
                     <div className="text-sm md:text-base font-bold text-green-700 uppercase tracking-widest flex items-center gap-1">
                         <span className="text-2xl">🦴</span> Target: {MAX_SCORE}
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="ghost" className="w-full sm:w-auto text-green-800 font-bold hover:bg-green-300/50 rounded-xl" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
@@ -189,6 +189,15 @@ export function DinoEgg({ onComplete }: { onComplete?: () => void }) {
                             >
                                 Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                             </Button>
+                            {onComplete && allowSkip === false && (
+                                <Button
+                                    size="lg"
+                                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                    onClick={onComplete}
+                                >
+                                    Continue to Next Game
+                                </Button>
+                            )}
                     </motion.div>
                 )}
             </AnimatePresence>

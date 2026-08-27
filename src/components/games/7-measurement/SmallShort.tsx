@@ -75,9 +75,10 @@ const gameData = [
 
 interface SmallShortProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function SmallShort({ onComplete }: SmallShortProps) {
+export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
   const MAX_SCORE = 10;
   const [score, setScore] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -150,7 +151,7 @@ export function SmallShort({ onComplete }: SmallShortProps) {
   return (
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#81d4fa] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative overflow-hidden font-display z-0">
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#0288d1] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -245,6 +246,11 @@ export function SmallShort({ onComplete }: SmallShortProps) {
             <p className="text-2xl text-slate-800 font-bold mb-8">You loaded 10 trains!</p>
 
             <div className="flex gap-4">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
                 Play Again! 🔄
               </Button>

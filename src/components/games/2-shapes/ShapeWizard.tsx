@@ -13,7 +13,7 @@ const WORLDS = [
   { id: 'space', name: '🚀 Space', cost: 100, color: 'from-[#2c3e50] to-[#1a252f]', text: 'text-white' },
 ];
 
-export function ShapeWizard({ onComplete }: { onComplete?: () => void }) {
+export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [screen, setScreen] = useState('start');
   const [stars, setStars] = useState(0);
   const [lives, setLives] = useState(3);
@@ -151,7 +151,7 @@ export function ShapeWizard({ onComplete }: { onComplete?: () => void }) {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Map
             </Button>
           )}
-          {onComplete && (
+          {onComplete && allowSkip !== false && (
             <Button
               variant="outline"
               className="bg-white/90 border-2 border-purple-300 text-purple-700 font-bold hover:bg-purple-100 shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"
@@ -315,6 +315,15 @@ export function ShapeWizard({ onComplete }: { onComplete?: () => void }) {
             >
               CONTINUE
             </Button>
+            {allowSkip === false && onComplete && (
+              <Button
+                size="lg"
+                className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
+                onClick={onComplete}
+              >
+                Continue Quiz
+              </Button>
+            )}
           </motion.div>
         )}
 

@@ -23,9 +23,10 @@ const TIME_CONFIG = { easy: 45, medium: 30, hard: 20 };
 
 interface RainbowColorDeluxeProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
+export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColorDeluxeProps) {
   const [screen, setScreen] = useState<'pet' | 'difficulty' | 'game'>('pet');
   const [pet, setPet] = useState("");
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
@@ -39,6 +40,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
   const [message, setMessage] = useState("");
   const [messageColor, setMessageColor] = useState("");
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [stars, setStars] = useState<{ id: string, x: number, y: number }[]>([]);
 
   useEffect(() => {
@@ -51,6 +53,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
     setScore(0);
     setTimeLeft(TIME_CONFIG[level]);
     setIsGameOver(false);
+    setIsCompleted(false);
     setMessage("");
     generateBoard(level);
     setScreen('game');
@@ -99,6 +102,11 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
       }, 600);
       
       generateBoard(difficulty);
+
+      if (allowSkip === false && newScore >= 10) {
+        setIsCompleted(true);
+        setIsGameOver(true);
+      }
     } else {
       setMessage("❌ Try Again!");
       setMessageColor("text-red-500");
@@ -147,7 +155,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
       <div className="rcd-cloud c2"></div>
       <div className="rcd-cloud c3"></div>
 
-      {onComplete && (
+      {onComplete && allowSkip !== false && (
         <Button 
           variant="default" 
           className="absolute top-4 right-4 hidden md:flex bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50"
@@ -158,7 +166,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
       )}
 
       <div className="relative z-10 w-full flex-1 flex flex-col items-center px-4 py-6 md:pt-8">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button
             variant="default"
             className="mb-4 w-full max-w-sm justify-center bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-50 md:hidden"
@@ -249,7 +257,7 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
       </div>
 
       {/* Game Over Modal */}
-      {isGameOver && (
+      {isGameOver && !isCompleted && (
         <div className="absolute inset-0 bg-black/50 z-50 flex justify-center items-center backdrop-blur-sm animate-in fade-in">
           <div className="bg-white p-8 md:p-12 rounded-3xl text-center max-w-sm w-[90%] shadow-2xl zoom-in animate-in duration-300">
             <h2 className="text-4xl font-display font-bold text-gray-800 mb-4">Time's Up!</h2>
@@ -262,12 +270,26 @@ export function RainbowColorDeluxe({ onComplete }: RainbowColorDeluxeProps) {
               <Button size="lg" variant="outline" className="text-xl py-6 rounded-2xl border-2 hover:bg-gray-50" onClick={() => setScreen('pet')}>
                 Menu
               </Button>
-              {onComplete && (
+              {onComplete && allowSkip !== false && (
                 <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white mt-4" onClick={onComplete}>
                   Next Game ➡️
                 </Button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {isCompleted && (
+        <div className="absolute inset-0 bg-white/95 z-50 flex justify-center items-center backdrop-blur-sm animate-in fade-in">
+          <div className="p-8 md:p-12 rounded-3xl text-center max-w-sm w-[90%] shadow-2xl">
+            <h2 className="text-4xl font-display font-bold text-green-600 mb-4">Great job!</h2>
+            <p className="text-2xl font-bold text-gray-600 mb-8">You found 10 colors!</p>
+            {onComplete && (
+              <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white" onClick={onComplete}>
+                Continue
+              </Button>
+            )}
           </div>
         </div>
       )}

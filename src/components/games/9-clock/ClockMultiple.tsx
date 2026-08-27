@@ -92,9 +92,10 @@ const MiniClock = ({ hour }: { hour: number }) => {
 
 interface ClockMultipleProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function ClockMultiple({ onComplete }: ClockMultipleProps) {
+export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultipleProps) {
   const MAX_SCORE = 12;
   const [score, setScore] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
@@ -173,7 +174,7 @@ export function ClockMultiple({ onComplete }: ClockMultipleProps) {
       
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>

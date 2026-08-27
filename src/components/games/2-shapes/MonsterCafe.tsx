@@ -19,11 +19,11 @@ const SHAPE_EMOJI: Record<string, string> = {
     triangle: "🔺",
 };
 
-export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {
+export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [currentShape, setCurrentShape] = useState('circle');
   const [choices, setChoices] = useState<typeof ITEMS>([]);
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState<'playing'|'correct'|'wrong'>('playing');
+  const [gameState, setGameState] = useState<'playing'|'correct'|'wrong'|'completed'>('playing');
   const [roundId, setRoundId] = useState(0); // to force remount of items
   
   const mouthRef = useRef<HTMLDivElement>(null);
@@ -68,8 +68,9 @@ export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {
 
     if (isOverMouth) {
       if (item.shape === currentShape) {
-        setGameState('correct');
-        setScore(s => s + 1);
+        const newScore = score + 1;
+        setScore(newScore);
+        setGameState(allowSkip === false && newScore >= 10 ? 'completed' : 'correct');
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       } else {
         setGameState('wrong');
@@ -91,7 +92,7 @@ export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {
             <div className="text-lg md:text-xl font-bold text-gray-700 bg-white/60 px-4 py-2 rounded-full shadow-sm border border-orange-200">
                Score: <span className="text-orange-600">{score}</span>
             </div>
-            {onComplete && (
+            {onComplete && allowSkip !== false && (
               <Button 
                 variant="outline" 
                 className="bg-white/80 border-2 border-orange-300 text-orange-800 font-bold hover:bg-orange-100 rounded-xl w-full justify-center md:w-auto"
@@ -145,7 +146,7 @@ export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {
 
         {/* Next Round */}
         <div className="h-20 flex items-center justify-center mt-6 w-full">
-          {gameState !== 'playing' && (
+          {gameState !== 'playing' && gameState !== 'completed' && (
             <Button
               size="lg"
               className={`w-full font-bold text-xl py-8 rounded-2xl shadow-[0_6px_0_0_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-4 active:translate-y-1 active:shadow-none transition-all ${
@@ -154,6 +155,15 @@ export function MonsterCafe({ onComplete }: { onComplete?: () => void }) {
               onClick={startRound}
             >
               {gameState === 'correct' ? 'Next Customer' : 'Try Again'}
+            </Button>
+          )}
+          {gameState === 'completed' && onComplete && (
+            <Button
+              size="lg"
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-xl py-8 rounded-2xl shadow-[0_6px_0_0_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-4 active:translate-y-1 active:shadow-none transition-all"
+              onClick={onComplete}
+            >
+              Continue
             </Button>
           )}
         </div>

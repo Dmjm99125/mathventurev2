@@ -73,9 +73,10 @@ const spacePrizes = ['🪐', '🚀', '⭐', '🛸', '🛰️', '☄️', '🌍',
 
 interface SkyExplorerProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function SkyExplorer({ onComplete }: SkyExplorerProps) {
+export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) {
   const MAX_SCORE = 10;
 
   const [score, setScore] = useState(0);
@@ -138,7 +139,7 @@ export function SkyExplorer({ onComplete }: SkyExplorerProps) {
   return (
     <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center overflow-hidden rounded-[3rem] border-4 border-white bg-gradient-to-b from-[#e0f2fe] to-[#bae6fd] p-6 font-display text-center shadow-sm select-none">
       <div className="z-10 mb-4 flex w-full justify-center md:justify-end">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
             className="w-full max-w-sm justify-center bg-white/50 font-bold text-[#2c3e50] hover:bg-white md:w-auto"
@@ -252,6 +253,11 @@ export function SkyExplorer({ onComplete }: SkyExplorerProps) {
             <p className="mb-8 text-2xl font-bold text-[#475569]">You've mastered daytime and nighttime!</p>
 
             <div className="flex gap-4">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button
                 size="lg"
                 onClick={resetGame}

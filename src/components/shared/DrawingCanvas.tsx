@@ -15,11 +15,13 @@ const COLORS = [
 export function DrawingCanvas({ 
   onComplete,
   title = "Shape Artist!",
-  icon: Icon = Palette
+  icon: Icon = Palette,
+  allowSkip = true,
 }: { 
   onComplete?: () => void,
   title?: string,
-  icon?: React.ElementType
+  icon?: React.ElementType,
+  allowSkip?: boolean,
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,7 @@ export function DrawingCanvas({
   const [color, setColor] = useState(COLORS[0].value);
   const [lineWidth, setLineWidth] = useState(5);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [hasDrawing, setHasDrawing] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -97,6 +100,7 @@ export function DrawingCanvas({
     const pos = getCoordinates(e);
     if (!pos) return;
     setIsDrawing(true);
+    setHasDrawing(true);
     const ctx = canvasRef.current?.getContext('2d');
     if (ctx) {
       ctx.beginPath();
@@ -137,6 +141,7 @@ export function DrawingCanvas({
     if (ctx && canvas) {
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      setHasDrawing(false);
     }
   };
 
@@ -165,7 +170,7 @@ export function DrawingCanvas({
         <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-800 flex items-center gap-3">
           <Icon className="text-indigo-500 w-8 h-8 drop-shadow-sm" /> {title}
         </h1>
-        {onComplete && (
+        {onComplete && allowSkip && (
           <Button 
             className="font-bold border-2 border-slate-300 rounded-xl shadow-md bg-white hover:bg-slate-50 text-slate-700" 
             onClick={handleFinish}
@@ -244,6 +249,15 @@ export function DrawingCanvas({
           >
             <Eraser className="w-5 h-5" /> Clear
           </Button>
+
+          {onComplete && !allowSkip && hasDrawing && (
+            <Button
+              className="rounded-2xl font-bold shadow-md flex items-center gap-2 py-6 px-4 md:px-6 bg-indigo-500 hover:bg-indigo-600 text-white"
+              onClick={handleFinish}
+            >
+              Submit Drawing
+            </Button>
+          )}
         </div>
       </div>
 

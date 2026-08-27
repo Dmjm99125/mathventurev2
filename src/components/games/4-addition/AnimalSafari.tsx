@@ -7,7 +7,7 @@ import { Play, CheckCircle2, XCircle, Star, Trees } from 'lucide-react';
 const ANIMAL_POOL_1 = ['🦁', '🐯', '🐒', '🦓'];
 const ANIMAL_POOL_2 = ['🐘', '🦒', '🦛', '🦘'];
 
-export function AnimalSafari({ onComplete }: { onComplete?: () => void }) {
+export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [animal1, setAnimal1] = useState('🦁');
@@ -121,7 +121,7 @@ export function AnimalSafari({ onComplete }: { onComplete?: () => void }) {
                             <span className="text-yellow-700">{score}</span>
                         </div>
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-green-400 text-green-700 font-bold hover:bg-green-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
@@ -237,6 +237,15 @@ export function AnimalSafari({ onComplete }: { onComplete?: () => void }) {
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
+                        {onComplete && allowSkip === false && (
+                            <Button
+                                size="lg"
+                                className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                onClick={onComplete}
+                            >
+                                Continue to Next Game
+                            </Button>
+                        )}
                 </motion.div>
             )}
         </div>

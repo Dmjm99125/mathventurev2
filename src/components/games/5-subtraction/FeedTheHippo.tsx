@@ -6,7 +6,7 @@ import { Play, Star, ChevronRight } from 'lucide-react';
 
 const REWARDS = ['🍩', '🍦', '🍕', '🍟', '🎨', '🚀', '🦖', '🦄', '🏆', '🐼', '🦁', '👑'];
 
-export function FeedTheHippo({ onComplete }: { onComplete?: () => void }) {
+export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<number[]>([]);
@@ -108,7 +108,7 @@ export function FeedTheHippo({ onComplete }: { onComplete?: () => void }) {
                     <div className="text-sm md:text-base font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1">
                         <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl h-9 px-3" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
@@ -193,6 +193,15 @@ export function FeedTheHippo({ onComplete }: { onComplete?: () => void }) {
                         >
                             Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
+                        {onComplete && allowSkip === false && (
+                            <Button
+                                size="lg"
+                                className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                onClick={onComplete}
+                            >
+                                Continue to Next Game
+                            </Button>
+                        )}
                 </motion.div>
             )}
         </div>

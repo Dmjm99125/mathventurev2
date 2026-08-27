@@ -49,9 +49,10 @@ const rewardGems = ['💎', '👑', '🔮', '🔱', '💰', '⚔️', '🧱', '�
 
 interface DeepDiveProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function DeepDive({ onComplete }: DeepDiveProps) {
+export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
   const MAX_SCORE = 5;
   
   const [score, setScore] = useState(0);
@@ -125,7 +126,7 @@ export function DeepDive({ onComplete }: DeepDiveProps) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-white font-bold bg-white/20 hover:bg-white/40" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -251,6 +252,11 @@ export function DeepDive({ onComplete }: DeepDiveProps) {
                 {wonGem}
               </motion.div>
               
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#fb7185] hover:bg-[#e11d48] text-white text-2xl font-bold h-16 px-8 rounded-full shadow-[0_6px_0_#be123c] hover:shadow-[0_2px_0_#be123c] hover:translate-y-1 transition-all">
                 Play Again! 🔄
               </Button>

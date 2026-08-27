@@ -6,7 +6,7 @@ import { Play, CheckCircle2, XCircle, Star, Rocket, Sparkles } from 'lucide-reac
 
 const GALAXY_PRIZES = ['🪐', '🌍', '☄️', '🛸', '👽', '☀️', '🌕'];
 
-export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
+export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     
@@ -106,7 +106,7 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                             <span>{score}</span>
                         </div>
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-500/50 text-cyan-400 font-bold hover:bg-cyan-950 rounded-xl bg-slate-800" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
@@ -249,6 +249,15 @@ export function ComicStarCatcher({ onComplete }: { onComplete?: () => void }) {
                             {prize}
                         </div>
                     </div>
+                    {onComplete && allowSkip === false && (
+                        <Button
+                            size="lg"
+                            className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
+                            onClick={onComplete}
+                        >
+                            Continue to Next Game
+                        </Button>
+                    )}
                     
                     <Button 
                             size="lg" 

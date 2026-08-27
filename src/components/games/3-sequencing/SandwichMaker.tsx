@@ -18,7 +18,7 @@ const FILLINGS: ItemType[] = ['ham', 'cheese', 'lettuce', 'tomato', 'egg'];
 
 const getRandomFilling = () => FILLINGS[Math.floor(Math.random() * FILLINGS.length)];
 
-export function SandwichMaker({ onComplete }: { onComplete?: () => void }) {
+export function SandwichMaker({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [activePattern, setActivePattern] = useState<ItemType[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -89,7 +89,7 @@ export function SandwichMaker({ onComplete }: { onComplete?: () => void }) {
           <div className="text-lg md:text-xl font-bold text-white bg-amber-500 px-5 py-1.5 rounded-full shadow-sm shadow-amber-600">
              Level: {level}
           </div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-amber-400 text-amber-700 font-bold hover:bg-amber-50 rounded-xl bg-white" onClick={onComplete}>
               Finish Module ➡️
             </Button>
@@ -201,9 +201,9 @@ export function SandwichMaker({ onComplete }: { onComplete?: () => void }) {
               <Button 
                    size="lg" 
                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={() => startLevel(1)}
+                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.()}
                  >
-                   Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
+                    {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
             </motion.div>
           ) : null}

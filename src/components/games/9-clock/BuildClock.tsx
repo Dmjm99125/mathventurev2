@@ -55,9 +55,10 @@ const COLORS = ['#e91e63', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ff9800'
 
 interface BuildClockProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function BuildClock({ onComplete }: BuildClockProps) {
+export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
   const [placedNumbers, setPlacedNumbers] = useState<number[]>([]);
   const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -120,7 +121,7 @@ export function BuildClock({ onComplete }: BuildClockProps) {
         confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
         
         // Auto-complete after showing celebration
-        if (onComplete) {
+        if (onComplete && allowSkip !== false) {
           setTimeout(() => onComplete(), 4000);
         }
       }, 500);
@@ -132,7 +133,7 @@ export function BuildClock({ onComplete }: BuildClockProps) {
       
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -238,6 +239,11 @@ export function BuildClock({ onComplete }: BuildClockProps) {
           animate={{ opacity: 1, y: 0 }}
           className="mt-6"
         >
+          {allowSkip === false && onComplete && (
+            <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              Next Game <ChevronRight className="ml-2 h-6 w-6" />
+            </Button>
+          )}
           <Button size="lg" onClick={initGame} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
             Build it again! 🔄
           </Button>

@@ -19,7 +19,7 @@ function createAudioContext() {
     return AudioContextCtor ? new AudioContextCtor() : null;
 }
 
-export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
+export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<number[]>([]);
@@ -147,7 +147,7 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
                     <div className="text-sm md:text-base font-bold text-sky-400 uppercase tracking-widest flex items-center gap-1">
                         <span className="text-2xl">🎯</span> Target: {MAX_SCORE}
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-slate-600 text-slate-300 font-bold hover:bg-slate-800 rounded-xl h-9 px-3 bg-transparent" onClick={onComplete}>
                             Skip <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
@@ -235,6 +235,15 @@ export function SpaceBlast({ onComplete }: { onComplete?: () => void }) {
                     >
                         Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                     </Button>
+                    {onComplete && allowSkip === false && (
+                        <Button
+                            size="lg"
+                            className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
+                            onClick={onComplete}
+                        >
+                            Continue to Next Game
+                        </Button>
+                    )}
                 </motion.div>
             )}
         </div>

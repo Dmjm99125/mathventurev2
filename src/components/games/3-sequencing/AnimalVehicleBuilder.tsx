@@ -49,7 +49,7 @@ const EmojiPiece = ({ char, parts, orderIndex, isMerged }: { char: string, parts
     );
 };
 
-export function AnimalVehicleBuilder({ onComplete }: { onComplete?: () => void }) {
+export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [selectedLevels, setSelectedLevels] = useState<typeof LIBRARY>([]);
   const [currentPuzzle, setCurrentPuzzle] = useState<typeof LIBRARY[0] | null>(null);
@@ -129,7 +129,7 @@ export function AnimalVehicleBuilder({ onComplete }: { onComplete?: () => void }
           <div className="text-lg md:text-xl font-bold text-slate-700 bg-white/80 px-4 py-1 rounded-full shadow-sm">
              Puzzle: <span className="text-sky-600">{level}/5</span>
           </div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -248,8 +248,8 @@ export function AnimalVehicleBuilder({ onComplete }: { onComplete?: () => void }
               <Button 
                    size="lg" 
                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#0284c7] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={setupGame}
-                 > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
+                    onClick={allowSkip ? setupGame : () => onComplete?.()}
+                 > {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
             </motion.div>
           ) : null}

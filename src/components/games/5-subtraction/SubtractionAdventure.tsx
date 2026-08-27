@@ -8,7 +8,7 @@ import { getBoundedSubtractionOperands } from '@/lib/games/arithmeticBounds';
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍍"];
 
-export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }) {
+export function SubtractionAdventure({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'completed'>('menu');
     const [character, setCharacter] = useState('🐻');
     
@@ -97,7 +97,7 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                                 <span className="text-blue-800">{score}</span>
                             </div>
                         </div>
-                        {onComplete && (
+                        {onComplete && allowSkip !== false && (
                             <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
                                 Skip ➡️
                             </Button>
@@ -243,6 +243,15 @@ export function SubtractionAdventure({ onComplete }: { onComplete?: () => void }
                             >
                                 Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                             </Button>
+                            {onComplete && allowSkip === false && (
+                                <Button
+                                    size="lg"
+                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                    onClick={onComplete}
+                                >
+                                    Continue to Next Game
+                                </Button>
+                            )}
                     </motion.div>
                 )}
             </AnimatePresence>

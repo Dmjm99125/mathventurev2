@@ -43,13 +43,16 @@ const playSound = (type: 'eat' | 'crash' | 'levelup') => {
 
 interface SnakeGameProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function SnakeGame({ onComplete }: SnakeGameProps) {
+export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(1);
   const [speedLevel, setSpeedLevel] = useState(1);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const completedRef = useRef(false);
   
   // Game state refs (we use refs instead of state to avoid react re-render loops in canvas tick)
   const snakeRef = useRef([{ x: 7, y: 7 }]);
@@ -108,6 +111,8 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
     setScore(1);
     setSpeedLevel(1);
     setIsGameOver(false);
+    setIsCompleted(false);
+    completedRef.current = false;
     placeFood();
     
     if (gameLoopRef.current) clearTimeout(gameLoopRef.current);
@@ -142,6 +147,10 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
             playSound('levelup');
             setSpeedLevel(Math.floor(newScore / 5) + 1);
             speedRef.current = Math.max(150, speedRef.current - 50);
+            if (allowSkip === false && newScore >= 5) {
+              completedRef.current = true;
+              setIsCompleted(true);
+            }
           }
           return newScore;
         });
@@ -152,11 +161,13 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
       snakeRef.current = snake;
       drawGame();
 
-      gameLoopRef.current = window.setTimeout(tick, speedRef.current);
+      if (!completedRef.current) {
+        gameLoopRef.current = window.setTimeout(tick, speedRef.current);
+      }
     };
 
     tick();
-  }, [drawGame, placeFood]);
+  }, [allowSkip, drawGame, placeFood]);
 
   useEffect(() => {
     resetGame();
@@ -192,7 +203,7 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#1b5e20] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -218,7 +229,7 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
           />
 
           <AnimatePresence>
-            {isGameOver && (
+            {isGameOver && !isCompleted && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -230,6 +241,22 @@ export function SnakeGame({ onComplete }: SnakeGameProps) {
                 <Button size="lg" onClick={resetGame} className="bg-[#ffeb3b] hover:bg-[#fbc02d] text-[#333] text-xl font-bold h-14 px-8 rounded-full shadow-[0_4px_0_#f57f17] hover:shadow-[0_2px_0_#f57f17] hover:translate-y-1 transition-all">
                   Play Again! 🔄
                 </Button>
+              </motion.div>
+            )}
+            {isCompleted && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 rounded-2xl bg-[#1b5e20]/90 flex flex-col items-center justify-center text-white z-10 backdrop-blur-[2px]"
+              >
+                <div className="text-3xl font-bold mb-2 text-[#ffeb3b]">Great measuring!</div>
+                <div className="text-lg mb-6">Your inchworm reached <span className="text-[#ffeb3b] font-black text-2xl">{score}</span> units!</div>
+
+                {onComplete && (
+                  <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                    Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                  </Button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

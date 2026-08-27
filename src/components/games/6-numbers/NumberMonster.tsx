@@ -51,9 +51,10 @@ const badgePool = ['🏅', '🥇', '⭐', '💎', '👑', '🔮', '🚀', '🎁'
 
 interface NumberMonsterProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function NumberMonster({ onComplete }: NumberMonsterProps) {
+export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterProps) {
   const MAX_SCORE = 5;
 
   const [score, setScore] = useState(0);
@@ -129,7 +130,7 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
 
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#6b21a8] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -243,6 +244,11 @@ export function NumberMonster({ onComplete }: NumberMonsterProps) {
                 {wonBadge}
               </motion.div>
 
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#a855f7] hover:bg-[#7e22ce] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#7e22ce] hover:shadow-[0_2px_0_#7e22ce] hover:translate-y-1 transition-all">
                 Play Again! 🔄
               </Button>

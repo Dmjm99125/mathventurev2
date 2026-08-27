@@ -67,9 +67,10 @@ const farmPrizes = ['🌻', '🍎', '🌽', '🥚', '🥕', '🍯', '🥛', '�
 
 interface BarnyardBalanceProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
+export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanceProps) {
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
@@ -134,7 +135,7 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#2c3e50] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -226,6 +227,11 @@ export function BarnyardBalance({ onComplete }: BarnyardBalanceProps) {
             <p className="text-2xl text-[#475569] font-bold mb-8">You've mastered heavy and light on the farm!</p>
             
             <div className="flex gap-4">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#22c55e] hover:bg-[#16a34a] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#16a34a] hover:shadow-[0_2px_0_#16a34a] hover:translate-y-1 transition-all">
                 Play Again 🔄
               </Button>

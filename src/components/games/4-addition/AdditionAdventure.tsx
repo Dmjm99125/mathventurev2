@@ -8,7 +8,7 @@ import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍍'];
 
-export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
+export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'completed'>('menu');
     const [character, setCharacter] = useState('🐻');
     const [score, setScore] = useState(0);
@@ -99,7 +99,7 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
                             <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
                             <span className="text-indigo-700">{score} / {MAX_SCORE}</span>
                         </div>
-                        {onComplete && (
+                        {onComplete && allowSkip !== false && (
                             <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-indigo-400 text-indigo-700 font-bold hover:bg-indigo-50 rounded-xl bg-white" onClick={onComplete}>
                                 Skip Game ➡️
                             </Button>
@@ -208,6 +208,15 @@ export function AdditionAdventure({ onComplete }: { onComplete?: () => void }) {
                         >
                             Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
+                        {onComplete && allowSkip === false && (
+                            <Button
+                                size="lg"
+                                className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                onClick={onComplete}
+                            >
+                                Continue to Next Game
+                            </Button>
+                        )}
                 </motion.div>
             )}
         </div>

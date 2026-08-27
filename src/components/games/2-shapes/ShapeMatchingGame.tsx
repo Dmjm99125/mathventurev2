@@ -20,7 +20,7 @@ interface Character {
     dy: number;
 }
 
-export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
+export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [score, setScore] = useState(0);
     const [targetShape, setTargetShape] = useState(SHAPES[0]);
     const [options, setOptions] = useState<typeof SHAPES>([]);
@@ -138,7 +138,7 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
 
             {/* HUD & Header */}
             <div className="bg-white px-4 py-4 sm:px-6 md:p-6 shadow-sm flex flex-col items-center z-20 relative w-full border-b-2 border-gray-100">
-                {onComplete && score < 10 && (
+                {onComplete && allowSkip !== false && score < 10 && (
                     <Button
                         variant="outline"
                         className="absolute right-4 top-4 md:right-6 md:top-6 border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 hidden md:flex"
@@ -161,7 +161,7 @@ export function ShapeMatchingGame({ onComplete }: { onComplete?: () => void }) {
                 </div>
 
                 {/* Mobile Next Game */}
-                {onComplete && score < 10 && (
+                {onComplete && allowSkip !== false && score < 10 && (
                     <Button
                         variant="outline"
                         className="mt-4 w-full justify-center border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 flex md:hidden"

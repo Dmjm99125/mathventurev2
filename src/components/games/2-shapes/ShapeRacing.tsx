@@ -13,7 +13,7 @@ const TRACKS = [
   { id: 'desert', class: 'from-[#f4d03f] to-[#e67e22]' },
 ];
 
-export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
+export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [trophies, setTrophies] = useState(0);
@@ -22,6 +22,7 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
   const [isRacing, setIsRacing] = useState(false);
   const [message, setMessage] = useState('');
   const [earnedRewards, setEarnedRewards] = useState<string[]>([]);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [trackTheme, setTrackTheme] = useState(TRACKS[0]);
   
   // Track cars progress
@@ -42,7 +43,7 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
   }, []);
 
   const handleRace = (choice: string) => {
-    if (isRacing) return;
+    if (isRacing || isCompleted) return;
     setIsRacing(true);
 
     const newDurations: Record<string, number> = {};
@@ -74,12 +75,15 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
         if (newScore > 0 && newScore % 10 === 0) {
           setTrophies(t => t + 1);
         }
+        if (allowSkip === false && newScore >= 10) setIsCompleted(true);
       } else {
         setMessage(`❌ Oh no! The ${targetShape} won.`);
       }
 
       // Wait for slow cars to cross finish line
-      setTimeout(startRound, 2500);
+      if (!(allowSkip === false && score + (choice === targetShape ? 1 : 0) >= 10)) {
+        setTimeout(startRound, 2500);
+      }
     }, 1000); // Check results slightly after fast car finishes (~0.7s)
   };
 
@@ -121,7 +125,7 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
           <div className="flex items-center gap-2 text-base md:text-xl font-bold text-gray-700 bg-yellow-100 px-3 py-2 rounded-2xl shadow-sm border border-yellow-200">
              <Trophy className="text-yellow-500 fill-yellow-500 w-5 h-5" /> Trophies: <span className="text-yellow-600">{trophies}</span>
           </div>
-          {onComplete && (
+          {onComplete && allowSkip !== false && (
             <Button 
               variant="outline" 
               className="border-2 border-gray-300 font-bold hover:bg-gray-100 rounded-xl bg-white shadow-sm w-full md:w-auto"
@@ -203,6 +207,15 @@ export function ShapeRacing({ onComplete }: { onComplete?: () => void }) {
             )}
           </AnimatePresence>
         </div>
+        {isCompleted && onComplete && (
+          <Button
+            size="lg"
+            className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
+            onClick={onComplete}
+          >
+            Continue
+          </Button>
+        )}
       </div>
 
     </div>

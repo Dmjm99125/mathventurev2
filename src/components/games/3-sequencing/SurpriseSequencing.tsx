@@ -23,7 +23,7 @@ const BANKS = {
   }
 };
 
-export function SurpriseSequencing({ onComplete }: { onComplete?: () => void }) {
+export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [bankGuide, setBankGuide] = useState('');
   const [sequence, setSequence] = useState<string[]>([]);
@@ -101,7 +101,7 @@ export function SurpriseSequencing({ onComplete }: { onComplete?: () => void }) 
         <div className="flex gap-4 items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700 bg-pink-100 px-4 py-1 rounded-full">Level: <span className="text-pink-600">{level}/5</span></div>
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-pink-600">{score}</span></div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-pink-300 text-pink-700 font-bold hover:bg-pink-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -206,9 +206,9 @@ export function SurpriseSequencing({ onComplete }: { onComplete?: () => void }) 
               <Button 
                    size="lg" 
                    className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#be185d] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={() => startLevel(1)}
+                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.()}
                  >
-                   Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
+                   {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
             </motion.div>
           ) : null}

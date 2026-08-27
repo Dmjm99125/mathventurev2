@@ -4,7 +4,7 @@ import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Star, Target } from 'lucide-react';
 
-export function SecondAdditionRound({ onComplete }: { onComplete?: () => void }) {
+export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<number[]>([]);
@@ -92,7 +92,7 @@ export function SecondAdditionRound({ onComplete }: { onComplete?: () => void })
                             <span className="text-cyan-700">{score}</span>
                         </div>
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-cyan-400 text-cyan-700 font-bold hover:bg-cyan-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
@@ -197,6 +197,15 @@ export function SecondAdditionRound({ onComplete }: { onComplete?: () => void })
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
+                        {onComplete && allowSkip === false && (
+                            <Button
+                                size="lg"
+                                className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                onClick={onComplete}
+                            >
+                                Continue to Next Game
+                            </Button>
+                        )}
                 </motion.div>
             )}
         </div>

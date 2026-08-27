@@ -41,9 +41,10 @@ const generateRandomItems = (): Item[] => {
 
 interface ColorMatchingGameProps {
   onComplete?: (isCorrect: boolean) => void;
+  allowSkip?: boolean;
 }
 
-export function ColorMatchingGame({ onComplete }: ColorMatchingGameProps) {
+export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchingGameProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -73,13 +74,15 @@ export function ColorMatchingGame({ onComplete }: ColorMatchingGameProps) {
       setIsCompleted(true);
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
-      setTimeout(() => {
-        setProgress(p => p + 1);
-        setItems(generateRandomItems());
-        setIsCompleted(false);
-      }, 2000);
+      if (allowSkip !== false) {
+        setTimeout(() => {
+          setProgress(p => p + 1);
+          setItems(generateRandomItems());
+          setIsCompleted(false);
+        }, 2000);
+      }
     }
-  }, [allMatched, isCompleted]);
+  }, [allMatched, allowSkip, isCompleted]);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -109,7 +112,7 @@ export function ColorMatchingGame({ onComplete }: ColorMatchingGameProps) {
           <Star className="w-5 h-5 fill-current" />
           Progress: {progress}
         </div>
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button 
             variant="default" 
             className="bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-6 h-10 w-full justify-center md:w-auto"
@@ -171,8 +174,18 @@ export function ColorMatchingGame({ onComplete }: ColorMatchingGameProps) {
 
       {allMatched && (
         <div className="mt-8 text-2xl font-bold text-primary animate-bounce flex items-center gap-2">
-          <CheckCircle2 className="w-8 h-8" /> Great job! Next round...
+          <CheckCircle2 className="w-8 h-8" /> {allowSkip === false ? 'Great job!' : 'Great job! Next round...'}
         </div>
+      )}
+
+      {allowSkip === false && isCompleted && onComplete && (
+        <Button
+          size="lg"
+          className="mt-6 rounded-full px-10 text-xl"
+          onClick={() => onComplete(true)}
+        >
+          Continue <CheckCircle2 className="ml-2 h-6 w-6" />
+        </Button>
       )}
     </div>
   );

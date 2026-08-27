@@ -6,9 +6,10 @@ import confetti from 'canvas-confetti';
 
 interface ChooseWhichColorProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function ChooseWhichColor({ onComplete }: ChooseWhichColorProps) {
+export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichColorProps) {
   const [internalIndex, setInternalIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<any>(null);
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
@@ -72,7 +73,7 @@ export function ChooseWhichColor({ onComplete }: ChooseWhichColorProps) {
          <span className="text-xl md:text-2xl font-bold text-sky-700 bg-white px-6 py-3 rounded-2xl shadow-sm border-2 border-sky-200">
             Question {internalIndex + 1} of {questions.length}
          </span>
-         {onComplete && (
+         {onComplete && allowSkip !== false && (
             <Button variant="outline" className="text-sky-600 border-2 border-sky-200 hover:bg-sky-100 font-bold text-lg rounded-xl" onClick={onComplete}>
               Skip to End ➡️
             </Button>

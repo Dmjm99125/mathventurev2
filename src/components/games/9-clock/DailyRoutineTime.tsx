@@ -132,9 +132,10 @@ const InteractiveClock = ({ hour, isShaking }: { hour: number, isShaking: boolea
 
 interface DailyRoutineTimeProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
+export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineTimeProps) {
   const MAX_SCORE = 10;
   const [score, setScore] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -202,7 +203,7 @@ export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
       
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#4527a0] font-bold bg-[#4527a0]/10 hover:bg-[#4527a0]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -278,6 +279,11 @@ export function DailyRoutineTime({ onComplete }: DailyRoutineTimeProps) {
             <h1 className="text-[#6a1b9a] text-4xl md:text-5xl font-extrabold mb-4">PERFECT DAY!</h1>
             
             <div className="flex gap-4 mt-8">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#ff9800] hover:bg-[#e65100] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#e65100] hover:shadow-[0_2px_0_#e65100] hover:translate-y-1 transition-all">
                 Play Again 🔄
               </Button>

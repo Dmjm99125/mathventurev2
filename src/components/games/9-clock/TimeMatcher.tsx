@@ -44,9 +44,10 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
 
 interface TimeMatcherProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function TimeMatcher({ onComplete }: TimeMatcherProps) {
+export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) {
   const MAX_SCORE = 10;
 
   const [score, setScore] = useState(0);
@@ -181,7 +182,7 @@ export function TimeMatcher({ onComplete }: TimeMatcherProps) {
       
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#006064] font-bold bg-[#006064]/10 hover:bg-[#006064]/20" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -259,6 +260,11 @@ export function TimeMatcher({ onComplete }: TimeMatcherProps) {
             <h1 className="text-[#00838f] text-4xl md:text-5xl font-extrabold mb-4">Clock Master!</h1>
             
             <div className="flex gap-4 mt-8">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
                 Play Again 🔄
               </Button>

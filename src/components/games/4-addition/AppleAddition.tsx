@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Star, Apple } from 'lucide-react';
 import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 
-export function AppleAddition({ onComplete }: { onComplete?: () => void }) {
+export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [userAnswer, setUserAnswer] = useState('');
@@ -95,7 +95,7 @@ export function AppleAddition({ onComplete }: { onComplete?: () => void }) {
                         <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
                         <span className="text-orange-700">{score} / {MAX_SCORE}</span>
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-orange-400 text-orange-700 font-bold hover:bg-orange-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
@@ -192,6 +192,15 @@ export function AppleAddition({ onComplete }: { onComplete?: () => void }) {
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
+                        {onComplete && allowSkip === false && (
+                            <Button
+                                size="lg"
+                                className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                onClick={onComplete}
+                            >
+                                Continue to Next Game
+                            </Button>
+                        )}
                 </motion.div>
             )}
         </div>

@@ -92,9 +92,10 @@ const playSound = (type: 'build' | 'success' | 'fail' | 'bounce' | 'crash' | 'fa
 
 interface MagicRainbowBridgeProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function MagicRainbowBridge({ onComplete }: MagicRainbowBridgeProps) {
+export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbowBridgeProps) {
   const MAX_SCORE = 10;
   const BRIDGE_START_X = 70;
 
@@ -272,7 +273,7 @@ export function MagicRainbowBridge({ onComplete }: MagicRainbowBridgeProps) {
   return (
     <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center rounded-[3rem] border-4 border-white bg-[#e0f2f1] p-4 font-display shadow-sm select-none touch-none md:p-6">
       <div className="z-10 mb-4 flex w-full justify-center md:justify-end">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
             className="w-full max-w-sm justify-center bg-white/50 font-bold text-[#00796b] hover:bg-white md:w-auto"
@@ -390,6 +391,11 @@ export function MagicRainbowBridge({ onComplete }: MagicRainbowBridgeProps) {
             <p className="mb-8 text-xl font-bold text-[#00695c] md:text-2xl">You crossed 10 bridges!</p>
 
             <div className="flex gap-4">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button
                 size="lg"
                 onClick={resetGame}

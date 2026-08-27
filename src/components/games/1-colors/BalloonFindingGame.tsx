@@ -23,9 +23,10 @@ interface Balloon {
 
 interface BalloonFindingGameProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function BalloonFindingGame({ onComplete }: BalloonFindingGameProps) {
+export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFindingGameProps) {
   const [score, setScore] = useState(0);
   const [targetColor, setTargetColor] = useState(COLORS[0]);
   const [balloons, setBalloons] = useState<Balloon[]>([]);
@@ -153,7 +154,7 @@ export function BalloonFindingGame({ onComplete }: BalloonFindingGameProps) {
         <div className="text-xl md:text-2xl font-bold text-orange-500">
           Stars: <span>{score}</span> / 10
         </div>
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button 
             variant="default" 
             className="absolute top-4 right-4 hidden md:flex bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20"
@@ -162,7 +163,7 @@ export function BalloonFindingGame({ onComplete }: BalloonFindingGameProps) {
             Next Game ➡️
           </Button>
         )}
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button
             variant="default"
             className="mt-4 w-full max-w-sm justify-center bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-[0_4px_0_0_#e68a00] text-white px-4 py-2 z-20 md:hidden"

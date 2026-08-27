@@ -43,9 +43,10 @@ const playSound = (type: 'correct' | 'wrong' | 'pop') => {
 
 interface CountMatchProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function CountMatch({ onComplete }: CountMatchProps) {
+export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
   const NUMBERS = [1, 2, 3, 4, 5];
   
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
@@ -119,6 +120,11 @@ export function CountMatch({ onComplete }: CountMatchProps) {
             You matched them all!
           </h2>
           <div className="flex gap-4 justify-center">
+            {allowSkip === false && onComplete && (
+              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                Next Game <ChevronRight className="ml-2 h-6 w-6" />
+              </Button>
+            )}
             <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
               Play Again! 🔄
             </Button>
@@ -133,7 +139,7 @@ export function CountMatch({ onComplete }: CountMatchProps) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-amber-800 font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>

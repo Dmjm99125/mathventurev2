@@ -8,7 +8,7 @@ const ITEMS_2D = [{a:"🍰",b:"🧆"}, {a:"🍎",b:"🍐"}, {a:"🍩",b:"🍪"},
 const ITEMS_3D = [{a:"🔴",b:"🟦",c:"⭐"}, {a:"🦁",b:"🐵",c:"🐘"}, {a:"🍌",b:"🍇",c:"🍓"}];
 const ITEMS_HARD = [{a:"🍦",b:"🍭"}, {a:"🎈",b:"🎁"}, {a:"🐸",b:"🐥"}];
 
-export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void }) {
+export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [sessions, setSessions] = useState<{ s2: typeof ITEMS_2D, s3: typeof ITEMS_3D, sh: typeof ITEMS_HARD } | null>(null);
   
   const [level, setLevel] = useState(1);
@@ -121,7 +121,7 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
              Level: <span className="text-sky-600">{level}/11</span>
              <span className={`text-sm text-white px-3 py-1 rounded-full shadow-sm ${diffStyle.bg}`}>{diffStyle.text}</span>
           </div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-sky-400 text-sky-700 font-bold hover:bg-sky-50 rounded-xl bg-white w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -236,9 +236,9 @@ export function PatternTrainAcademy({ onComplete }: { onComplete?: () => void })
               <Button 
                    size="lg" 
                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
-                   onClick={() => startLevel(1)}
+                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.()}
                  >
-                   Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
+                    {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
             </motion.div>
           ) : null}

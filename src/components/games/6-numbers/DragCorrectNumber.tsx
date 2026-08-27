@@ -35,9 +35,10 @@ const playSound = (type: 'correct' | 'wrong') => {
 
 interface DragCorrectNumberProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
+export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectNumberProps) {
   const [targetNumber, setTargetNumber] = useState(1);
   const [options, setOptions] = useState<number[]>([]);
   const [score, setScore] = useState(0);
@@ -121,6 +122,11 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
             You're a Number Master!
           </h2>
           <div className="flex gap-4 justify-center">
+            {allowSkip === false && onComplete && (
+              <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                Next Game <ChevronRight className="ml-2 h-6 w-6" />
+              </Button>
+            )}
             <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
               Play Again! 🔄
             </Button>
@@ -135,7 +141,7 @@ export function DragCorrectNumber({ onComplete }: DragCorrectNumberProps) {
 
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-teal-700 font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>

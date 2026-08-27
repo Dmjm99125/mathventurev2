@@ -30,7 +30,7 @@ const Cake = ({ size }: { size: number }) => {
   );
 }
 
-export function SmallestLargestCake({ onComplete }: { onComplete?: () => void }) {
+export function SmallestLargestCake({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
@@ -80,7 +80,7 @@ export function SmallestLargestCake({ onComplete }: { onComplete?: () => void })
         </h2>
         <div className="flex gap-4 items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-pink-600">{score}</span></div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-pink-300 text-pink-700 font-bold hover:bg-pink-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -175,9 +175,9 @@ export function SmallestLargestCake({ onComplete }: { onComplete?: () => void })
               <Button 
                 size="lg" 
                 className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#ec4899] active:translate-y-1 active:shadow-none transition-all"
-                onClick={startRound}
+                onClick={allowSkip ? startRound : () => onComplete?.()}
               >
-                Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                {allowSkip ? 'Play Again' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
               </Button>
             </motion.div>
           ) : null}

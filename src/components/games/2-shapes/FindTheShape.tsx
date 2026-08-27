@@ -6,11 +6,11 @@ import { Play } from 'lucide-react';
 
 const SHAPES = ["⬛", "⭕", "🔺", "⭐", "🟩", "🔶"];
 
-export function FindTheShape({ onComplete }: { onComplete?: () => void }) {
+export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [targetShape, setTargetShape] = useState('');
     const [choices, setChoices] = useState<string[]>([]);
     const [message, setMessage] = useState('Tap the correct shape!');
-    const [gameState, setGameState] = useState<'playing' | 'feedback'>('playing');
+    const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
     const [score, setScore] = useState(0);
 
     const startRound = () => {
@@ -26,12 +26,13 @@ export function FindTheShape({ onComplete }: { onComplete?: () => void }) {
     }, []);
 
     const handleChoice = (shape: string) => {
-        if (gameState === 'feedback') return;
+        if (gameState !== 'playing') return;
 
         if (shape === targetShape) {
             setMessage('🎉 Correct!');
-            setGameState('feedback');
-            setScore(s => s + 1);
+            const newScore = score + 1;
+            setScore(newScore);
+            setGameState(allowSkip === false && newScore >= 10 ? 'completed' : 'feedback');
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } else {
             setMessage('❌ Try again!');
@@ -46,7 +47,7 @@ export function FindTheShape({ onComplete }: { onComplete?: () => void }) {
                 <h2 className="text-2xl font-bold font-display text-orange-600 uppercase tracking-wide">Find the Shape</h2>
                 <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center">
                     <div className="text-xl font-bold text-gray-700">Score: <span className="text-orange-500">{score}</span></div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-100 w-full justify-center md:w-auto" onClick={onComplete}>
                             Next Game ➡️
                         </Button>
@@ -70,7 +71,7 @@ export function FindTheShape({ onComplete }: { onComplete?: () => void }) {
                             className={`h-32 md:h-40 bg-[#ffe0a3] hover:bg-[#ffd17a] border-4 border-[#ffcd66] rounded-3xl flex items-center justify-center text-7xl md:text-8xl shadow-[0_6px_0_0_#e6aa32] transition-all active:translate-y-2 active:shadow-none ${gameState === 'feedback' && !isWinner ? 'opacity-50 grayscale' : ''
                                 } ${isWinner ? 'animate-bounce' : 'hover:-translate-y-2'}`}
                             onClick={() => handleChoice(shape)}
-                            disabled={gameState === 'feedback'}
+                            disabled={gameState !== 'playing'}
                         >
                             {shape}
                         </button>
@@ -94,6 +95,17 @@ export function FindTheShape({ onComplete }: { onComplete?: () => void }) {
                         onClick={startRound}
                     >
                         Next Shape <Play className="ml-3 h-8 w-8 fill-current" />
+                    </Button>
+                </div>
+            )}
+            {gameState === 'completed' && onComplete && (
+                <div className="mb-4 animate-in fade-in slide-in-from-bottom-8">
+                    <Button
+                        size="lg"
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl px-12 md:px-16 py-8 rounded-full shadow-[0_6px_0_0_#2e7d32] active:translate-y-2 active:shadow-none transition-all hover:scale-105"
+                        onClick={onComplete}
+                    >
+                        Continue <Play className="ml-3 h-8 w-8 fill-current" />
                     </Button>
                 </div>
             )}

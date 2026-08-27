@@ -117,6 +117,20 @@ function ClassroomQuizBanner({ error }: { error?: string | null }) {
   );
 }
 
+function AssignedQuizGameNavigation({
+  allowSkip,
+  children,
+}: {
+  allowSkip: boolean;
+  children: React.ReactNode;
+}) {
+  const child = React.Children.only(children);
+
+  return React.isValidElement(child) && typeof child.type !== 'string'
+    ? React.cloneElement(child as React.ReactElement<{ allowSkip?: boolean }>, { allowSkip })
+    : child;
+}
+
 export function QuizPage() {
   const [, params] = useRoute('/student/lessons/:topic');
   const searchStr = useSearch();
@@ -550,7 +564,8 @@ export function QuizPage() {
       )}
 
       {(gameState === 'playing' || gameState === 'feedback') && question && (
-        topic === 'colors' && currentIndex === 0 ? (
+        <AssignedQuizGameNavigation allowSkip={!isAssignedQuiz}>
+          {topic === 'colors' && currentIndex === 0 ? (
           <ColorMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 1 ? (
           <BalloonFindingGame onComplete={handleStructuredGameComplete} />
@@ -788,7 +803,8 @@ export function QuizPage() {
             </div>
           )}
         </div>
-        )
+          )}
+        </AssignedQuizGameNavigation>
       )}
 
       {gameState === 'completed' && (

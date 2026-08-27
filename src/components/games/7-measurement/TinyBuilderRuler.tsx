@@ -57,9 +57,10 @@ const toolPrizes = ['🔨', '🪚', '🧰', '🧱', '🚜', '📐', '🔧', '�
 
 interface TinyBuilderRulerProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function TinyBuilderRuler({ onComplete }: TinyBuilderRulerProps) {
+export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRulerProps) {
   const MAX_SCORE = 10;
   
   const [score, setScore] = useState(0);
@@ -130,7 +131,7 @@ export function TinyBuilderRuler({ onComplete }: TinyBuilderRulerProps) {
       
       {/* Skip Button */}
       <div className="mb-4 flex w-full justify-center md:justify-end z-10">
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#334155] font-bold bg-white/50 hover:bg-white" onClick={onComplete}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -225,6 +226,11 @@ export function TinyBuilderRuler({ onComplete }: TinyBuilderRulerProps) {
             </motion.div>
             
             <div className="flex gap-4">
+              {allowSkip === false && onComplete && (
+                <Button size="lg" variant="jungle" onClick={onComplete} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                  Next Game <ChevronRight className="ml-2 h-6 w-6" />
+                </Button>
+              )}
               <Button size="lg" onClick={resetGame} className="bg-[#f97316] hover:bg-[#c2410c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#c2410c] hover:shadow-[0_2px_0_#c2410c] hover:translate-y-1 transition-all">
                 Play Again! 🔄
               </Button>

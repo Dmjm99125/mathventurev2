@@ -13,9 +13,10 @@ const GALAXY_COLORS = [
 
 interface RainbowGalaxyExplorerProps {
   onComplete?: () => void;
+  allowSkip?: boolean;
 }
 
-export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps) {
+export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowGalaxyExplorerProps) {
   const [screen, setScreen] = useState<'start' | 'game' | 'end'>('start');
   const [pilot, setPilot] = useState('🐰');
   const [score, setScore] = useState(0);
@@ -113,7 +114,7 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
         ))}
       </div>
 
-      {onComplete && (
+      {onComplete && allowSkip !== false && (
         <Button 
           variant="outline" 
           className="absolute top-16 right-4 hidden md:flex bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] z-50"
@@ -126,7 +127,7 @@ export function RainbowGalaxyExplorer({ onComplete }: RainbowGalaxyExplorerProps
       {/* Start Screen */}
       {screen === 'start' && (
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 animate-in fade-in">
-          {onComplete && (
+          {onComplete && allowSkip !== false && (
             <Button
               variant="outline"
               className="mb-6 w-full max-w-sm justify-center bg-transparent border-2 border-[#00f2ff] hover:bg-[#00f2ff]/20 text-[#00f2ff] font-bold rounded-xl shadow-[0_0_10px_#00f2ff] md:hidden"

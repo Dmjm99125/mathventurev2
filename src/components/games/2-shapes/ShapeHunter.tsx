@@ -6,7 +6,7 @@ import confetti from 'canvas-confetti';
 const SHAPES = ["Circle", "Square", "Rectangle", "Triangle"];
 const REWARDS = ["🎈", "🐰", "🦄", "🐶", "⭐", "🎁", "🐱", "🌈"];
 
-export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
+export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [targetShape, setTargetShape] = useState('');
   const [score, setScore] = useState(0);
   const [message, setMessage] = useState('');
@@ -25,6 +25,7 @@ export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
   }, []);
 
   const handleShapeClick = (shape: string) => {
+    if (allowSkip === false && score >= 10) return;
     if (message === "🎉 Great Job!") return; // Prevent clicking during success delay
 
     if (shape === targetShape) {
@@ -38,7 +39,7 @@ export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
         setEarnedRewards(prev => [...prev, newReward]);
       }
       
-      setTimeout(startRound, 1000);
+      if (!(allowSkip === false && newScore >= 10)) setTimeout(startRound, 1000);
     } else {
       setMessage("❌ Try Again!");
       setTimeout(() => {
@@ -107,7 +108,7 @@ export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
           <div className="text-xl md:text-2xl font-bold text-gray-700 bg-white/80 px-4 py-2 rounded-2xl shadow-sm border border-sky-200">
              Score: <span className="text-[#ff5722]">{score}</span>
           </div>
-          {onComplete && (
+          {onComplete && allowSkip !== false && (
             <Button 
               variant="outline" 
               className="border-2 border-sky-300 text-sky-700 font-bold hover:bg-sky-100 rounded-xl bg-white shadow-sm w-full justify-center md:w-auto"
@@ -173,6 +174,16 @@ export function ShapeHunter({ onComplete }: { onComplete?: () => void }) {
           </AnimatePresence>
         </div>
       </div>
+
+      {allowSkip === false && score >= 10 && onComplete && (
+        <Button
+          size="lg"
+          className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
+          onClick={onComplete}
+        >
+          Continue
+        </Button>
+      )}
 
     </div>
   );

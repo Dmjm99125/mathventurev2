@@ -7,7 +7,7 @@ import { Play, CheckCircle2, XCircle, Maximize2, Minimize2, Scaling } from 'luci
 const SIZES = [50, 80, 110, 140, 170];
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
 
-export function SizeSorter({ onComplete }: { onComplete?: () => void }) {
+export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<{size: number, color: string}[]>([]);
   const [order, setOrder] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,7 +66,7 @@ export function SizeSorter({ onComplete }: { onComplete?: () => void }) {
         </h2>
         <div className="flex gap-4 items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-orange-500">{score}</span></div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-orange-300 text-orange-600 font-bold hover:bg-orange-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -173,9 +173,9 @@ export function SizeSorter({ onComplete }: { onComplete?: () => void }) {
               <Button 
                 size="lg" 
                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#ea580c] active:translate-y-1 active:shadow-none transition-all"
-                onClick={startRound}
+                onClick={allowSkip ? startRound : () => onComplete?.()}
               >
-                Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                {allowSkip ? 'Play Again' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
               </Button>
             </motion.div>
           ) : null}

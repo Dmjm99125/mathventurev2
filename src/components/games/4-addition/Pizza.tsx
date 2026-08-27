@@ -8,7 +8,7 @@ const LEFT_TOPPINGS = ['🍕', '🍅', '🍄', '🫑'];
 const RIGHT_TOPPINGS = ['🍍', '🧀', '🧅', '🌽'];
 const KITCHEN_PRIZES = ['🍳', '🧑‍🍳', '🥣', '🥤', '🧂', '🔪', '🥖', '🍩'];
 
-export function Pizza({ onComplete }: { onComplete?: () => void }) {
+export function Pizza({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [icon1, setIcon1] = useState('🍅');
@@ -94,7 +94,7 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                             <span className="text-blue-800">{score}</span>
                         </div>
                     </div>
-                    {onComplete && (
+                    {onComplete && allowSkip !== false && (
                         <Button variant="outline" className="w-full max-w-sm md:w-auto border-2 border-blue-400 text-blue-700 font-bold hover:bg-blue-50 rounded-xl bg-white" onClick={onComplete}>
                             Skip Game ➡️
                         </Button>
@@ -231,6 +231,15 @@ export function Pizza({ onComplete }: { onComplete?: () => void }) {
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
                         </Button>
+                        {onComplete && allowSkip === false && (
+                            <Button
+                                size="lg"
+                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full"
+                                onClick={onComplete}
+                            >
+                                Continue to Next Game
+                            </Button>
+                        )}
                 </motion.div>
             )}
         </div>

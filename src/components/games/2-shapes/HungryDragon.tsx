@@ -7,7 +7,7 @@ import { ArrowLeft, Heart, Star } from 'lucide-react';
 const SHAPES = ['circle', 'square', 'triangle'];
 const REWARDS = ['👑', '💍', '🍦', '🍗', '🍕', '🎮', '🎸', '🚲', '🎨', '🚀', '🛸'];
 
-export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
+export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [screen, setScreen] = useState('start');
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -155,7 +155,7 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
             </Button>
           )}
 
-          {onComplete && (
+          {onComplete && allowSkip !== false && (
             <Button
               variant="outline"
               className="bg-white/90 border-2 border-green-300 text-green-800 font-bold hover:bg-green-100 shadow-sm pointer-events-auto rounded-xl w-full max-w-sm justify-center md:w-auto"
@@ -250,6 +250,15 @@ export function HungryDragon({ onComplete }: { onComplete?: () => void }) {
             >
               KEEP FEEDING
             </Button>
+            {allowSkip === false && onComplete && (
+              <Button
+                size="lg"
+                className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
+                onClick={onComplete}
+              >
+                Continue Quiz
+              </Button>
+            )}
           </motion.div>
         )}
 

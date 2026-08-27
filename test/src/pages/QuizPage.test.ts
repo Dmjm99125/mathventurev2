@@ -51,3 +51,27 @@ Deno.test("assigned special games use the checkpointed completion path", async (
   assertEquals(source.includes("if (isSavingGameRef.current) return;"), true);
   assertEquals(source.includes("setIsSavingGame(true)"), true);
 });
+
+Deno.test("assigned games disable every child bypass navigation control", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("<AssignedQuizGameNavigation allowSkip={!isAssignedQuiz}>"), true);
+  assertEquals(source.includes("React.cloneElement(child as React.ReactElement"), true);
+});
+
+Deno.test("all assigned-quiz games guard direct bypass callbacks", async () => {
+  const pageSource = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+  const imports = [...pageSource.matchAll(/from ['"](@\/components\/(?:games|shared)\/[^'"]+)['"]/g)]
+    .map((match) => match[1]);
+
+  for (const importPath of imports) {
+    const filePath = new URL(`../../../src/${importPath.replace(/^@\//, '')}.tsx`, import.meta.url);
+    const gameSource = await Deno.readTextFile(filePath);
+    const hasBypassControl = /onClick=\{onComplete\}|onClick=\{handleFinish\}/.test(gameSource)
+      && /Next Game|Skip Game|Skip to End|Finish Chapter|Finish Module/.test(gameSource);
+
+    if (hasBypassControl) {
+      assertEquals(gameSource.includes("allowSkip"), true, importPath);
+    }
+  }
+});

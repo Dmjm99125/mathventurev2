@@ -29,7 +29,7 @@ const Caterpillar = ({ size }: { size: number }) => {
   );
 }
 
-export function ShortestLongest({ onComplete }: { onComplete?: () => void }) {
+export function ShortestLongest({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
@@ -79,7 +79,7 @@ export function ShortestLongest({ onComplete }: { onComplete?: () => void }) {
         </h2>
         <div className="flex gap-4 items-center">
           <div className="text-lg md:text-xl font-bold text-slate-700">Score: <span className="text-green-600">{score}</span></div>
-          {onComplete && (
+          {onComplete && allowSkip && (
             <Button variant="outline" className="border-2 border-green-300 text-green-700 font-bold hover:bg-green-50 rounded-xl w-full justify-center md:w-auto" onClick={onComplete}>
               Next Game ➡️
             </Button>
@@ -174,9 +174,9 @@ export function ShortestLongest({ onComplete }: { onComplete?: () => void }) {
               <Button 
                 size="lg" 
                 className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#16a34a] active:translate-y-1 active:shadow-none transition-all"
-                onClick={startRound}
+                onClick={allowSkip ? startRound : () => onComplete?.()}
               >
-                Play Again <Play className="ml-2 w-6 h-6 fill-current" />
+                {allowSkip ? 'Play Again' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
               </Button>
             </motion.div>
           ) : null}

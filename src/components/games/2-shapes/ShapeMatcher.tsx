@@ -18,7 +18,7 @@ const TARGETS = [
     { shape: "sphere", name: "SPHERE", icon: "🔵" }
 ];
 
-export function ShapeMatcher({ onComplete }: { onComplete?: () => void }) {
+export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: () => void; allowSkip?: boolean }) {
   const [matches, setMatches] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
   const [shuffledItems, setShuffledItems] = useState(ITEMS);
@@ -86,7 +86,7 @@ export function ShapeMatcher({ onComplete }: { onComplete?: () => void }) {
           <h1 className="text-3xl md:text-4xl font-display font-bold text-[#ff4500] drop-shadow-sm mb-1 tracking-wide">Shape Matcher!</h1>
           <p className="text-lg text-gray-700 font-bold">Drag the toy to the matching shape box!</p>
         </div>
-        {onComplete && (
+        {onComplete && allowSkip !== false && (
           <Button 
             variant="outline" 
             className="border-2 border-orange-300 text-orange-700 font-bold hover:bg-orange-100 rounded-xl bg-white shadow-sm w-full justify-center md:w-auto"
@@ -162,13 +162,24 @@ export function ShapeMatcher({ onComplete }: { onComplete?: () => void }) {
       </div>
 
       {isWon && (
-        <Button 
-          size="lg"
-          className="bg-[#ff4500] hover:bg-[#cc3700] text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#a02d00] animate-in slide-in-from-bottom-8 mb-4 active:translate-y-2 active:shadow-none transition-all"
-          onClick={resetGame}
-        >
-          Play Again! 🔄
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <Button
+            size="lg"
+            className="bg-[#ff4500] hover:bg-[#cc3700] text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#a02d00] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
+            onClick={resetGame}
+          >
+            Play Again! 🔄
+          </Button>
+          {allowSkip === false && onComplete && (
+            <Button
+              size="lg"
+              className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
+              onClick={onComplete}
+            >
+              Continue
+            </Button>
+          )}
+        </div>
       )}
 
     </div>
