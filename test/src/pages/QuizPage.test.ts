@@ -25,3 +25,21 @@ Deno.test("colors quiz ends after the first multiple-choice activity", async () 
   assertEquals(source.includes("topic === 'colors' && currentIndex === 6"), false);
   assertEquals(source.includes("<MultipleChoice"), false);
 });
+
+Deno.test("assigned lessons identify classroom quiz mode and use assignment quiz persistence", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("CLASSROOM QUIZ"), true);
+  assertEquals(source.includes("ONE ATTEMPT ONLY"), true);
+  assertEquals(source.includes("useAssignmentQuiz"), true);
+  assertEquals(source.includes("useCheckpointAssignmentQuiz"), true);
+  assertEquals(source.includes("useCompleteAssignmentQuiz"), true);
+});
+
+Deno.test("assigned completion removes replay while free play keeps the existing replay action", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("assignmentId ? null :"), true);
+  assertEquals(source.includes("Quiz submitted — this assignment can only be taken once."), true);
+  assertEquals(source.includes("submitAttempt.mutateAsync"), true);
+});

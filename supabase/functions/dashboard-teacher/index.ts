@@ -23,9 +23,10 @@ Deno.serve(async (req) => {
 
   const { data: attempts, error: attemptsError } = allStudentIds.length
     ? await adminClient
-        .from("attempts")
-        .select("student_id, lesson_id, score, max_score")
-        .in("student_id", allStudentIds)
+      .from("attempts")
+      .select("student_id, lesson_id, score, max_score")
+      .in("student_id", allStudentIds)
+      .eq("status", "completed")
     : { data: [], error: null };
   if (attemptsError) return errorResponse(attemptsError.message, 500);
 

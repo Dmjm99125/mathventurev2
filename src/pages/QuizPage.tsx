@@ -88,7 +88,13 @@ import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft, Pencil } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { useSubmitAttempt } from '@/lib/api/hooks';
+import {
+  useAssignmentQuiz,
+  useCheckpointAssignmentQuiz,
+  useCompleteAssignmentQuiz,
+  useStartAssignmentQuiz,
+  useSubmitAttempt,
+} from '@/lib/api/hooks';
 import {
   appendAttemptGameResult,
   buildAttemptGameResult,
@@ -97,6 +103,19 @@ import {
 import { buildStudentLessonExitHref } from '@/lib/student/portal';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
+
+function ClassroomQuizBanner({ error }: { error?: string | null }) {
+  return (
+    <Card className="w-full max-w-3xl border-4 border-jungle-yellow bg-jungle-yellow/10 p-4 text-center shadow-md">
+      <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">CLASSROOM QUIZ</p>
+      <p className="mt-1 text-xl font-display font-extrabold text-foreground">ONE ATTEMPT ONLY</p>
+      <p className="mt-1 text-sm font-bold text-muted-foreground">
+        This assigned quiz can be submitted once. Free play remains available separately for practice.
+      </p>
+      {error && <p className="mt-2 text-sm font-extrabold text-destructive">{error}</p>}
+    </Card>
+  );
+}
 
 export function QuizPage() {
   const [, params] = useRoute('/student/lessons/:topic');
@@ -108,7 +127,12 @@ export function QuizPage() {
   const topic = params?.topic || 'colors';
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
+  const assignmentQuiz = useAssignmentQuiz(assignmentId, topic);
+  const startAssignmentQuiz = useStartAssignmentQuiz();
+  const checkpointAssignmentQuiz = useCheckpointAssignmentQuiz();
+  const completeAssignmentQuiz = useCompleteAssignmentQuiz();
   const exitHref = buildStudentLessonExitHref({ classId, returnTo });
+  const isAssignedQuiz = Boolean(assignmentId);
 
   const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
 
@@ -129,9 +153,30 @@ export function QuizPage() {
   const [score, setScore] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [gameResults, setGameResults] = useState<AttemptGameResultInput[]>([]);
+  const [quizPersistenceError, setQuizPersistenceError] = useState<string | null>(null);
 
   const question = questions[currentIndex];
   const slides = lesson?.slides ?? [];
+  const savedQuizState = assignmentQuiz.data?.state;
+
+  useEffect(() => {
+    if (!assignmentId || !savedQuizState) return;
+
+    if (savedQuizState.status === 'completed') {
+      setCurrentIndex(savedQuizState.currentGameOrder);
+      setScore(savedQuizState.score);
+      setGameResults(savedQuizState.gameResults);
+      setGameState('completed');
+      return;
+    }
+
+    if (savedQuizState.status === 'in_progress' && gameState === 'video') {
+      setCurrentIndex(savedQuizState.currentGameOrder);
+      setScore(savedQuizState.score);
+      setGameResults(savedQuizState.gameResults);
+      setGameState('quiz-intro');
+    }
+  }, [assignmentId, gameState, savedQuizState?.status, savedQuizState?.currentGameOrder]);
 
   // ── Stage helpers ──────────────────────────────────────────────────────────
   const currentStage = (): 'video' | 'lesson' | 'quiz' => {
@@ -154,11 +199,30 @@ export function QuizPage() {
   };
 
   // ── Quiz handlers ──────────────────────────────────────────────────────────
-  const startGame = () => {
-    setCurrentIndex(0);
+  const startGame = async () => {
+    setQuizPersistenceError(null);
+    if (assignmentId) {
+      try {
+        await startAssignmentQuiz.mutateAsync({ assignmentId, lessonId: topic });
+      } catch (error) {
+        setQuizPersistenceError(error instanceof Error ? error.message : 'Unable to start the classroom quiz.');
+        return;
+      }
+    }
+
+    const resumeIndex = savedQuizState?.status === 'in_progress'
+      ? savedQuizState.currentGameOrder
+      : 0;
+    const resumeScore = savedQuizState?.status === 'in_progress'
+      ? savedQuizState.score
+      : 0;
+    const resumeResults = savedQuizState?.status === 'in_progress'
+      ? savedQuizState.gameResults
+      : [];
+    setCurrentIndex(resumeIndex);
     setSelectedOption(null);
-    setScore(0);
-    setGameResults([]);
+    setScore(resumeScore);
+    setGameResults(resumeResults);
     setGameState('playing');
     setStartTime(Date.now());
   };
@@ -179,27 +243,58 @@ export function QuizPage() {
     if (option.isCorrect) setScore(s => s + 1);
   };
 
+  const saveQuizCheckpoint = async (
+    result: AttemptGameResultInput,
+    nextScore: number,
+  ) => {
+    if (!assignmentId) return true;
+    try {
+      await checkpointAssignmentQuiz.mutateAsync({
+        assignmentId,
+        lessonId: topic,
+        score: nextScore,
+        gameResult: result,
+      });
+      return true;
+    } catch (error) {
+      setQuizPersistenceError(error instanceof Error ? error.message : 'Unable to save quiz progress.');
+      return false;
+    }
+  };
+
   const finishAttempt = async (
     nextResults: AttemptGameResultInput[],
     finalScore = score,
   ) => {
-    setGameState('completed');
     const durationSeconds = Math.round((Date.now() - startTime) / 1000);
     const maxScore = questions.length;
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#eab308', '#f97316'] });
     try {
-      await submitAttempt.mutateAsync({
-        lessonId: topic,
-        assignmentId,
-        classId,
-        score: finalScore,
-        maxScore,
-        durationSeconds,
-        gameResults: nextResults,
-      });
+      if (assignmentId) {
+        await completeAssignmentQuiz.mutateAsync({
+          assignmentId,
+          lessonId: topic,
+          score: finalScore,
+          maxScore,
+          durationSeconds,
+          gameResults: nextResults,
+        });
+      } else {
+        await submitAttempt.mutateAsync({
+          lessonId: topic,
+          assignmentId,
+          classId,
+          score: finalScore,
+          maxScore,
+          durationSeconds,
+          gameResults: nextResults,
+        });
+      }
+      setQuizPersistenceError(null);
     } catch (e) {
-      console.error('Failed to submit score', e);
+      setQuizPersistenceError(e instanceof Error ? e.message : 'Unable to submit the quiz.');
     }
+    setGameState('completed');
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#eab308', '#f97316'] });
   };
 
   const completeStructuredGame = async (gameScore = 1, gameMaxScore = 1) => {
@@ -207,7 +302,9 @@ export function QuizPage() {
     setGameResults(nextResults);
 
     if (currentIndex < questions.length - 1) {
-      setScore((currentScore) => currentScore + gameScore);
+      const nextScore = score + gameScore;
+      if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], nextScore))) return;
+      setScore(nextScore);
       setCurrentIndex((value) => value + 1);
       setSelectedOption(null);
       setGameState('playing');
@@ -229,6 +326,7 @@ export function QuizPage() {
     setGameResults(nextResults);
 
     if (currentIndex < questions.length - 1) {
+      if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], score))) return;
       setCurrentIndex(c => c + 1);
       setSelectedOption(null);
       setGameState('playing');
@@ -240,6 +338,24 @@ export function QuizPage() {
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER: no lesson content for this topic
   // ─────────────────────────────────────────────────────────────────────────
+  if (assignmentId && assignmentQuiz.isLoading) {
+    return (
+      <GameLayout topic={topic} stage="quiz" onExit={handleExit}>
+        <Card className="max-w-md w-full p-8 text-center">
+          <p className="font-bold text-muted-foreground">Loading your classroom quiz...</p>
+        </Card>
+      </GameLayout>
+    );
+  }
+
+  if (assignmentId && assignmentQuiz.isError) {
+    return (
+      <GameLayout topic={topic} stage="quiz" onExit={handleExit}>
+        <ClassroomQuizBanner error={assignmentQuiz.error instanceof Error ? assignmentQuiz.error.message : 'Unable to load this classroom quiz.'} />
+      </GameLayout>
+    );
+  }
+
   if (!questions.length && !lesson) {
     return (
       <GameLayout topic={topic} title="Coming Soon" onExit={handleExit}>
@@ -259,6 +375,7 @@ export function QuizPage() {
     return (
       <GameLayout topic={topic} stage="video" onExit={handleExit}>
         <div className="w-full max-w-5xl flex flex-col items-center gap-6 animate-in fade-in duration-500">
+          {isAssignedQuiz && <ClassroomQuizBanner error={quizPersistenceError} />}
           {/* Title */}
           <div className="text-center space-y-1">
             <h1 className="text-3xl font-display font-extrabold text-foreground capitalize">{topic}</h1>
@@ -321,6 +438,7 @@ export function QuizPage() {
     return (
       <GameLayout topic={topic} stage="lesson" onExit={handleExit}>
         <div className="w-full max-w-2xl flex flex-col items-center gap-6">
+          {isAssignedQuiz && <ClassroomQuizBanner error={quizPersistenceError} />}
           {slide ? (
             <LessonSlideCard slide={slide} index={slideIndex + 1} total={slides.length} />
           ) : (
@@ -394,6 +512,7 @@ export function QuizPage() {
 
   return (
     <GameLayout topic={topic} stage="quiz" onExit={handleExit}>
+      {isAssignedQuiz && <ClassroomQuizBanner error={quizPersistenceError} />}
 
       {gameState === 'quiz-intro' && (
         <Card className="max-w-md w-full p-8 text-center animate-in zoom-in-95 duration-500 shadow-2xl border-4 border-primary">
@@ -402,10 +521,12 @@ export function QuizPage() {
           </div>
           <h1 className="text-3xl font-display font-bold mb-4 capitalize">{topic}</h1>
           <p className="text-lg text-muted-foreground font-bold mb-8">
-            Time for the activities! Let's see what you learned.
+            {savedQuizState?.status === 'in_progress'
+              ? 'You have an unfinished classroom quiz. Continue where you left off.'
+              : "Time for the activities! Let's see what you learned."}
           </p>
-          <Button size="lg" variant="jungle" className="w-full text-xl h-16 rounded-full shadow-lg" onClick={startGame}>
-            Start <Play className="ml-2 h-6 w-6 fill-current" />
+          <Button size="lg" variant="jungle" className="w-full text-xl h-16 rounded-full shadow-lg" onClick={() => void startGame()} disabled={startAssignmentQuiz.isPending}>
+            {savedQuizState?.status === 'in_progress' ? 'Resume Quiz' : 'Start'} <Play className="ml-2 h-6 w-6 fill-current" />
           </Button>
         </Card>
       )}
@@ -673,13 +794,18 @@ export function QuizPage() {
           </div>
           <h1 className="text-4xl font-display font-extrabold mb-2 text-foreground">Excellent!</h1>
           <p className="text-xl font-bold text-muted-foreground mb-8">
-            You scored {score} out of {questions.length}
+            {isAssignedQuiz
+              ? `Quiz submitted — this assignment can only be taken once. You scored ${score} out of ${questions.length}.`
+              : `You scored ${score} out of ${questions.length}`}
           </p>
+          {quizPersistenceError && (
+            <p className="mb-6 text-sm font-extrabold text-destructive">{quizPersistenceError}</p>
+          )}
           <div className="flex flex-col gap-3">
-            <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => setLocation('/')}>
-              Return to Main Menu
+            <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={isAssignedQuiz ? handleExit : () => setLocation('/')}>
+              {isAssignedQuiz ? 'Return to Classroom' : 'Return to Main Menu'}
             </Button>
-            <Button
+            {assignmentId ? null : (<Button
               size="lg"
               variant="ghost"
               className="w-full font-bold"
@@ -693,7 +819,7 @@ export function QuizPage() {
               }}
             >
               Play Again
-            </Button>
+            </Button>)}
           </div>
         </Card>
       )}

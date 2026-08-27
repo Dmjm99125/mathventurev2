@@ -56,7 +56,25 @@ export interface AssignmentForStudent {
   classId: string | null;
   dueAt: string | null;
   createdAt: string;
+  status: AssignmentQuizStatus;
+  currentGameOrder: number;
+  score: number;
+  maxScore: number;
   completed: boolean;
+}
+
+export type AssignmentQuizStatus = 'not_started' | 'in_progress' | 'completed';
+
+export interface AssignmentQuizState {
+  status: AssignmentQuizStatus;
+  assignmentId: string;
+  lessonId: string;
+  attemptId: string | null;
+  currentGameOrder: number;
+  score: number;
+  maxScore: number;
+  gameResults: AttemptGameResultInput[];
+  completedAt: string | null;
 }
 
 export interface AssignmentForTeacher {
@@ -160,6 +178,39 @@ export const api = {
       }),
     create: (input: { lessonId: string; classId?: string; studentId?: string; dueAt?: string }) =>
       invokeFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),
+  },
+  assignmentQuiz: {
+    get: (assignmentId: string, lessonId: string) =>
+      invokeFunction<{ state: AssignmentQuizState }>('assignment-quiz', {
+        searchParams: { assignmentId, lessonId },
+      }),
+    start: (assignmentId: string, lessonId: string) =>
+      invokeFunction<{ state: AssignmentQuizState }>('assignment-quiz', {
+        method: 'POST',
+        body: { action: 'start', assignmentId, lessonId },
+      }),
+    checkpoint: (input: {
+      assignmentId: string;
+      lessonId: string;
+      score: number;
+      gameResult: AttemptGameResultInput;
+    }) =>
+      invokeFunction<{ state: AssignmentQuizState }>('assignment-quiz', {
+        method: 'POST',
+        body: { action: 'checkpoint', ...input },
+      }),
+    complete: (input: {
+      assignmentId: string;
+      lessonId: string;
+      score: number;
+      maxScore: number;
+      durationSeconds?: number;
+      gameResults: AttemptGameResultInput[];
+    }) =>
+      invokeFunction<{ state: AssignmentQuizState }>('assignment-quiz', {
+        method: 'POST',
+        body: { action: 'complete', ...input },
+      }),
   },
   attempts: {
     submit: (input: {
