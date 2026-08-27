@@ -39,3 +39,16 @@ Deno.test("colors quiz games track wrong interactions in total attempts", async 
     assertMatch(source, expected, path);
   }
 });
+
+Deno.test("timed-out or exhausted color games still expose scored assigned-quiz completion", async () => {
+  const exhaustedSource = await readSource("src/components/games/1-colors/RainbowColorCatcher.tsx");
+  const timedOutSource = await readSource("src/components/games/1-colors/RainbowColorDeluxe.tsx");
+  const explorationSource = await readSource("src/components/games/1-colors/RainbowGalaxyExplorer.tsx");
+
+  assertMatch(exhaustedSource, /allowSkip === false && onComplete/);
+  assertMatch(exhaustedSource, /onComplete\(correctItems, Math\.max\(1, totalItems\)\)/);
+  assertMatch(timedOutSource, /onComplete && allowSkip === false/);
+  assertMatch(timedOutSource, /onComplete\(correctItems, totalItems\)/);
+  assertEquals(explorationSource.includes("onComplete && (allowSkip !== false || isCompleted)"), false);
+  assertMatch(explorationSource, /onComplete\(correctItems, totalItems\)/);
+});

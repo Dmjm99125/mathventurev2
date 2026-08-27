@@ -18,7 +18,7 @@ export function DrawingCanvas({
   icon: Icon = Palette,
   allowSkip = true,
 }: { 
-  onComplete?: () => void,
+  onComplete?: (score?: number, maxScore?: number) => void,
   title?: string,
   icon?: React.ElementType,
   allowSkip?: boolean,
@@ -281,7 +281,7 @@ export function DrawingCanvas({
                 className="rounded-xl font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-md px-6 py-6"
                 onClick={() => {
                   setShowConfirm(false);
-                  onComplete?.();
+                  onComplete?.(1, 1);
                 }}
               >
                 Yes, I'm Done!

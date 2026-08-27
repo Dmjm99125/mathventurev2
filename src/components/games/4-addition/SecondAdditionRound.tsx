@@ -5,7 +5,6 @@ import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Star, Target } from 'lucide-react';
 
 export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
-    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [options, setOptions] = useState<number[]>([]);

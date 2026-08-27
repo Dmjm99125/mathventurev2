@@ -50,3 +50,10 @@ Deno.test("measurement quiz games count active wrong interactions as attempts", 
     assertMatch(source, expectations[fileName]);
   }
 });
+
+Deno.test("the snake game can submit a scored result after a collision", async () => {
+  const source = await readGameSource("SnakeGame.tsx");
+
+  assertMatch(source, /isGameOver && !isCompleted && allowSkip === false && onComplete/);
+  assertMatch(source, /onComplete\?\.\(score, Math\.max\(1, attempts\)\)/);
+});

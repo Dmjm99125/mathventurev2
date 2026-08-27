@@ -118,7 +118,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
   };
 
   const correctItems = score;
-  const totalItems = attemptsRef.current;
+  const totalItems = Math.max(1, attemptsRef.current);
 
   useEffect(() => {
     if (isGameOver && score > highScore) {
@@ -277,6 +277,11 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
               <Button size="lg" variant="outline" className="text-xl py-6 rounded-2xl border-2 hover:bg-gray-50" onClick={() => setScreen('pet')}>
                 Menu
               </Button>
+              {onComplete && allowSkip === false && (
+                <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white mt-4" onClick={() => onComplete(correctItems, totalItems)}>
+                  Continue
+                </Button>
+              )}
               {onComplete && allowSkip !== false && (
                 <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white mt-4" onClick={() => onComplete()}>
                   Next Game ➡️

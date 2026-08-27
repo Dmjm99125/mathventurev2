@@ -232,6 +232,11 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
             🎉 Game Over!<br/>
             <span className="text-2xl mt-2 text-gray-600">Final Score: {score}</span>
             <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={restartGame}>Play Again</Button>
+            {allowSkip === false && onComplete && (
+              <Button size="lg" variant="outline" className="mt-4 rounded-full px-8 text-xl" onClick={() => onComplete(correctItems, Math.max(1, totalItems))}>
+                Continue
+              </Button>
+            )}
           </div>
         )}
         

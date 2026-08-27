@@ -92,7 +92,9 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
             setTimeout(() => {
                 setTrainStatus('exit');
                 if (level === 11) {
-                    onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+                    if (allowSkip !== false) {
+                        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+                    }
                 }
                 setTimeout(() => {
                     if (level < 11) {
@@ -247,7 +249,7 @@ export function PatternTrainAcademy({ onComplete, allowSkip = true }: { onComple
               <Button 
                    size="lg" 
                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
-                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.()}
+                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.(correctItems, correctItems + wrongAttempts)}
                  >
                     {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>

@@ -114,6 +114,7 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
   };
 
   const currentTarget = GALAXY_COLORS[level] || GALAXY_COLORS[0];
+  const totalItems = Math.max(1, attemptsRef.current);
 
   return (
     <div className="w-full max-w-4xl mx-auto h-[700px] flex flex-col relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#00f2ff]" style={{ backgroundColor: '#0b0e1e', color: 'white' }}>
@@ -235,8 +236,8 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
             <Button size="lg" className="bg-[#ff00ff] hover:bg-[#ff00ff]/80 text-white font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#ff00ff]" onClick={() => setScreen('start')}>
               Play Again
             </Button>
-            {onComplete && (allowSkip !== false || isCompleted) && (
-              <Button size="lg" className="bg-[#00f2ff] hover:bg-[#00f2ff]/80 text-black font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#00f2ff]" onClick={() => onComplete(correctItems, attemptsRef.current)}>
+            {onComplete && (
+              <Button size="lg" className="bg-[#00f2ff] hover:bg-[#00f2ff]/80 text-black font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#00f2ff]" onClick={() => onComplete(correctItems, totalItems)}>
                 Next Game ➡️
               </Button>
             )}

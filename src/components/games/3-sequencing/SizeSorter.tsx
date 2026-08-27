@@ -49,7 +49,9 @@ export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: (sco
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === order.length) {
-        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+        if (allowSkip !== false) {
+          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+        }
         setScore(s => s + 1);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }
@@ -180,7 +182,7 @@ export function SizeSorter({ onComplete, allowSkip = true }: { onComplete?: (sco
               <Button 
                 size="lg" 
                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#ea580c] active:translate-y-1 active:shadow-none transition-all"
-                onClick={allowSkip ? startRound : () => onComplete?.()}
+                onClick={allowSkip ? startRound : () => onComplete?.(correctItems, correctItems + wrongAttempts)}
               >
                 {allowSkip ? 'Play Again' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
               </Button>

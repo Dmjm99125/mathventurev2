@@ -48,8 +48,17 @@ Deno.test("assigned special games use the checkpointed completion path", async (
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
   assertEquals(source.includes("onComplete={() => void completeStructuredGame(1, 1)}"), true);
+  assertEquals(source.includes("<DrawingCanvas onComplete={handleNext} />"), false);
+  assertEquals(source.includes("topic === 'addition' && currentIndex === 15 ? (\n          <DrawingCanvas onComplete={handleStructuredGameComplete} />"), true);
   assertEquals(source.includes("if (isSavingGameRef.current) return;"), true);
   assertEquals(source.includes("setIsSavingGame(true)"), true);
+});
+
+Deno.test("drawing activities submit an explicit scored result", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/components/shared/DrawingCanvas.tsx", import.meta.url));
+
+  assertEquals(source.includes("onComplete?: (score?: number, maxScore?: number) => void"), true);
+  assertEquals(source.includes("onComplete?.(1, 1)"), true);
 });
 
 Deno.test("assigned games disable every child bypass navigation control", async () => {

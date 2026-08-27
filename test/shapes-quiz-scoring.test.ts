@@ -45,3 +45,13 @@ Deno.test("shape completion callbacks are separate from no-argument skip callbac
     assertEquals(source.includes(COMPLETION_SCORES[fileName]), true);
   }
 });
+
+Deno.test("shape game-over screens can submit scored assigned quizzes", async () => {
+  for (const fileName of ["ShapeWizard.tsx", "HungryDragon.tsx"]) {
+    const source = await readGameSource(fileName);
+
+    assertMatch(source, /allowSkip === false && onComplete/);
+    assertMatch(source, /Math\.max\(1, attempts\)/);
+    assertEquals(source.match(/Continue Quiz/g)?.length ?? 0, 2);
+  }
+});

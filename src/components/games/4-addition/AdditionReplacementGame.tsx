@@ -17,7 +17,6 @@ export function AdditionReplacementGame({ theme, onComplete, allowSkip = true }:
   onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
 }) {
-  // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
   const [operands, setOperands] = useState<[number, number]>([1, 1]);
   const [choices, setChoices] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);

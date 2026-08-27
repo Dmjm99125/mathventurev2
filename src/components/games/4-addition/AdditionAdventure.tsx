@@ -9,7 +9,6 @@ const CHARACTERS = ['🐻', '🐱', '🐸'];
 const FRUITS = ['🍎', '🍌', '🍇', '🍓', '🍍'];
 
 export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
-    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [gameState, setGameState] = useState<'menu' | 'playing' | 'completed'>('menu');
     const [character, setCharacter] = useState('🐻');
     const [score, setScore] = useState(0);

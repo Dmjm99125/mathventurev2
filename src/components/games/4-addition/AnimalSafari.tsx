@@ -8,7 +8,6 @@ const ANIMAL_POOL_1 = ['🦁', '🐯', '🐒', '🦓'];
 const ANIMAL_POOL_2 = ['🐘', '🦒', '🦛', '🦘'];
 
 export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
-    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [animal1, setAnimal1] = useState('🦁');

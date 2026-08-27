@@ -48,7 +48,7 @@ interface SnakeGameProps {
 
 export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [score, setScore] = useState(1);
+  const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [speedLevel, setSpeedLevel] = useState(1);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -109,7 +109,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
     snakeRef.current = [{ x: 7, y: 7 }];
     dirRef.current = { x: 1, y: 0 };
     speedRef.current = 400;
-    setScore(1);
+    setScore(0);
     setAttempts(0);
     setSpeedLevel(1);
     setIsGameOver(false);
@@ -218,7 +218,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
         <h1 className="text-3xl md:text-4xl font-extrabold text-[#2e7d32] mb-4 drop-shadow-sm text-center">🐛 Growing Inchworm! 🐛</h1>
         
         <div className="w-full flex justify-between px-8 mb-4 text-xl font-bold text-[#1b5e20]">
-          <div>Length: <span className="text-[#388e3c]">{score}</span> unit</div>
+          <div>Length: <span className="text-[#388e3c]">{score + 1}</span> unit</div>
           <div>Speed: Level <span className="text-[#388e3c]">{speedLevel}</span></div>
         </div>
 
@@ -239,10 +239,21 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
                 className="absolute inset-0 bg-black/70 rounded-2xl flex flex-col items-center justify-center text-white z-10 backdrop-blur-[2px]"
               >
                 <div className="text-3xl font-bold mb-2 text-[#ff5252]">Oh no! Bumped!</div>
-                <div className="text-lg mb-6">Your worm grew to <span className="text-[#ffeb3b] font-black text-2xl">{score}</span> units!</div>
+                <div className="text-lg mb-6">Your worm grew to <span className="text-[#ffeb3b] font-black text-2xl">{score + 1}</span> units!</div>
                 
                 <Button size="lg" onClick={resetGame} className="bg-[#ffeb3b] hover:bg-[#fbc02d] text-[#333] text-xl font-bold h-14 px-8 rounded-full shadow-[0_4px_0_#f57f17] hover:shadow-[0_2px_0_#f57f17] hover:translate-y-1 transition-all">
                   Play Again! 🔄
+                </Button>
+              </motion.div>
+            )}
+            {isGameOver && !isCompleted && allowSkip === false && onComplete && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-x-0 bottom-4 flex justify-center z-20"
+              >
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, Math.max(1, attempts))} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                  Continue <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               </motion.div>
             )}
@@ -253,7 +264,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
                 className="absolute inset-0 rounded-2xl bg-[#1b5e20]/90 flex flex-col items-center justify-center text-white z-10 backdrop-blur-[2px]"
               >
                 <div className="text-3xl font-bold mb-2 text-[#ffeb3b]">Great measuring!</div>
-                <div className="text-lg mb-6">Your inchworm reached <span className="text-[#ffeb3b] font-black text-2xl">{score}</span> units!</div>
+                <div className="text-lg mb-6">Your inchworm reached <span className="text-[#ffeb3b] font-black text-2xl">{score + 1}</span> units!</div>
 
                 {onComplete && (
                   <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-14 rounded-full shadow-lg">

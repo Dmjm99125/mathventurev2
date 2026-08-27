@@ -45,7 +45,9 @@ export function ArrangeLetters({ onComplete, allowSkip = true }: { onComplete?: 
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === sequence.length) {
-        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+        if (allowSkip !== false) {
+          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+        }
         setScore(s => s + 1);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }
@@ -187,7 +189,7 @@ export function ArrangeLetters({ onComplete, allowSkip = true }: { onComplete?: 
               <Button 
                 size="lg" 
                 className="bg-[#fdd06b] hover:bg-[#f6c24d] text-amber-900 border-4 border-[#cc8b3c] font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#9e632b] active:translate-y-1 active:shadow-none transition-all"
-                onClick={allowSkip ? startRound : () => onComplete?.()}
+                onClick={allowSkip ? startRound : () => onComplete?.(correctItems, correctItems + wrongAttempts)}
               >
                 {allowSkip ? 'NEXT TRAIN ➔' : 'NEXT GAME ➔'}
               </Button>

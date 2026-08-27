@@ -32,12 +32,12 @@ Deno.test("addition flow puts four replacement games first and drawing canvas la
     "<IceCreamShop onComplete={handleStructuredGameComplete} />",
     "<Pizza onComplete={handleStructuredGameComplete} />",
     "<ComicStarCatcher onComplete={handleStructuredGameComplete} />",
-    "<DrawingCanvas onComplete={handleNext} />",
+    "<DrawingCanvas onComplete={handleStructuredGameComplete} />",
   ];
 
   let previous = -1;
   for (const snippet of expected) {
-    const current = source.indexOf(snippet);
+    const current = source.indexOf(snippet, previous + 1);
     assert(current > previous, `Expected ${snippet} after the previous addition game`);
     previous = current;
   }
@@ -47,5 +47,5 @@ Deno.test("addition flow puts four replacement games first and drawing canvas la
 Deno.test("replacement addition games expose the Skip Game action", async () => {
   const source = await readSource("src/components/games/4-addition/AdditionReplacementGame.tsx");
   assertEquals(source.includes("Skip Game"), true);
-  assertEquals(source.includes("onClick={onComplete}"), true);
+  assertEquals(source.includes("onClick={onComplete}"), false);
 });

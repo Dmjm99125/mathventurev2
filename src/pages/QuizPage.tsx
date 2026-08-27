@@ -652,7 +652,7 @@ export function QuizPage() {
         ) : topic === 'addition' && currentIndex === 14 ? (
           <ComicStarCatcher onComplete={handleStructuredGameComplete} />
         ) : topic === 'addition' && currentIndex === 15 ? (
-          <DrawingCanvas onComplete={handleNext} />
+          <DrawingCanvas onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 0 ? (
           <SubtractionBalloon onComplete={handleStructuredGameComplete} />
         ) : topic === 'subtraction' && currentIndex === 1 ? (

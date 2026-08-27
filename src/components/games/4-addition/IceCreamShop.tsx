@@ -7,7 +7,6 @@ import { Play, Star, IceCream2, BellRing, CheckCircle2, XCircle } from 'lucide-r
 const SHOP_PRIZES = ['🍒', '🍫', '🍓', '🍌', '🍪', '🧇', '🍯', '✨'];
 
 export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
-    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
 

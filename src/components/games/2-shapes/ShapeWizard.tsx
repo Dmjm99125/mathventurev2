@@ -350,6 +350,15 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
             >
               BACK TO MAP
             </Button>
+            {allowSkip === false && onComplete && (
+              <Button
+                size="lg"
+                className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
+                onClick={() => onComplete?.(Math.floor(stars / 10), Math.max(1, attempts))}
+              >
+                Continue Quiz
+              </Button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

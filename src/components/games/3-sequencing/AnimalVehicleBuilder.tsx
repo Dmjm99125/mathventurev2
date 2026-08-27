@@ -103,7 +103,9 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
       if (currentIndex + 1 === currentPuzzle.parts) {
         setIsMerged(true);
         if (level === 5) {
-          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+          if (allowSkip !== false) {
+            onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+          }
         }
         confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
         
@@ -257,7 +259,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = true }: { onCompl
               <Button 
                    size="lg" 
                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#0284c7] active:translate-y-1 active:shadow-none transition-all"
-                    onClick={allowSkip ? setupGame : () => onComplete?.()}
+                    onClick={allowSkip ? setupGame : () => onComplete?.(correctItems, correctItems + wrongAttempts)}
                  > {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>
             </motion.div>

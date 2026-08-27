@@ -7,7 +7,6 @@ import { Play, CheckCircle2, XCircle, Star, Waves } from 'lucide-react';
 const OCEAN_ITEMS = ['🫧', '🐠', '🐙', '🦀', '🐳', '🐢'];
 
 export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
-    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [icon1, setIcon1] = useState('🐠');

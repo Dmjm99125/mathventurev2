@@ -50,6 +50,11 @@ Deno.test("sequencing quiz games report correct items and wrong attempts", async
       `${fileName} should report the terminal interaction with wrong attempts included`,
     );
     assertEquals(
+      source.includes("onComplete?.(correctItems, correctItems + wrongAttempts)"),
+      true,
+      `${fileName} should report its completed quiz score when the assigned-quiz Continue action is used`,
+    );
+    assertEquals(
       source.includes("onClick={onComplete}"),
       false,
       `${fileName} should invoke skip/navigation callbacks without DOM event arguments`,

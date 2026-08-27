@@ -81,7 +81,9 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
       
       if (currentIndex + 1 === sequence.length) {
         if (level === 5) {
-          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+          if (allowSkip !== false) {
+            onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
+          }
         }
         setScore(s => s + 50); // huge points!
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
@@ -217,7 +219,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = true }: { onComplet
               <Button 
                    size="lg" 
                    className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#be185d] active:translate-y-1 active:shadow-none transition-all"
-                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.()}
+                    onClick={allowSkip ? () => startLevel(1) : () => onComplete?.(correctItems, correctItems + wrongAttempts)}
                  >
                    {allowSkip ? 'Repeat Game' : 'Next Game'} <Play className="ml-2 w-6 h-6 fill-current" />
                  </Button>

@@ -6,7 +6,6 @@ import { Play, CheckCircle2, XCircle, Calculator, Trophy, Star } from 'lucide-re
 import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 
 export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
-    // Skip navigation intentionally invokes onComplete() without scoring arguments (onClick={onComplete}).
     const [num1, setNum1] = useState(0);
     const [num2, setNum2] = useState(0);
     const [userAnswer, setUserAnswer] = useState('');
