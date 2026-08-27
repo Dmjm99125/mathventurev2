@@ -58,7 +58,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
         setTargetShape(target);
 
         const others = SHAPES.filter(s => s.name !== target.name).sort(() => 0.5 - Math.random());
-        const newOptions = [target, others[0], others[1], others[2]].sort(() => 0.5 - Math.random());
+        const newOptions = [target, ...others].sort(() => 0.5 - Math.random());
         setOptions(newOptions);
     };
 

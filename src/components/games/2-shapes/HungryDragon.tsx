@@ -73,9 +73,12 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: ()
   }, [screen, timeLeft, score]);
 
   const handleShapeClick = (index: number) => {
-    if (screen !== 'game' || options[index].hidden || timeLeft <= 0) return;
+    if (screen !== 'game' || timeLeft <= 0) return;
 
-    if (options[index].shape === targetShape) {
+    const option = options[index];
+    if (!option || option.hidden) return;
+
+    if (option.shape === targetShape) {
       const newFoundCount = foundCount + 1;
       setFoundCount(newFoundCount);
       setOptions((prev) => prev.map((option, optionIndex) => (optionIndex === index ? { ...option, hidden: true } : option)));

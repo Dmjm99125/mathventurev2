@@ -46,7 +46,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: () 
         opts.add(correctAnswer);
         
         while (opts.size < 4) {
-            let wrong = correctAnswer + (Math.floor(Math.random() * 5) - 2);
+            const wrong = Math.floor(Math.random() * 10) + 1;
             if (wrong > 0 && wrong <= 10 && !opts.has(wrong)) {
                 opts.add(wrong);
             }

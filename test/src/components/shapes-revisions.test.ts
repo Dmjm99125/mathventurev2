@@ -24,6 +24,13 @@ Deno.test("shape lesson and games exclude star, heart, and diamond choices", asy
   assertEquals(racing.includes('"Star"'), false);
 });
 
+Deno.test("shape matching never renders an undefined option", async () => {
+  const source = await readSource("src/components/games/2-shapes/ShapeMatchingGame.tsx");
+
+  assertEquals(source.includes("const newOptions = [target, others[0], others[1], others[2]]"), false);
+  assertEquals(source.includes("const newOptions = [target, ...others]"), true);
+});
+
 Deno.test("Hungry Dragon is presented as a dinosaur", async () => {
   const source = await readSource("src/components/games/2-shapes/HungryDragon.tsx");
   assertEquals(source.includes("Hungry Dinosaur"), true);

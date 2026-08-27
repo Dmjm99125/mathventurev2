@@ -139,7 +139,9 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
     setupRound();
   };
 
-  const rotation = isRevealed ? (currentPair[0].w > currentPair[1].w ? -15 : 15) : 0;
+  const rotation = isRevealed && currentPair.length >= 2
+    ? (currentPair[0].w > currentPair[1].w ? -15 : 15)
+    : 0;
 
   if (currentPair.length === 0) return null;
 
@@ -174,14 +176,14 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
               animate={{ rotate: -rotation }}
               transition={{ type: "spring", stiffness: 60, damping: 12 }}
             >
-              {isRevealed ? currentPair[0].emoji : '❓'}
+              {isRevealed ? currentPair[0]?.emoji : '❓'}
             </motion.div>
             <motion.div 
               className="text-[4rem] md:text-[5rem] -mt-[70px] md:-mt-[85px] drop-shadow-md origin-bottom transform"
               animate={{ rotate: -rotation }}
               transition={{ type: "spring", stiffness: 60, damping: 12 }}
             >
-              {isRevealed ? currentPair[1].emoji : '❓'}
+              {isRevealed ? currentPair[1]?.emoji : '❓'}
             </motion.div>
           </motion.div>
           <div className="w-[60px] h-[40px] bg-[#795548] z-20" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }}></div>
