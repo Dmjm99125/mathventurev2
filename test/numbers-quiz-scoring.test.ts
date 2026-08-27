@@ -27,6 +27,18 @@ const INTERACTIVE_GAME_FILES = [
   "ToyFactory.tsx",
 ] as const;
 
+const REPLAYABLE_GAME_FILES = [
+  "CountMatch.tsx",
+  "CountMatch2.tsx",
+  "CountMatch3.tsx",
+  "CountMatch4.tsx",
+  "DeepDive.tsx",
+  "DragCorrectNumber.tsx",
+  "NumberMonster.tsx",
+  "NumberReplacementGame.tsx",
+  "ToyFactory.tsx",
+] as const;
+
 const readGameSource = (fileName: string) =>
   Deno.readTextFile(new URL(`../src/components/games/6-numbers/${fileName}`, import.meta.url));
 
@@ -51,5 +63,17 @@ Deno.test("numbers quiz games count active wrong interactions in terminal attemp
     assertEquals(source.includes("setAttempts(prev => prev + 1);"), true, fileName);
     assertMatch(source, /onComplete\?\.\([^,\n]+, [^)\n]+\)/, fileName);
     assertEquals(source.includes("onClick={() => onComplete?.()}"), true, fileName);
+  }
+});
+
+Deno.test("assigned numbers games cannot replay after reaching their terminal state", async () => {
+  for (const fileName of REPLAYABLE_GAME_FILES) {
+    const source = await readGameSource(fileName);
+
+    assertMatch(
+      source,
+      /allowSkip !== false &&[\s\S]{0,250}onClick=\{resetGame\}/,
+      `${fileName} must make replay free-play-only`,
+    );
   }
 });

@@ -253,9 +253,9 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#a855f7] hover:bg-[#7e22ce] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#7e22ce] hover:shadow-[0_2px_0_#7e22ce] hover:translate-y-1 transition-all">
+              {allowSkip !== false && <Button size="lg" onClick={resetGame} className="bg-[#a855f7] hover:bg-[#7e22ce] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#7e22ce] hover:shadow-[0_2px_0_#7e22ce] hover:translate-y-1 transition-all">
                 Play Again! 🔄
-              </Button>
+              </Button>}
             </motion.div>
           )}
         </AnimatePresence>

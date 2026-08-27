@@ -261,9 +261,9 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#fb7185] hover:bg-[#e11d48] text-white text-2xl font-bold h-16 px-8 rounded-full shadow-[0_6px_0_#be123c] hover:shadow-[0_2px_0_#be123c] hover:translate-y-1 transition-all">
+              {allowSkip !== false && <Button size="lg" onClick={resetGame} className="bg-[#fb7185] hover:bg-[#e11d48] text-white text-2xl font-bold h-16 px-8 rounded-full shadow-[0_6px_0_#be123c] hover:shadow-[0_2px_0_#be123c] hover:translate-y-1 transition-all">
                 Play Again! 🔄
-              </Button>
+              </Button>}
             </motion.div>
           )}
         </AnimatePresence>

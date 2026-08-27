@@ -131,9 +131,9 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
                 Next Game <ChevronRight className="ml-2 h-6 w-6" />
               </Button>
             )}
-            <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
+            {allowSkip !== false && <Button size="lg" variant="jungle" onClick={resetGame} className="text-xl px-8 h-16 rounded-full shadow-lg">
               Play Again! 🔄
-            </Button>
+            </Button>}
           </div>
         </motion.div>
       </div>

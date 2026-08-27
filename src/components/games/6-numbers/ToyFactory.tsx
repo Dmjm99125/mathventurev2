@@ -264,9 +264,9 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#3b82f6] hover:bg-[#1d4ed8] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#1d4ed8] hover:shadow-[0_2px_0_#1d4ed8] hover:translate-y-1 transition-all">
+              {allowSkip !== false && <Button size="lg" onClick={resetGame} className="bg-[#3b82f6] hover:bg-[#1d4ed8] text-white text-xl font-bold h-14 px-8 rounded-full shadow-[0_5px_0_#1d4ed8] hover:shadow-[0_2px_0_#1d4ed8] hover:translate-y-1 transition-all">
                 Play Again! 🔄
-              </Button>
+              </Button>}
             </motion.div>
           )}
         </AnimatePresence>
