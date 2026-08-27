@@ -21,6 +21,7 @@ import { TeacherReportsWindowPicker } from '@/components/teacher/reports/Teacher
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
 import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentListTable';
 import { TeacherStudentProgressTable } from '@/components/teacher/TeacherStudentProgressTable';
+import { TeacherAssignQuizDialog } from '@/components/teacher/TeacherAssignQuizDialog';
 import {
   useClassRoster,
   useRemoveStudentFromClass,
@@ -35,6 +36,7 @@ export function TeacherWorkspacePage() {
   const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
   const removeStudent = useRemoveStudentFromClass();
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
+  const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
 
@@ -59,11 +61,21 @@ export function TeacherWorkspacePage() {
           </p>
         </>
       )}
-      action={<Button variant="outline" onClick={() => setIsAddStudentsOpen(true)}>+ Add</Button>}
+      action={(
+        <div className="flex flex-wrap gap-2">
+          <Button variant="jungle" onClick={() => setIsAssignQuizOpen(true)}>Assign Quiz</Button>
+          <Button variant="outline" onClick={() => setIsAddStudentsOpen(true)}>+ Add</Button>
+        </div>
+      )}
     >
       <TeacherAddStudentsDialog
         open={isAddStudentsOpen}
         onOpenChange={setIsAddStudentsOpen}
+      />
+      <TeacherAssignQuizDialog
+        open={isAssignQuizOpen}
+        onOpenChange={setIsAssignQuizOpen}
+        classId={classroom.id}
       />
 
       <div className="mb-5 inline-flex rounded-2xl border-2 border-border bg-white p-1">
