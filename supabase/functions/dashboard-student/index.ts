@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
     .from("attempts")
     .select("lesson_id, score, max_score, completed_at")
     .eq("student_id", profile.id)
+    .eq("status", "completed")
     .order("completed_at", { ascending: false });
   if (attemptsError) return errorResponse(attemptsError.message, 500);
 

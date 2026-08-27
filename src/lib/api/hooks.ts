@@ -87,6 +87,48 @@ export function useAssignments(classId?: string) {
   });
 }
 
+export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
+  return useQuery({
+    queryKey: ['assignment-quiz', assignmentId, lessonId],
+    queryFn: () => api.assignmentQuiz.get(assignmentId!, lessonId!),
+    enabled: Boolean(assignmentId && lessonId),
+  });
+}
+
+export function useStartAssignmentQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ assignmentId, lessonId }: { assignmentId: string; lessonId: string }) =>
+      api.assignmentQuiz.start(assignmentId, lessonId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+    },
+  });
+}
+
+export function useCheckpointAssignmentQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.assignmentQuiz.checkpoint,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
+    },
+  });
+}
+
+export function useCompleteAssignmentQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.assignmentQuiz.complete,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'student'] });
+    },
+  });
+}
+
 export function useStudentDashboard() {
   return useQuery({
     queryKey: ['dashboard', 'student'],

@@ -130,7 +130,8 @@ const defaultDeps: TeacherReportsDatasetDeps = {
       .from("attempts")
       .select("id, student_id, class_id")
       .in("student_id", studentIds)
-      .eq("class_id", classId);
+      .eq("class_id", classId)
+      .eq("status", "completed");
 
     if (error) {
       throw error;

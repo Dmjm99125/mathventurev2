@@ -68,6 +68,34 @@ Deno.test("attempts-submit rejects malformed detailed game results", async () =>
   assertEquals(response.status, 422);
 });
 
+Deno.test("attempts-submit rejects assignment-linked submissions so quiz mode owns the lock", async () => {
+  const handler = createAttemptsSubmitHandler({
+    getAuthedProfile: async () => ({ id: "student-1", role: "student", full_name: "Student One" }),
+    resolveAttemptClassId: async () => {
+      throw new Error("should not resolve assignment submissions");
+    },
+    insertAttempt: async () => {
+      throw new Error("should not insert assignment submissions");
+    },
+    insertAttemptGameResults: async () => {
+      throw new Error("should not insert assignment child rows");
+    },
+  });
+
+  const response = await handler(new Request("http://local/attempts-submit", {
+    method: "POST",
+    body: JSON.stringify({
+      lessonId: "sequencing",
+      assignmentId: "assignment-1",
+      score: 10,
+      maxScore: 10,
+      gameResults: [],
+    }),
+  }));
+
+  assertEquals(response.status, 409);
+});
+
 Deno.test("attempts-submit inserts the parent attempt and detailed game rows", async () => {
   let insertedRows: unknown[] = [];
   let insertedAttempt: unknown;

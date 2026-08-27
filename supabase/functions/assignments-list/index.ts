@@ -57,12 +57,22 @@ Deno.serve(async (req) => {
   const { data: attempts } = assignmentIds.length
     ? await adminClient
         .from("attempts")
-        .select("assignment_id, score, max_score")
+        .select("assignment_id, status, current_game_order, score, max_score, updated_at")
         .eq("student_id", profile.id)
         .in("assignment_id", assignmentIds)
     : { data: [] };
 
-  const completedIds = new Set((attempts ?? []).map((a: any) => a.assignment_id));
+  const attemptsByAssignment = new Map<string, any>();
+  for (const attempt of attempts ?? []) {
+    const existing = attemptsByAssignment.get(attempt.assignment_id);
+    if (
+      !existing
+      || attempt.status === "completed"
+      || (existing.status !== "completed" && attempt.updated_at > existing.updated_at)
+    ) {
+      attemptsByAssignment.set(attempt.assignment_id, attempt);
+    }
+  }
 
   return jsonResponse({
     assignments: (data ?? []).map((a: any) => ({
@@ -71,7 +81,11 @@ Deno.serve(async (req) => {
       classId: a.class_id,
       dueAt: a.due_at,
       createdAt: a.created_at,
-      completed: completedIds.has(a.id),
+      status: attemptsByAssignment.get(a.id)?.status ?? "not_started",
+      currentGameOrder: attemptsByAssignment.get(a.id)?.current_game_order ?? 0,
+      score: attemptsByAssignment.get(a.id)?.score ?? 0,
+      maxScore: attemptsByAssignment.get(a.id)?.max_score ?? 0,
+      completed: attemptsByAssignment.get(a.id)?.status === "completed",
     })),
   });
 });

@@ -238,7 +238,7 @@ export function StudentClassroomPage() {
         <div className="space-y-6">
           <Card className="p-6">
             <h2 className="text-xl font-display font-bold flex items-center gap-2 mb-4 text-primary">
-              <BookOpen className="h-5 w-5" /> Your Pending Quests
+              <BookOpen className="h-5 w-5" /> Your Classroom Quizzes
             </h2>
             {assignments.length > 0 ? (
               <div className="space-y-3">
@@ -246,7 +246,9 @@ export function StudentClassroomPage() {
                   <div key={a.id} className="p-3 bg-muted/30 rounded-xl border border-border flex justify-between items-center">
                     <div>
                       <Badge variant="jungle" className="mb-1 capitalize">{a.lessonId}</Badge>
-                      <p className="text-xs font-bold text-muted-foreground">Pending</p>
+                      <p className="text-xs font-bold text-muted-foreground">
+                        {a.status === 'in_progress' ? 'In progress — resume where you left off' : 'Not started — one attempt only'}
+                      </p>
                     </div>
                     <Button
                       size="sm"
@@ -261,7 +263,7 @@ export function StudentClassroomPage() {
                           }),
                         )}
                     >
-                      Play
+                      {a.status === 'in_progress' ? 'Resume' : 'Start Quiz'}
                     </Button>
                   </div>
                 ))}

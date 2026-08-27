@@ -129,8 +129,9 @@ const defaultDeps: ClassesRosterDeps = {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("attempt_game_results")
-      .select("student_id, game_id, score, max_score, completed_at")
-      .in("student_id", studentIds);
+      .select("student_id, game_id, score, max_score, completed_at, attempts!inner(status)")
+      .in("student_id", studentIds)
+      .eq("attempts.status", "completed");
 
     if (error) {
       throw error;

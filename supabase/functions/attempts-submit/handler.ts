@@ -275,6 +275,9 @@ export function createAttemptsSubmitHandler(deps: AttemptsSubmitDeps = defaultDe
       const gameResults = Array.isArray(body?.gameResults) ? body.gameResults : [];
 
       if (!lessonId) return errorResponse("lessonId is required", 422);
+      if (assignmentId) {
+        return errorResponse("Use the assignment quiz flow for assigned work", 409);
+      }
       if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0) {
         return errorResponse("score and maxScore must be valid numbers", 422);
       }
