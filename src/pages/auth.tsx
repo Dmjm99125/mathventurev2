@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { studentRegister, studentSignIn, teacherSignIn, teacherSignUp } from '@/lib/auth';
 import { Button, Input, Label, Card } from '@/components/ui';
@@ -18,7 +17,6 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { refreshProfile } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +28,6 @@ export function Login() {
       } else {
         await studentSignIn({ teacherFirstName, lastName, firstName });
       }
-      await refreshProfile();
       setLocation('/'); // App.tsx will redirect based on role
     } catch (err: any) {
       setError(err.message || 'Login failed');
@@ -166,7 +163,6 @@ export function Signup() {
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const { refreshProfile } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,7 +175,6 @@ export function Signup() {
       } else {
         await studentRegister({ teacherFirstName, lastName, firstName });
       }
-      await refreshProfile();
       setLocation('/'); 
     } catch (err: any) {
       setError(err.message || 'Signup failed');

@@ -1,13 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../supabase/client';
 import { getProfile } from './auth';
-import type { Role } from '../api';
-
-type UserProfile = {
-  id: string;
-  role: Role;
-  full_name: string;
-};
+import { profileFromAuthSession, type UserProfile } from './profile';
 
 type AuthContextType = {
   user: UserProfile | null;
@@ -39,10 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    fetchProfile();
+    void fetchProfile();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchProfile();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Auth callbacks run while supabase-js holds its internal auth lock.
+      // Do not call getSession(), getUser(), or any other async Supabase API
+      // here; update from the session that the callback already provides.
+      setUser(profileFromAuthSession(session));
+      setIsLoading(false);
     });
 
     return () => {
