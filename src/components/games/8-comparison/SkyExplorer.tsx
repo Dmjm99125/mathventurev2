@@ -81,12 +81,28 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [isLookingForDay, setIsLookingForDay] = useState(true);
   const [currentPair, setCurrentPair] = useState(timePairs[0]);
   const [isLeftDay, setIsLeftDay] = useState(true);
   const [shelfItems, setShelfItems] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [canClick, setCanClick] = useState(true);
+
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1000);
+    return true;
+  };
 
   const setupRound = () => {
     setIsLookingForDay(Math.random() > 0.5);
@@ -107,6 +123,8 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
     setCanClick(false);
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(newAnsweredItems);
     const isCorrect = isDay === isLookingForDay;
 
     if (isCorrect) {
@@ -116,6 +134,10 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
 
       const prize = spacePrizes[Math.floor(Math.random() * spacePrizes.length)];
       setShelfItems((prev) => [...prev, prize]);
+
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -128,13 +150,18 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
       }
     } else {
       playSound('wrong');
-      setTimeout(() => setCanClick(true), 800);
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+      } else {
+        setTimeout(() => setCanClick(true), 800);
+      }
     }
   };
 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
