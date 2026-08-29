@@ -15,10 +15,10 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
   const [correctItems, setCorrectItems] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
-  const totalItems = totalAttempts;
 
   const questions = colorsData;
   const question = questions[internalIndex];
+  const totalItems = allowSkip === false ? questions.length : totalAttempts;
 
   const handleSelect = (opt: any) => {
     if (gameState !== 'playing') return;
@@ -35,19 +35,29 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
     }
   };
 
-  const handleNext = () => {
-    if (selectedOption?.isCorrect) {
-      if (internalIndex < questions.length - 1) {
-        setInternalIndex(prev => prev + 1);
-        setSelectedOption(null);
-        setGameState('playing');
-      } else {
-        setGameState('completed');
-      }
-    } else {
+  const advanceQuestion = () => {
+    if (internalIndex < questions.length - 1) {
+      setInternalIndex(prev => prev + 1);
       setSelectedOption(null);
       setGameState('playing');
+    } else {
+      setGameState('completed');
     }
+  };
+
+  const handleNext = () => {
+    if (allowSkip === false) {
+      advanceQuestion();
+      return;
+    }
+
+    if (selectedOption?.isCorrect) {
+      advanceQuestion();
+      return;
+    }
+
+    setSelectedOption(null);
+    setGameState('playing');
   };
 
   if (gameState === 'completed') {
@@ -140,7 +150,7 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
             className="h-16 md:h-20 px-12 md:px-16 text-2xl md:text-3xl rounded-full shadow-[0_6px_0_0_rgba(0,0,0,0.1)] font-bold transition-transform hover:scale-105 active:scale-95"
             onClick={handleNext}
           >
-            {selectedOption?.isCorrect ? 'Great! Next' : 'Try Again'}{' '}
+            {selectedOption?.isCorrect || allowSkip === false ? 'Great! Next' : 'Try Again'}{' '}
             <Play className="ml-3 h-8 w-8 md:h-10 md:w-10 fill-current" />
           </Button>
         </div>
