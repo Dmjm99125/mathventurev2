@@ -107,3 +107,12 @@ Deno.test("MataasMababa consumes wrong assigned-quiz answers", async () => {
   assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
   assertMatch(source, /else \{[\s\S]{0,250}setupRound\(\)/);
 });
+
+Deno.test("MataasMababa locks assigned replay and reports its fixed maximum", async () => {
+  const source = await readGameSource("MataasMababa.tsx");
+
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /canReplay && \([\s\S]*Maglaro Muli/);
+  assertMatch(source, /allowSkip === false && onComplete/);
+});
