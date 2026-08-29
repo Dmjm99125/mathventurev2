@@ -87,3 +87,27 @@ Deno.test("sequencing quiz scores each placed item by its final position", () =>
   assertEquals(scoreByPosition([2, 3, 1, 4], [1, 2, 3, 4]), 1);
   assertEquals(scoreByPosition(["bread", "ham", "bread"], ["bread", "ham", "bread"]), 3);
 });
+
+Deno.test("pattern train quiz records a wrong choice as a wrong missing position", async () => {
+  const source = await readGameSource("PatternTrainAcademy.tsx");
+
+  assertEquals(
+    /if \(allowSkip === false\)[\s\S]*const expected = missingIndices\.map\(i => pattern\[i\]\);[\s\S]*const placed = missingIndices\.map\(i => newFilled\[i\]\);[\s\S]*const levelScore = scoreByPosition\(placed, expected\);[\s\S]*setWrongAttempts\(prev => prev \+ missingIndices\.length - levelScore\);/.test(source),
+    true,
+    "Pattern Train should accept choices in quiz mode and score wrong missing slots",
+  );
+
+  assertEquals(scoreByPosition(["🍎", "🍎"], ["🍎", "🍐"]), 1);
+});
+
+Deno.test("animal parts quiz scores each selected piece by its final position", async () => {
+  const source = await readGameSource("AnimalVehicleBuilder.tsx");
+
+  assertEquals(
+    /if \(allowSkip === false\)[\s\S]*const nextPlaced = \[\.\.\.placed, orderIndex\];[\s\S]*const nextLevelScore = scoreByPosition\(nextPlaced, expected\);[\s\S]*setWrongAttempts\(prev => prev - \(placed\.length - previousLevelScore\) \+ \(nextPlaced\.length - nextLevelScore\)\);/.test(source),
+    true,
+    "Animal parts should accept any piece in quiz mode and count incorrect positions",
+  );
+
+  assertEquals(scoreByPosition([1, 2, 0, 3], [0, 1, 2, 3]), 1);
+});
