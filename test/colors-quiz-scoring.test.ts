@@ -77,3 +77,14 @@ Deno.test("color gameplay back controls are hidden in assigned quizzes", async (
     assertEquals(source.includes("{allowSkip !== false && ("), true, path);
   }
 });
+
+Deno.test("ChooseWhichColor advances after a wrong assigned-quiz answer", async () => {
+  const source = await readSource("src/components/games/1-colors/ChooseWhichColor.tsx");
+
+  assertMatch(
+    source,
+    /if \(allowSkip === false\)[\s\S]*setInternalIndex\(prev => prev \+ 1\)/,
+    "assigned quiz answers should consume the current color question",
+  );
+  assertMatch(source, /allowSkip === false \? 'Next' : 'Try Again'/);
+});
