@@ -67,6 +67,7 @@ interface TimeAdventureProps {
 
 export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventureProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   const CHARACTERS = ['🐻', '🐱', '🐸'];
 
   const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
@@ -386,7 +387,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              {allowSkip !== false && (
+              {canReplay && (
               <Button
                 size="lg"
                 onClick={resetGame}
