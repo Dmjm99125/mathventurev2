@@ -75,6 +75,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [currentItem, setCurrentItem] = useState(itemsDatabase[0]);
   const [itemKey, setItemKey] = useState(0); // Used to force re-render/re-animation of the falling item
   const [feedback, setFeedback] = useState<'none' | 'correct' | 'wrong' | 'missed'>('none');
@@ -93,6 +94,21 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
     hasInteractedRef.current = false;
   };
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else if (newAnsweredItems < MAX_SCORE) {
+        spawnNextItem();
+      }
+    }, 800);
+    return true;
+  };
+
   useEffect(() => {
     spawnNextItem();
   }, []);
@@ -101,6 +117,8 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
     if (!canClick) return;
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
     setCanClick(false);
     hasInteractedRef.current = true;
 
@@ -109,6 +127,11 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
       setFeedback('correct');
       const newScore = score + 1;
       setScore(newScore);
+
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -123,6 +146,10 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
     } else {
       playSound('wrong');
       setFeedback('wrong');
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
       setTimeout(spawnNextItem, 800);
     }
   };
@@ -132,9 +159,15 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
     if (!hasInteractedRef.current && canClick) {
       setCanClick(false);
       setAttempts(prev => prev + 1);
+      const newAnsweredItems = answeredItems + 1;
+      setAnsweredItems(prev => prev + 1);
       hasInteractedRef.current = true;
       playSound('wrong');
       setFeedback('missed');
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
       setTimeout(spawnNextItem, 800);
     }
   };
@@ -142,6 +175,7 @@ export function CatchFall({ onComplete, allowSkip = true }: CatchFallProps) {
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     spawnNextItem();
   };
