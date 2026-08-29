@@ -139,7 +139,7 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
-          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+          onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 800);
