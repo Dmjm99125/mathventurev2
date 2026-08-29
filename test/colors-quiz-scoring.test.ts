@@ -162,3 +162,20 @@ Deno.test("RainbowGalaxyExplorer preserves free-play retry feedback", async () =
   assertMatch(source, /setShake\(true\)/);
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
 });
+
+Deno.test("MultipleChoice counts every wrong assigned-quiz item against a fixed maximum", async () => {
+  const source = await readSource("src/components/games/1-colors/MultipleChoice.tsx");
+
+  assertMatch(source, /const \[wrongItems, setWrongItems\] = useState\(0\)/);
+  assertMatch(source, /if \(!opt\.isCorrect\) \{[\s\S]*setWrongItems\(items => items \+ 1\)/);
+  assertMatch(source, /allowSkip === false \? colorsData\.length : Math\.max\(1, totalAttempts\)/);
+  assertMatch(source, /You scored \{score\} correct and \{wrongItems\} wrong out of/);
+  assertMatch(source, /allowSkip === false \? 'Next Question' : 'Try the next one'/);
+});
+
+Deno.test("MultipleChoice hides replay after an assigned quiz", async () => {
+  const source = await readSource("src/components/games/1-colors/MultipleChoice.tsx");
+
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /canReplay && \([\s\S]*Play Again/);
+});
