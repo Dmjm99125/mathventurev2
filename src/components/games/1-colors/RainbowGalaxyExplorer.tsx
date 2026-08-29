@@ -29,6 +29,7 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
   const [shake, setShake] = useState(false);
   const [stars, setStars] = useState<{ id: string, left: string, top: string, opacity: number }[]>([]);
   const attemptsRef = React.useRef(0);
+  const canReplay = allowSkip !== false;
 
   useEffect(() => {
     // Generate background stars
@@ -254,12 +255,14 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
           <p className="text-2xl mb-8 font-bold text-center">Final Score: <span className="text-yellow-400">{score}</span></p>
           
           <div className="flex flex-col gap-4">
-            <Button size="lg" className="bg-[#ff00ff] hover:bg-[#ff00ff]/80 text-white font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#ff00ff]" onClick={() => setScreen('start')}>
-              Play Again
-            </Button>
+            {canReplay && (
+              <Button size="lg" className="bg-[#ff00ff] hover:bg-[#ff00ff]/80 text-white font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#ff00ff]" onClick={() => setScreen('start')}>
+                Play Again
+              </Button>
+            )}
             {onComplete && (
               <Button size="lg" className="bg-[#00f2ff] hover:bg-[#00f2ff]/80 text-black font-bold text-xl py-6 rounded-2xl px-12 shadow-[0_0_15px_#00f2ff]" onClick={() => onComplete(correctItems, totalItems)}>
-                Next Game ➡️
+                {allowSkip === false ? 'Continue' : 'Next Game ➡️'}
               </Button>
             )}
           </div>
