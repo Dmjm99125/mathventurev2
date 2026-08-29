@@ -97,8 +97,10 @@ interface ClockMultipleProps {
 
 export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultipleProps) {
   const MAX_SCORE = 12;
+  const canReplay = allowSkip !== false;
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -127,6 +129,21 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
     setCanClick(true);
   };
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1500);
+    return true;
+  };
+
   useEffect(() => {
     setupRound();
   }, []);
@@ -135,6 +152,8 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
     if (!canClick) return;
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
     setCanClick(false);
     setSelectedIndex(index);
 
@@ -145,6 +164,10 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
       setFeedback('correct');
       const newScore = score + 1;
       setScore(newScore);
+
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -159,6 +182,9 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
     } else {
       playSound('wrong');
       setFeedback('wrong');
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
       setTimeout(() => {
         setCanClick(true);
         setFeedback('none');
@@ -170,6 +196,7 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -246,11 +273,13 @@ export function ClockMultiple({ onComplete, allowSkip = true }: ClockMultiplePro
             <h1 className="text-[#00838f] text-4xl md:text-5xl font-extrabold mb-4">You got them all!</h1>
             
             <div className="flex gap-4 mt-8">
-              <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
-              {onComplete && (
-                <Button size="lg" onClick={() => onComplete?.(score, attempts)} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
+              {allowSkip === false && onComplete && (
+                <Button size="lg" onClick={() => onComplete?.(score, MAX_SCORE)} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
                   Next <ChevronRight className="ml-2 w-6 h-6" />
                 </Button>
               )}
