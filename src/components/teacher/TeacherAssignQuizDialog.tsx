@@ -22,13 +22,19 @@ export function TeacherAssignQuizDialog({
 }) {
   const createAssignment = useCreateAssignment();
   const [lessonId, setLessonId] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [created, setCreated] = useState(false);
 
-  const close = () => {
+  const resetForm = () => {
     setLessonId('');
+    setName('');
     setError('');
     setCreated(false);
+  };
+
+  const close = () => {
+    resetForm();
     onOpenChange(false);
   };
 
@@ -38,7 +44,7 @@ export function TeacherAssignQuizDialog({
 
     setError('');
     try {
-      await createAssignment.mutateAsync({ lessonId, classId });
+      await createAssignment.mutateAsync({ lessonId, name, classId });
       setCreated(true);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Unable to assign this quiz.');
@@ -51,7 +57,7 @@ export function TeacherAssignQuizDialog({
         <DialogHeader>
           <DialogTitle>Assign Quiz</DialogTitle>
           <DialogDescription>
-            Choose a topic to assign to every student in your classroom. Each student can take the quiz once.
+            Choose a topic and name this assignment. Each student can take each assignment once.
           </DialogDescription>
         </DialogHeader>
 
@@ -77,6 +83,18 @@ export function TeacherAssignQuizDialog({
               </select>
             </div>
 
+            <div className="grid gap-2">
+              <label htmlFor="assignment-name" className="font-bold">Assignment name</label>
+              <input
+                id="assignment-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={120}
+                placeholder="Example: Sequencing Review"
+                className="h-11 rounded-xl border-2 border-input bg-background px-3 font-bold"
+              />
+            </div>
+
             {error && <p className="text-sm font-bold text-destructive">{error}</p>}
 
             <DialogFooter>
@@ -90,6 +108,7 @@ export function TeacherAssignQuizDialog({
 
         {created && (
           <DialogFooter>
+            <Button type="button" variant="outline" onClick={resetForm}>Assign another</Button>
             <Button type="button" variant="jungle" onClick={close}>Done</Button>
           </DialogFooter>
         )}

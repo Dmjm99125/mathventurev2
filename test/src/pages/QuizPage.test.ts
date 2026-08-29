@@ -92,3 +92,10 @@ Deno.test("structured quiz totals use the detailed game maxima", async () => {
   assertEquals(source.includes("const maxScore = nextResults.reduce((sum, result) => sum + result.maxScore, 0);"), true);
   assertEquals(source.includes("out of ${maxScore}"), true);
 });
+Deno.test("quiz completion does not show success when the final save fails", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("const didSave = await finishAttempt(nextResults, finalScore);"), true);
+  assertEquals(source.includes("if (!didSave) return;"), true);
+  assertEquals(source.includes("setGameState('completed');\n      confetti"), true);
+});

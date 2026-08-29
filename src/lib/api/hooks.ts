@@ -184,7 +184,7 @@ export function useJoinClass() {
 export function useCreateAssignment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { lessonId: string; classId?: string; studentId?: string; dueAt?: string }) => 
+    mutationFn: (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) =>
       api.assignments.create(input),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assignments', variables.classId] });

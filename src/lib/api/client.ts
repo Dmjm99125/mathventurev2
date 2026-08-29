@@ -48,6 +48,19 @@ export interface TeacherGameScore {
   completedAt: string;
 }
 
+export interface TeacherAssignmentScore {
+  assignmentId: string;
+  name: string;
+  lessonId: string;
+  dueAt: string | null;
+  createdAt: string;
+  status: AssignmentQuizStatus;
+  overallScore: number | null;
+  overallMaxScore: number | null;
+  overallScorePct: number | null;
+  gameScores: TeacherGameScore[];
+}
+
 export interface TeacherClassStudent {
   id: string;
   fullName: string;
@@ -60,10 +73,12 @@ export interface TeacherClassStudent {
   overallMaxScore: number | null;
   overallScorePct: number | null;
   gameScores: TeacherGameScore[];
+  assignments: TeacherAssignmentScore[];
 }
 
 export interface AssignmentForStudent {
   id: string;
+  name: string;
   lessonId: string;
   classId: string | null;
   dueAt: string | null;
@@ -91,6 +106,7 @@ export interface AssignmentQuizState {
 
 export interface AssignmentForTeacher {
   id: string;
+  name: string;
   lessonId: string;
   classId: string | null;
   className: string | null;
@@ -188,7 +204,7 @@ export const api = {
       invokeFunction<{ assignments: (AssignmentForStudent | AssignmentForTeacher)[] }>('assignments-list', {
         searchParams: classId ? { classId } : undefined,
       }),
-    create: (input: { lessonId: string; classId?: string; studentId?: string; dueAt?: string }) =>
+    create: (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) =>
       invokeFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),
   },
   assignmentQuiz: {

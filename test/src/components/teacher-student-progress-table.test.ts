@@ -10,6 +10,8 @@ Deno.test("teacher progress exposes expandable overall and per-game scores", asy
   assertEquals(source.includes("useState<string | null>(null)"), true);
   assertEquals(source.includes("overallScorePct"), true);
   assertEquals(source.includes("gameScores"), true);
+  assertEquals(source.includes("assignments"), true);
+  assertEquals(source.includes("assignment.name"), true);
   assertEquals(source.includes("aria-expanded"), true);
   assertEquals(source.includes("GAME_CATALOG"), true);
 });

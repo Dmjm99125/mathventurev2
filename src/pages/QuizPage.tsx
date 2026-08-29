@@ -104,7 +104,15 @@ import { buildStudentLessonExitHref } from '@/lib/student/portal';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
-function ClassroomQuizBanner({ error }: { error?: string | null }) {
+function ClassroomQuizBanner({
+  error,
+  onRetry,
+  isRetrying = false,
+}: {
+  error?: string | null;
+  onRetry?: () => void;
+  isRetrying?: boolean;
+}) {
   return (
     <Card className="w-full max-w-3xl border-4 border-jungle-yellow bg-jungle-yellow/10 p-4 text-center shadow-md">
       <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">CLASSROOM QUIZ</p>
@@ -113,6 +121,17 @@ function ClassroomQuizBanner({ error }: { error?: string | null }) {
         This assigned quiz can be submitted once. Free play remains available separately for practice.
       </p>
       {error && <p className="mt-2 text-sm font-extrabold text-destructive">{error}</p>}
+      {onRetry && (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3"
+          onClick={onRetry}
+          disabled={isRetrying}
+        >
+          {isRetrying ? 'Saving score...' : 'Retry saving score'}
+        </Button>
+      )}
     </Card>
   );
 }
@@ -169,6 +188,12 @@ export function QuizPage() {
   const [startTime, setStartTime] = useState(0);
   const [gameResults, setGameResults] = useState<AttemptGameResultInput[]>([]);
   const [quizPersistenceError, setQuizPersistenceError] = useState<string | null>(null);
+  const [pendingCompletion, setPendingCompletion] = useState<{
+    results: AttemptGameResultInput[];
+    score: number;
+    maxScore: number;
+    durationSeconds: number;
+  } | null>(null);
   const [isSavingGame, setIsSavingGame] = useState(false);
   const isSavingGameRef = useRef(false);
 
@@ -284,8 +309,8 @@ export function QuizPage() {
   const finishAttempt = async (
     nextResults: AttemptGameResultInput[],
     finalScore = score,
-  ) => {
-    const durationSeconds = Math.round((Date.now() - startTime) / 1000);
+    savedDurationSeconds = Math.round((Date.now() - startTime) / 1000),
+  ): Promise<boolean> => {
     const maxScore = nextResults.reduce((sum, result) => sum + result.maxScore, 0);
     try {
       if (assignmentId) {
@@ -294,7 +319,7 @@ export function QuizPage() {
           lessonId: topic,
           score: finalScore,
           maxScore,
-          durationSeconds,
+          durationSeconds: savedDurationSeconds,
           gameResults: nextResults,
         });
       } else {
@@ -304,16 +329,41 @@ export function QuizPage() {
           classId,
           score: finalScore,
           maxScore,
-          durationSeconds,
+          durationSeconds: savedDurationSeconds,
           gameResults: nextResults,
         });
       }
       setQuizPersistenceError(null);
+      setPendingCompletion(null);
+      setGameState('completed');
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#eab308', '#f97316'] });
+      return true;
     } catch (e) {
       setQuizPersistenceError(e instanceof Error ? e.message : 'Unable to submit the quiz.');
+      setPendingCompletion({
+        results: nextResults,
+        score: finalScore,
+        maxScore,
+        durationSeconds: savedDurationSeconds,
+      });
+      return false;
     }
-    setGameState('completed');
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#22c55e', '#eab308', '#f97316'] });
+  };
+
+  const retryCompletion = async () => {
+    if (!pendingCompletion || isSavingGameRef.current) return;
+    isSavingGameRef.current = true;
+    setIsSavingGame(true);
+    try {
+      await finishAttempt(
+        pendingCompletion.results,
+        pendingCompletion.score,
+        pendingCompletion.durationSeconds,
+      );
+    } finally {
+      isSavingGameRef.current = false;
+      setIsSavingGame(false);
+    }
   };
 
   const completeStructuredGame = async (gameScore = 1, gameMaxScore = 1) => {
@@ -336,7 +386,8 @@ export function QuizPage() {
 
       const finalScore = score + gameScore;
       setScore(finalScore);
-      await finishAttempt(nextResults, finalScore);
+      const didSave = await finishAttempt(nextResults, finalScore);
+      if (!didSave) return;
     } finally {
       isSavingGameRef.current = false;
       setIsSavingGame(false);
@@ -410,7 +461,13 @@ export function QuizPage() {
     return (
       <GameLayout topic={topic} stage="video" onExit={handleExit}>
         <div className="w-full max-w-5xl flex flex-col items-center gap-6 animate-in fade-in duration-500">
-          {isAssignedQuiz && <ClassroomQuizBanner error={quizPersistenceError} />}
+          {isAssignedQuiz && (
+            <ClassroomQuizBanner
+              error={quizPersistenceError}
+              onRetry={pendingCompletion ? () => void retryCompletion() : undefined}
+              isRetrying={isSavingGame}
+            />
+          )}
           {/* Title */}
           <div className="text-center space-y-1">
             <h1 className="text-3xl font-display font-extrabold text-foreground capitalize">{topic}</h1>
@@ -473,7 +530,13 @@ export function QuizPage() {
     return (
       <GameLayout topic={topic} stage="lesson" onExit={handleExit}>
         <div className="w-full max-w-2xl flex flex-col items-center gap-6">
-          {isAssignedQuiz && <ClassroomQuizBanner error={quizPersistenceError} />}
+          {isAssignedQuiz && (
+            <ClassroomQuizBanner
+              error={quizPersistenceError}
+              onRetry={pendingCompletion ? () => void retryCompletion() : undefined}
+              isRetrying={isSavingGame}
+            />
+          )}
           {slide ? (
             <LessonSlideCard slide={slide} index={slideIndex + 1} total={slides.length} />
           ) : (
@@ -547,7 +610,13 @@ export function QuizPage() {
 
   return (
     <GameLayout topic={topic} stage="quiz" onExit={handleExit}>
-      {isAssignedQuiz && <ClassroomQuizBanner error={quizPersistenceError} />}
+      {isAssignedQuiz && (
+        <ClassroomQuizBanner
+          error={quizPersistenceError}
+          onRetry={pendingCompletion ? () => void retryCompletion() : undefined}
+          isRetrying={isSavingGame}
+        />
+      )}
 
       {gameState === 'quiz-intro' && (
         <Card className="max-w-md w-full p-8 text-center animate-in zoom-in-95 duration-500 shadow-2xl border-4 border-primary">

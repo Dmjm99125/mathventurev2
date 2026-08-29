@@ -194,8 +194,7 @@ export function StudentClassroomPage() {
   }
 
   const posts = postsData?.posts || [];
-  const assignments = ((assignmentsData?.assignments || []) as import('@/lib/api').AssignmentForStudent[])
-    .filter(a => !a.completed); 
+  const assignments = (assignmentsData?.assignments || []) as import('@/lib/api').AssignmentForStudent[];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -245,9 +244,14 @@ export function StudentClassroomPage() {
                 {assignments.map(a => (
                   <div key={a.id} className="p-3 bg-muted/30 rounded-xl border border-border flex justify-between items-center">
                     <div>
+                      <p className="font-bold">{a.name || a.lessonId}</p>
                       <Badge variant="jungle" className="mb-1 capitalize">{a.lessonId}</Badge>
                       <p className="text-xs font-bold text-muted-foreground">
-                        {a.status === 'in_progress' ? 'In progress — resume where you left off' : 'Not started — one attempt only'}
+                        {a.status === 'completed'
+                          ? 'Completed - ' + a.score + ' / ' + a.maxScore
+                          : a.status === 'in_progress'
+                            ? 'In progress - resume where you left off'
+                            : 'Not started - one attempt only'}
                       </p>
                     </div>
                     <Button
@@ -263,7 +267,7 @@ export function StudentClassroomPage() {
                           }),
                         )}
                     >
-                      {a.status === 'in_progress' ? 'Resume' : 'Start Quiz'}
+                      {a.status === 'completed' ? 'View Result' : a.status === 'in_progress' ? 'Resume' : 'Start Quiz'}
                     </Button>
                   </div>
                 ))}

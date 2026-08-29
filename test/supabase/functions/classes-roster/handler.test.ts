@@ -12,10 +12,31 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
       lastName: "Santos",
       joinedAt: "2026-07-20T00:00:00.000Z",
     }],
+    listAssignments: async () => [
+      {
+        id: "assignment-1",
+        name: "Colors Review",
+        lessonId: "colors",
+        classId: "classroom-1",
+        studentId: null,
+        dueAt: null,
+        createdAt: "2026-07-25T00:00:00.000Z",
+      },
+      {
+        id: "assignment-2",
+        name: "Colors Retake",
+        lessonId: "colors",
+        classId: "classroom-1",
+        studentId: null,
+        dueAt: null,
+        createdAt: "2026-07-26T00:00:00.000Z",
+      },
+    ],
     listDetailedGameResults: async () => [
       {
         studentId: "student-1",
         attemptStudentId: "student-1",
+        attemptId: "attempt-1",
         gameId: "colors:0",
         score: 1,
         maxScore: 1,
@@ -24,6 +45,7 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
       {
         studentId: "student-1",
         attemptStudentId: "student-2",
+        attemptId: "attempt-2",
         gameId: "colors:9",
         score: 9,
         maxScore: 10,
@@ -32,6 +54,7 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
       {
         studentId: "student-1",
         attemptStudentId: "student-1",
+        attemptId: "attempt-2",
         gameId: "colors:0",
         score: 0,
         maxScore: 1,
@@ -40,6 +63,7 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
       {
         studentId: "student-1",
         attemptStudentId: "student-1",
+        attemptId: "attempt-1",
         gameId: "colors:1",
         score: 3,
         maxScore: 4,
@@ -48,16 +72,24 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
     ],
     listCompletedAttempts: async () => [
       {
+        attemptId: "attempt-1",
+        assignmentId: "assignment-1",
         studentId: "student-1",
+        status: "completed",
         score: 3,
         maxScore: 5,
         completedAt: "2026-07-28T09:00:00.000Z",
+        updatedAt: "2026-07-28T09:00:00.000Z",
       },
       {
+        attemptId: "attempt-2",
+        assignmentId: "assignment-2",
         studentId: "student-1",
+        status: "completed",
         score: 8,
         maxScore: 10,
         completedAt: "2026-07-29T09:00:00.000Z",
+        updatedAt: "2026-07-29T09:00:00.000Z",
       },
     ],
   } as Parameters<typeof createClassesRosterHandler>[0]);
@@ -92,6 +124,55 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
         completedAt: "2026-07-28T09:00:00.000Z",
       },
     ],
+    assignments: [
+      {
+        assignmentId: "assignment-2",
+        name: "Colors Retake",
+        lessonId: "colors",
+        dueAt: null,
+        createdAt: "2026-07-26T00:00:00.000Z",
+        status: "completed",
+        overallScore: 8,
+        overallMaxScore: 10,
+        overallScorePct: 80,
+        gameScores: [
+          {
+            gameId: "colors:0",
+            score: 0,
+            maxScore: 1,
+            scorePct: 0,
+            completedAt: "2026-07-28T09:30:00.000Z",
+          },
+        ],
+      },
+      {
+        assignmentId: "assignment-1",
+        name: "Colors Review",
+        lessonId: "colors",
+        dueAt: null,
+        createdAt: "2026-07-25T00:00:00.000Z",
+        status: "completed",
+        overallScore: 3,
+        overallMaxScore: 5,
+        overallScorePct: 60,
+        gameScores: [
+          {
+            gameId: "colors:0",
+            score: 1,
+            maxScore: 1,
+            scorePct: 100,
+            completedAt: "2026-07-27T09:00:00.000Z",
+          },
+          {
+            gameId: "colors:1",
+            score: 3,
+            maxScore: 4,
+            scorePct: 75,
+            completedAt: "2026-07-28T09:00:00.000Z",
+          },
+        ],
+      },
+    ],
   });
 });
 
@@ -106,6 +187,7 @@ Deno.test("classes-roster leaves detailed progress empty when no child rows exis
       lastName: null,
       joinedAt: "2026-07-20T00:00:00.000Z",
     }],
+    listAssignments: async () => [],
     listDetailedGameResults: async () => [],
     listCompletedAttempts: async () => [],
   });

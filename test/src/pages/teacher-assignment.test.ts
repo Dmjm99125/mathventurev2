@@ -9,4 +9,7 @@ Deno.test("teacher classroom exposes the assign quiz flow", () => {
   assertStringIncludes(assignmentDialog, "useCreateAssignment");
   assertStringIncludes(assignmentDialog, "classId");
   assertStringIncludes(assignmentDialog, "lessonId");
+  assertStringIncludes(assignmentDialog, "assignment-name");
+  assertStringIncludes(assignmentDialog, "Assign another");
+  assertStringIncludes(assignmentDialog, "name");
 });

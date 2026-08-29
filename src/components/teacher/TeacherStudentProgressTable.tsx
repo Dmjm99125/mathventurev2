@@ -45,7 +45,6 @@ export function TeacherStudentProgressTable({
           )}
           {students.map((student) => {
             const isExpanded = expandedStudentId === student.id;
-            const scoresByGameId = new Map((student.gameScores ?? []).map((game) => [game.gameId, game]));
             const detailsId = `student-game-scores-${student.id}`;
 
             return (
@@ -74,19 +73,53 @@ export function TeacherStudentProgressTable({
                 {isExpanded && (
                   <tr>
                     <td id={detailsId} colSpan={6} className="bg-muted/20 p-4 sm:p-6">
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {GAME_CATALOG.map((game) => {
-                          const result = scoresByGameId.get(game.gameId);
+                      <div className="grid gap-4">
+                        {(student.assignments ?? []).map((assignment) => {
+                          const assignmentScoresByGameId = new Map(
+                            assignment.gameScores.map((game) => [game.gameId, game]),
+                          );
 
                           return (
-                            <div key={game.gameId} className="rounded-2xl border border-border/60 bg-white p-4">
-                              <p className="font-bold">{game.title}</p>
-                              <p className="mt-2 text-sm font-bold text-muted-foreground">
-                                {formatScore(result?.score ?? null, result?.maxScore ?? null, result?.scorePct ?? null)}
-                              </p>
-                            </div>
+                            <section key={assignment.assignmentId} className="rounded-2xl border-2 border-border/60 bg-white p-4 sm:p-5">
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-lg font-extrabold">{assignment.name || assignment.lessonId}</p>
+                                  <p className="text-sm font-bold capitalize text-muted-foreground">
+                                    {assignment.lessonId} - {assignment.status.replace('_', ' ')}
+                                  </p>
+                                </div>
+                                <p className="text-sm font-extrabold text-primary">
+                                  Overall: {formatScore(
+                                    assignment.overallScore,
+                                    assignment.overallMaxScore,
+                                    assignment.overallScorePct,
+                                  )}
+                                </p>
+                              </div>
+                              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {GAME_CATALOG.map((game) => {
+                                  const result = assignmentScoresByGameId.get(game.gameId);
+
+                                  return (
+                                    <div key={game.gameId} className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+                                      <p className="font-bold">{game.title}</p>
+                                      <p className="mt-2 text-sm font-bold text-muted-foreground">
+                                        {formatScore(
+                                          result?.score ?? null,
+                                          result?.maxScore ?? null,
+                                          result?.scorePct ?? null,
+                                        )}
+                                      </p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </section>
                           );
                         })}
+                        {!(student.assignments ?? []).length && (
+                          <p className="font-bold text-muted-foreground">No classroom assignments yet.</p>
+                        )}
                       </div>
                     </td>
                   </tr>
