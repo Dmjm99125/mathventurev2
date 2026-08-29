@@ -78,6 +78,7 @@ interface SkyExplorerProps {
 
 export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -285,17 +286,19 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button
-                size="lg"
-                onClick={resetGame}
-                className="h-16 rounded-full bg-[#22c55e] px-10 text-2xl font-bold text-white shadow-[0_4px_0_#16a34a] transition-all hover:translate-y-1 hover:bg-[#16a34a] hover:shadow-[0_2px_0_#16a34a]"
-              >
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button
+                  size="lg"
+                  onClick={resetGame}
+                  className="h-16 rounded-full bg-[#22c55e] px-10 text-2xl font-bold text-white shadow-[0_4px_0_#16a34a] transition-all hover:translate-y-1 hover:bg-[#16a34a] hover:shadow-[0_2px_0_#16a34a]"
+                >
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
