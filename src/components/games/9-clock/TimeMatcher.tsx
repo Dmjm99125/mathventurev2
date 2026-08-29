@@ -52,6 +52,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<number[]>([]);
   
@@ -91,6 +92,8 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
     setSelectedIndex(index);
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
 
     const isCorrect = opt === targetHour;
 
@@ -100,7 +103,13 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
       const newScore = score + 1;
       setScore(newScore);
 
-      if (newScore >= MAX_SCORE) {
+      if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
+        setTimeout(() => {
+          setIsCompleted(true);
+          playSound('fanfare');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 1500);
+      } else if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
           if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -113,17 +122,30 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setTimeout(() => {
-        setCanClick(true);
-        setFeedback('none');
-        setSelectedIndex(null);
-      }, 1500);
+      if (allowSkip === false) {
+        if (newAnsweredItems >= MAX_SCORE) {
+          setTimeout(() => {
+            setIsCompleted(true);
+            playSound('fanfare');
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+          }, 1500);
+        } else {
+          setTimeout(() => setupRound(), 1500);
+        }
+      } else {
+        setTimeout(() => {
+          setCanClick(true);
+          setFeedback('none');
+          setSelectedIndex(null);
+        }, 1500);
+      }
     }
   };
 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -266,7 +288,7 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
             
             <div className="flex gap-4 mt-8">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
