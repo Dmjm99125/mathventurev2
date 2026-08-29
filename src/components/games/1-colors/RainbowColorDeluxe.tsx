@@ -111,6 +111,10 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
         setIsCompleted(true);
         setIsGameOver(true);
       }
+    } else if (allowSkip === false) {
+      setMessage("❌ Wrong choice counted!");
+      setMessageColor("text-red-500");
+      generateBoard(difficulty);
     } else {
       setMessage("❌ Try Again!");
       setMessageColor("text-red-500");
