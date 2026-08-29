@@ -137,8 +137,10 @@ interface DailyRoutineTimeProps {
 
 export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineTimeProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   
   const [currentRoutine, setCurrentRoutine] = useState(ROUTINES[0]);
@@ -151,6 +153,21 @@ export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineT
     setCurrentRoutine(randomRoutine);
     setClockHour(12);
     setCanClick(true);
+  };
+
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1200);
+    return true;
   };
 
   useEffect(() => {
@@ -168,6 +185,8 @@ export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineT
     setCanClick(false);
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
 
     if (clockHour === currentRoutine.hour) {
       playSound('alarm');
@@ -175,6 +194,10 @@ export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineT
       
       const newScore = score + 1;
       setScore(newScore);
+
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -189,6 +212,9 @@ export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineT
     } else {
       playSound('wrong');
       setIsShaking(true);
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
       setTimeout(() => {
         setIsShaking(false);
         setCanClick(true);
@@ -199,6 +225,7 @@ export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineT
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -285,13 +312,15 @@ export function DailyRoutineTime({ onComplete, allowSkip = true }: DailyRoutineT
             
             <div className="flex gap-4 mt-8">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#ff9800] hover:bg-[#e65100] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#e65100] hover:shadow-[0_2px_0_#e65100] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#ff9800] hover:bg-[#e65100] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#e65100] hover:shadow-[0_2px_0_#e65100] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
