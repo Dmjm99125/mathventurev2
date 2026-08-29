@@ -100,6 +100,7 @@ interface MatchingTypeAProps {
 
 export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAProps) {
   const MAX_SCORE = 6;
+  const canReplay = allowSkip !== false;
   const [cards, setCards] = useState<CardData[]>([]);
   const [flippedIds, setFlippedIds] = useState<string[]>([]);
   const [matches, setMatches] = useState(0);
@@ -339,13 +340,15 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(matches, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(matches, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={startGame} className="bg-[#ff6600] hover:bg-[#e65c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#cc5200] hover:shadow-[0_2px_0_#cc5200] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={startGame} className="bg-[#ff6600] hover:bg-[#e65c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#cc5200] hover:shadow-[0_2px_0_#cc5200] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
