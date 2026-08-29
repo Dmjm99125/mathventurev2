@@ -117,3 +117,12 @@ Deno.test("DragMatchingClock locks assigned replay and reports the fixed maximum
   assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
 });
+
+Deno.test("DragMatchingClock ignores clicks while a drag is active", async () => {
+  const source = await readSource("src/components/games/9-clock/DragMatchingClock.tsx");
+
+  const guardIndex = source.indexOf("if (dragState !== 'idle') return;");
+  const attemptsIndex = source.indexOf("const newAttempts = attempts + 1;", guardIndex);
+  assertEquals(guardIndex >= 0, true);
+  assertEquals(guardIndex < attemptsIndex, true);
+});
