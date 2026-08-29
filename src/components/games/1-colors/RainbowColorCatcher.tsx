@@ -39,6 +39,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
   const [showRainbow, setShowRainbow] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const attemptsRef = useRef(0);
+  const canReplay = allowSkip !== false;
 
   useEffect(() => {
     const saved = localStorage.getItem("colorHighScore");
@@ -231,7 +232,9 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
           <div className="text-3xl md:text-4xl font-bold mb-4 flex flex-col items-center bg-white/80 p-6 rounded-2xl drop-shadow-lg mx-auto max-w-sm">
             🎉 Game Over!<br/>
             <span className="text-2xl mt-2 text-gray-600">Final Score: {score}</span>
-            <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={restartGame}>Play Again</Button>
+            {canReplay && (
+              <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={restartGame}>Play Again</Button>
+            )}
             {allowSkip === false && onComplete && (
               <Button size="lg" variant="outline" className="mt-4 rounded-full px-8 text-xl" onClick={() => onComplete(correctItems, Math.max(1, totalItems))}>
                 Continue
