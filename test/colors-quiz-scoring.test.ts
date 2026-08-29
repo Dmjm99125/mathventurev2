@@ -123,3 +123,10 @@ Deno.test("RainbowColorCatcher hides replay after assigned-quiz game over", asyn
   assertMatch(source, /const canReplay = allowSkip !== false/);
   assertMatch(source, /canReplay[\s\S]*onClick=\{restartGame\}/);
 });
+
+Deno.test("RainbowColorCatcher keeps replay available in free play", async () => {
+  const source = await readSource("src/components/games/1-colors/RainbowColorCatcher.tsx");
+
+  assertMatch(source, /canReplay && \([\s\S]*Play Again/);
+  assertMatch(source, /onClick=\{restartGame\}/);
+});
