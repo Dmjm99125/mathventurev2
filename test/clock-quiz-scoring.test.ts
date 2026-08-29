@@ -89,6 +89,6 @@ Deno.test("FillMissingTime consumes wrong taps and drops as assigned quiz items"
 
   assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
   assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
-  assertMatch(source, /allowSkip === false[\s\S]{0,700}newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
-  assertMatch(source, /allowSkip === false[\s\S]{0,700}setupRound\(\)/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,700}newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,700}setupRound\(\)/);
 });
