@@ -102,3 +102,10 @@ Deno.test("ColorMatchingGame applies assigned wrong-item handling to drag and to
   assertMatch(source, /const handleDrop[\s\S]*allowSkip === false[\s\S]*quizWrong: true/);
   assertMatch(source, /if \(item\.matched \|\| item\.quizWrong\) return null/);
 });
+
+Deno.test("BalloonFindingGame consumes wrong balloons in assigned quizzes", async () => {
+  const source = await readSource("src/components/games/1-colors/BalloonFindingGame.tsx");
+
+  assertMatch(source, /else[\s\S]*setBalloons\(prev => prev\.filter\(b => b\.id !== balloon\.id\)\)[\s\S]*createBalloon\(false\)/);
+  assertMatch(source, /allowSkip !== false[\s\S]{0,240}onClick=\{initRound\}/);
+});
