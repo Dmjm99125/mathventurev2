@@ -25,7 +25,7 @@ Deno.test("Quiz-rendered comparison games expose scored completion callbacks", a
     assertMatch(source, /onComplete\?: \(score\?: number, maxScore\?: number\) => void/);
     assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/);
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/);
-    assertMatch(source, /onComplete\?\.\((?:score|matches), attempts\)/);
+    assertMatch(source, /onComplete\?\.\((?:score|matches), (?:attempts|[^)\n]*attempts)\)/);
   }
 });
 
@@ -37,4 +37,12 @@ Deno.test("comparison completion callbacks are separate from no-argument skips",
     assertEquals(source.includes("onClick={() => onComplete?.() }"), false, fileName);
     assertMatch(source, /onClick=\{\(\) => onComplete\?\.\(\)\}/);
   }
+});
+
+Deno.test("arrange-in-order quiz scores each size position independently", async () => {
+  const source = await readGameSource("AyusinAngLaki.tsx");
+
+  assertEquals(source.includes("scoreByPosition"), true);
+  assertEquals(source.includes("if (allowSkip === false)"), true);
+  assertEquals(source.includes("MAX_SCORE * 3"), true);
 });

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { ChevronRight } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pop') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -134,6 +135,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   };
 
   const handlePlacedClick = (size: Size | null, index: number) => {
+    if (allowSkip === false) return;
     if (feedback !== "" && feedback !== "Mali ang pagkakasunod-sunod...") return;
     if (!size) return;
     
@@ -154,6 +156,24 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   const checkWin = (placed: Size[]) => {
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    if (allowSkip === false) {
+      const expected: Size[] = isSmallToBig
+        ? ['small', 'medium', 'large']
+        : ['large', 'medium', 'small'];
+      const positionScore = scoreByPosition(placed, expected);
+      setScore(prev => prev + positionScore);
+      if (newAttempts >= MAX_SCORE) {
+        setTimeout(() => {
+          setIsCompleted(true);
+          playSound('fanfare');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 1000);
+      } else {
+        setTimeout(setupRound, 1200);
+      }
+      return;
+    }
+
     let correct = false;
     if (isSmallToBig) {
       correct = (placed[0] === 'small' && placed[1] === 'medium' && placed[2] === 'large');
@@ -171,7 +191,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
-          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+          if (allowSkip) onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 1000);
@@ -215,7 +235,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#2980b9] mb-2 drop-shadow-sm">Pag-aayos ng Laki</h1>
         
         <div className="w-full flex justify-between px-4 mb-4 text-xl font-bold text-[#2c3e50]">
-          <div className="flex items-center gap-1">Puntos: <span className="text-[#2980b9]">{score}</span> / {MAX_SCORE}</div>
+          <div className="flex items-center gap-1">Puntos: <span className="text-[#2980b9]">{score}</span> / {allowSkip === false ? MAX_SCORE * 3 : MAX_SCORE}</div>
         </div>
 
         <div className="bg-white px-8 py-4 rounded-[15px] shadow-[0_4px_8px_rgba(0,0,0,0.1)] mb-8 w-[90%] max-w-[500px]">
@@ -352,7 +372,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, allowSkip === false ? MAX_SCORE * 3 : attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
