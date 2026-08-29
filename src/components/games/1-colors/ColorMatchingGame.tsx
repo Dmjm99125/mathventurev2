@@ -8,6 +8,7 @@ interface Item {
   emoji: string;
   color: string;
   matched: boolean;
+  quizWrong: boolean;
 }
 
 const EMOJI_POOL = [
@@ -35,7 +36,8 @@ const generateRandomItems = (): Item[] => {
     id: `${item.color}-${index}`,
     emoji: item.emoji,
     color: item.color,
-    matched: false
+    matched: false,
+    quizWrong: false,
   }));
 };
 
@@ -70,19 +72,24 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
       setItems(prev => prev.map(i => i.id === selectedItemId ? { ...i, matched: true } : i));
       setSelectedItemId(null);
     } else {
+      if (allowSkip === false) {
+        setItems(prev => prev.map(i => i.id === selectedItemId ? { ...i, quizWrong: true } : i));
+      }
       setSelectedItemId(null);
     }
   };
 
   const allMatched = items.length > 0 && items.every(i => i.matched);
+  const quizComplete = allowSkip === false && items.length > 0 && items.every(i => i.matched || i.quizWrong);
   const correctItems = items.filter(item => item.matched).length;
   const totalItems = totalAttempts;
   const completeGame = () => {
-    if (onComplete) onComplete(correctItems, totalItems);
+    if (onComplete) onComplete(correctItems, allowSkip === false ? items.length : totalItems);
   };
 
   useEffect(() => {
-    if (allMatched && !isCompleted) {
+    const gameFinished = allowSkip === false ? quizComplete : allMatched;
+    if (gameFinished && !isCompleted) {
       setIsCompleted(true);
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
@@ -95,7 +102,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
         }, 2000);
       }
     }
-  }, [allMatched, allowSkip, isCompleted]);
+  }, [allMatched, allowSkip, isCompleted, quizComplete]);
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -121,6 +128,9 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
     if (item.color === colorId) {
       setItems(prev => prev.map(i => i.id === itemId ? { ...i, matched: true } : i));
     } else {
+      if (allowSkip === false) {
+        setItems(prev => prev.map(i => i.id === itemId ? { ...i, quizWrong: true } : i));
+      }
       setSelectedItemId(null);
       return;
     }
@@ -175,7 +185,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
       {/* Draggable Items */}
       <div className="flex flex-wrap justify-center gap-4 md:gap-6 min-h-[100px]">
         {items.map(item => {
-          if (item.matched) return null; // Hide matched items
+          if (item.matched || item.quizWrong) return null; // Hide answered items
 
           const isSelected = selectedItemId === item.id;
 
@@ -194,9 +204,9 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
         })}
       </div>
 
-      {allMatched && (
+      {(allMatched || quizComplete) && (
         <div className="mt-8 text-2xl font-bold text-primary animate-bounce flex items-center gap-2">
-          <CheckCircle2 className="w-8 h-8" /> {allowSkip === false ? 'Great job!' : 'Great job! Next round...'}
+          <CheckCircle2 className="w-8 h-8" /> {allowSkip === false ? `Quiz complete: ${correctItems}/${items.length}` : 'Great job! Next round...'}
         </div>
       )}
 
