@@ -116,8 +116,10 @@ interface DragMatchingClockProps {
 
 export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatchingClockProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [targetHour, setTargetHour] = useState(12);
   const [options, setOptions] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -142,6 +144,21 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
     setDragState('idle');
   };
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1000);
+    return true;
+  };
+
   useEffect(() => {
     setupRound();
   }, []);
@@ -154,8 +171,11 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
   const handleDragEnd = (event: any, info: any, opt: number) => {
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
     if (!dropZoneRef.current) {
       setDragState('idle');
+      advanceAssignedRound(newAnsweredItems);
       return;
     }
 
@@ -174,6 +194,10 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
         const newScore = score + 1;
         setScore(newScore);
 
+        if (advanceAssignedRound(newAnsweredItems)) {
+          return;
+        }
+
         if (newScore >= MAX_SCORE) {
           setTimeout(() => {
             setIsCompleted(true);
@@ -185,12 +209,13 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
           setTimeout(() => setupRound(), 1000);
         }
       } else {
-        // Wrong
         playSound('wrong');
         setDragState('idle');
+        advanceAssignedRound(newAnsweredItems);
       }
     } else {
       setDragState('idle');
+      advanceAssignedRound(newAnsweredItems);
     }
   };
 
@@ -198,6 +223,8 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
   const handleClick = (opt: number) => {
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
     if (dragState !== 'idle') return;
     
     if (opt === targetHour) {
@@ -205,6 +232,10 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
       setDragState('success');
       const newScore = score + 1;
       setScore(newScore);
+
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -218,12 +249,14 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
       }
     } else {
       playSound('wrong');
+      advanceAssignedRound(newAnsweredItems);
     }
   };
 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -304,13 +337,15 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
             
             <div className="flex gap-4 mt-8">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#ff9800] hover:bg-[#e65100] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#e65100] hover:shadow-[0_2px_0_#e65100] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#ff9800] hover:bg-[#e65100] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#e65100] hover:shadow-[0_2px_0_#e65100] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
