@@ -25,7 +25,7 @@ Deno.test("Quiz-rendered comparison games expose scored completion callbacks", a
     assertMatch(source, /onComplete\?: \(score\?: number, maxScore\?: number\) => void/);
     assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/);
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/);
-    assertMatch(source, /onComplete\?\.\((?:score|matches), (?:attempts|[^)\n]*attempts)\)/);
+    assertMatch(source, /onComplete\?\.\((?:score|matches|newScore), (?:attempts|MAX_SCORE|[^)\n]*attempts)\)/);
   }
 });
 
@@ -45,4 +45,22 @@ Deno.test("arrange-in-order quiz scores each size position independently", async
   assertEquals(source.includes("scoreByPosition"), true);
   assertEquals(source.includes("if (allowSkip === false)"), true);
   assertEquals(source.includes("MAX_SCORE * 3"), true);
+});
+
+Deno.test("BarnyardBalance consumes wrong assigned-quiz answers", async () => {
+  const source = await readGameSource("BarnyardBalance.tsx");
+
+  assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,700}newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,700}setupRound\(\)/);
+});
+
+Deno.test("BarnyardBalance locks assigned replay and reports its fixed maximum", async () => {
+  const source = await readGameSource("BarnyardBalance.tsx");
+
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /canReplay && \([\s\S]*Play Again/);
+  assertMatch(source, /allowSkip === false && onComplete/);
 });
