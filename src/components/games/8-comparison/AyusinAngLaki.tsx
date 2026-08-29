@@ -72,6 +72,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [isSmallToBig, setIsSmallToBig] = useState(true);
   const [currentEmoji, setCurrentEmoji] = useState("🍎");
   const [bankItems, setBankItems] = useState<Size[]>([]);
@@ -156,13 +157,15 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   const checkWin = (placed: Size[]) => {
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
     if (allowSkip === false) {
       const expected: Size[] = isSmallToBig
         ? ['small', 'medium', 'large']
         : ['large', 'medium', 'small'];
       const positionScore = scoreByPosition(placed, expected);
       setScore(prev => prev + positionScore);
-      if (newAttempts >= MAX_SCORE) {
+      if (newAnsweredItems >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
           playSound('fanfare');
@@ -214,6 +217,7 @@ export function AyusinAngLaki({ onComplete, allowSkip = true }: AyusinAngLakiPro
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
