@@ -126,3 +126,12 @@ Deno.test("DragMatchingClock ignores clicks while a drag is active", async () =>
   assertEquals(guardIndex >= 0, true);
   assertEquals(guardIndex < attemptsIndex, true);
 });
+
+Deno.test("DailyRoutineTime consumes wrong answers as assigned quiz items", async () => {
+  const source = await readSource("src/components/games/9-clock/DailyRoutineTime.tsx");
+
+  assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,600}newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,600}setupRound\(\)/);
+});
