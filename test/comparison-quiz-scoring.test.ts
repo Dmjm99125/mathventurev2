@@ -142,3 +142,10 @@ Deno.test("WhichIsComp locks assigned replay and reports its fixed maximum", asy
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
   assertMatch(source, /allowSkip === false && onComplete/);
 });
+
+Deno.test("WhichIsComp preserves free-play retry feedback", async () => {
+  const source = await readGameSource("WhichIsComp.tsx");
+
+  assertMatch(source, /if \(advanceAssignedRound\(newAnsweredItems\)\) return;[\s\S]{0,220}setFeedback\('wrong'\)/);
+  assertMatch(source, /if \(newScore >= MAX_SCORE\)[\s\S]{0,500}setTimeout\(setupRound, 1200\)/);
+});
