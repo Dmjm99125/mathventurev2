@@ -49,6 +49,7 @@ interface TimeMatcherProps {
 
 export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -292,9 +293,11 @@ export function TimeMatcher({ onComplete, allowSkip = true }: TimeMatcherProps) 
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
