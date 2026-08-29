@@ -64,6 +64,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [isLookingForMore, setIsLookingForMore] = useState(true);
   const [leftFlowers, setLeftFlowers] = useState<{ emoji: string, id: number }[]>([]);
   const [rightFlowers, setRightFlowers] = useState<{ emoji: string, id: number }[]>([]);
@@ -107,17 +108,40 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
     setTimeout(() => setStars([]), 1000);
   };
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else if (newAnsweredItems < MAX_SCORE) {
+        setupRound();
+      }
+    }, 1000);
+    return true;
+  };
+
   const handlePatchClick = (side: 'left' | 'right') => {
     if (feedback === "Ang galing! ⭐") return;
 
+    const newAttempts = attempts + 1;
+    setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
+
     if (side === targetPatch) {
-      const newAttempts = attempts + 1;
-      setAttempts(prev => prev + 1);
       playSound('correct');
       setFeedback("Ang galing! ⭐");
       triggerStarBurst();
       const newScore = score + 1;
       setScore(newScore);
+
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
       
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -129,8 +153,11 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
         setTimeout(setupRound, 1200);
       }
     } else {
-      setAttempts(prev => prev + 1);
       playSound('wrong');
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
       setFeedback("Subukan muli! 💪");
     }
   };
@@ -138,6 +165,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
