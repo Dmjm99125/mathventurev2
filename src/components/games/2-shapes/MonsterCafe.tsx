@@ -13,6 +13,7 @@ const ITEMS = [
 ];
 
 const SHAPES = ["circle", "square", "triangle"];
+const QUIZ_ROUNDS = 10;
 const SHAPE_EMOJI: Record<string, string> = {
     circle: "⚪",
     square: "🟦",
@@ -24,10 +25,12 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
   const [choices, setChoices] = useState<typeof ITEMS>([]);
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [completedItems, setCompletedItems] = useState(0);
   const [gameState, setGameState] = useState<'playing'|'correct'|'wrong'|'completed'>('playing');
   const [roundId, setRoundId] = useState(0); // to force remount of items
   
   const mouthRef = useRef<HTMLDivElement>(null);
+  const quizAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startRound = () => {
     const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -47,6 +50,12 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
 
   useEffect(() => {
     startRound();
+
+    return () => {
+      if (quizAdvanceTimeoutRef.current) {
+        clearTimeout(quizAdvanceTimeoutRef.current);
+      }
+    };
   }, []);
 
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, item: typeof ITEMS[0]) => {
@@ -68,11 +77,36 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
       y <= mouthRect.bottom + pad;
 
     if (isOverMouth) {
+      if (allowSkip === false) {
+        const isCorrect = item.shape === currentShape;
+        const newAttempts = attempts + 1;
+        const newScore = score + (isCorrect ? 1 : 0);
+        const newCompletedItems = completedItems + 1;
+
+        setAttempts(newAttempts);
+        setCompletedItems(newCompletedItems);
+        setScore(newScore);
+        setGameState(newCompletedItems >= QUIZ_ROUNDS ? 'completed' : isCorrect ? 'correct' : 'wrong');
+
+        if (isCorrect) {
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        if (newCompletedItems < QUIZ_ROUNDS) {
+          quizAdvanceTimeoutRef.current = setTimeout(() => {
+            quizAdvanceTimeoutRef.current = null;
+            startRound();
+          }, 800);
+        }
+
+        return;
+      }
+
       setAttempts((currentAttempts) => currentAttempts + 1);
       if (item.shape === currentShape) {
         const newScore = score + 1;
         setScore(newScore);
-        setGameState(allowSkip === false && newScore >= 10 ? 'completed' : 'correct');
+        setGameState('correct');
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       } else {
         setGameState('wrong');
@@ -148,7 +182,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
 
         {/* Next Round */}
         <div className="h-20 flex items-center justify-center mt-6 w-full">
-          {gameState !== 'playing' && gameState !== 'completed' && (
+          {allowSkip !== false && gameState !== 'playing' && gameState !== 'completed' && (
             <Button
               size="lg"
               className={`w-full font-bold text-xl py-8 rounded-2xl shadow-[0_6px_0_0_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-4 active:translate-y-1 active:shadow-none transition-all ${
@@ -163,7 +197,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
             <Button
               size="lg"
               className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-xl py-8 rounded-2xl shadow-[0_6px_0_0_rgba(0,0,0,0.2)] animate-in slide-in-from-bottom-4 active:translate-y-1 active:shadow-none transition-all"
-              onClick={() => onComplete?.(score, attempts)}
+              onClick={() => onComplete?.(score, QUIZ_ROUNDS)}
             >
               Continue
             </Button>

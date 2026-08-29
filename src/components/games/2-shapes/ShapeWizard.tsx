@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -6,6 +6,7 @@ import { ArrowLeft, Heart, Star, Trophy } from 'lucide-react';
 
 const CHARACTERS = ['🐰', '🐼', '🦕', '🦄'];
 const SHAPES = ['circle', 'square', 'triangle'];
+const QUIZ_ROUNDS = 10;
 const GIFTS = ['🍦', '🚁', '🚲', '🎨', '🎮', '🎸', '🏆', '💎', '👑', '🍕'];
 
 const WORLDS = [
@@ -26,10 +27,15 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
   const [targetShape, setTargetShape] = useState('');
   const [options, setOptions] = useState<string[]>([]);
   const [latestReward, setLatestReward] = useState('');
+  const [quizScore, setQuizScore] = useState(0);
+  const [completedItems, setCompletedItems] = useState(0);
+  const [isRoundLocked, setIsRoundLocked] = useState(false);
+  const [quizFeedback, setQuizFeedback] = useState('');
+  const quizAdvanceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    if (screen === 'game' && timeLeft > 0) {
+    if (allowSkip !== false && screen === 'game' && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((t) => {
           if (t <= 0.1) {
@@ -42,7 +48,13 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
       }, 100);
     }
     return () => clearInterval(interval);
-  }, [screen, timeLeft]);
+  }, [allowSkip, screen, timeLeft]);
+
+  useEffect(() => {
+    return () => {
+      if (quizAdvanceTimeout.current) clearTimeout(quizAdvanceTimeout.current);
+    };
+  }, []);
 
   const nextRound = () => {
     const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -57,11 +69,46 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
     setScreen('game');
     setTimeLeft(30);
     setLives(3);
+    if (allowSkip === false) setAttempts(0);
+    setQuizScore(0);
+    setCompletedItems(0);
+    setIsRoundLocked(false);
+    setQuizFeedback('');
     nextRound();
   };
 
   const handleShapeClick = (shape: string) => {
     if (screen !== 'game' || timeLeft <= 0) return;
+
+    if (allowSkip === false) {
+      if (isRoundLocked || completedItems >= QUIZ_ROUNDS) return;
+
+      const isCorrect = shape === targetShape;
+      const newAttempts = attempts + 1;
+      const newScore = quizScore + (isCorrect ? 1 : 0);
+      const newCompletedItems = completedItems + 1;
+
+      setAttempts(newAttempts);
+      setQuizScore(newScore);
+      setCompletedItems(newCompletedItems);
+      setIsRoundLocked(true);
+      setQuizFeedback(isCorrect ? 'Correct!' : 'Wrong answer');
+
+      if (isCorrect) {
+        setStars((currentStars) => currentStars + 10);
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+      }
+
+      if (newCompletedItems < QUIZ_ROUNDS) {
+        quizAdvanceTimeout.current = setTimeout(() => {
+          nextRound();
+          setIsRoundLocked(false);
+          setQuizFeedback('');
+        }, 700);
+      }
+      return;
+    }
+
     setAttempts((currentAttempts) => currentAttempts + 1);
     if (shape === targetShape) {
       const oldStars = stars;
@@ -134,14 +181,16 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
           <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full text-white font-bold shadow-sm pointer-events-auto">
             <Trophy className="text-blue-400 fill-blue-400 w-4 h-4 md:w-5 md:h-5" /> Level {level}
           </div>
-          <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full text-white font-bold shadow-sm pointer-events-auto">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Heart
-                key={i}
-                className={`w-4 h-4 md:w-5 md:h-5 ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-500 fill-gray-500 opacity-50'}`}
-              />
-            ))}
-          </div>
+          {allowSkip !== false && (
+            <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full text-white font-bold shadow-sm pointer-events-auto">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Heart
+                  key={i}
+                  className={`w-4 h-4 md:w-5 md:h-5 ${i < lives ? 'text-red-500 fill-red-500' : 'text-gray-500 fill-gray-500 opacity-50'}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex w-full flex-col gap-2 md:w-auto">
@@ -267,10 +316,17 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
               <h3 className="text-2xl md:text-4xl font-bold text-white drop-shadow-md flex items-center gap-4">
                 <span className="text-4xl md:text-5xl bg-black/20 p-2 rounded-full">{character}</span>
                 <span>
+                  {allowSkip === false && <span className="block text-sm uppercase tracking-widest text-white/80">Question {Math.min(completedItems + 1, QUIZ_ROUNDS)} of {QUIZ_ROUNDS}</span>}
                   Find the <span className="text-[#f1c40f] uppercase tracking-wider">{targetShape}</span>
                 </span>
               </h3>
             </div>
+
+            {allowSkip === false && (
+              <div className={`mb-6 h-8 text-2xl font-bold ${quizFeedback === 'Correct!' ? 'text-green-200' : 'text-red-200'}`}>
+                {quizFeedback}
+              </div>
+            )}
 
             <div className="flex justify-center items-center gap-6 md:gap-12 w-full px-4">
               {options.map((shape, idx) => (
@@ -278,7 +334,7 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
                   key={idx}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="w-24 h-24 md:w-36 md:h-36 cursor-pointer drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)] bg-white/10 rounded-3xl p-4 border-2 border-white/20 hover:bg-white/30 hover:border-white/60 transition-colors"
+                  className={`w-24 h-24 md:w-36 md:h-36 cursor-pointer drop-shadow-[0_10px_10px_rgba(0,0,0,0.3)] bg-white/10 rounded-3xl p-4 border-2 border-white/20 hover:bg-white/30 hover:border-white/60 transition-colors ${allowSkip === false && isRoundLocked ? 'pointer-events-none opacity-70' : ''}`}
                   onClick={() => handleShapeClick(shape)}
                 >
                   {getSVG(shape)}
@@ -286,12 +342,24 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
               ))}
             </div>
 
-            <div className="absolute bottom-8 md:bottom-12 w-3/4 max-w-xl h-4 md:h-6 bg-black/40 rounded-full overflow-hidden shadow-inner border border-white/20 p-1">
-              <div
-                className={`h-full rounded-full transition-all duration-100 ease-linear ${timeLeft < 10 ? 'bg-red-500 animate-pulse' : 'bg-[#e74c3c]'}`}
-                style={{ width: `${(timeLeft / 30) * 100}%` }}
-              />
-            </div>
+            {allowSkip !== false && (
+              <div className="absolute bottom-8 md:bottom-12 w-3/4 max-w-xl h-4 md:h-6 bg-black/40 rounded-full overflow-hidden shadow-inner border border-white/20 p-1">
+                <div
+                  className={`h-full rounded-full transition-all duration-100 ease-linear ${timeLeft < 10 ? 'bg-red-500 animate-pulse' : 'bg-[#e74c3c]'}`}
+                  style={{ width: `${(timeLeft / 30) * 100}%` }}
+                />
+              </div>
+            )}
+
+            {allowSkip === false && completedItems >= QUIZ_ROUNDS && onComplete && (
+              <Button
+                size="lg"
+                className="mt-8 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
+                onClick={() => onComplete?.(quizScore, QUIZ_ROUNDS)}
+              >
+                Continue Quiz
+              </Button>
+            )}
           </motion.div>
         )}
 
@@ -318,11 +386,11 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
             >
               CONTINUE
             </Button>
-            {allowSkip === false && onComplete && (
+            {allowSkip === false && completedItems >= QUIZ_ROUNDS && onComplete && (
               <Button
                 size="lg"
                 className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
-                onClick={() => onComplete?.(Math.floor(stars / 10), attempts)}
+                onClick={() => onComplete?.(quizScore, QUIZ_ROUNDS)}
               >
                 Continue Quiz
               </Button>
@@ -350,11 +418,11 @@ export function ShapeWizard({ onComplete, allowSkip = true }: { onComplete?: (sc
             >
               BACK TO MAP
             </Button>
-            {allowSkip === false && onComplete && (
+            {allowSkip === false && completedItems >= QUIZ_ROUNDS && onComplete && (
               <Button
                 size="lg"
                 className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
-                onClick={() => onComplete?.(Math.floor(stars / 10), Math.max(1, attempts))}
+                onClick={() => onComplete?.(quizScore, QUIZ_ROUNDS)}
               >
                 Continue Quiz
               </Button>

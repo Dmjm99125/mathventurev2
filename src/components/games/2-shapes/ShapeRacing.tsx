@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { Trophy, Star, Navigation } from 'lucide-react';
 
 const SHAPES = ["Circle", "Square", "Rectangle", "Triangle"];
+const QUIZ_ROUNDS = 10;
 const REWARDS = ["🎈", "🐰", "🦄", "🌈", "🐱", "🎁", "⭐", "🚀"];
 const TRACKS = [
   { id: 'jungle', class: 'from-[#8fd694] to-[#4caf50]' },
@@ -15,7 +16,7 @@ const TRACKS = [
 
 export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
+  const [completedItems, setCompletedItems] = useState(0);
   const [level, setLevel] = useState(1);
   const [trophies, setTrophies] = useState(0);
   const [targetShape, setTargetShape] = useState('');
@@ -45,7 +46,6 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: (sc
 
   const handleRace = (choice: string) => {
     if (isRacing || isCompleted) return;
-    setAttempts((currentAttempts) => currentAttempts + 1);
     setIsRacing(true);
 
     const newDurations: Record<string, number> = {};
@@ -64,9 +64,14 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: (sc
     setCarDurations(newDurations);
 
     setTimeout(() => {
-      if (choice === targetShape) {
-        const newScore = score + 1;
-        setScore(newScore);
+      const isCorrect = choice === targetShape;
+      const newScore = score + (isCorrect ? 1 : 0);
+      const newCompletedItems = completedItems + 1;
+
+      setScore(newScore);
+      if (allowSkip === false) setCompletedItems(newCompletedItems);
+
+      if (isCorrect) {
         setMessage(`🎉 ${choice} Wins! Great Job!`);
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
@@ -77,13 +82,15 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: (sc
         if (newScore > 0 && newScore % 10 === 0) {
           setTrophies(t => t + 1);
         }
-        if (allowSkip === false && newScore >= 10) setIsCompleted(true);
       } else {
         setMessage(`❌ Oh no! The ${targetShape} won.`);
       }
 
+      const quizComplete = allowSkip === false && newCompletedItems >= QUIZ_ROUNDS;
+      if (quizComplete) setIsCompleted(true);
+
       // Wait for slow cars to cross finish line
-      if (!(allowSkip === false && score + (choice === targetShape ? 1 : 0) >= 10)) {
+      if (!quizComplete) {
         setTimeout(startRound, 2500);
       }
     }, 1000); // Check results slightly after fast car finishes (~0.7s)
@@ -213,7 +220,7 @@ export function ShapeRacing({ onComplete, allowSkip = true }: { onComplete?: (sc
           <Button
             size="lg"
             className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
-            onClick={() => onComplete?.(score, attempts)}
+            onClick={() => onComplete?.(score, QUIZ_ROUNDS)}
           >
             Continue
           </Button>

@@ -17,6 +17,7 @@ const TARGETS = [
     { shape: "cylinder", name: "CYLINDER", icon: "🏮" },
     { shape: "sphere", name: "SPHERE", icon: "🔵" }
 ];
+const QUIZ_ITEMS = ITEMS.length;
 
 export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [matches, setMatches] = useState<Record<string, string>>({});
@@ -24,6 +25,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
   const [message, setMessage] = useState('');
   const [shuffledItems, setShuffledItems] = useState(ITEMS);
   const [shuffledTargets, setShuffledTargets] = useState(TARGETS);
+  const [answeredItems, setAnsweredItems] = useState<Record<string, boolean>>({});
   
   const targetRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -37,10 +39,11 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
     setMessage('');
     setShuffledItems([...ITEMS].sort(() => Math.random() - 0.5));
     setShuffledTargets([...TARGETS].sort(() => Math.random() - 0.5));
+    setAnsweredItems({});
   };
 
   const handleDragEnd = (event: any, info: any, item: typeof ITEMS[0]) => {
-    if (Object.keys(matches).length === ITEMS.length) return;
+    if (Object.keys(matches).length === QUIZ_ITEMS || answeredItems[item.id]) return;
     let droppedShape = null;
     for (const [shape, ref] of Object.entries(targetRefs.current)) {
       if (!ref) continue;
@@ -59,10 +62,12 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
 
     if (droppedShape) {
       setAttempts((currentAttempts) => currentAttempts + 1);
+      const nextAnsweredItems = { ...answeredItems, [item.id]: true };
+      if (allowSkip === false) setAnsweredItems(nextAnsweredItems);
       if (droppedShape === item.match) {
         setMatches(prev => {
           const next = { ...prev, [item.id]: droppedShape };
-          if (Object.keys(next).length === ITEMS.length) {
+          if (allowSkip !== false && Object.keys(next).length === ITEMS.length) {
             setMessage("HOORAY! You matched them all! 🎉");
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
           } else {
@@ -70,6 +75,8 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
           }
           return next;
         });
+      } else if (allowSkip === false) {
+        setMessage("Wrong answer");
       } else {
         setMessage("Try another one! ❌");
         setTimeout(() => {
@@ -80,6 +87,9 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
   };
 
   const isWon = Object.keys(matches).length === ITEMS.length;
+  const isQuizComplete = allowSkip === false
+    ? Object.keys(answeredItems).length === QUIZ_ITEMS
+    : isWon;
 
   return (
     <div className="w-full max-w-5xl mx-auto bg-[#fdf5e6] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative overflow-hidden shrink-0 h-fit min-h-[600px] border-4 border-[#ffd8a8]">
@@ -103,7 +113,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
 
       {/* Message Area */}
       <div className="h-12 mb-4 flex items-center justify-center w-full">
-        <p className={`text-2xl md:text-3xl font-bold transition-all ${isWon ? 'text-green-600 scale-110 drop-shadow-sm' : message.includes('❌') ? 'text-red-500 animate-bounce' : 'text-green-500'}`}>
+        <p className={`text-2xl md:text-3xl font-bold transition-all ${message.includes('Wrong') || message.includes('❌') ? 'text-red-500 animate-bounce' : isQuizComplete ? 'text-green-600 scale-110 drop-shadow-sm' : 'text-green-500'}`}>
           {message}
         </p>
       </div>
@@ -113,7 +123,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
         {/* Draggable Items Column */}
         <div className="flex flex-row flex-wrap md:flex-col gap-4 justify-center items-center w-full md:w-32 bg-white/50 p-4 rounded-3xl border-2 border-[#ffcc80] shadow-sm min-h-[120px]">
           <AnimatePresence mode="popLayout">
-            {shuffledItems.map(item => !matches[item.id] && (
+            {shuffledItems.map(item => !matches[item.id] && !answeredItems[item.id] && (
               <motion.div
                 key={item.id}
                 layoutId={`item-${item.id}`}
@@ -126,7 +136,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
                 {item.emoji}
               </motion.div>
             ))}
-            {Object.keys(matches).length === ITEMS.length && (
+            {isQuizComplete && (
                <div className="text-green-600 font-bold text-center w-full my-4">All done! ✨</div>
             )}
           </AnimatePresence>
@@ -165,8 +175,9 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
         </div>
       </div>
 
-      {isWon && (
+      {isQuizComplete && (
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          {allowSkip !== false && (
           <Button
             size="lg"
             className="bg-[#ff4500] hover:bg-[#cc3700] text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#a02d00] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
@@ -174,11 +185,12 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
           >
             Play Again! 🔄
           </Button>
+          )}
           {allowSkip === false && onComplete && (
             <Button
               size="lg"
               className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
-              onClick={() => onComplete?.(ITEMS.length, attempts)}
+              onClick={() => onComplete?.(Object.keys(matches).length, QUIZ_ITEMS)}
             >
               Continue
             </Button>

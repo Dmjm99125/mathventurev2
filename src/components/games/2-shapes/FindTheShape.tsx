@@ -6,6 +6,8 @@ import { Play } from 'lucide-react';
 
 const SHAPES = ["⬛", "⭕", "🔺", "⭐", "🟩", "🔶"];
 
+const QUIZ_ROUNDS = 10;
+
 export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [targetShape, setTargetShape] = useState('');
     const [choices, setChoices] = useState<string[]>([]);
@@ -13,6 +15,7 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: (s
     const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
     const [score, setScore] = useState(0);
     const [attempts, setAttempts] = useState(0);
+    const [completedItems, setCompletedItems] = useState(0);
 
     const startRound = () => {
         const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -28,13 +31,36 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: (s
 
     const handleChoice = (shape: string) => {
         if (gameState !== 'playing') return;
+
+        if (allowSkip === false) {
+            const isCorrect = shape === targetShape;
+            const newAttempts = attempts + 1;
+            const newScore = score + (isCorrect ? 1 : 0);
+            const newCompletedItems = completedItems + 1;
+
+            setAttempts(newAttempts);
+            setScore(newScore);
+            setCompletedItems(newCompletedItems);
+            setMessage(isCorrect ? '🎉 Correct!' : '❌ Wrong answer');
+            setGameState(newCompletedItems >= QUIZ_ROUNDS ? 'completed' : 'feedback');
+
+            if (isCorrect) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+
+            if (newCompletedItems < QUIZ_ROUNDS) {
+                setTimeout(startRound, 800);
+            }
+            return;
+        }
+
         setAttempts((currentAttempts) => currentAttempts + 1);
 
         if (shape === targetShape) {
             setMessage('🎉 Correct!');
             const newScore = score + 1;
             setScore(newScore);
-            setGameState(allowSkip === false && newScore >= 10 ? 'completed' : 'feedback');
+            setGameState('feedback');
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } else {
             setMessage('❌ Try again!');
@@ -83,13 +109,13 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: (s
 
             {/* Message Area */}
             <div className="h-16 flex items-center justify-center mb-4">
-                <p className={`text-3xl md:text-4xl font-bold transition-all duration-300 ${gameState === 'feedback' ? 'text-green-600 scale-110 drop-shadow-sm' : 'text-orange-800'}`}>
+                <p className={`text-3xl md:text-4xl font-bold transition-all duration-300 ${message.includes('❌') ? 'text-red-600' : gameState === 'feedback' ? 'text-green-600 scale-110 drop-shadow-sm' : 'text-orange-800'}`}>
                     {message}
                 </p>
             </div>
 
             {/* Next Round Button */}
-            {gameState === 'feedback' && (
+            {gameState === 'feedback' && allowSkip !== false && (
                 <div className="mb-4 animate-in fade-in slide-in-from-bottom-8">
                     <Button
                         size="lg"
@@ -105,7 +131,7 @@ export function FindTheShape({ onComplete, allowSkip = true }: { onComplete?: (s
                     <Button
                         size="lg"
                         className="bg-green-500 hover:bg-green-600 text-white font-bold text-2xl px-12 md:px-16 py-8 rounded-full shadow-[0_6px_0_0_#2e7d32] active:translate-y-2 active:shadow-none transition-all hover:scale-105"
-                        onClick={() => onComplete?.(score, attempts)}
+                        onClick={() => onComplete?.(score, allowSkip === false ? QUIZ_ROUNDS : attempts)}
                     >
                         Continue <Play className="ml-3 h-8 w-8 fill-current" />
                     </Button>

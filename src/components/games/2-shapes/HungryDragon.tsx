@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { ArrowLeft, Heart, Star } from 'lucide-react';
 
 const SHAPES = ['circle', 'square', 'triangle'];
+const QUIZ_ITEMS = 10;
 const REWARDS = ['👑', '💍', '🍦', '🍗', '🍕', '🎮', '🎸', '🚲', '🎨', '🚀', '🛸'];
 
 export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
@@ -19,6 +20,9 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
   const [options, setOptions] = useState<{ id: number; shape: string; hidden: boolean; wrong: boolean }[]>([]);
   const [rewards, setRewards] = useState<string[]>(['💎']);
   const [latestReward, setLatestReward] = useState('');
+  const [completedItems, setCompletedItems] = useState(0);
+  const [isRoundLocked, setIsRoundLocked] = useState(false);
+  const [message, setMessage] = useState('');
 
   const nextRound = () => {
     const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -27,6 +31,8 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
     setTargetAmount(amount);
     setFoundCount(0);
     setTimeLeft(25);
+    setIsRoundLocked(false);
+    setMessage('');
 
     const roundOptions: string[] = [];
     for (let i = 0; i < amount; i += 1) roundOptions.push(shape);
@@ -41,13 +47,16 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
     setScore(0);
     setAttempts(0);
     setLives(3);
+    setCompletedItems(0);
+    setIsRoundLocked(false);
+    setMessage('');
     setScreen('game');
     nextRound();
   };
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    if (screen === 'game' && timeLeft > 0) {
+    if (allowSkip !== false && screen === 'game' && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((time) => {
           const difficulty = 0.2 + Math.floor(score / 100) * 0.05;
@@ -72,13 +81,37 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
       }, 100);
     }
     return () => clearInterval(interval);
-  }, [screen, timeLeft, score]);
+  }, [allowSkip, screen, timeLeft, score]);
 
   const handleShapeClick = (index: number) => {
     if (screen !== 'game' || timeLeft <= 0) return;
 
     const option = options[index];
     if (!option || option.hidden) return;
+
+    if (allowSkip === false) {
+      if (isRoundLocked || completedItems >= QUIZ_ITEMS) return;
+
+      const isCorrect = option.shape === targetShape;
+      const newScore = score + (isCorrect ? 1 : 0);
+      const newCompletedItems = completedItems + 1;
+
+      setAttempts((currentAttempts) => currentAttempts + 1);
+      setCompletedItems(newCompletedItems);
+      setIsRoundLocked(true);
+      setScore(newScore);
+      setMessage(isCorrect ? 'Correct!' : 'Wrong answer');
+
+      if (isCorrect) {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+      }
+
+      if (newCompletedItems < QUIZ_ITEMS) {
+        setTimeout(nextRound, 600);
+      }
+      return;
+    }
+
     setAttempts((currentAttempts) => currentAttempts + 1);
 
     if (option.shape === targetShape) {
@@ -202,9 +235,19 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
 
             <div className="bg-white/90 backdrop-blur-sm px-6 py-2 rounded-full shadow-lg border-4 border-[#34495e] mb-6 md:mb-8 -mt-4 z-30">
               <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-                Feed me <span className="text-[#e74c3c] font-black">{targetAmount} {targetShape.toUpperCase()}S</span>!
+                {allowSkip === false ? (
+                  <>Find a <span className="text-[#e74c3c] font-black">{targetShape.toUpperCase()}</span>!</>
+                ) : (
+                  <>Feed me <span className="text-[#e74c3c] font-black">{targetAmount} {targetShape.toUpperCase()}S</span>!</>
+                )}
               </h2>
             </div>
+
+            {allowSkip === false && (
+              <div className="h-10 mb-4 flex items-center justify-center text-xl font-bold text-white drop-shadow-md">
+                {message || `Quiz item ${Math.min(completedItems + 1, QUIZ_ITEMS)} of ${QUIZ_ITEMS}`}
+              </div>
+            )}
 
             <div className="grid grid-cols-4 md:grid-cols-4 gap-4 md:gap-6 w-full max-w-lg mb-8 px-4 z-10 place-items-center">
               {options.map((option) => (
@@ -220,6 +263,16 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
                 </motion.div>
               ))}
             </div>
+
+            {allowSkip === false && completedItems >= QUIZ_ITEMS && onComplete && (
+              <Button
+                size="lg"
+                className="mt-2 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
+                onClick={() => onComplete?.(score, QUIZ_ITEMS)}
+              >
+                Continue Quiz
+              </Button>
+            )}
 
             <div className="absolute bottom-8 w-3/4 max-w-xl h-5 bg-black/40 rounded-full overflow-hidden shadow-inner border border-white/20 p-1">
               <div
@@ -256,11 +309,11 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
             >
               KEEP FEEDING
             </Button>
-            {allowSkip === false && onComplete && (
+            {allowSkip === false && completedItems >= QUIZ_ITEMS && onComplete && (
               <Button
                 size="lg"
                 className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
-                onClick={() => onComplete?.(Math.floor(score / 10), attempts)}
+                onClick={() => onComplete?.(score, QUIZ_ITEMS)}
               >
                 Continue Quiz
               </Button>
@@ -288,11 +341,11 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
             >
               BACK TO START OF GAME
             </Button>
-            {allowSkip === false && onComplete && (
+            {allowSkip === false && completedItems >= QUIZ_ITEMS && onComplete && (
               <Button
                 size="lg"
                 className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-16 rounded-full shadow-[0_8px_0_0_#1e8449] active:translate-y-2 active:shadow-none transition-all"
-                onClick={() => onComplete?.(Math.floor(score / 10), Math.max(1, attempts))}
+                onClick={() => onComplete?.(score, QUIZ_ITEMS)}
               >
                 Continue Quiz
               </Button>

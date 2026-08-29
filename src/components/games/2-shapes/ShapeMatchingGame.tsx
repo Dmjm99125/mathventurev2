@@ -11,6 +11,8 @@ const SHAPES = [
 
 const ICONS = ['☀️', '🎈', '🐱', '⭐', '🌈', '🍦', '🐶', '🐝'];
 
+const QUIZ_ROUNDS = 10;
+
 interface Character {
     id: number;
     icon: string;
@@ -23,6 +25,9 @@ interface Character {
 export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
     const [score, setScore] = useState(0);
     const [attempts, setAttempts] = useState(0);
+    const [completedItems, setCompletedItems] = useState(0);
+    const [isRoundLocked, setIsRoundLocked] = useState(false);
+    const [quizFeedback, setQuizFeedback] = useState('');
     const [targetShape, setTargetShape] = useState(SHAPES[0]);
     const [options, setOptions] = useState<typeof SHAPES>([]);
     const [characters, setCharacters] = useState<Character[]>([]);
@@ -32,6 +37,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
     const physicsChars = useRef<Character[]>([]);
     const requestRef = useRef<number | undefined>(undefined);
     const audioCtxRef = useRef<AudioContext | null>(null);
+    const roundLockedRef = useRef(false);
 
     const playBeep = (isCorrect: boolean) => {
         try {
@@ -61,6 +67,9 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
         const others = SHAPES.filter(s => s.name !== target.name).sort(() => 0.5 - Math.random());
         const newOptions = [target, ...others].sort(() => 0.5 - Math.random());
         setOptions(newOptions);
+        setQuizFeedback('');
+        roundLockedRef.current = false;
+        setIsRoundLocked(false);
     };
 
     useEffect(() => {
@@ -114,7 +123,38 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
     };
 
     const handleChoice = (shape: typeof SHAPES[0], e: React.MouseEvent<HTMLButtonElement>) => {
-        if (score >= 10) return;
+        if (score >= QUIZ_ROUNDS) return;
+
+        if (allowSkip === false) {
+            if (roundLockedRef.current || completedItems >= QUIZ_ROUNDS) return;
+
+            const isCorrect = shape.name === targetShape.name;
+            const newAttempts = attempts + 1;
+            const newScore = score + (isCorrect ? 1 : 0);
+            const newCompletedItems = completedItems + 1;
+
+            roundLockedRef.current = true;
+            setIsRoundLocked(true);
+            setAttempts(newAttempts);
+            setCompletedItems(newCompletedItems);
+            setScore(newScore);
+            setQuizFeedback(isCorrect ? 'Correct!' : 'Wrong answer');
+            playBeep(isCorrect);
+
+            if (isCorrect) {
+                addCharacter();
+            }
+
+            if (newCompletedItems < QUIZ_ROUNDS) {
+                // Keep the answered item locked through the current render, then
+                // advance to the next item without allowing a retry on this one.
+                setTimeout(generateRound, 700);
+            } else {
+                confetti({ particleCount: 150, spread: 80, zIndex: 9999 });
+            }
+            return;
+        }
+
         setAttempts((currentAttempts) => currentAttempts + 1);
 
         if (shape.name === targetShape.name) {
@@ -122,7 +162,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
             setScore(s => s + 1);
             addCharacter();
 
-            if (score + 1 >= 10) {
+            if (score + 1 >= QUIZ_ROUNDS) {
                 confetti({ particleCount: 150, spread: 80, zIndex: 9999 });
             } else {
                 generateRound();
@@ -135,12 +175,16 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
         }
     };
 
+    const isQuizComplete = allowSkip === false
+        ? completedItems >= QUIZ_ROUNDS
+        : score >= QUIZ_ROUNDS;
+
     return (
         <div ref={containerRef} className="w-full max-w-4xl mx-auto bg-[#fffae3] rounded-3xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative border-4 border-yellow-200 shrink-0">
 
             {/* HUD & Header */}
             <div className="bg-white px-4 py-4 sm:px-6 md:p-6 shadow-sm flex flex-col items-center z-20 relative w-full border-b-2 border-gray-100">
-                {onComplete && allowSkip !== false && score < 10 && (
+                {onComplete && allowSkip !== false && score < QUIZ_ROUNDS && (
                     <Button
                         variant="outline"
                         className="absolute right-4 top-4 md:right-6 md:top-6 border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 hidden md:flex"
@@ -162,8 +206,14 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                     Stars: {score} / 10 <Star className="fill-orange-500 text-orange-500 h-8 w-8" />
                 </div>
 
+                {allowSkip === false && (
+                    <div className={`mt-2 min-h-8 text-xl font-bold ${quizFeedback === 'Correct!' ? 'text-green-600' : quizFeedback === 'Wrong answer' ? 'text-red-600' : 'text-gray-500'}`}>
+                        {quizFeedback || `Question ${Math.min(completedItems + 1, QUIZ_ROUNDS)} of ${QUIZ_ROUNDS}`}
+                    </div>
+                )}
+
                 {/* Mobile Next Game */}
-                {onComplete && allowSkip !== false && score < 10 && (
+                {onComplete && allowSkip !== false && score < QUIZ_ROUNDS && (
                     <Button
                         variant="outline"
                         className="mt-4 w-full justify-center border-2 border-orange-200 text-orange-600 font-bold hover:bg-orange-50 flex md:hidden"
@@ -180,6 +230,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                     {options.map((opt, i) => (
                         <button
                             key={i}
+                            disabled={allowSkip === false && (isRoundLocked || isQuizComplete)}
                             className="flex h-28 w-28 items-center justify-center rounded-[2rem] text-6xl text-white shadow-[0_8px_0_0_rgba(0,0,0,0.2)] transition-all hover:-translate-y-2 hover:shadow-[0_12px_0_0_rgba(0,0,0,0.2)] active:translate-y-2 active:shadow-[0_2px_0_0_rgba(0,0,0,0.2)] sm:h-32 sm:w-32 sm:text-7xl md:h-44 md:w-44 md:text-[7rem]"
                             style={{ backgroundColor: opt.color }}
                             onClick={(e) => handleChoice(opt, e)}
@@ -205,7 +256,7 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
             </div>
 
             {/* Congratulations Overlay */}
-            {score >= 10 && (
+            {isQuizComplete && (
                 <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
                     <div className="text-9xl mb-6 animate-[bounce_1s_ease-in-out_infinite_alternate]">⭐</div>
                     <h1 className="text-5xl md:text-7xl font-display font-extrabold text-[#ff4500] mb-4 drop-shadow-sm">
@@ -214,17 +265,22 @@ export function ShapeMatchingGame({ onComplete, allowSkip = true }: { onComplete
                     <p className="text-3xl font-bold text-gray-700 mb-12">You know your shapes!</p>
 
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                        <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#2e7d32]" onClick={() => {
+                        {allowSkip !== false && (
+                            <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#2e7d32]" onClick={() => {
                             setScore(0);
                             setAttempts(0);
+                            setCompletedItems(0);
+                            setIsRoundLocked(false);
+                            roundLockedRef.current = false;
                             physicsChars.current = [];
                             setCharacters([]);
                             generateRound();
-                        }}>
-                            Play Again
-                        </Button>
+                            }}>
+                                Play Again
+                            </Button>
+                        )}
                         {onComplete && (
-                            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#e68a00] animate-[pulse_2s_ease-in-out_infinite]" onClick={() => onComplete?.(score, attempts)}>
+                            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl md:text-2xl rounded-full px-12 py-8 shadow-[0_6px_0_0_#e68a00] animate-[pulse_2s_ease-in-out_infinite]" onClick={() => onComplete?.(score, allowSkip === false ? QUIZ_ROUNDS : attempts)}>
                                 Next Game ➡️
                             </Button>
                         )}
