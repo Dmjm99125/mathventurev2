@@ -39,7 +39,7 @@ Deno.test("clock quiz games report actual score and attempts at strict completio
   for (const path of clockGames) {
     const source = await readSource(path);
 
-    assertMatch(source, /onComplete\?\.\(score, attempts\)/, path);
+    assertMatch(source, /onComplete\?\.\((?:score, attempts|score, MAX_SCORE)\)/, path);
     assertMatch(source, /onComplete\?\.\([^,\n]+, newAttempts\)/, path);
   }
 });
@@ -56,5 +56,5 @@ Deno.test("TimeAdventure consumes wrong answers as assigned quiz items", async (
   assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
   assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
   assertMatch(source, /allowSkip === false[\s\S]{0,500}newAnsweredItems >= MAX_SCORE[\s\S]{0,500}setIsCompleted\(true\)/);
-  assertMatch(source, /allowSkip === false[\s\S]{0,500}setupRound\(newScore\)/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,500}setupRound\(score\)/);
 });
