@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 const SHAPES = ["Circle", "Square", "Rectangle", "Triangle"];
+const QUIZ_ROUNDS = 10;
 const REWARDS = ["🎈", "🐰", "🦄", "🐶", "⭐", "🎁", "🐱", "🌈"];
 
 export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
@@ -13,12 +14,15 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: (sc
   const [message, setMessage] = useState('');
   const [earnedRewards, setEarnedRewards] = useState<string[]>([]);
   const [shuffledShapes, setShuffledShapes] = useState<string[]>([]);
+  const [completedItems, setCompletedItems] = useState(0);
+  const [isRoundLocked, setIsRoundLocked] = useState(false);
 
   const startRound = () => {
     const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
     setTargetShape(target);
     setShuffledShapes([...SHAPES].sort(() => Math.random() - 0.5));
     setMessage('');
+    setIsRoundLocked(false);
   };
 
   useEffect(() => {
@@ -26,8 +30,32 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: (sc
   }, []);
 
   const handleShapeClick = (shape: string) => {
-    if (allowSkip === false && score >= 10) return;
+    if (allowSkip === false && (isRoundLocked || completedItems >= QUIZ_ROUNDS)) return;
     if (message === "🎉 Great Job!") return; // Prevent clicking during success delay
+    if (allowSkip === false) {
+      const isCorrect = shape === targetShape;
+      const newAttempts = attempts + 1;
+      const newScore = score + (isCorrect ? 1 : 0);
+      const newCompletedItems = completedItems + 1;
+
+      setAttempts(newAttempts);
+      setCompletedItems(newCompletedItems);
+      setIsRoundLocked(true);
+      setScore(newScore);
+      setMessage(isCorrect ? 'Correct!' : 'Wrong answer');
+
+      if (isCorrect) {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+        if (newScore % 5 === 0) {
+          const newReward = REWARDS[Math.floor(Math.random() * REWARDS.length)];
+          setEarnedRewards(prev => [...prev, newReward]);
+        }
+      }
+
+      if (newCompletedItems < QUIZ_ROUNDS) setTimeout(startRound, 1000);
+      return;
+    }
+
     setAttempts((currentAttempts) => currentAttempts + 1);
 
     if (shape === targetShape) {
@@ -41,7 +69,7 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: (sc
         setEarnedRewards(prev => [...prev, newReward]);
       }
       
-      if (!(allowSkip === false && newScore >= 10)) setTimeout(startRound, 1000);
+      setTimeout(startRound, 1000);
     } else {
       setMessage("❌ Try Again!");
       setTimeout(() => {
@@ -177,11 +205,11 @@ export function ShapeHunter({ onComplete, allowSkip = true }: { onComplete?: (sc
         </div>
       </div>
 
-      {allowSkip === false && score >= 10 && onComplete && (
+      {allowSkip === false && completedItems >= QUIZ_ROUNDS && onComplete && (
         <Button
           size="lg"
           className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl py-8 px-12 rounded-full shadow-[0_6px_0_0_#2e7d32] animate-in slide-in-from-bottom-8 active:translate-y-2 active:shadow-none transition-all"
-          onClick={() => onComplete?.(score, attempts)}
+          onClick={() => onComplete?.(score, QUIZ_ROUNDS)}
         >
           Continue
         </Button>
