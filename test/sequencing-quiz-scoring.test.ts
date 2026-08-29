@@ -1,4 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
+import { scoreByPosition } from "../src/lib/games/sequence-scoring.ts";
 
 const GAME_FILES = [
   "AnimalVehicleBuilder.tsx",
@@ -50,6 +51,16 @@ Deno.test("sequencing quiz games report correct items and wrong attempts", async
       `${fileName} should count each wrong interaction`,
     );
     assertEquals(
+      source.includes("scoreByPosition"),
+      true,
+      `${fileName} should use position-based scoring in quiz mode`,
+    );
+    assertEquals(
+      source.includes("if (allowSkip === false)"),
+      true,
+      `${fileName} should keep positional scoring limited to quiz mode`,
+    );
+    assertEquals(
       source.includes("onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);"),
       true,
       `${fileName} should report the terminal interaction with wrong attempts included`,
@@ -70,4 +81,9 @@ Deno.test("sequencing quiz games report correct items and wrong attempts", async
       `${fileName} should preserve no-argument skip/navigation callbacks`,
     );
   }
+});
+
+Deno.test("sequencing quiz scores each placed item by its final position", () => {
+  assertEquals(scoreByPosition([2, 3, 1, 4], [1, 2, 3, 4]), 1);
+  assertEquals(scoreByPosition(["bread", "ham", "bread"], ["bread", "ham", "bread"]), 3);
 });

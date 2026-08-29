@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Puzzle, Trophy } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const LIBRARY = [
     { char: "🐟", parts: 3, name: "The Shiny Fish! 🐟", color: "#e0f2fe" },
@@ -55,6 +56,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
   const [currentPuzzle, setCurrentPuzzle] = useState<typeof LIBRARY[0] | null>(null);
   
   const [shuffled, setShuffled] = useState<number[]>([]);
+  const [placed, setPlaced] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [isMerged, setIsMerged] = useState(false);
@@ -79,6 +81,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
     const puzzle = levels[lvlNum - 1];
     setCurrentPuzzle(puzzle);
     setCurrentIndex(0);
+    setPlaced([]);
     setErrorMsg('');
     setIsMerged(false);
 
@@ -94,6 +97,27 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
   const handlePieceClick = (orderIndex: number) => {
     if (!currentPuzzle || isMerged) return;
 
+    if (allowSkip === false) {
+      const expected = Array.from({ length: currentPuzzle.parts }, (_, index) => index);
+      const nextPlaced = [...placed, orderIndex];
+      const previousLevelScore = scoreByPosition(placed, expected);
+      const nextLevelScore = scoreByPosition(nextPlaced, expected);
+      setPlaced(nextPlaced);
+      setCurrentIndex(nextPlaced.length);
+      setCorrectItems(prev => prev - previousLevelScore + nextLevelScore);
+      setWrongAttempts(prev => prev - (placed.length - previousLevelScore) + (nextPlaced.length - nextLevelScore));
+      setErrorMsg('');
+
+      if (nextPlaced.length === currentPuzzle.parts) {
+        setIsMerged(true);
+        confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
+        if (level < 5) {
+          setTimeout(() => startLevel(level + 1, selectedLevels), 2500);
+        }
+      }
+      return;
+    }
+
     if (orderIndex === currentIndex) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
@@ -103,7 +127,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
       if (currentIndex + 1 === currentPuzzle.parts) {
         setIsMerged(true);
         if (level === 5) {
-          if (allowSkip !== false) {
+          if (allowSkip) {
             onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
           }
         }
@@ -169,6 +193,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
           <div className="flex items-center">
              {Array.from({ length: currentPuzzle.parts }).map((_, i) => {
                 const isPlaced = i < currentIndex;
+                const pieceIndex = allowSkip === false ? placed[i] ?? i : i;
                 
                 if (isPlaced) {
                    return (
@@ -180,7 +205,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
                         transition={{ type: 'spring', bounce: 0.5 }}
                         className={isMerged ? '-mx-[2px]' : 'mx-1'} // pull together tightly when merged
                       >
-                         <EmojiPiece char={currentPuzzle.char} parts={currentPuzzle.parts} orderIndex={i} isMerged={isMerged} />
+                         <EmojiPiece char={currentPuzzle.char} parts={currentPuzzle.parts} orderIndex={pieceIndex} isMerged={isMerged} />
                       </motion.div>
                    );
                 } else {
@@ -201,7 +226,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
       <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full max-w-3xl mb-8 min-h-[120px]">
         <AnimatePresence>
           {shuffled.map((orderIndex) => {
-            const isPlaced = orderIndex < currentIndex;
+            const isPlaced = allowSkip === false ? placed.includes(orderIndex) : orderIndex < currentIndex;
             if (isPlaced) return null;
 
             return (

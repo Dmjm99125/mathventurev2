@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Sparkles, Trophy } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const BANKS = {
   numbers: {
@@ -28,6 +29,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
   const [bankGuide, setBankGuide] = useState('');
   const [sequence, setSequence] = useState<string[]>([]);
   const [shuffled, setShuffled] = useState<string[]>([]);
+  const [placed, setPlaced] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
@@ -41,6 +43,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
   const startLevel = (lvl: number) => {
     setLevel(lvl);
     setCurrentIndex(0);
+    setPlaced([]);
     setErrorMsg('');
     if (lvl === 1) {
       setCorrectItems(0);
@@ -72,6 +75,26 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
   const handleItemClick = (item: string) => {
     if (currentIndex >= sequence.length) return;
 
+    if (allowSkip === false) {
+      const nextPlaced = [...placed, item];
+      const previousLevelScore = scoreByPosition(placed, sequence);
+      const nextLevelScore = scoreByPosition(nextPlaced, sequence);
+      setPlaced(nextPlaced);
+      setCurrentIndex(nextPlaced.length);
+      setCorrectItems(prev => prev - previousLevelScore + nextLevelScore);
+      setWrongAttempts(prev => prev - (placed.length - previousLevelScore) + (nextPlaced.length - nextLevelScore));
+      setErrorMsg('');
+      setScore(nextLevelScore);
+
+      if (nextPlaced.length === sequence.length) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (level < 5) {
+          setTimeout(() => startLevel(level + 1), 2000);
+        }
+      }
+      return;
+    }
+
     if (item === sequence[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
@@ -81,7 +104,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
       
       if (currentIndex + 1 === sequence.length) {
         if (level === 5) {
-          if (allowSkip !== false) {
+          if (allowSkip) {
             onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
           }
         }
@@ -102,6 +125,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
 
   const isLevelDone = currentIndex === sequence.length && level < 5;
   const isCompleted = currentIndex === sequence.length && level === 5;
+  const slotSequence = allowSkip === false ? [...placed, ...sequence.slice(placed.length)] : sequence;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#fdf2f8] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative border-8 border-pink-200 shrink-0 min-h-[600px]">
@@ -133,7 +157,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
       <div className="flex items-center justify-center gap-2 md:gap-4 mb-10 w-full max-w-3xl bg-white/50 p-4 md:p-6 rounded-[2rem] border-4 border-dashed border-pink-300 min-h-[160px]">
         <AnimatePresence>
           {/* Placed Items */}
-          {sequence.slice(0, currentIndex).map((item) => (
+          {slotSequence.slice(0, currentIndex).map((item) => (
             <motion.div
               key={`placed-${item}`}
               layout
@@ -146,7 +170,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
             </motion.div>
           ))}
           {/* Empty Slots */}
-          {sequence.slice(currentIndex).map((item, idx) => (
+          {slotSequence.slice(currentIndex).map((item, idx) => (
             <motion.div
               key={`empty-${item}`}
               className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl border-4 border-dashed border-pink-200 flex items-center justify-center relative"
@@ -161,7 +185,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
       <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 w-full max-w-3xl mb-8 min-h-[120px]">
         <AnimatePresence>
           {shuffled.map((item) => {
-            const isPlaced = sequence.indexOf(item) < currentIndex;
+            const isPlaced = allowSkip === false ? placed.includes(item) : sequence.indexOf(item) < currentIndex;
             if (isPlaced) return null;
 
             return (

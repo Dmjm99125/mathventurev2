@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const SIZES = [1, 2, 3, 4];
 
@@ -33,6 +34,7 @@ const Cake = ({ size }: { size: number }) => {
 export function SmallestLargestCake({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [placed, setPlaced] = useState<number[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
   const [correctItems, setCorrectItems] = useState(0);
@@ -49,6 +51,7 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
     }
     setShuffled(newShuffled);
     setCurrentIndex(0);
+    setPlaced([]);
     setErrorMsg('');
     setCorrectItems(0);
     setWrongAttempts(0);
@@ -57,13 +60,28 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
   const handleCakeClick = (size: number) => {
     if (currentIndex >= SIZES.length) return;
 
+    if (allowSkip === false) {
+      const nextPlaced = [...placed, size];
+      const nextScore = scoreByPosition(nextPlaced, SIZES);
+      setPlaced(nextPlaced);
+      setCurrentIndex(nextPlaced.length);
+      setCorrectItems(nextScore);
+      setWrongAttempts(nextPlaced.length - nextScore);
+      setErrorMsg('');
+      if (nextPlaced.length === SIZES.length) {
+        setScore(nextScore);
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
+      return;
+    }
+
     if (size === SIZES[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === SIZES.length) {
-        if (allowSkip !== false) {
+        if (allowSkip) {
           onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         }
         setScore(s => s + 1);
@@ -78,6 +96,7 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
   };
 
   const isCompleted = currentIndex === SIZES.length;
+  const slotSizes = allowSkip === false ? [...placed, ...SIZES.slice(placed.length)] : SIZES;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#ffe6f0] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative border-8 border-pink-200 shrink-0 min-h-[600px]">
@@ -108,7 +127,7 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
       <div className="flex items-end justify-center gap-4 md:gap-8 mb-10 w-full max-w-3xl bg-white/40 p-6 rounded-[2rem] border-4 border-dashed border-pink-400 min-h-[200px]">
         <AnimatePresence>
           {/* Placed Cakes */}
-          {SIZES.slice(0, currentIndex).map((size) => (
+          {slotSizes.slice(0, currentIndex).map((size) => (
             <motion.div
               key={`placed-${size}`}
               layout
@@ -136,7 +155,7 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
       <div className="flex flex-wrap items-end justify-center gap-6 md:gap-10 w-full max-w-3xl mb-8 min-h-[160px]">
         <AnimatePresence>
           {shuffled.map((size) => {
-            const isPlaced = SIZES.indexOf(size) < currentIndex;
+            const isPlaced = allowSkip === false ? placed.includes(size) : SIZES.indexOf(size) < currentIndex;
             if (isPlaced) return null;
 
             return (

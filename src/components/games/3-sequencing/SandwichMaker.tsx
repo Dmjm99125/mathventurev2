@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Sandwich, Trophy } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const METADATA = {
     bread: { emoji: '🍞', style: 'bg-[#FFE082] border-[#FFB300]', name: 'Bread' },
@@ -21,6 +22,7 @@ const getRandomFilling = () => FILLINGS[Math.floor(Math.random() * FILLINGS.leng
 export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [level, setLevel] = useState(1);
   const [activePattern, setActivePattern] = useState<ItemType[]>([]);
+  const [placed, setPlaced] = useState<ItemType[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [correctItems, setCorrectItems] = useState(0);
@@ -33,6 +35,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
   const startLevel = (lvl: number) => {
     setLevel(lvl);
     setCurrentStep(0);
+    setPlaced([]);
     setErrorMsg('');
     if (lvl === 1) {
       setCorrectItems(0);
@@ -59,6 +62,25 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
   const handleIngredientClick = (type: ItemType) => {
     if (currentStep >= activePattern.length) return;
 
+    if (allowSkip === false) {
+        const nextPlaced = [...placed, type];
+        const previousLevelScore = scoreByPosition(placed, activePattern);
+        const nextLevelScore = scoreByPosition(nextPlaced, activePattern);
+        setPlaced(nextPlaced);
+        setCurrentStep(nextPlaced.length);
+        setCorrectItems(prev => prev - previousLevelScore + nextLevelScore);
+        setWrongAttempts(prev => prev - (placed.length - previousLevelScore) + (nextPlaced.length - nextLevelScore));
+        setErrorMsg('');
+
+        if (nextPlaced.length === activePattern.length) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            if (level < 3) {
+                setTimeout(() => startLevel(level + 1), 1000);
+            }
+        }
+        return;
+    }
+
     if (type === activePattern[currentStep]) {
         // Correct!
         setCurrentStep(prev => prev + 1);
@@ -67,7 +89,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
         
         if (currentStep + 1 === activePattern.length) {
             if (level === 3) {
-                if (allowSkip !== false) {
+                if (allowSkip) {
                     onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
                 }
             }
@@ -89,6 +111,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
 
   const isLevelDone = currentStep === activePattern.length && level < 3;
   const isCompleted = currentStep === activePattern.length && level === 3;
+  const platePattern = allowSkip === false ? [...placed, ...activePattern.slice(placed.length)] : activePattern;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#FFFDE7] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative border-8 border-amber-200 shrink-0 min-h-[600px] overflow-hidden">
@@ -121,7 +144,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
          {activePattern.map((item, idx) => (
              <div key={`recipe-${idx}`} className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl text-xl md:text-2xl border-2 shadow-sm relative ${METADATA[item].style}`}>
                  {METADATA[item].emoji}
-                 {idx < currentStep && (
+                 {(allowSkip === false ? placed[idx] === item : idx < currentStep) && (
                      <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm">
                          ✓
                      </div>
@@ -158,7 +181,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
               
               <div className="w-40 h-40 md:w-48 md:h-48 bg-cyan-50 border-8 border-cyan-500 rounded-full flex flex-col-reverse items-center pb-4 mt-6 relative shadow-inner">
                  <AnimatePresence>
-                    {activePattern.slice(0, currentStep).map((item, idx) => (
+                    {platePattern.slice(0, currentStep).map((item, idx) => (
                         <motion.div
                            key={`plate-${idx}`}
                            initial={{ opacity: 0, y: -100 }}

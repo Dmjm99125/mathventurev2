@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const SEQUENCE = [1, 2, 3, 4, 5];
 
 export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<number[]>([]);
+  const [placed, setPlaced] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
@@ -20,6 +22,7 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
 
   const startRound = () => {
     setCurrentIndex(0);
+    setPlaced([]);
     setErrorMsg('');
     setCorrectItems(0);
     setWrongAttempts(0);
@@ -34,13 +37,28 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
   const handleNumberClick = (num: number) => {
     if (currentIndex >= SEQUENCE.length) return;
 
+    if (allowSkip === false) {
+      const nextPlaced = [...placed, num];
+      const nextScore = scoreByPosition(nextPlaced, SEQUENCE);
+      setPlaced(nextPlaced);
+      setCurrentIndex(nextPlaced.length);
+      setCorrectItems(nextScore);
+      setWrongAttempts(nextPlaced.length - nextScore);
+      setErrorMsg('');
+      if (nextPlaced.length === SEQUENCE.length) {
+        setScore(nextScore);
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
+      return;
+    }
+
     if (num === SEQUENCE[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === SEQUENCE.length) {
-        if (allowSkip !== false) {
+        if (allowSkip) {
           onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         }
         setScore(s => s + 1);
@@ -82,25 +100,22 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
       {/* Arranged Numbers Area (Target Slots) */}
       <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-10 w-full max-w-3xl bg-white/40 p-4 md:p-8 rounded-[2rem] border-2 border-dashed border-cyan-400">
         <AnimatePresence>
-          {/* Placed Numbers */}
-          {SEQUENCE.slice(0, currentIndex).map((num) => (
-            <motion.div
-              key={`placed-${num}`}
-              initial={{ opacity: 0, scale: 0.5, y: -50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: 'spring', bounce: 0.5 }}
-              className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-b from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold text-white shadow-[0_4px_0_0_#059669] border-2 border-emerald-300"
-            >
-              {num}
-            </motion.div>
-          ))}
-          {/* Empty Slots */}
-          {SEQUENCE.slice(currentIndex).map((num) => (
-            <motion.div
-              key={`empty-${num}`}
-              className="w-14 h-14 md:w-20 md:h-20 bg-cyan-50/50 rounded-2xl border-4 border-dashed border-cyan-300/60 flex items-center justify-center"
-            />
-          ))}
+          {Array.from({ length: SEQUENCE.length }).map((_, index) => {
+            const num = allowSkip === false ? placed[index] : index < currentIndex ? SEQUENCE[index] : undefined;
+            return num === undefined ? (
+              <motion.div key={`empty-${index}`} className="w-14 h-14 md:w-20 md:h-20 bg-cyan-50/50 rounded-2xl border-4 border-dashed border-cyan-300/60 flex items-center justify-center" />
+            ) : (
+              <motion.div
+                key={`placed-${index}`}
+                initial={{ opacity: 0, scale: 0.5, y: -50 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', bounce: 0.5 }}
+                className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-b from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold text-white shadow-[0_4px_0_0_#059669] border-2 border-emerald-300"
+              >
+                {num}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 
@@ -108,7 +123,7 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
       <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8 w-full max-w-2xl min-h-[120px]">
         <AnimatePresence>
           {shuffled.map((num) => {
-            const isPlaced = SEQUENCE.indexOf(num) < currentIndex;
+            const isPlaced = allowSkip === false ? placed.includes(num) : SEQUENCE.indexOf(num) < currentIndex;
             if (isPlaced) return null; // Hide the number from the pool if it's already placed
 
             return (

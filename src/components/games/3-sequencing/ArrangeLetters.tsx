@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { CheckCircle2, XCircle, TrainFront } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [sequence, setSequence] = useState<string[]>([]);
   const [shuffled, setShuffled] = useState<string[]>([]);
+  const [placed, setPlaced] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [score, setScore] = useState(0);
@@ -31,6 +33,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
     
     setShuffled(newShuffled);
     setCurrentIndex(0);
+    setPlaced([]);
     setErrorMsg('');
     setCorrectItems(0);
     setWrongAttempts(0);
@@ -39,13 +42,28 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
   const handleLetterClick = (letter: string) => {
     if (currentIndex >= sequence.length) return;
 
+    if (allowSkip === false) {
+      const nextPlaced = [...placed, letter];
+      const nextScore = scoreByPosition(nextPlaced, sequence);
+      setPlaced(nextPlaced);
+      setCurrentIndex(nextPlaced.length);
+      setCorrectItems(nextScore);
+      setWrongAttempts(nextPlaced.length - nextScore);
+      setErrorMsg('');
+      if (nextPlaced.length === sequence.length) {
+        setScore(nextScore);
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
+      return;
+    }
+
     if (letter === sequence[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === sequence.length) {
-        if (allowSkip !== false) {
+        if (allowSkip) {
           onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         }
         setScore(s => s + 1);
@@ -60,6 +78,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
   };
 
   const isCompleted = currentIndex === sequence.length;
+  const slotSequence = allowSkip === false ? [...placed, ...sequence.slice(placed.length)] : sequence;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#b6d8e3] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative border-8 border-white shrink-0">
@@ -103,7 +122,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
           </div>
 
           {/* Placed Letters */}
-          {sequence.slice(0, currentIndex).map((letter) => (
+          {slotSequence.slice(0, currentIndex).map((letter) => (
             <motion.div
               key={`placed-${letter}`}
               initial={{ opacity: 0, scale: 0.5, y: -50 }}
@@ -120,7 +139,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
             </motion.div>
           ))}
           {/* Empty Slots */}
-          {sequence.slice(currentIndex).map((letter, idx) => (
+          {slotSequence.slice(currentIndex).map((letter, idx) => (
             <motion.div
               key={`empty-${letter}`}
               className="w-16 h-20 md:w-20 md:h-28 bg-[#e8b57d]/40 rounded-t-2xl rounded-b-md border-4 border-dashed border-[#ad6e35]/50 flex flex-col items-center justify-between py-2"
@@ -140,7 +159,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
          <div className="flex flex-wrap justify-center gap-4 md:gap-6 min-h-[100px]">
             <AnimatePresence>
             {shuffled.map((letter) => {
-               const isPlaced = sequence.indexOf(letter) < currentIndex;
+               const isPlaced = allowSkip === false ? placed.includes(letter) : sequence.indexOf(letter) < currentIndex;
                if (isPlaced) return null; // Hide if placed
 
                return (

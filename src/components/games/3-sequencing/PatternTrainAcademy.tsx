@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Train, Trophy, Star } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const ITEMS_2D = [{a:"🍰",b:"🧆"}, {a:"🍎",b:"🍐"}, {a:"🍩",b:"🍪"}, {a:"🐱",b:"🐶"}, {a:"🚗",b:"🚁"}];
 const ITEMS_3D = [{a:"🔴",b:"🟦",c:"⭐"}, {a:"🦁",b:"🐵",c:"🐘"}, {a:"🍌",b:"🍇",c:"🍓"}];
@@ -75,6 +76,33 @@ export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onCompl
   const handleChoiceClick = (item: string) => {
     if (activeSlot === null || trainStatus !== 'idle') return;
 
+    if (allowSkip === false) {
+        const newFilled = { ...filledSlots, [activeSlot]: item };
+        setFilledSlots(newFilled);
+        setErrorMsg('');
+
+        const remaining = missingIndices.filter(i => !newFilled[i]);
+        if (remaining.length > 0) {
+            setActiveSlot(remaining[0]);
+            return;
+        }
+
+        const expected = missingIndices.map(i => pattern[i]);
+        const placed = missingIndices.map(i => newFilled[i]);
+        const levelScore = scoreByPosition(placed, expected);
+        setCorrectItems(prev => prev + levelScore);
+        setWrongAttempts(prev => prev + missingIndices.length - levelScore);
+        setActiveSlot(null);
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        setTimeout(() => {
+            setTrainStatus('exit');
+            if (level < 11) {
+                startLevel(level + 1);
+            }
+        }, 1000);
+        return;
+    }
+
     if (item === pattern[activeSlot]) {
         // Correct!
         const newFilled = { ...filledSlots, [activeSlot]: item };
@@ -92,7 +120,7 @@ export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onCompl
             setTimeout(() => {
                 setTrainStatus('exit');
                 if (level === 11) {
-                    if (allowSkip !== false) {
+                    if (allowSkip) {
                         onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
                     }
                 }

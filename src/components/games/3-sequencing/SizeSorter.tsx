@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, CheckCircle2, XCircle, Maximize2, Minimize2, Scaling } from 'lucide-react';
+import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const SIZES = [50, 80, 110, 140, 170];
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
@@ -10,6 +11,7 @@ const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'];
 export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [shuffled, setShuffled] = useState<{size: number, color: string}[]>([]);
   const [order, setOrder] = useState<number[]>([]);
+  const [placed, setPlaced] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mode, setMode] = useState<'smallToBig' | 'bigToSmall'>('smallToBig');
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,6 +37,7 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
     setShuffled(newShuffled);
     
     setCurrentIndex(0);
+    setPlaced([]);
     setErrorMsg('');
     setCorrectItems(0);
     setWrongAttempts(0);
@@ -43,13 +46,28 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
   const handleCircleClick = (size: number) => {
     if (currentIndex >= order.length) return;
 
+    if (allowSkip === false) {
+      const nextPlaced = [...placed, size];
+      const nextScore = scoreByPosition(nextPlaced, order);
+      setPlaced(nextPlaced);
+      setCurrentIndex(nextPlaced.length);
+      setCorrectItems(nextScore);
+      setWrongAttempts(nextPlaced.length - nextScore);
+      setErrorMsg('');
+      if (nextPlaced.length === order.length) {
+        setScore(nextScore);
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
+      return;
+    }
+
     if (size === order[currentIndex]) {
       // Correct!
       setCurrentIndex(prev => prev + 1);
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === order.length) {
-        if (allowSkip !== false) {
+        if (allowSkip) {
           onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
         }
         setScore(s => s + 1);
@@ -64,6 +82,7 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
   };
 
   const isCompleted = currentIndex === order.length;
+  const slotOrder = allowSkip === false ? [...placed, ...order.slice(placed.length)] : order;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#fff8dc] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative border-8 border-orange-200 shrink-0 min-h-[600px]">
@@ -105,7 +124,7 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
       {/* Target Area (Placed items) */}
       <div className="flex items-end justify-center gap-4 mb-10 w-full min-h-[180px]">
         <AnimatePresence mode="popLayout">
-          {order.slice(0, currentIndex).map((size) => {
+          {slotOrder.slice(0, currentIndex).map((size) => {
             const item = shuffled.find(i => i.size === size)!;
             return (
               <motion.div
@@ -130,7 +149,7 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
       <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 mb-8 w-full max-w-3xl min-h-[200px]">
         <AnimatePresence>
           {shuffled.map((item) => {
-            const isPlaced = order.indexOf(item.size) < currentIndex;
+            const isPlaced = allowSkip === false ? placed.includes(item.size) : order.indexOf(item.size) < currentIndex;
             if (isPlaced) return null; // Hide if already placed
 
             return (
