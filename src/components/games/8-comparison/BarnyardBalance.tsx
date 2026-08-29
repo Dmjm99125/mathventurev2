@@ -72,6 +72,7 @@ interface BarnyardBalanceProps {
 
 export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanceProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -82,6 +83,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
   
   const [isCompleted, setIsCompleted] = useState(false);
   const [canClick, setCanClick] = useState(true);
+  const [answeredItems, setAnsweredItems] = useState(0);
 
   const setupRound = () => {
     setIsLookingForHeavy(Math.random() > 0.5);
@@ -94,10 +96,27 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
     setupRound();
   }, []);
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 800);
+    return true;
+  };
+
   const handleCardClick = (isHeavy: boolean) => {
     if (!canClick) return;
     const newAttempts = attempts + 1;
+    const newAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
+    setAnsweredItems(newAnsweredItems);
     setCanClick(false);
 
     const isCorrect = isHeavy === isLookingForHeavy;
@@ -110,6 +129,8 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
       // Add a random prize to the shelf every time they get it right
       const prize = farmPrizes[Math.floor(Math.random() * farmPrizes.length)];
       setShelfItems(prev => [...prev, prize]);
+
+      if (advanceAssignedRound(newAnsweredItems)) return;
       
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -122,6 +143,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
         setTimeout(setupRound, 1000);
       }
     } else {
+      if (advanceAssignedRound(newAnsweredItems)) return;
       playSound('wrong');
       setTimeout(() => setCanClick(true), 800);
     }
@@ -130,6 +152,7 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
@@ -233,13 +256,15 @@ export function BarnyardBalance({ onComplete, allowSkip = true }: BarnyardBalanc
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#22c55e] hover:bg-[#16a34a] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#16a34a] hover:shadow-[0_2px_0_#16a34a] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#22c55e] hover:bg-[#16a34a] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#16a34a] hover:shadow-[0_2px_0_#16a34a] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
