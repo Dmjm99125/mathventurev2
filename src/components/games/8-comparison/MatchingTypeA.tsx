@@ -99,10 +99,12 @@ interface MatchingTypeAProps {
 }
 
 export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAProps) {
+  const MAX_SCORE = 6;
   const [cards, setCards] = useState<CardData[]>([]);
   const [flippedIds, setFlippedIds] = useState<string[]>([]);
   const [matches, setMatches] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [animals, setAnimals] = useState<{ id: string, emoji: string, left: string }[]>([]);
   
   const [isCompleted, setIsCompleted] = useState(false);
@@ -114,6 +116,7 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
     setFlippedIds([]);
     setMatches(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setAnimals([]);
     setGiftState('hidden');
 
@@ -132,6 +135,17 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
     startGame();
   }, []);
 
+  const advanceAssignedAttempt = (newAnsweredItems: number) => {
+    if (newAnsweredItems >= MAX_SCORE) {
+      setIsCompleted(true);
+      setGiftState('box');
+      playSound('fanfare');
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    } else {
+      setFlippedIds([]);
+    }
+  };
+
   const handleCardClick = (id: string) => {
     if (flippedIds.length >= 2 || flippedIds.includes(id)) return;
     const clickedCard = cards.find(c => c.id === id);
@@ -144,6 +158,8 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
     if (newFlipped.length === 2) {
       const newAttempts = attempts + 1;
       setAttempts(prev => prev + 1);
+      const newAnsweredItems = answeredItems + 1;
+      setAnsweredItems(newAnsweredItems);
       const card1 = cards.find(c => c.id === newFlipped[0])!;
       const card2 = cards.find(c => c.id === newFlipped[1])!;
 
@@ -172,7 +188,12 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
             ]);
           }
 
-          if (newMatches === 6) {
+          if (allowSkip === false) {
+            advanceAssignedAttempt(newAnsweredItems);
+            return;
+          }
+
+          if (newMatches === MAX_SCORE) {
             setTimeout(() => {
               setIsCompleted(true);
               if (allowSkip !== false) onComplete?.(newMatches, newAttempts);
@@ -186,7 +207,11 @@ export function MatchingTypeA({ onComplete, allowSkip = true }: MatchingTypeAPro
         // No match
         setTimeout(() => {
           playSound('wrong');
-          setFlippedIds([]);
+          if (allowSkip === false) {
+            advanceAssignedAttempt(newAnsweredItems);
+          } else {
+            setFlippedIds([]);
+          }
         }, 1000);
       }
     }
