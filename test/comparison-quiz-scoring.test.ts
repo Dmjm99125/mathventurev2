@@ -97,3 +97,13 @@ Deno.test("Paghahambing1 preserves free-play retries and completion attempts", a
   assertMatch(source, /if \(advanceAssignedRound\(newAnsweredItems\)\) return;[\s\S]{0,200}setFeedback\("Subukan muli!/);
   assertMatch(source, /if \(newScore >= MAX_SCORE\)[\s\S]{0,500}setTimeout\(setupRound, 1200\)/);
 });
+
+Deno.test("MataasMababa consumes wrong assigned-quiz answers", async () => {
+  const source = await readGameSource("MataasMababa.tsx");
+
+  assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)/);
+  assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
+  assertMatch(source, /else \{[\s\S]{0,250}setupRound\(\)/);
+});
