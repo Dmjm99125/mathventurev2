@@ -99,3 +99,13 @@ Deno.test("quiz completion does not show success when the final save fails", asy
   assertEquals(source.includes("if (!didSave) return;"), true);
   assertEquals(source.includes("setGameState('completed');\n      confetti"), true);
 });
+
+Deno.test("structured game completion retries the original final result after a save failure", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("if (pendingCompletion) {\n      await retryCompletion();\n      return;\n    }"), true);
+  const finalScoreIndex = source.indexOf("const finalScore = score + gameScore;");
+  const didSaveIndex = source.indexOf("const didSave = await finishAttempt(nextResults, finalScore);", finalScoreIndex);
+  const setScoreIndex = source.indexOf("setScore(finalScore);", finalScoreIndex);
+  assertEquals(didSaveIndex < setScoreIndex, true);
+});
