@@ -12,6 +12,7 @@ import { RainbowColorCatcher } from '@/components/games/1-colors/RainbowColorCat
 import { RainbowColorDeluxe } from '@/components/games/1-colors/RainbowColorDeluxe';
 import { RainbowGalaxyExplorer } from '@/components/games/1-colors/RainbowGalaxyExplorer';
 import { ChooseWhichColor } from '@/components/games/1-colors/ChooseWhichColor';
+import { MultipleChoice } from '@/components/games/1-colors/MultipleChoice';
 import { ShapeMatchingGame } from '@/components/games/2-shapes/ShapeMatchingGame';
 import { FindTheShape } from '@/components/games/2-shapes/FindTheShape';
 import { MonsterCafe } from '@/components/games/2-shapes/MonsterCafe';
@@ -649,6 +650,8 @@ export function QuizPage() {
           <RainbowGalaxyExplorer onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 5 ? (
           <ChooseWhichColor onComplete={handleStructuredGameComplete} />
+        ) : topic === 'colors' && currentIndex === 6 ? (
+          <MultipleChoice onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 0 ? (
           <ShapeMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'shapes' && currentIndex === 1 ? (

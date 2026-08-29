@@ -1,5 +1,5 @@
 export const GAME_COUNT_BY_TOPIC = {
-  colors: 6,
+  colors: 7,
   shapes: 8,
   sequencing: 9,
   addition: 15,
