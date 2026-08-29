@@ -172,3 +172,12 @@ Deno.test("BuildClock scores assigned placements by destination slot", async () 
   assertMatch(source, /Object\.entries\(placedNumbers\)[\s\S]{0,150}Number\(slot\) === number/);
   assertMatch(source, /allowSkip === false[\s\S]{0,700}targetSlot/);
 });
+
+Deno.test("BuildClock locks assigned replay and reports the fixed maximum", async () => {
+  const source = await readSource("src/components/games/9-clock/BuildClock.tsx");
+
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /canReplay && \([\s\S]*Build it again/);
+  assertMatch(source, /allowSkip === false && onComplete/);
+});
