@@ -146,3 +146,11 @@ Deno.test("RainbowColorDeluxe preserves free-play retry feedback", async () => {
   assertMatch(source, /setMessage\("❌ Try Again!"\)/);
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
 });
+
+Deno.test("RainbowGalaxyExplorer advances after wrong assigned-quiz choices", async () => {
+  const source = await readSource("src/components/games/1-colors/RainbowGalaxyExplorer.tsx");
+
+  assertMatch(source, /if \(allowSkip === false\)[\s\S]*setLevel[\s\S]*generateAsteroids/);
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /canReplay[\s\S]*Play Again/);
+});
