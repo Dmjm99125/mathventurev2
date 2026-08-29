@@ -116,3 +116,10 @@ Deno.test("MataasMababa locks assigned replay and reports its fixed maximum", as
   assertMatch(source, /canReplay && \([\s\S]*Maglaro Muli/);
   assertMatch(source, /allowSkip === false && onComplete/);
 });
+
+Deno.test("MataasMababa preserves free-play retry feedback", async () => {
+  const source = await readGameSource("MataasMababa.tsx");
+
+  assertMatch(source, /if \(advanceAssignedRound\(newAnsweredItems\)\) return;[\s\S]{0,200}setFeedback\("Subukan muli!/);
+  assertMatch(source, /if \(newScore >= MAX_SCORE\)[\s\S]{0,500}setTimeout\(setupRound, 1200\)/);
+});
