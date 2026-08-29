@@ -116,3 +116,10 @@ Deno.test("BalloonFindingGame does not generate a target-colored wrong balloon",
   assertMatch(source, /const wrongColors = COLORS\.filter\(color => color\.name !== tColor\.name\)/);
   assertMatch(source, /: wrongColors\[Math\.floor\(Math\.random\(\) \* wrongColors\.length\)\]/);
 });
+
+Deno.test("RainbowColorCatcher hides replay after assigned-quiz game over", async () => {
+  const source = await readSource("src/components/games/1-colors/RainbowColorCatcher.tsx");
+
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /canReplay[\s\S]*onClick=\{restartGame\}/);
+});
