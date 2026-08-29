@@ -149,6 +149,6 @@ Deno.test("ClockMultiple consumes wrong answers as assigned quiz items", async (
 
   assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
   assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
-  assertMatch(source, /allowSkip === false[\s\S]{0,600}newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
-  assertMatch(source, /allowSkip === false[\s\S]{0,600}setupRound\(\)/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,600}newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,600}setupRound\(\)/);
 });
