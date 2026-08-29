@@ -17,7 +17,15 @@ type RosterStudentRow = {
 
 type DetailedGameResultRow = {
   studentId: string;
+  attemptStudentId: string;
   gameId: string;
+  score: number;
+  maxScore: number;
+  completedAt: string;
+};
+
+type CompletedAttemptRow = {
+  studentId: string;
   score: number;
   maxScore: number;
   completedAt: string;
@@ -29,7 +37,8 @@ type ClassesRosterDeps = {
     teacherId: string,
   ): Promise<{ id: string; teacherId: string; name: string } | null>;
   listRosterStudents(classId: string): Promise<RosterStudentRow[]>;
-  listDetailedGameResults(studentIds: string[]): Promise<DetailedGameResultRow[]>;
+  listCompletedAttempts(studentIds: string[], classId: string): Promise<CompletedAttemptRow[]>;
+  listDetailedGameResults(studentIds: string[], classId: string): Promise<DetailedGameResultRow[]>;
 };
 
 type ClassStudentQueryRow = {
@@ -56,6 +65,11 @@ type AttemptGameResultQueryRow = {
   score: number;
   max_score: number;
   completed_at: string;
+  attempts: {
+    student_id: string;
+  } | {
+    student_id: string;
+  }[];
 };
 
 const defaultDeps: ClassesRosterDeps = {
@@ -121,7 +135,31 @@ const defaultDeps: ClassesRosterDeps = {
       })
       .filter((row): row is RosterStudentRow => row !== null);
   },
-  async listDetailedGameResults(studentIds) {
+  async listCompletedAttempts(studentIds, classId) {
+    if (!studentIds.length) {
+      return [];
+    }
+
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data, error } = await adminClient
+      .from("attempts")
+      .select("student_id, score, max_score, completed_at")
+      .in("student_id", studentIds)
+      .eq("class_id", classId)
+      .eq("status", "completed");
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((row) => ({
+      studentId: row.student_id as string,
+      score: row.score as number,
+      maxScore: row.max_score as number,
+      completedAt: row.completed_at as string,
+    }));
+  },
+  async listDetailedGameResults(studentIds, classId) {
     if (!studentIds.length) {
       return [];
     }
@@ -129,21 +167,32 @@ const defaultDeps: ClassesRosterDeps = {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("attempt_game_results")
-      .select("student_id, game_id, score, max_score, completed_at, attempts!inner(status)")
+      .select("student_id, game_id, score, max_score, completed_at, attempts!inner(status, class_id, student_id)")
       .in("student_id", studentIds)
+      .eq("attempts.class_id", classId)
       .eq("attempts.status", "completed");
 
     if (error) {
       throw error;
     }
 
-    return ((data ?? []) as AttemptGameResultQueryRow[]).map((row) => ({
-      studentId: row.student_id,
-      gameId: row.game_id,
-      score: row.score,
-      maxScore: row.max_score,
-      completedAt: row.completed_at,
-    }));
+    return ((data ?? []) as AttemptGameResultQueryRow[])
+      .map((row) => {
+        const attempt = Array.isArray(row.attempts) ? row.attempts[0] : row.attempts;
+        if (!attempt) {
+          return null;
+        }
+
+        return {
+          studentId: row.student_id,
+          attemptStudentId: attempt.student_id,
+          gameId: row.game_id,
+          score: row.score,
+          maxScore: row.max_score,
+          completedAt: row.completed_at,
+        };
+      })
+      .filter((row): row is DetailedGameResultRow => row !== null);
   },
 };
 
@@ -171,8 +220,13 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
       }
 
       const students = await deps.listRosterStudents(classroom.id);
-      const detailedRows = await deps.listDetailedGameResults(
+      const detailedRows = (await deps.listDetailedGameResults(
         students.map((student) => student.id),
+        classroom.id,
+      )).filter((row) => row.studentId === row.attemptStudentId);
+      const completedAttempts = await deps.listCompletedAttempts(
+        students.map((student) => student.id),
+        classroom.id,
       );
 
       const rowsByStudentId = new Map<string, DetailedGameResultRow[]>();
@@ -182,13 +236,52 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
         rowsByStudentId.set(row.studentId, existing);
       }
 
+      const latestAttemptByStudentId = new Map<string, CompletedAttemptRow>();
+      for (const row of completedAttempts) {
+        const current = latestAttemptByStudentId.get(row.studentId);
+        if (!current || row.completedAt > current.completedAt) {
+          latestAttemptByStudentId.set(row.studentId, row);
+        }
+      }
+
+      const latestGameByStudentId = new Map<string, Map<string, DetailedGameResultRow>>();
+      for (const row of detailedRows) {
+        const rowsByGameId = latestGameByStudentId.get(row.studentId) ?? new Map();
+        const current = rowsByGameId.get(row.gameId);
+        if (!current || row.completedAt > current.completedAt) {
+          rowsByGameId.set(row.gameId, row);
+        }
+        latestGameByStudentId.set(row.studentId, rowsByGameId);
+      }
+
       return jsonResponse({
         students: students.map((student) => {
           const ownRows = rowsByStudentId.get(student.id) ?? [];
+          const latestAttempt = latestAttemptByStudentId.get(student.id) ?? null;
+          const gameScores = Array.from(
+            latestGameByStudentId.get(student.id)?.values() ?? [],
+          )
+            .sort((left, right) => left.gameId.localeCompare(right.gameId))
+            .map((row) => ({
+              gameId: row.gameId,
+              score: row.score,
+              maxScore: row.maxScore,
+              scorePct: row.maxScore > 0
+                ? Math.round((row.score / row.maxScore) * 100)
+                : 0,
+              completedAt: row.completedAt,
+            }));
+
           return {
             ...student,
             appCompletionPct: calculateDetailedCompletionPct(ownRows, GAME_CATALOG.length),
             lastPlayedPct: calculateDetailedLastPlayedPct(ownRows),
+            overallScore: latestAttempt?.score ?? null,
+            overallMaxScore: latestAttempt?.maxScore ?? null,
+            overallScorePct: latestAttempt && latestAttempt.maxScore > 0
+              ? Math.round((latestAttempt.score / latestAttempt.maxScore) * 100)
+              : null,
+            gameScores,
           };
         }),
       });

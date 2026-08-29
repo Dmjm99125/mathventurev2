@@ -40,6 +40,14 @@ export interface StudentClassSummary extends StudentClassroomSummary {
   name: string;
 }
 
+export interface TeacherGameScore {
+  gameId: string;
+  score: number;
+  maxScore: number;
+  scorePct: number;
+  completedAt: string;
+}
+
 export interface TeacherClassStudent {
   id: string;
   fullName: string;
@@ -48,6 +56,10 @@ export interface TeacherClassStudent {
   joinedAt: string;
   appCompletionPct: number | null;
   lastPlayedPct: number | null;
+  overallScore: number | null;
+  overallMaxScore: number | null;
+  overallScorePct: number | null;
+  gameScores: TeacherGameScore[];
 }
 
 export interface AssignmentForStudent {
