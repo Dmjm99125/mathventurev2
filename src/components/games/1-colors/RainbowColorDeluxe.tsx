@@ -43,6 +43,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
   const [isCompleted, setIsCompleted] = useState(false);
   const [stars, setStars] = useState<{ id: string, x: number, y: number }[]>([]);
   const attemptsRef = useRef(0);
+  const canReplay = allowSkip !== false;
 
   useEffect(() => {
     const saved = localStorage.getItem("rainbowHighScoreDeluxe");
@@ -277,12 +278,16 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
             <p className="text-2xl font-bold text-gray-600 mb-8">Final Score: <span className="text-orange-500 text-3xl">{score}</span></p>
             
             <div className="flex flex-col gap-3">
-              <Button size="lg" variant="jungle" className="text-xl py-6 rounded-2xl" onClick={() => startGame(difficulty)}>
-                Play Again
-              </Button>
-              <Button size="lg" variant="outline" className="text-xl py-6 rounded-2xl border-2 hover:bg-gray-50" onClick={() => setScreen('pet')}>
-                Menu
-              </Button>
+              {canReplay && (
+                <Button size="lg" variant="jungle" className="text-xl py-6 rounded-2xl" onClick={() => startGame(difficulty)}>
+                  Play Again
+                </Button>
+              )}
+              {canReplay && (
+                <Button size="lg" variant="outline" className="text-xl py-6 rounded-2xl border-2 hover:bg-gray-50" onClick={() => setScreen('pet')}>
+                  Menu
+                </Button>
+              )}
               {onComplete && allowSkip === false && (
                 <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white mt-4" onClick={() => onComplete(correctItems, totalItems)}>
                   Continue
