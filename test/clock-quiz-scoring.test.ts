@@ -100,3 +100,12 @@ Deno.test("FillMissingTime locks assigned replay and reports the fixed maximum",
   assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
 });
+
+Deno.test("DragMatchingClock consumes wrong taps and drops as assigned quiz items", async () => {
+  const source = await readSource("src/components/games/9-clock/DragMatchingClock.tsx");
+
+  assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,700}newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,700}setupRound\(\)/);
+});
