@@ -353,14 +353,12 @@ export function QuizPage() {
 
   const retryCompletion = async () => {
     if (!pendingCompletion || isSavingGameRef.current) return;
+    const completion = pendingCompletion;
     isSavingGameRef.current = true;
     setIsSavingGame(true);
     try {
-      await finishAttempt(
-        pendingCompletion.results,
-        pendingCompletion.score,
-        pendingCompletion.durationSeconds,
-      );
+      const didSave = await finishAttempt(completion.results, completion.score, completion.durationSeconds);
+      if (didSave) setScore(completion.score);
     } finally {
       isSavingGameRef.current = false;
       setIsSavingGame(false);
@@ -368,6 +366,10 @@ export function QuizPage() {
   };
 
   const completeStructuredGame = async (gameScore = 1, gameMaxScore = 1) => {
+    if (pendingCompletion) {
+      await retryCompletion();
+      return;
+    }
     if (isSavingGameRef.current) return;
     isSavingGameRef.current = true;
     setIsSavingGame(true);
@@ -386,9 +388,9 @@ export function QuizPage() {
       }
 
       const finalScore = score + gameScore;
-      setScore(finalScore);
       const didSave = await finishAttempt(nextResults, finalScore);
       if (!didSave) return;
+      setScore(finalScore);
     } finally {
       isSavingGameRef.current = false;
       setIsSavingGame(false);
