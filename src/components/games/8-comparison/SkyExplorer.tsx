@@ -146,7 +146,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
         {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
-            className="w-full max-w-sm justify-center bg-white/50 font-bold text-[#2c3e50] hover:bg-white md:w-auto"
+            className="w-full max-w-sm justify-center md:w-auto bg-white/50 font-bold text-[#2c3e50] hover:bg-white"
             onClick={() => onComplete?.()}
           >
             Skip <ChevronRight className="ml-1 h-5 w-5" />
