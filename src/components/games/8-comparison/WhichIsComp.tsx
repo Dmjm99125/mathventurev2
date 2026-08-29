@@ -76,6 +76,7 @@ interface WhichIsCompProps {
 
 export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -87,6 +88,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
   const [canClick, setCanClick] = useState(true);
   const [feedback, setFeedback] = useState<'none' | 'correct' | 'wrong'>('none');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [answeredItems, setAnsweredItems] = useState(0);
 
   const setupRound = () => {
     setAskingHeavier(Math.random() > 0.5);
@@ -113,12 +115,29 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
     setupRound();
   }, []);
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1000);
+    return true;
+  };
+
   const handleCardClick = (index: number) => {
     if (!canClick) return;
     setCanClick(false);
     setSelectedIndex(index);
     const newAttempts = attempts + 1;
+    const newAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
+    setAnsweredItems(newAnsweredItems);
 
     const otherIndex = index === 0 ? 1 : 0;
     const isCorrect = askingHeavier 
@@ -134,6 +153,8 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
       // Add a random reward
       const prize = rewardsList[Math.floor(Math.random() * rewardsList.length)];
       setShelfItems(prev => [...prev, prize]);
+
+      if (advanceAssignedRound(newAnsweredItems)) return;
       
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -146,6 +167,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
         setTimeout(setupRound, 1200);
       }
     } else {
+      if (advanceAssignedRound(newAnsweredItems)) return;
       playSound('wrong');
       setFeedback('wrong');
       setTimeout(() => {
@@ -159,6 +181,7 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
@@ -270,13 +293,15 @@ export function WhichIsComp({ onComplete, allowSkip = true }: WhichIsCompProps) 
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#0288d1] hover:bg-[#0277bd] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#0277bd] hover:shadow-[0_2px_0_#0277bd] hover:translate-y-1 transition-all">
-                Play Again 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#0288d1] hover:bg-[#0277bd] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#0277bd] hover:shadow-[0_2px_0_#0277bd] hover:translate-y-1 transition-all">
+                  Play Again 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
