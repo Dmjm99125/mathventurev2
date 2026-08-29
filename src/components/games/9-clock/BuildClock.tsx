@@ -52,6 +52,8 @@ const playSound = (type: 'correct' | 'wrong' | 'fanfare' | 'pick') => {
 };
 
 const COLORS = ['#e91e63', '#9c27b0', '#3f51b5', '#00bcd4', '#4caf50', '#ff9800'];
+const CLOCK_NUMBERS = Array.from({ length: 12 }, (_, index) => index + 1);
+const MAX_SCORE = CLOCK_NUMBERS.length;
 
 interface BuildClockProps {
   onComplete?: (score?: number, maxScore?: number) => void;
@@ -59,27 +61,42 @@ interface BuildClockProps {
 }
 
 export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
-  const [placedNumbers, setPlacedNumbers] = useState<number[]>([]);
+  const [placedNumbers, setPlacedNumbers] = useState<Record<number, number>>({});
   const [attempts, setAttempts] = useState(0);
   const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [draggedNumber, setDraggedNumber] = useState<number | null>(null);
 
   const slotRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const completionRevealTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completionCallbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearCompletionTimers = () => {
+    if (completionRevealTimeout.current) {
+      clearTimeout(completionRevealTimeout.current);
+      completionRevealTimeout.current = null;
+    }
+    if (completionCallbackTimeout.current) {
+      clearTimeout(completionCallbackTimeout.current);
+      completionCallbackTimeout.current = null;
+    }
+  };
 
   const initGame = () => {
-    setPlacedNumbers([]);
+    clearCompletionTimers();
+    setPlacedNumbers({});
     setAttempts(0);
     setIsCompleted(false);
     
     // Shuffle 1-12
-    const nums = Array.from({ length: 12 }, (_, i) => i + 1);
+    const nums = [...CLOCK_NUMBERS];
     nums.sort(() => Math.random() - 0.5);
     setAvailableNumbers(nums);
   };
 
   useEffect(() => {
     initGame();
+    return clearCompletionTimers;
   }, []);
 
   const handleDragStart = (num: number) => {
@@ -87,24 +104,37 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
     setDraggedNumber(num);
   };
 
+  const findDropSlot = (x: number, y: number) => {
+    return CLOCK_NUMBERS.find((slot) => {
+      if (placedNumbers[slot] !== undefined) return false;
+
+      const element = slotRefs.current[slot];
+      if (!element) return false;
+
+      const dropRect = element.getBoundingClientRect();
+      return (
+        x >= dropRect.left - 20 && x <= dropRect.right + 20 &&
+        y >= dropRect.top - 20 && y <= dropRect.bottom + 20
+      );
+    }) ?? null;
+  };
+
   const handleDragEnd = (event: any, info: any, num: number) => {
-    const targetSlot = slotRefs.current[num];
-    if (!targetSlot) {
-      setDraggedNumber(null);
-      return;
-    }
-
-    const dropRect = targetSlot.getBoundingClientRect();
     const { x, y } = info.point; // Uses pointer coords from Framer Motion
-
-    const isOverlapping = 
-      x >= dropRect.left - 20 && x <= dropRect.right + 20 &&
-      y >= dropRect.top - 20 && y <= dropRect.bottom + 20;
-    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const targetSlot = allowSkip === false
+      ? findDropSlot(x, y)
+      : slotRefs.current[num]
+        ? findDropSlotForSource(num, x, y)
+        : null;
 
-    if (isOverlapping) {
-      placeNumber(num, newAttempts);
+    if (targetSlot !== null) {
+      placeNumber(num, targetSlot);
+    } else if (allowSkip === false) {
+      const fallbackSlot = CLOCK_NUMBERS.find((slot) => placedNumbers[slot] === undefined);
+      if (fallbackSlot !== undefined) {
+        placeNumber(num, fallbackSlot);
+      }
     } else {
       playSound('wrong');
     }
@@ -112,27 +142,44 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
     setDraggedNumber(null);
   };
 
-  const placeNumber = (num: number, newAttempts = attempts) => {
-    playSound('correct');
-    const newPlaced = [...placedNumbers, num];
+  const findDropSlotForSource = (num: number, x: number, y: number) => {
+    const targetSlot = slotRefs.current[num];
+    if (!targetSlot) return null;
+
+    const dropRect = targetSlot.getBoundingClientRect();
+    return (
+      x >= dropRect.left - 20 && x <= dropRect.right + 20 &&
+      y >= dropRect.top - 20 && y <= dropRect.bottom + 20
+    ) ? num : null;
+  };
+
+  const placeNumber = (num: number, slot: number) => {
+    const isCorrect = num === slot;
+    playSound(isCorrect ? 'correct' : 'wrong');
+    const newPlaced = { ...placedNumbers, [slot]: num };
+    const newScore = Object.entries(newPlaced)
+      .filter(([placedSlot, number]) => Number(placedSlot) === number)
+      .length;
     setPlacedNumbers(newPlaced);
     setAvailableNumbers(prev => prev.filter(n => n !== num));
 
-    if (newPlaced.length === 12) {
-      setTimeout(() => {
-          setIsCompleted(true);
+    if (Object.keys(newPlaced).length === MAX_SCORE) {
+      completionRevealTimeout.current = setTimeout(() => {
+        setIsCompleted(true);
         playSound('fanfare');
         confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
         
         // Auto-complete after showing celebration
         if (onComplete && allowSkip !== false) {
-          setTimeout(() => onComplete?.(12, newAttempts), 4000);
+          completionCallbackTimeout.current = setTimeout(() => onComplete?.(newScore, MAX_SCORE), 4000);
         }
       }, 500);
     }
   };
 
-  const score = placedNumbers.length;
+  const score = Object.entries(placedNumbers)
+    .filter(([slot, number]) => Number(slot) === number)
+    .length;
 
   return (
     <div className="w-full max-w-4xl flex flex-col items-center justify-center p-6 bg-[#e0f7fa] rounded-[3rem] shadow-sm min-h-[700px] border-4 border-white relative font-display select-none overflow-hidden text-center">
@@ -147,7 +194,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
       </div>
 
       <div className="mb-2 flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 px-2 text-lg font-bold text-[#00838f] md:justify-start md:px-4 md:text-xl">
-        Progress: {placedNumbers.length} / 12
+        Progress: {Object.keys(placedNumbers).length} / {MAX_SCORE}
       </div>
 
       <h1 className="text-[#00838f] text-2xl md:text-4xl font-black mb-8 tracking-wide font-['Comic_Sans_MS']">
@@ -158,7 +205,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
       <div className="w-[300px] h-[300px] md:w-[360px] md:h-[360px] border-[12px] border-[#ffb300] rounded-full bg-white relative shadow-lg mb-10 flex items-center justify-center">
         
         {/* The Slots */}
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => {
+        {CLOCK_NUMBERS.map(num => {
           const radius = 130; // Distance from center
           const angle = (num * 30 - 90) * (Math.PI / 180);
           
@@ -166,7 +213,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
           const xPercent = 50 + (radius / 150) * 50 * Math.cos(angle);
           const yPercent = 50 + (radius / 150) * 50 * Math.sin(angle);
           
-          const isPlaced = placedNumbers.includes(num);
+          const isPlaced = placedNumbers[num] !== undefined;
 
           return (
             <div 
@@ -181,7 +228,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
                 top: `${yPercent}%`
               }}
             >
-              {isPlaced ? num : ''}
+              {isPlaced ? placedNumbers[num] : ''}
             </div>
           );
         })}
@@ -246,13 +293,15 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
           className="mt-6"
         >
           {allowSkip === false && onComplete && (
-            <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+          <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
               Next Game <ChevronRight className="ml-2 h-6 w-6" />
             </Button>
           )}
-          <Button size="lg" onClick={initGame} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
-            Build it again! 🔄
-          </Button>
+          {allowSkip !== false && (
+            <Button size="lg" onClick={initGame} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
+              Build it again! 🔄
+            </Button>
+          )}
         </motion.div>
       )}
 
