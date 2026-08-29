@@ -221,11 +221,11 @@ export function DragMatchingClock({ onComplete, allowSkip = true }: DragMatching
 
   // Allow clicking as an alternative to dragging for mobile accessibility
   const handleClick = (opt: number) => {
+    if (dragState !== 'idle') return;
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
     const newAnsweredItems = answeredItems + 1;
     setAnsweredItems(prev => prev + 1);
-    if (dragState !== 'idle') return;
     
     if (opt === targetHour) {
       playSound('correct');
