@@ -11,3 +11,9 @@ Deno.test("SkyExplorer consumes wrong choices as assigned quiz items", () => {
   assertMatch(source, /if \(allowSkip === false\)[\s\S]{0,500}advanceAssignedRound\(newAnsweredItems\)/);
   assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,500}setIsCompleted\(true\)/);
 });
+
+Deno.test("SkyExplorer locks assigned completion controls and reports a fixed maximum", () => {
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /canReplay &&[\s\S]{0,300}resetGame/);
+});
