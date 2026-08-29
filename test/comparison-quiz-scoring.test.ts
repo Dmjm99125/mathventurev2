@@ -64,3 +64,10 @@ Deno.test("BarnyardBalance locks assigned replay and reports its fixed maximum",
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
   assertMatch(source, /allowSkip === false && onComplete/);
 });
+
+Deno.test("BarnyardBalance preserves free-play retry feedback", async () => {
+  const source = await readGameSource("BarnyardBalance.tsx");
+
+  assertMatch(source, /if \(advanceAssignedRound\(newAnsweredItems\)\) return;[\s\S]{0,220}setTimeout\(\(\) => setCanClick\(true\), 800\)/);
+  assertMatch(source, /if \(allowSkip !== false\) onComplete\?\.\(newScore, newAttempts\)/);
+});
