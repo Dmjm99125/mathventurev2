@@ -87,6 +87,25 @@ export function RainbowGalaxyExplorer({ onComplete, allowSkip = true }: RainbowG
 
     const target = GALAXY_COLORS[level];
     attemptsRef.current += 1;
+
+    if (allowSkip === false) {
+      if (colorHex === target.hex) {
+        setScore(s => s + 10);
+        setCorrectItems(items => items + 1);
+      }
+
+      const nextLevel = level + 1;
+      if (nextLevel < GALAXY_COLORS.length) {
+        setLevel(nextLevel);
+        generateAsteroids(nextLevel);
+      } else {
+        setEndMessage("Quiz complete!");
+        setIsCompleted(true);
+        setScreen('end');
+      }
+      return;
+    }
+
     if (colorHex === target.hex) {
       setScore(s => s + 10);
       setCorrectItems(items => items + 1);
