@@ -18,3 +18,10 @@ Deno.test("hungry dragon game art starts below the taller mobile hud stack", asy
 
   assertEquals(source.includes("mt-24 md:mt-4"), true);
 });
+
+Deno.test("hungry dinosaur uses T. rex artwork", async () => {
+  const source = await readSource("src/components/games/2-shapes/HungryDragon.tsx");
+
+  assertEquals(source.includes("🦖"), true);
+  assertEquals(source.includes("🐲"), false);
+});

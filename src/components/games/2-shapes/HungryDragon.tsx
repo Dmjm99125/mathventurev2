@@ -214,7 +214,7 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
             </div>
 
             <motion.div animate={{ y: [-10, 10, -10] }} transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }} className="text-[120px] mb-4 drop-shadow-2xl">
-              🐲
+              🦖
             </motion.div>
 
             <h1 className="text-5xl md:text-7xl font-display font-extrabold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] mb-8 tracking-widest text-center">
@@ -230,7 +230,7 @@ export function HungryDragon({ onComplete, allowSkip = true }: { onComplete?: (s
         {screen === 'game' && (
           <motion.div key="game" className={getScreenClasses()} initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
             <motion.div animate={{ y: [-5, 5, -5] }} transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }} className="text-[80px] drop-shadow-xl z-20 mt-24 md:mt-4">
-              🐲
+              🦖
             </motion.div>
 
             <div className="bg-white/90 backdrop-blur-sm px-6 py-2 rounded-full shadow-lg border-4 border-[#34495e] mb-6 md:mb-8 -mt-4 z-30">
