@@ -38,6 +38,6 @@ Deno.test("SkyExplorer keeps its skip action in the responsive flow", async () =
   const source = await readSource("src/components/games/8-comparison/SkyExplorer.tsx");
 
   assertEquals(source.includes("absolute top-6 right-6 z-50"), false);
-  assertMatch(source, /<div className="z-10 mb-4 flex w-full justify-center md:justify-end">/);
+  assertMatch(source, /<div className="z-10 mb-4 flex w-full flex-wrap justify-center md:justify-end">/);
   assertMatch(source, /w-full max-w-sm justify-center md:w-auto/);
 });

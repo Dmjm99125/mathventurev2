@@ -142,7 +142,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
 
   return (
     <div className="relative flex min-h-[600px] w-full max-w-4xl flex-col items-center overflow-hidden rounded-[3rem] border-4 border-white bg-gradient-to-b from-[#e0f2fe] to-[#bae6fd] p-6 font-display text-center shadow-sm select-none">
-      <div className="z-10 mb-4 flex w-full justify-center md:justify-end">
+      <div className="z-10 mb-4 flex w-full flex-wrap justify-center md:justify-end">
         {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
