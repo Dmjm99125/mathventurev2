@@ -62,12 +62,28 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [length1, setLength1] = useState(0);
   const [length2, setLength2] = useState(0);
   const [canClick, setCanClick] = useState(true);
   const [feedback, setFeedback] = useState<'none' | 'correct' | 'wrong'>('none');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1200);
+    return true;
+  };
 
   const generateCaterpillar = (length: number) => {
     let cat = '🐛';
@@ -100,6 +116,8 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
     setSelectedIndex(index);
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(newAnsweredItems);
 
     const isLonger = length === Math.max(length1, length2);
 
@@ -108,6 +126,10 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
       setFeedback('correct');
       const newScore = score + 1;
       setScore(newScore);
+
+      if (advanceAssignedRound(newAnsweredItems)) {
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -122,17 +144,22 @@ export function WhichIsLonger({ onComplete, allowSkip = true }: WhichIsLongerPro
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setTimeout(() => {
-        setCanClick(true);
-        setFeedback('none');
-        setSelectedIndex(null);
-      }, 1200);
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+      } else {
+        setTimeout(() => {
+          setCanClick(true);
+          setFeedback('none');
+          setSelectedIndex(null);
+        }, 1200);
+      }
     }
   };
 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
