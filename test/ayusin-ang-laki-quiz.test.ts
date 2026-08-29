@@ -12,3 +12,9 @@ Deno.test("AyusinAngLaki consumes every assigned arrangement", () => {
   assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
   assertMatch(source, /newAnsweredItems < MAX_SCORE[\s\S]{0,600}setupRound\(\)/);
 });
+
+Deno.test("AyusinAngLaki locks assigned completion controls", () => {
+  assertStringIncludes(source, "const canReplay = allowSkip !== false;");
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE \* 3\)/);
+  assertMatch(source, /\{canReplay && \([\s\S]{0,700}Maglaro Muli/);
+});
