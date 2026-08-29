@@ -10,7 +10,7 @@ Deno.test("AyusinAngLaki consumes every assigned arrangement", () => {
   assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
   assertMatch(source, /if \(allowSkip === false\)[\s\S]{0,1200}newAnsweredItems >= MAX_SCORE/);
   assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
-  assertMatch(source, /newAnsweredItems < MAX_SCORE[\s\S]{0,600}setupRound\(\)/);
+  assertMatch(source, /else \{[\s\S]{0,600}setupRound\(\)/);
 });
 
 Deno.test("AyusinAngLaki locks assigned completion controls", () => {

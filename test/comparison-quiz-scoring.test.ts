@@ -25,7 +25,7 @@ Deno.test("Quiz-rendered comparison games expose scored completion callbacks", a
     assertMatch(source, /onComplete\?: \(score\?: number, maxScore\?: number\) => void/);
     assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/);
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/);
-    assertMatch(source, /onComplete\?\.\((?:score|matches|newScore), (?:attempts|MAX_SCORE|[^)\n]*attempts)\)/);
+    assertMatch(source, /onComplete\?\.\((?:score|matches|newScore), (?:attempts|MAX_SCORE|MAX_SCORE \* 3|[^)\n]*attempts)\)/);
   }
 });
 
