@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals, assertMatch } from "jsr:@std/assert";
 
 async function readSource(relativePath: string) {
   return await Deno.readTextFile(new URL(`../../../${relativePath}`, import.meta.url));
@@ -32,4 +32,12 @@ Deno.test("CatchFall fits its game board and controls within the available viewp
   assertEquals(source.includes("h-[calc(100dvh-7rem)]"), true);
   assertEquals(source.includes("h-[min(38vh,300px)]"), true);
   assertEquals(source.includes("h-[min(12vh,72px)]"), true);
+});
+
+Deno.test("SkyExplorer keeps its skip action in the responsive flow", async () => {
+  const source = await readSource("src/components/games/8-comparison/SkyExplorer.tsx");
+
+  assertEquals(source.includes("absolute top-6 right-6 z-50"), false);
+  assertMatch(source, /<div className="z-10 mb-4 flex w-full justify-center md:justify-end">/);
+  assertMatch(source, /w-full max-w-sm justify-center md:w-auto/);
 });
