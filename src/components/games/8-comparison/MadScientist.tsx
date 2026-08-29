@@ -74,6 +74,7 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [isLookingForMost, setIsLookingForMost] = useState(true);
   const [heights, setHeights] = useState<number[]>([0, 0, 0]);
   const [shelfItems, setShelfItems] = useState<string[]>([]);
@@ -90,6 +91,21 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
     setCanClick(true);
   };
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else if (newAnsweredItems < MAX_SCORE) {
+        setupRound();
+      }
+    }, 800);
+    return true;
+  };
+
   useEffect(() => {
     setupRound();
   }, []);
@@ -98,6 +114,8 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
     if (!canClick) return;
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
     setCanClick(false);
 
     const targetHeight = isLookingForMost ? Math.max(...heights) : Math.min(...heights);
@@ -111,6 +129,11 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
       // Add a random prize to the shelf
       const prize = monsterPrizes[Math.floor(Math.random() * monsterPrizes.length)];
       setShelfItems(prev => [...prev, prize]);
+
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
       
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -124,6 +147,10 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
       }
     } else {
       playSound('wrong');
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems);
+        return;
+      }
       setTimeout(() => setCanClick(true), 800);
     }
   };
@@ -131,6 +158,7 @@ export function MadScientist({ onComplete, allowSkip = true }: MadScientistProps
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setShelfItems([]);
     setIsCompleted(false);
     setupRound();
