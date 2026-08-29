@@ -161,3 +161,12 @@ Deno.test("ClockMultiple locks assigned replay and reports the fixed maximum", a
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
   assertMatch(source, /allowSkip === false && onComplete/);
 });
+
+Deno.test("BuildClock scores assigned placements by destination slot", async () => {
+  const source = await readSource("src/components/games/9-clock/BuildClock.tsx");
+
+  assertMatch(source, /useState<Record<number, number>>\(\{\}\)/);
+  assertMatch(source, /const targetSlot = allowSkip === false[\s\S]{0,500}slotRefs\.current/);
+  assertMatch(source, /Object\.entries\(placedNumbers\)\.filter\(\(\[slot, number\]\) => Number\(slot\) === number\)\.length/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,700}targetSlot/);
+});
