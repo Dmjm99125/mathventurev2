@@ -85,3 +85,12 @@ Deno.test("ChooseWhichColor advances after a wrong assigned-quiz answer", async 
   assertMatch(source, /setInternalIndex\(prev => prev \+ 1\)/);
   assertMatch(source, /allowSkip === false \? 'Next Question' : 'Try Again'/);
 });
+
+Deno.test("ColorMatchingGame consumes wrong items in assigned quizzes", async () => {
+  const source = await readSource("src/components/games/1-colors/ColorMatchingGame.tsx");
+
+  assertMatch(source, /quizWrong: boolean/);
+  assertMatch(source, /allowSkip === false[\s\S]*quizWrong: true/);
+  assertMatch(source, /const quizComplete =/);
+  assertMatch(source, /onComplete\(correctItems, allowSkip === false \? items\.length : totalItems\)/);
+});
