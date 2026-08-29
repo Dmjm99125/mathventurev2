@@ -12,3 +12,9 @@ Deno.test("MadScientist consumes wrong assigned tubes", () => {
   assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
   assertMatch(source, /else if \(newAnsweredItems < MAX_SCORE\)[\s\S]{0,300}setupRound\(\)/);
 });
+
+Deno.test("MadScientist locks assigned completion controls", () => {
+  assertStringIncludes(source, "const canReplay = allowSkip !== false;");
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /\{canReplay && \([\s\S]{0,700}Play Again/);
+});
