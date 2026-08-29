@@ -143,3 +143,12 @@ Deno.test("DailyRoutineTime locks assigned replay and reports the fixed maximum"
   assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
   assertMatch(source, /canReplay && \([\s\S]*Play Again/);
 });
+
+Deno.test("ClockMultiple consumes wrong answers as assigned quiz items", async () => {
+  const source = await readSource("src/components/games/9-clock/ClockMultiple.tsx");
+
+  assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,600}newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
+  assertMatch(source, /allowSkip === false[\s\S]{0,600}setupRound\(\)/);
+});
