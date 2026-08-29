@@ -64,7 +64,10 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
     if (isWinRef.current || scoreRef.current >= 10) return;
 
     const tColor = targetColorRef.current;
-    const colorData = isCorrect ? tColor : COLORS[Math.floor(Math.random() * COLORS.length)];
+    const wrongColors = COLORS.filter(color => color.name !== tColor.name);
+    const colorData = isCorrect
+      ? tColor
+      : wrongColors[Math.floor(Math.random() * wrongColors.length)];
     const newBalloon: Balloon = {
       id: Math.random().toString(36).substring(2, 9),
       colorData,
@@ -122,7 +125,12 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
       }
     } else {
       playPop(false);
-      setBalloons(prev => prev.map(b => b.id === balloon.id ? { ...b, opacity: 0.4 } : b));
+      if (allowSkip === false) {
+        setBalloons(prev => prev.filter(b => b.id !== balloon.id));
+        createBalloon(false);
+      } else {
+        setBalloons(prev => prev.map(b => b.id === balloon.id ? { ...b, opacity: 0.4 } : b));
+      }
     }
   };
 
@@ -213,9 +221,11 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
           <p className="text-2xl font-bold text-gray-700 mt-2 mb-8">You are so smart!</p>
           
           <div className="flex gap-4 flex-col sm:flex-row">
-            <Button size="lg" variant="jungle" className="text-xl h-14 px-8 rounded-full" onClick={initRound}>
-              Play Again
-            </Button>
+            {allowSkip !== false && (
+              <Button size="lg" variant="jungle" className="text-xl h-14 px-8 rounded-full" onClick={initRound}>
+                Play Again
+              </Button>
+            )}
             {onComplete && (
             <Button size="lg" variant="default" className="text-xl h-14 px-8 rounded-full bg-orange-500 hover:bg-orange-600 shadow-[0_0_0_0_rgba(255,152,0,0.7)] animate-[pulse_1.5s_infinite]" onClick={() => onComplete(correctItems, totalItems)}>
                 Next Game ➡️
