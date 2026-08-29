@@ -109,3 +109,10 @@ Deno.test("BalloonFindingGame consumes wrong balloons in assigned quizzes", asyn
   assertMatch(source, /else[\s\S]*setBalloons\(prev => prev\.filter\(b => b\.id !== balloon\.id\)\)[\s\S]*createBalloon\(false\)/);
   assertMatch(source, /allowSkip !== false[\s\S]{0,240}onClick=\{initRound\}/);
 });
+
+Deno.test("BalloonFindingGame does not generate a target-colored wrong balloon", async () => {
+  const source = await readSource("src/components/games/1-colors/BalloonFindingGame.tsx");
+
+  assertMatch(source, /const wrongColors = COLORS\.filter\(color => color\.name !== tColor\.name\)/);
+  assertMatch(source, /: wrongColors\[Math\.floor\(Math\.random\(\) \* wrongColors\.length\)\]/);
+});
