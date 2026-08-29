@@ -10,12 +10,15 @@ interface MultipleChoiceProps {
   allowSkip?: boolean;
 }
 
-export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
+export function MultipleChoice({ onComplete, allowSkip = true }: MultipleChoiceProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<{ image: string; isCorrect: boolean } | null>(null);
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
   const [score, setScore] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
+  const [wrongItems, setWrongItems] = useState(0);
+
+  const canReplay = allowSkip !== false;
 
   const question = colorsData[currentIndex];
 
@@ -26,7 +29,9 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
     setGameState('feedback');
     setTotalAttempts(attempts => attempts + 1);
     
-    if (opt.isCorrect) {
+    if (!opt.isCorrect) {
+      setWrongItems(items => items + 1);
+    } else {
       setScore(s => s + 1);
       // Optional: Play a sound here
     }
@@ -57,28 +62,35 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
           </div>
           <h1 className="text-4xl font-display font-extrabold mb-2 text-foreground">Excellent!</h1>
           <p className="text-xl font-bold text-muted-foreground mb-8">
-            You scored {score} out of {colorsData.length}
+            {allowSkip === false ? (
+              <>You scored {score} correct and {wrongItems} wrong out of {colorsData.length}</>
+            ) : (
+              <>You scored {score} out of {colorsData.length}</>
+            )}
           </p>
           <div className="flex flex-col gap-3">
             {onComplete && (
-              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, Math.max(1, totalAttempts))}>
+              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, allowSkip === false ? colorsData.length : Math.max(1, totalAttempts))}>
                 Continue <Play className="ml-2 w-5 h-5 fill-current" />
               </Button>
             )}
-            <Button
-              size="lg"
-              variant="ghost"
-              className="w-full font-bold"
-              onClick={() => {
-                setCurrentIndex(0);
-                setScore(0);
-                setTotalAttempts(0);
-                setGameState('playing');
-                setSelectedOption(null);
-              }}
-            >
-              Play Again
-            </Button>
+            {canReplay && (
+              <Button
+                size="lg"
+                variant="ghost"
+                className="w-full font-bold"
+                onClick={() => {
+                  setCurrentIndex(0);
+                  setScore(0);
+                  setTotalAttempts(0);
+                  setWrongItems(0);
+                  setGameState('playing');
+                  setSelectedOption(null);
+                }}
+              >
+                Play Again
+              </Button>
+            )}
           </div>
         </Card>
       </div>
@@ -162,7 +174,7 @@ export function MultipleChoice({ onComplete }: MultipleChoiceProps) {
             className="h-16 px-12 text-xl rounded-full shadow-lg"
             onClick={handleNext}
           >
-            {selectedOption?.isCorrect ? 'Great! Next Question' : 'Try the next one'}{' '}
+            {selectedOption?.isCorrect ? 'Great! Next Question' : allowSkip === false ? 'Next Question' : 'Try the next one'}{' '}
             <Play className="ml-2 h-6 w-6 fill-current" />
           </Button>
         </motion.div>
