@@ -72,6 +72,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
   const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [level, setLevel] = useState(1);
   const [character, setCharacter] = useState(CHARACTERS[0]);
   const [targetHour, setTargetHour] = useState(12);
@@ -116,10 +117,18 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
     setSelectedIndex(index);
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+    const newAnsweredItems = answeredItems + 1;
+    setAnsweredItems(prev => prev + 1);
 
     const isCorrect = option === `${targetHour}:00`;
 
-    if (isCorrect) {
+    if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
+      setTimeout(() => {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      }, 1000);
+    } else if (isCorrect) {
       playSound('correct');
       setFeedback('correct');
       const newScore = score + 1;
@@ -138,17 +147,22 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
     } else {
       playSound('wrong');
       setFeedback('wrong');
-      setTimeout(() => {
-        setCanClick(true);
-        setFeedback('none');
-        setSelectedIndex(null);
-      }, 1200);
+      if (allowSkip === false) {
+        setTimeout(() => setupRound(score), 1200);
+      } else {
+        setTimeout(() => {
+          setCanClick(true);
+          setFeedback('none');
+          setSelectedIndex(null);
+        }, 1200);
+      }
     }
   };
 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setLevel(1);
     setIsCompleted(false);
     setGameState('menu');
@@ -368,10 +382,11 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
+              {allowSkip !== false && (
               <Button
                 size="lg"
                 onClick={resetGame}
@@ -379,6 +394,7 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
               >
                 Play Again 🔄
               </Button>
+              )}
             </div>
           </motion.div>
         )}
