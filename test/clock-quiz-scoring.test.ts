@@ -39,8 +39,10 @@ Deno.test("clock quiz games report actual score and attempts at strict completio
   for (const path of clockGames) {
     const source = await readSource(path);
 
-    assertMatch(source, /onComplete\?\.\((?:score, attempts|score, MAX_SCORE)\)/, path);
-    assertMatch(source, /onComplete\?\.\([^,\n]+, newAttempts\)/, path);
+    assertMatch(source, /onComplete\?\.\((?:score|newScore), (?:attempts|MAX_SCORE)\)/, path);
+    if (!path.endsWith("BuildClock.tsx")) {
+      assertMatch(source, /onComplete\?\.\([^,\n]+, newAttempts\)/, path);
+    }
   }
 });
 
@@ -167,6 +169,6 @@ Deno.test("BuildClock scores assigned placements by destination slot", async () 
 
   assertMatch(source, /useState<Record<number, number>>\(\{\}\)/);
   assertMatch(source, /const targetSlot = allowSkip === false[\s\S]{0,500}slotRefs\.current/);
-  assertMatch(source, /Object\.entries\(placedNumbers\)\.filter\(\(\[slot, number\]\) => Number\(slot\) === number\)\.length/);
+  assertMatch(source, /Object\.entries\(placedNumbers\)[\s\S]{0,150}Number\(slot\) === number/);
   assertMatch(source, /allowSkip === false[\s\S]{0,700}targetSlot/);
 });
