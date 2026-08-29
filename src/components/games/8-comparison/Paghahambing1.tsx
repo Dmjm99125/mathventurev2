@@ -57,6 +57,7 @@ const barColors = ['bg-[#f39c12]', 'bg-[#e67e22]', 'bg-[#d35400]'];
 
 export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Props) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -65,6 +66,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
   const [feedback, setFeedback] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
   const [stars, setStars] = useState<{ id: number, x: number, y: number }[]>([]);
+  const [answeredItems, setAnsweredItems] = useState(0);
 
   const deckRef = useRef<string[]>([]);
 
@@ -105,6 +107,21 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
     setupRound();
   }, []);
 
+  const advanceAssignedRound = (newAnsweredItems: number) => {
+    if (allowSkip !== false) return false;
+
+    setTimeout(() => {
+      if (newAnsweredItems >= MAX_SCORE) {
+        setIsCompleted(true);
+        playSound('fanfare');
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } else {
+        setupRound();
+      }
+    }, 1000);
+    return true;
+  };
+
   const triggerStarBurst = () => {
     const newStars = Array.from({ length: 12 }).map((_, i) => ({
       id: Date.now() + i,
@@ -118,14 +135,19 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
   const handleChoice = (id: string) => {
     if (feedback === "Ang galing! ⭐") return; // Prevent multiple clicks
 
+    const newAttempts = attempts + 1;
+    const newAnsweredItems = answeredItems + 1;
+    setAttempts(prev => prev + 1);
+    setAnsweredItems(newAnsweredItems);
+
     if (id === targetType) {
-      const newAttempts = attempts + 1;
-      setAttempts(prev => prev + 1);
       playSound('correct');
       setFeedback("Ang galing! ⭐");
       triggerStarBurst();
       const newScore = score + 1;
       setScore(newScore);
+
+      if (advanceAssignedRound(newAnsweredItems)) return;
       
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -137,7 +159,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
         setTimeout(setupRound, 1200);
       }
     } else {
-      setAttempts(prev => prev + 1);
+      if (advanceAssignedRound(newAnsweredItems)) return;
       playSound('wrong');
       setFeedback("Subukan muli! 💪");
     }
@@ -146,6 +168,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -241,13 +264,15 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#27ae60] hover:bg-[#1e8449] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#1e8449] hover:shadow-[0_2px_0_#1e8449] hover:translate-y-1 transition-all">
-                Maglaro Muli 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#27ae60] hover:bg-[#1e8449] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#1e8449] hover:shadow-[0_2px_0_#1e8449] hover:translate-y-1 transition-all">
+                  Maglaro Muli 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}

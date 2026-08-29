@@ -79,5 +79,5 @@ Deno.test("Paghahambing1 consumes wrong assigned-quiz answers", async () => {
   assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
   assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)/);
   assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
-  assertMatch(source, /newAnsweredItems < MAX_SCORE[\s\S]{0,700}setupRound\(\)/);
+  assertMatch(source, /else \{[\s\S]{0,250}setupRound\(\)/);
 });
