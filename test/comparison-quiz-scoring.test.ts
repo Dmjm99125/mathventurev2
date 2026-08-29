@@ -71,3 +71,13 @@ Deno.test("BarnyardBalance preserves free-play retry feedback", async () => {
   assertMatch(source, /if \(advanceAssignedRound\(newAnsweredItems\)\) return;[\s\S]{0,220}setTimeout\(\(\) => setCanClick\(true\), 800\)/);
   assertMatch(source, /if \(allowSkip !== false\) onComplete\?\.\(newScore, newAttempts\)/);
 });
+
+Deno.test("Paghahambing1 consumes wrong assigned-quiz answers", async () => {
+  const source = await readGameSource("Paghahambing1.tsx");
+
+  assertMatch(source, /const \[answeredItems, setAnsweredItems\] = useState\(0\)/);
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)/);
+  assertMatch(source, /newAnsweredItems >= MAX_SCORE[\s\S]{0,700}setIsCompleted\(true\)/);
+  assertMatch(source, /newAnsweredItems < MAX_SCORE[\s\S]{0,700}setupRound\(\)/);
+});
