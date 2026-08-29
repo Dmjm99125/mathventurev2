@@ -80,6 +80,10 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
 
   if (!question) return null;
 
+  const nextButtonLabel = selectedOption?.isCorrect
+    ? 'Great! Next'
+    : allowSkip === false ? 'Next Question' : 'Try Again';
+
   return (
     <div className="w-full max-w-5xl flex flex-col items-center mx-auto bg-sky-50/80 p-6 pb-12 md:p-12 md:pb-16 rounded-3xl shadow-lg min-h-[600px] h-fit shrink-0 border-4 border-sky-100 animate-in fade-in relative">
       
@@ -150,7 +154,7 @@ export function ChooseWhichColor({ onComplete, allowSkip = true }: ChooseWhichCo
             className="h-16 md:h-20 px-12 md:px-16 text-2xl md:text-3xl rounded-full shadow-[0_6px_0_0_rgba(0,0,0,0.1)] font-bold transition-transform hover:scale-105 active:scale-95"
             onClick={handleNext}
           >
-            {selectedOption?.isCorrect || allowSkip === false ? 'Great! Next' : 'Try Again'}{' '}
+            {nextButtonLabel}{' '}
             <Play className="ml-3 h-8 w-8 md:h-10 md:w-10 fill-current" />
           </Button>
         </div>

@@ -83,5 +83,5 @@ Deno.test("ChooseWhichColor advances after a wrong assigned-quiz answer", async 
 
   assertMatch(source, /if \(allowSkip === false\)[\s\S]*advanceQuestion/);
   assertMatch(source, /setInternalIndex\(prev => prev \+ 1\)/);
-  assertMatch(source, /allowSkip === false \? 'Great! Next' : 'Try Again'/);
+  assertMatch(source, /allowSkip === false \? 'Next Question' : 'Try Again'/);
 });
