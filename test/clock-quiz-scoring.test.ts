@@ -152,3 +152,12 @@ Deno.test("ClockMultiple consumes wrong answers as assigned quiz items", async (
   assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,600}newAnsweredItems >= MAX_SCORE[\s\S]{0,600}setIsCompleted\(true\)/);
   assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number\)[\s\S]{0,600}setupRound\(\)/);
 });
+
+Deno.test("ClockMultiple locks assigned replay and reports the fixed maximum", async () => {
+  const source = await readSource("src/components/games/9-clock/ClockMultiple.tsx");
+
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /canReplay && \([\s\S]*Play Again/);
+  assertMatch(source, /allowSkip === false && onComplete/);
+});
