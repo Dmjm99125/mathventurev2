@@ -61,6 +61,7 @@ interface BuildClockProps {
 }
 
 export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
+  const canReplay = allowSkip !== false;
   const [placedNumbers, setPlacedNumbers] = useState<Record<number, number>>({});
   const [attempts, setAttempts] = useState(0);
   const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
@@ -170,7 +171,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
         confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
         
         // Auto-complete after showing celebration
-        if (onComplete && allowSkip !== false) {
+        if (onComplete && canReplay) {
           completionCallbackTimeout.current = setTimeout(() => onComplete?.(newScore, MAX_SCORE), 4000);
         }
       }, 500);
@@ -186,7 +187,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
       
       {/* Skip Button */}
       <div className="mb-2 flex w-full justify-center md:justify-end z-10">
-        {onComplete && allowSkip !== false && (
+        {onComplete && canReplay && (
         <Button variant="ghost" className="w-full max-w-sm justify-center md:w-auto text-[#00838f] font-bold bg-[#00838f]/10 hover:bg-[#00838f]/20" onClick={() => onComplete?.()}>
             Skip <ChevronRight className="ml-1 w-5 h-5" />
           </Button>
@@ -297,7 +298,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
               Next Game <ChevronRight className="ml-2 h-6 w-6" />
             </Button>
           )}
-          {allowSkip !== false && (
+          {canReplay && (
             <Button size="lg" onClick={initGame} className="bg-[#ff9800] hover:bg-[#f57c00] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_4px_0_#ef6c00] hover:shadow-[0_2px_0_#ef6c00] hover:translate-y-1 transition-all">
               Build it again! 🔄
             </Button>
