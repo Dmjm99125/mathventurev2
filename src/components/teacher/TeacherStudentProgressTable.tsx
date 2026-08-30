@@ -97,7 +97,7 @@ export function TeacherStudentProgressTable({
                                 </p>
                               </div>
                               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                {GAME_CATALOG.map((game) => {
+                                {GAME_CATALOG.filter((game) => game.topicId === assignment.lessonId).map((game) => {
                                   const result = assignmentScoresByGameId.get(game.gameId);
 
                                   return (

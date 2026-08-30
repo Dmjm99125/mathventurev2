@@ -144,7 +144,7 @@ export function TeacherAssignedQuizzes({
                                 <tr>
                                   <td id={studentDetailsId} colSpan={5} className="bg-muted/20 p-4 sm:p-6">
                                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                      {GAME_CATALOG.map((game) => {
+                                      {GAME_CATALOG.filter((game) => game.topicId === assignment.lessonId).map((game) => {
                                         const result = scoresByGameId.get(game.gameId);
 
                                         return (
