@@ -24,7 +24,7 @@ export function TeacherWorkspaceBoard({
     <div className="w-full min-h-[calc(100dvh-4rem)] overflow-x-hidden">
       <div className="min-h-[calc(100dvh-4rem)] overflow-hidden border-y-2 border-border bg-card shadow-[0_24px_70px_rgba(58,88,42,0.12)] sm:rounded-[32px] sm:border-2">
         <div className="grid min-h-[calc(100dvh-4rem)] lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="flex min-w-0 flex-col border-b-2 border-border bg-[linear-gradient(180deg,#f4f7e9_0%,#eef5dc_100%)] p-4 sm:flex-row sm:flex-wrap sm:items-center sm:p-5 lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r-2 lg:p-6">
+          <aside className="hidden min-w-0 flex-col border-b-2 border-border bg-[linear-gradient(180deg,#f4f7e9_0%,#eef5dc_100%)] p-4 sm:flex-row sm:flex-wrap sm:items-center sm:p-5 md:flex lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r-2 lg:p-6">
             <div className="flex min-w-0 flex-col gap-3 sm:flex-1 sm:flex-row sm:items-center lg:block lg:flex-none">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-border bg-white text-2xl font-display font-bold text-primary sm:h-16 sm:w-16 lg:h-24 lg:w-24 lg:rounded-[28px] lg:text-3xl">
                 {user?.full_name?.trim().slice(0, 1).toUpperCase() ?? 'T'}
