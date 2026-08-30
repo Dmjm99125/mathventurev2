@@ -21,29 +21,49 @@ import { TeacherReportsWindowPicker } from '@/components/teacher/reports/Teacher
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
 import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentListTable';
 import { TeacherStudentProgressTable } from '@/components/teacher/TeacherStudentProgressTable';
+import { TeacherAssignedQuizzes } from '@/components/teacher/TeacherAssignedQuizzes';
 import { TeacherAssignQuizDialog } from '@/components/teacher/TeacherAssignQuizDialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  useAssignments,
   useClassRoster,
   useRemoveStudentFromClass,
   useTeacherClassroom,
   useTeacherReportsOverview,
 } from '@/lib/api/hooks';
 import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
-import type { TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
+import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
+import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
 
 export function TeacherWorkspacePage() {
   const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
   const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
+  const {
+    data: assignmentsData,
+    isLoading: assignmentsLoading,
+    error: assignmentsError,
+    refetch,
+  } = useAssignments(classroomData?.classroom && 'createdAt' in classroomData.classroom ? classroomData.classroom.id : undefined);
   const removeStudent = useRemoveStudentFromClass();
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'progress' | 'assignments'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
 
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null;
   const students = (rosterData?.students ?? []) as TeacherClassStudent[];
+  const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
+    (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
+  );
+  const assignedQuizzes = buildTeacherAssignedQuizzes(teacherAssignments, students);
 
-  if (classroomLoading || rosterLoading) {
+  if (classroomLoading || rosterLoading || assignmentsLoading) {
     return <div className="p-8 text-center font-bold">Loading classroom...</div>;
   }
 
@@ -82,29 +102,35 @@ export function TeacherWorkspacePage() {
         classId={classroom.id}
       />
 
-      <div className="mb-5 flex max-w-full overflow-x-auto rounded-2xl border-2 border-border bg-white p-1">
-        <Button
-          className="shrink-0"
-          variant={activeTab === 'students' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('students')}
+      <div className="mb-5 w-full max-w-sm">
+        <label htmlFor="teacher-classroom-view" className="sr-only">Classroom view</label>
+        <Select
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'students' | 'progress' | 'assignments')}
         >
-          Student List
-        </Button>
-        <Button
-          className="shrink-0"
-          variant={activeTab === 'progress' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('progress')}
-        >
-          Student Progress
-        </Button>
+          <SelectTrigger id="teacher-classroom-view" className="h-12 rounded-2xl border-2 border-border bg-white px-4 font-bold">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="students">Student List</SelectItem>
+            <SelectItem value="progress">Student Progress</SelectItem>
+            <SelectItem value="assignments">Quizzes Assigned</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {activeTab === 'students' ? (
         <TeacherStudentListTable students={students} onRemove={setPendingRemoval} />
-      ) : (
+      ) : activeTab === 'progress' ? (
         <TeacherStudentProgressTable students={students} />
+      ) : (
+        <TeacherAssignedQuizzes
+          assignments={assignedQuizzes}
+          error={assignmentsError as Error | null}
+          onRetry={() => {
+            void refetch();
+          }}
+        />
       )}
 
       <Dialog
