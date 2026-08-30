@@ -12,7 +12,7 @@ Deno.test("Free Play extends the six historical drawing-board topics", () => {
   assertEquals(getFreePlayGameCount("subtraction"), 10);
   assertEquals(getFreePlayGameCount("numbers"), 9);
   assertEquals(getFreePlayGameCount("measurement"), 7);
-  assertEquals(FREE_PLAY_GAME_COUNT_BY_TOPIC.colors, 7);
+  assertEquals(FREE_PLAY_GAME_COUNT_BY_TOPIC.colors, 6);
 });
 
 Deno.test("Free Play identifies only the historical drawing-board slots", () => {

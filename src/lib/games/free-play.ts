@@ -2,6 +2,7 @@ import { GAME_COUNT_BY_TOPIC, type TeacherTopicId } from './catalog';
 
 export const FREE_PLAY_GAME_COUNT_BY_TOPIC = {
   ...GAME_COUNT_BY_TOPIC,
+  colors: GAME_COUNT_BY_TOPIC.colors - 1,
   shapes: GAME_COUNT_BY_TOPIC.shapes + 1,
   sequencing: GAME_COUNT_BY_TOPIC.sequencing + 1,
   addition: GAME_COUNT_BY_TOPIC.addition + 1,

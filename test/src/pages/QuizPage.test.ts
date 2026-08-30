@@ -26,6 +26,12 @@ Deno.test("colors quiz includes multiple choice as its seventh activity", async 
   assertEquals(source.includes("<MultipleChoice"), true);
 });
 
+Deno.test("Free Play colors ends before the classroom-only multiple choice activity", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/lib/games/free-play.ts", import.meta.url));
+
+  assertEquals(source.includes("colors: GAME_COUNT_BY_TOPIC.colors - 1"), true);
+});
+
 Deno.test("assigned lessons identify classroom quiz mode and use assignment quiz persistence", async () => {
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
