@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import { ChevronRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 
+const QUIZ_TARGET = 5;
+
 const playSound = (type: 'eat' | 'crash' | 'levelup') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
   const now = ctx.currentTime;
@@ -54,6 +56,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const completedRef = useRef(false);
+  const canReplay = allowSkip !== false;
   
   // Game state refs (we use refs instead of state to avoid react re-render loops in canvas tick)
   const snakeRef = useRef([{ x: 7, y: 7 }]);
@@ -146,11 +149,11 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
         placeFood();
         setScore(s => {
           const newScore = s + 1;
-          if (newScore % 5 === 0) {
+          if (newScore % QUIZ_TARGET === 0) {
             playSound('levelup');
-            setSpeedLevel(Math.floor(newScore / 5) + 1);
+            setSpeedLevel(Math.floor(newScore / QUIZ_TARGET) + 1);
             speedRef.current = Math.max(150, speedRef.current - 50);
-            if (allowSkip === false && newScore >= 5) {
+            if (allowSkip === false && newScore >= QUIZ_TARGET) {
               completedRef.current = true;
               setIsCompleted(true);
             }
@@ -232,7 +235,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
           />
 
           <AnimatePresence>
-            {isGameOver && !isCompleted && (
+            {canReplay && isGameOver && !isCompleted && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -252,7 +255,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
                 animate={{ opacity: 1 }}
                 className="absolute inset-x-0 bottom-4 flex justify-center z-20"
               >
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, Math.max(1, attempts))} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, QUIZ_TARGET)} className="text-xl px-8 h-14 rounded-full shadow-lg">
                   Continue <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               </motion.div>
