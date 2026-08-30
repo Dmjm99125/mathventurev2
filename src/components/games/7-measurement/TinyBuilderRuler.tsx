@@ -108,7 +108,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       return;
     }
 
-    setTimeout(setupRound, 800);
+    setupRound();
   };
 
   const handleChoice = (guess: number) => {
