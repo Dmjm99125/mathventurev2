@@ -31,7 +31,7 @@ export function buildTeacherAssignedQuizzes(
     students: students
       .filter((student) => assignment.studentId === null || assignment.studentId === student.id)
       .map((student) => {
-        const score = student.assignments.find((item) => item.assignmentId === assignment.id);
+        const score = student.assignments?.find((item) => item.assignmentId === assignment.id);
 
         return {
           id: student.id,

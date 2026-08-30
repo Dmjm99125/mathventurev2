@@ -42,3 +42,11 @@ Deno.test("limits directly targeted assignments to the target student", () => {
 
   assertEquals(buildTeacherAssignedQuizzes([targeted], students)[0].students.map((student) => student.id), ["student-2"]);
 });
+
+Deno.test("treats a roster row without assignments as not started", () => {
+  const legacyStudent = { ...students[1], assignments: undefined } as unknown as TeacherClassStudent;
+  const [quiz] = buildTeacherAssignedQuizzes([classAssignment], [legacyStudent]);
+
+  assertEquals(quiz.students[0].status, "not_started");
+  assertEquals(quiz.students[0].gameScores, []);
+});
