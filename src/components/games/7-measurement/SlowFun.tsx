@@ -65,6 +65,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameActive, setGameActive] = useState(false);
   const [currentGoal, setCurrentGoal] = useState<"BIG" | "SMALL">("BIG");
@@ -78,6 +79,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
   const startGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setGameStarted(true);
     setGameActive(true);
     setIsCompleted(false);
@@ -86,6 +88,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
   const resetToStart = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setGameStarted(false);
     setGameActive(false);
     setIsCompleted(false);
@@ -119,10 +122,31 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
     return () => clearInterval(interval);
   }, [gameActive, roundKey]);
 
+  const advanceAssignedRound = (newAnsweredItems: number, newScore: number) => {
+    if (newAnsweredItems >= MAX_SCORE) {
+      setGameActive(false);
+      setIsCompleted(true);
+      if (newScore >= MAX_SCORE) {
+        setTimeout(() => {
+          playSlowFunSound('fanfare');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 500);
+      }
+      return;
+    }
+
+    setTimeout(() => {
+      setGameActive(true);
+      setRoundKey(k => k + 1);
+    }, 1000);
+  };
+
   const handleWhack = (mole: typeof moles[0]) => {
     if (!gameActive || !mole.up) return;
     const newAttempts = attempts + 1;
+    const newAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
+    setAnsweredItems(prev => prev + 1);
     
     if (mole.size === currentGoal) {
       playSlowFunSound('success');
@@ -133,7 +157,10 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
       setMoles(prev => prev.map(m => m.id === mole.id ? { ...m, up: false } : m));
       setMessage("YES! That's it! ✨");
       
-      if (newScore >= MAX_SCORE) {
+      if (allowSkip === false) {
+        setGameActive(false);
+        advanceAssignedRound(newAnsweredItems, newScore);
+      } else if (newScore >= MAX_SCORE) {
         setGameActive(false);
         setIsCompleted(true);
         if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -152,6 +179,10 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
     } else {
       playSlowFunSound('error');
       setMessage(`Try again! Look for ${currentGoal}.`);
+      if (allowSkip === false) {
+        setGameActive(false);
+        advanceAssignedRound(newAnsweredItems, score);
+      }
     }
   };
 
