@@ -80,6 +80,8 @@ interface SmallShortProps {
 
 export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
   const MAX_SCORE = 10;
+  const isAssignedMode = allowSkip === false;
+  const canReplay = !isAssignedMode;
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -111,6 +113,29 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
     generateLevel();
   }, []);
 
+  const finishRound = (newScore: number, newAttempts: number) => {
+    const didCompleteAssignedQuiz = isAssignedMode && newAttempts >= MAX_SCORE;
+
+    if (didCompleteAssignedQuiz || newScore >= MAX_SCORE) {
+      setIsCompleted(true);
+      if (!isAssignedMode) onComplete?.(newScore, newAttempts);
+      playTrainSound('fanfare');
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    } else {
+      generateLevel();
+    }
+  };
+
+  const departTrain = (newScore: number, newAttempts: number) => {
+    playTrainSound('choo');
+    setMessage('CHOO CHOO! 🚂💨');
+    setTrainState('leaving');
+
+    setTimeout(() => {
+      finishRound(newScore, newAttempts);
+    }, 1500);
+  };
+
   const handleChoice = (size: 'BIG' | 'SMALL') => {
     if (trainState !== 'waiting' || car2Content !== null) return;
     const newAttempts = attempts + 1;
@@ -122,23 +147,17 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
       setMessage('EXCELLENT! 🌟');
 
       setTimeout(() => {
-        playTrainSound('choo');
-        setMessage('CHOO CHOO! 🚂💨');
-        setTrainState('leaving');
+        const newScore = score + 1;
+        setScore(newScore);
+        departTrain(newScore, newAttempts);
+      }, 800);
+    } else if (isAssignedMode) {
+      playTrainSound('wrong');
+      setCar2Content(size);
+      setMessage('Nice try! Next train! 🚂');
 
-        setTimeout(() => {
-          const newScore = score + 1;
-          setScore(newScore);
-
-          if (newScore >= MAX_SCORE) {
-            setIsCompleted(true);
-            if (allowSkip !== false) onComplete?.(newScore, newAttempts);
-            playTrainSound('fanfare');
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-          } else {
-            generateLevel();
-          }
-        }, 1500);
+      setTimeout(() => {
+        departTrain(score, newAttempts);
       }, 800);
     } else {
       playTrainSound('wrong');
@@ -248,17 +267,21 @@ export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
               🏆✨
             </motion.div>
             <h1 className="text-[#e65100] text-4xl md:text-6xl font-extrabold mb-4 drop-shadow-sm">MEASUREMENT STAR!</h1>
-            <p className="text-2xl text-slate-800 font-bold mb-8">You loaded 10 trains!</p>
+            <p className="text-2xl text-slate-800 font-bold mb-8">
+              {isAssignedMode ? 'You answered 10 train rounds!' : 'You loaded 10 trains!'}
+            </p>
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
-                Play Again! 🔄
-              </Button>
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
+                  Play Again! 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
