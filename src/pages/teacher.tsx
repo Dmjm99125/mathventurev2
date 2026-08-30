@@ -55,16 +55,20 @@ export function TeacherWorkspacePage() {
     <TeacherWorkspaceBoard
       heading={(
         <>
-          <h1 className="text-4xl font-display font-bold">Classroom</h1>
-          <p className="mt-2 font-bold text-muted-foreground">
+          <h1 className="text-3xl font-display font-bold sm:text-4xl">Classroom</h1>
+          <p className="mt-2 text-sm font-bold text-muted-foreground sm:text-base">
             Manage your students and monitor progress in one place.
           </p>
         </>
       )}
       action={(
-        <div className="flex flex-wrap gap-2">
-          <Button variant="jungle" onClick={() => setIsAssignQuizOpen(true)}>Assign Quiz</Button>
-          <Button variant="outline" onClick={() => setIsAddStudentsOpen(true)}>+ Add</Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button className="w-full sm:w-auto" variant="jungle" onClick={() => setIsAssignQuizOpen(true)}>
+            Assign Quiz
+          </Button>
+          <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsAddStudentsOpen(true)}>
+            + Add
+          </Button>
         </div>
       )}
     >
@@ -78,8 +82,9 @@ export function TeacherWorkspacePage() {
         classId={classroom.id}
       />
 
-      <div className="mb-5 inline-flex rounded-2xl border-2 border-border bg-white p-1">
+      <div className="mb-5 flex max-w-full overflow-x-auto rounded-2xl border-2 border-border bg-white p-1">
         <Button
+          className="shrink-0"
           variant={activeTab === 'students' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('students')}
@@ -87,6 +92,7 @@ export function TeacherWorkspacePage() {
           Student List
         </Button>
         <Button
+          className="shrink-0"
           variant={activeTab === 'progress' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setActiveTab('progress')}
@@ -163,13 +169,17 @@ export function TeacherReportsPage() {
     <TeacherWorkspaceBoard
       heading={(
         <>
-          <h1 className="text-4xl font-display font-bold">Reports</h1>
-          <p className="mt-2 font-bold text-muted-foreground">
+          <h1 className="text-3xl font-display font-bold sm:text-4xl">Reports</h1>
+          <p className="mt-2 text-sm font-bold text-muted-foreground sm:text-base">
             Review classroom performance, student activity, and topic mastery in one place.
           </p>
         </>
       )}
-      action={data ? <TeacherClassReportPdfButton report={data} disabled={!data.hasData} /> : undefined}
+      action={data ? (
+        <div className="w-full sm:w-auto [&_button]:w-full sm:[&_button]:w-auto">
+          <TeacherClassReportPdfButton report={data} disabled={!data.hasData} />
+        </div>
+      ) : undefined}
     >
       <TeacherReportsWindowPicker
         value={windowKey}
@@ -206,7 +216,7 @@ export const TeacherReportsPlaceholder = TeacherReportsPage;
 export function TeacherSettingsPlaceholder() {
   return (
     <TeacherWorkspaceBoard
-      heading={<h1 className="text-4xl font-display font-bold">Settings</h1>}
+      heading={<h1 className="text-3xl font-display font-bold sm:text-4xl">Settings</h1>}
     >
       <Card className="rounded-[24px] p-8 font-bold text-muted-foreground">
         Settings will be wired in the next teacher flow.
