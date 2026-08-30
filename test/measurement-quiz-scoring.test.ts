@@ -11,7 +11,7 @@ const GAME_FILES = [
 
 const COMPLETION_SCORES: Record<(typeof GAME_FILES)[number], string> = {
   "LightHeavy.tsx": "onComplete?.(newScore, newAttempts)",
-  "MagicRainbowBridge.tsx": "onComplete?.(newScore, newAttempts)",
+  "MagicRainbowBridge.tsx": "onComplete?.(newScore, attemptNumber)",
   "SlowFun.tsx": "onComplete?.(newScore, newAttempts)",
   "SmallShort.tsx": "onComplete?.(newScore, newAttempts)",
   "SnakeGame.tsx": "onComplete?.(score, attempts)",
