@@ -65,6 +65,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [correctLength, setCorrectLength] = useState(0);
   const [choices, setChoices] = useState<number[]>([]);
   const [toyLabel, setToyLabel] = useState('');
@@ -92,9 +93,27 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
     setupRound();
   }, []);
 
+  const advanceAssignedRound = (newAnsweredItems: number, nextScore: number) => {
+    setAnsweredItems(newAnsweredItems);
+
+    if (newAnsweredItems >= MAX_SCORE) {
+      setTimeout(() => {
+        setIsCompleted(true);
+        playSound('fanfare');
+        const prize = toolPrizes[Math.floor(Math.random() * toolPrizes.length)];
+        setEarnedTools(prev => [...prev, prize]);
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      }, 800);
+      return;
+    }
+
+    setTimeout(setupRound, 800);
+  };
+
   const handleChoice = (guess: number) => {
     if (isRevealed || guessedIncorrectly.includes(guess)) return;
     const newAttempts = attempts + 1;
+    const newAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
 
     if (guess === correctLength) {
@@ -102,6 +121,11 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       setIsRevealed(true);
       const newScore = score + 1;
       setScore(newScore);
+
+      if (allowSkip === false) {
+        advanceAssignedRound(newAnsweredItems, newScore);
+        return;
+      }
 
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
@@ -117,6 +141,11 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       }
     } else {
       playSound('wrong');
+      if (allowSkip === false) {
+        setIsRevealed(true);
+        advanceAssignedRound(newAnsweredItems, score);
+        return;
+      }
       setGuessedIncorrectly(prev => [...prev, guess]);
     }
   };
@@ -124,6 +153,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setEarnedTools([]);
     setupRound();
