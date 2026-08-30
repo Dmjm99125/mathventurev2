@@ -13,6 +13,14 @@ Deno.test("LightHeavy consumes a wrong assigned answer as one quiz item", () => 
 });
 
 Deno.test("LightHeavy keeps its assigned completion maximum fixed at ten", () => {
-  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /const ASSIGNED_ITEM_COUNT = 10/);
+  assertMatch(source, /newAnsweredItems >= ASSIGNED_ITEM_COUNT/);
+  assertMatch(source, /onComplete\?\.\(score, ASSIGNED_ITEM_COUNT\)/);
   assertEquals(source.includes("onComplete?.(score, attempts)"), false);
+});
+
+Deno.test("LightHeavy resets quiz item state without changing free-play replay", () => {
+  assertMatch(source, /setAnsweredItems\(0\)/);
+  assertMatch(source, /allowSkip !== false && \(/);
+  assertMatch(source, /onComplete\?\.\(newScore, newAttempts\)/);
 });
