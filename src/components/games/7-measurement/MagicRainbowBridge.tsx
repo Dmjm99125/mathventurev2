@@ -97,10 +97,12 @@ interface MagicRainbowBridgeProps {
 
 export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbowBridgeProps) {
   const MAX_SCORE = 10;
+  const ASSIGNED_ITEM_COUNT = 10;
   const BRIDGE_START_X = 70;
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [message, setMessage] = useState('Press and HOLD to build!');
   const [msgColor, setMsgColor] = useState('#1565c0');
@@ -195,24 +197,40 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
     requestRef.current = requestAnimationFrame(buildLoop);
   };
 
+  const completeAssignedQuiz = () => {
+    setIsCompleted(true);
+    playSound('fanfare');
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+  };
+
+  const advanceAfterAttempt = (nextAnsweredItems: number) => {
+    if (allowSkip === false && nextAnsweredItems >= ASSIGNED_ITEM_COUNT) {
+      completeAssignedQuiz();
+      return;
+    }
+
+    startRound();
+  };
+
   const stopBuilding = () => {
     if (!isBuildingRef.current) {
       return;
     }
 
     isBuildingRef.current = false;
-    const newAttempts = attempts + 1;
+    const nextAttempts = attempts + 1;
+    const nextAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
+    setAnsweredItems(prev => prev + 1);
     if (requestRef.current) {
       cancelAnimationFrame(requestRef.current);
     }
 
     setGameState('animating');
-    setTimeout(testMeasurement, 50);
+    setTimeout(() => testMeasurement(nextAttempts, nextAnsweredItems), 50);
   };
 
-  const testMeasurement = () => {
-    const newAttempts = attempts;
+  const testMeasurement = (attemptNumber: number, nextAnsweredItems: number) => {
     setRainbowWidth((finalWidth) => {
       const gapStart = targetX - BRIDGE_START_X;
       const gapEnd = gapStart + 60;
@@ -231,7 +249,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
           setTimeout(() => {
             playSound('bounce');
             setUnicornPos({ x: finalWidth + 30, y: 80, r: 90 });
-            setTimeout(startRound, 1500);
+            setTimeout(() => advanceAfterAttempt(nextAnsweredItems), 1500);
           }, 300);
         }, 1000);
       } else if (finalWidth > gapEnd) {
@@ -240,7 +258,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
         playSound('crash');
         setCastlePos({ x: 40, y: -10, r: 15 });
         setUnicornPos({ x: gapEnd - 10, y: 0, r: 0 });
-        setTimeout(startRound, 2500);
+        setTimeout(() => advanceAfterAttempt(nextAnsweredItems), 2500);
       } else {
         setMessage('⭐ PERFECT MEASUREMENT! ⭐');
         setMsgColor('#2e7d32');
@@ -253,13 +271,13 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
           setTimeout(() => {
             const newScore = score + 1;
             setScore(newScore);
-            if (newScore >= MAX_SCORE) {
+            if (allowSkip !== false && newScore >= MAX_SCORE) {
               setIsCompleted(true);
-              if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+              onComplete?.(newScore, attemptNumber);
               playSound('fanfare');
               confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
             } else {
-              startRound();
+              advanceAfterAttempt(nextAnsweredItems);
             }
           }, 1000);
         }, 1500);
@@ -272,6 +290,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     startRound();
   };
@@ -282,7 +301,7 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
         {onComplete && allowSkip !== false && (
           <Button
             variant="ghost"
-            className="w-full max-w-sm justify-center bg-white/50 font-bold text-[#00796b] hover:bg-white md:w-auto"
+            className="w-full max-w-sm justify-center md:w-auto bg-white/50 font-bold text-[#00796b] hover:bg-white"
             onClick={() => onComplete?.()}
           >
             Skip <ChevronRight className="ml-1 h-5 w-5" />
@@ -398,17 +417,19 @@ export function MagicRainbowBridge({ onComplete, allowSkip = true }: MagicRainbo
 
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, ASSIGNED_ITEM_COUNT)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button
-                size="lg"
-                onClick={resetGame}
-                className="h-16 rounded-full bg-[#ff4081] px-8 text-xl font-bold text-white shadow-[0_6px_0_#c2185b] transition-all hover:translate-y-1 hover:bg-[#c2185b] hover:shadow-[0_2px_0_#c2185b] md:px-10 md:text-2xl"
-              >
-                Play Again! 🔄
-              </Button>
+              {allowSkip !== false && (
+                <Button
+                  size="lg"
+                  onClick={resetGame}
+                  className="h-16 rounded-full bg-[#ff4081] px-8 text-xl font-bold text-white shadow-[0_6px_0_#c2185b] transition-all hover:translate-y-1 hover:bg-[#c2185b] hover:shadow-[0_2px_0_#c2185b] md:px-10 md:text-2xl"
+                >
+                  Play Again! 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
