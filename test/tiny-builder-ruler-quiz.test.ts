@@ -1,0 +1,13 @@
+import { assertMatch, assertStringIncludes } from "jsr:@std/assert";
+
+const source = await Deno.readTextFile(
+  new URL("../src/components/games/7-measurement/TinyBuilderRuler.tsx", import.meta.url),
+);
+
+Deno.test("TinyBuilderRuler consumes wrong assigned guesses as quiz items", () => {
+  assertStringIncludes(source, "const [answeredItems, setAnsweredItems] = useState(0);");
+  assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
+  assertMatch(source, /const advanceAssignedRound = \(newAnsweredItems: number, nextScore: number\)/);
+  assertMatch(source, /if \(allowSkip === false\)[\s\S]{0,500}advanceAssignedRound\(newAnsweredItems, score\)/);
+  assertStringIncludes(source, "setGuessedIncorrectly(prev => [...prev, guess]);");
+});
