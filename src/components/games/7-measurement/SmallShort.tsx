@@ -80,8 +80,8 @@ interface SmallShortProps {
 
 export function SmallShort({ onComplete, allowSkip = true }: SmallShortProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   const isAssignedMode = allowSkip === false;
-  const canReplay = !isAssignedMode;
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
