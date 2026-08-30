@@ -56,6 +56,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const completedRef = useRef(false);
+  const isAssignedMode = allowSkip === false;
   const canReplay = allowSkip !== false;
   
   // Game state refs (we use refs instead of state to avoid react re-render loops in canvas tick)
@@ -153,7 +154,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
             playSound('levelup');
             setSpeedLevel(Math.floor(newScore / QUIZ_TARGET) + 1);
             speedRef.current = Math.max(150, speedRef.current - 50);
-            if (allowSkip === false && newScore >= QUIZ_TARGET) {
+            if (isAssignedMode && newScore >= QUIZ_TARGET) {
               completedRef.current = true;
               setIsCompleted(true);
             }
@@ -204,6 +205,12 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
     dirRef.current = { x: nx, y: ny };
   };
 
+  const assignedContinueButton = isAssignedMode && onComplete ? (
+    <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, QUIZ_TARGET)} className="text-xl px-8 h-14 rounded-full shadow-lg">
+      Continue <ChevronRight className="ml-2 h-6 w-6" />
+    </Button>
+  ) : null;
+
   return (
     <div className="w-full max-w-4xl flex flex-col items-center p-6 bg-[#e8f5e9] rounded-[3rem] shadow-sm min-h-[600px] border-4 border-white relative font-display select-none touch-pan-y">
       
@@ -249,15 +256,13 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
                 </Button>
               </motion.div>
             )}
-            {isGameOver && !isCompleted && allowSkip === false && onComplete && (
+            {isGameOver && !isCompleted && assignedContinueButton && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="absolute inset-x-0 bottom-4 flex justify-center z-20"
               >
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, QUIZ_TARGET)} className="text-xl px-8 h-14 rounded-full shadow-lg">
-                  Continue <ChevronRight className="ml-2 h-6 w-6" />
-                </Button>
+                {assignedContinueButton}
               </motion.div>
             )}
             {isCompleted && (
@@ -269,11 +274,7 @@ export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
                 <div className="text-3xl font-bold mb-2 text-[#ffeb3b]">Great measuring!</div>
                 <div className="text-lg mb-6">Your inchworm reached <span className="text-[#ffeb3b] font-black text-2xl">{score + 1}</span> units!</div>
 
-                {onComplete && (
-                  <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-14 rounded-full shadow-lg">
-                    Next Game <ChevronRight className="ml-2 h-6 w-6" />
-                  </Button>
-                )}
+                {assignedContinueButton}
               </motion.div>
             )}
           </AnimatePresence>
