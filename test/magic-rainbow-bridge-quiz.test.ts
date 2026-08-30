@@ -22,3 +22,9 @@ Deno.test("MagicRainbowBridge keeps its skip control in mobile layout flow", () 
   assertEquals(source.includes("absolute top-6 right-6 z-50"), false);
   assertMatch(source, /w-full max-w-sm justify-center md:w-auto/);
 });
+
+Deno.test("MagicRainbowBridge resets assigned item state and preserves free-play attempts", () => {
+  assertMatch(source, /setAnsweredItems\(0\)/);
+  assertMatch(source, /onComplete\?\.\(newScore, attemptNumber\)/);
+  assertEquals(source.includes("const newAttempts = attempts;"), false);
+});
