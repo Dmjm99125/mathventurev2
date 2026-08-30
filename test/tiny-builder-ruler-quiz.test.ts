@@ -11,3 +11,9 @@ Deno.test("TinyBuilderRuler consumes wrong assigned guesses as quiz items", () =
   assertMatch(source, /if \(allowSkip === false\)[\s\S]{0,500}advanceAssignedRound\(newAnsweredItems, score\)/);
   assertStringIncludes(source, "setGuessedIncorrectly(prev => [...prev, guess]);");
 });
+
+Deno.test("TinyBuilderRuler locks assigned completion controls and reports a fixed maximum", () => {
+  assertStringIncludes(source, "const canReplay = allowSkip !== false;");
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /\{canReplay && \([\s\S]{0,700}Play Again/);
+});
