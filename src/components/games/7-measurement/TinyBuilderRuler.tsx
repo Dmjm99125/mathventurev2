@@ -62,6 +62,7 @@ interface TinyBuilderRulerProps {
 
 export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRulerProps) {
   const MAX_SCORE = 10;
+  const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -262,13 +263,15 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#f97316] hover:bg-[#c2410c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#c2410c] hover:shadow-[0_2px_0_#c2410c] hover:translate-y-1 transition-all">
+              {canReplay && (
+                <Button size="lg" onClick={resetGame} className="bg-[#f97316] hover:bg-[#c2410c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#c2410c] hover:shadow-[0_2px_0_#c2410c] hover:translate-y-1 transition-all">
                 Play Again! 🔄
-              </Button>
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
