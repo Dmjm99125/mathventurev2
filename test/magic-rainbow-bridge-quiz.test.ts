@@ -15,7 +15,7 @@ Deno.test("MagicRainbowBridge consumes every assigned release as one quiz item",
 Deno.test("MagicRainbowBridge reports a fixed assigned maximum and hides replay", () => {
   assertMatch(source, /const ASSIGNED_ITEM_COUNT = 10/);
   assertMatch(source, /onComplete\?\.\(score, ASSIGNED_ITEM_COUNT\)/);
-  assertMatch(source, /allowSkip !== false && \(/);
+  assertMatch(source, /canReplay && \(/);
 });
 
 Deno.test("MagicRainbowBridge keeps its skip control in mobile layout flow", () => {
