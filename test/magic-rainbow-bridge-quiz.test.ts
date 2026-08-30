@@ -28,3 +28,8 @@ Deno.test("MagicRainbowBridge resets assigned item state and preserves free-play
   assertMatch(source, /onComplete\?\.\(newScore, attemptNumber\)/);
   assertEquals(source.includes("const newAttempts = attempts;"), false);
 });
+
+Deno.test("MagicRainbowBridge centralizes classroom replay gating", () => {
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /if \(!canReplay && nextAnsweredItems >= ASSIGNED_ITEM_COUNT\)/);
+});
