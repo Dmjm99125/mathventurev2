@@ -18,20 +18,20 @@ export function TeacherReportsClassComparison({
 }) {
   return (
     <Card className="overflow-hidden rounded-[24px] p-0">
-      <div className="border-b border-border/60 px-6 py-4">
-        <h2 className="text-2xl font-display font-bold">Class Performance</h2>
+      <div className="border-b border-border/60 px-4 py-4 sm:px-6">
+        <h2 className="text-xl font-display font-bold sm:text-2xl">Class Performance</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
+        <table className="w-full min-w-[900px] border-collapse text-left">
           <thead>
             <tr className="border-b-2 border-border bg-muted/40">
-              <th className="p-4 font-bold text-muted-foreground">Class</th>
-              <th className="p-4 font-bold text-muted-foreground">Students</th>
-              <th className="p-4 font-bold text-muted-foreground">Active</th>
-              <th className="p-4 font-bold text-muted-foreground">Avg Score</th>
-              <th className="p-4 font-bold text-muted-foreground">Completion</th>
-              <th className="p-4 font-bold text-muted-foreground">Last Activity</th>
-              <th className="p-4 font-bold text-muted-foreground">Action</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Class</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Students</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Active</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Avg Score</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Completion</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Last Activity</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -44,13 +44,13 @@ export function TeacherReportsClassComparison({
             )}
             {rows.map((row) => (
               <tr key={row.id} className="border-b border-border/60">
-                <td className="p-4 font-bold">{row.name}</td>
-                <td className="p-4 font-bold">{row.studentCount}</td>
-                <td className="p-4 font-bold">{row.activeStudentCount}</td>
-                <td className="p-4 font-bold">{formatPct(row.averageScorePct)}</td>
-                <td className="p-4 font-bold">{formatPct(row.completionPct)}</td>
-                <td className="p-4 font-bold">{formatDate(row.lastActivityAt)}</td>
-                <td className="p-4">
+                <td className="whitespace-nowrap p-4 font-bold">{row.name}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{row.studentCount}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{row.activeStudentCount}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{formatPct(row.averageScorePct)}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{formatPct(row.completionPct)}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{formatDate(row.lastActivityAt)}</td>
+                <td className="whitespace-nowrap p-4">
                   <Button size="sm" onClick={() => onOpenClass(row.id)}>
                     View class report
                   </Button>

@@ -9,14 +9,14 @@ export function TeacherStudentListTable({
   onRemove(student: TeacherClassStudent): void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-[24px] border-2 border-border bg-white">
-      <table className="w-full border-collapse text-left">
+    <div className="min-w-0 overflow-x-auto rounded-[24px] border-2 border-border bg-white">
+      <table className="w-full min-w-[640px] border-collapse text-left">
         <thead>
           <tr className="border-b-2 border-border bg-muted/40">
-            <th className="p-4 font-bold text-muted-foreground">Last Name</th>
-            <th className="p-4 font-bold text-muted-foreground">First Name</th>
-            <th className="p-4 font-bold text-muted-foreground">Added/Joined</th>
-            <th className="p-4 text-right font-bold text-muted-foreground">Actions</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Last Name</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">First Name</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Added/Joined</th>
+            <th className="whitespace-nowrap p-4 text-right font-bold text-muted-foreground">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -29,12 +29,12 @@ export function TeacherStudentListTable({
           )}
           {students.map((student) => (
             <tr key={student.id} className="border-b border-border/60">
-              <td className="p-4 font-bold">{student.lastName ?? '--'}</td>
-              <td className="p-4 font-bold">{student.firstName}</td>
-              <td className="p-4 font-bold text-muted-foreground">
+              <td className="whitespace-nowrap p-4 font-bold">{student.lastName ?? '--'}</td>
+              <td className="whitespace-nowrap p-4 font-bold">{student.firstName}</td>
+              <td className="whitespace-nowrap p-4 font-bold text-muted-foreground">
                 {new Date(student.joinedAt).toLocaleDateString()}
               </td>
-              <td className="p-4 text-right">
+              <td className="whitespace-nowrap p-4 text-right">
                 <Button variant="danger" size="sm" onClick={() => onRemove(student)}>
                   Remove
                 </Button>

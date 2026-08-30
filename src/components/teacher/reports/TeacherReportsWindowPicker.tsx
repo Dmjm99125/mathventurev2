@@ -16,10 +16,11 @@ export function TeacherReportsWindowPicker({
   onChange(window: TeacherReportsWindowKey): void;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap gap-2">
+    <div className="mb-6 flex min-w-0 flex-wrap gap-2">
       {WINDOWS.map((window) => (
         <Button
           key={window.value}
+          className="shrink-0"
           variant={window.value === value ? 'default' : 'outline'}
           onClick={() => onChange(window.value)}
         >

@@ -23,16 +23,16 @@ export function TeacherStudentProgressTable({
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
 
   return (
-    <div className="overflow-x-auto rounded-[24px] border-2 border-border bg-white">
-      <table className="w-full border-collapse text-left">
+    <div className="min-w-0 overflow-x-auto rounded-[24px] border-2 border-border bg-white">
+      <table className="w-full min-w-[980px] border-collapse text-left">
         <thead>
           <tr className="border-b-2 border-border bg-muted/40">
-            <th className="p-4 font-bold text-muted-foreground">Last Name</th>
-            <th className="p-4 font-bold text-muted-foreground">First Name</th>
-            <th className="p-4 font-bold text-muted-foreground">Overall Score</th>
-            <th className="p-4 font-bold text-muted-foreground">% of app completed</th>
-            <th className="p-4 font-bold text-muted-foreground">% on last played</th>
-            <th className="p-4 font-bold text-muted-foreground">Game Scores</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Last Name</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">First Name</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Overall Score</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">% of app completed</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">% on last played</th>
+            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Game Scores</th>
           </tr>
         </thead>
         <tbody>
@@ -50,14 +50,14 @@ export function TeacherStudentProgressTable({
             return (
               <Fragment key={student.id}>
                 <tr className="border-b border-border/60">
-                  <td className="p-4 font-bold">{student.lastName ?? '--'}</td>
-                  <td className="p-4 font-bold">{student.firstName}</td>
-                  <td className="p-4 font-bold">
+                  <td className="whitespace-nowrap p-4 font-bold">{student.lastName ?? '--'}</td>
+                  <td className="whitespace-nowrap p-4 font-bold">{student.firstName}</td>
+                  <td className="whitespace-nowrap p-4 font-bold">
                     {formatScore(student.overallScore, student.overallMaxScore, student.overallScorePct)}
                   </td>
-                  <td className="p-4 font-bold">{formatPct(student.appCompletionPct)}</td>
-                  <td className="p-4 font-bold">{formatPct(student.lastPlayedPct)}</td>
-                  <td className="p-4">
+                  <td className="whitespace-nowrap p-4 font-bold">{formatPct(student.appCompletionPct)}</td>
+                  <td className="whitespace-nowrap p-4 font-bold">{formatPct(student.lastPlayedPct)}</td>
+                  <td className="whitespace-nowrap p-4">
                     <button
                       type="button"
                       className="inline-flex items-center gap-2 rounded-xl border-2 border-border px-3 py-2 text-sm font-bold text-foreground hover:bg-muted"
@@ -73,14 +73,14 @@ export function TeacherStudentProgressTable({
                 {isExpanded && (
                   <tr>
                     <td id={detailsId} colSpan={6} className="bg-muted/20 p-4 sm:p-6">
-                      <div className="grid gap-4">
+                      <div className="grid min-w-0 gap-4">
                         {(student.assignments ?? []).map((assignment) => {
                           const assignmentScoresByGameId = new Map(
                             assignment.gameScores.map((game) => [game.gameId, game]),
                           );
 
                           return (
-                            <section key={assignment.assignmentId} className="rounded-2xl border-2 border-border/60 bg-white p-4 sm:p-5">
+                            <section key={assignment.assignmentId} className="min-w-0 rounded-2xl border-2 border-border/60 bg-white p-4 sm:p-5">
                               <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                   <p className="text-lg font-extrabold">{assignment.name || assignment.lessonId}</p>

@@ -25,27 +25,51 @@ export function TeacherClassReportStudentTable({
 
   return (
     <Card className="overflow-hidden rounded-[24px] p-0">
-      <div className="border-b border-border/60 px-6 py-4">
-        <h2 className="text-2xl font-display font-bold">Student Performance</h2>
+      <div className="border-b border-border/60 px-4 py-4 sm:px-6">
+        <h2 className="text-xl font-display font-bold sm:text-2xl">Student Performance</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
+        <table className="w-full min-w-[760px] border-collapse text-left">
           <thead>
             <tr className="border-b-2 border-border bg-muted/40">
-              <th className="p-4 font-bold text-muted-foreground">
-                <button type="button" onClick={() => setSortKey('lastName')}>Last Name</button>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">
+                <button
+                  type="button"
+                  className="rounded-md px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  onClick={() => setSortKey('lastName')}
+                >
+                  Last Name
+                </button>
               </th>
-              <th className="p-4 font-bold text-muted-foreground">First Name</th>
-              <th className="p-4 font-bold text-muted-foreground">
-                <button type="button" onClick={() => setSortKey('averageScorePct')}>Avg Score</button>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">First Name</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">
+                <button
+                  type="button"
+                  className="rounded-md px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  onClick={() => setSortKey('averageScorePct')}
+                >
+                  Avg Score
+                </button>
               </th>
-              <th className="p-4 font-bold text-muted-foreground">
-                <button type="button" onClick={() => setSortKey('completionPct')}>Completion</button>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">
+                <button
+                  type="button"
+                  className="rounded-md px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  onClick={() => setSortKey('completionPct')}
+                >
+                  Completion
+                </button>
               </th>
-              <th className="p-4 font-bold text-muted-foreground">
-                <button type="button" onClick={() => setSortKey('lastPlayedPct')}>Last Played</button>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">
+                <button
+                  type="button"
+                  className="rounded-md px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  onClick={() => setSortKey('lastPlayedPct')}
+                >
+                  Last Played
+                </button>
               </th>
-              <th className="p-4 font-bold text-muted-foreground">Last Activity</th>
+              <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Last Activity</th>
             </tr>
           </thead>
           <tbody>
@@ -58,12 +82,12 @@ export function TeacherClassReportStudentTable({
             )}
             {sortedRows.map((row) => (
               <tr key={row.studentId} className="border-b border-border/60">
-                <td className="p-4 font-bold">{row.lastName ?? '--'}</td>
-                <td className="p-4 font-bold">{row.firstName}</td>
-                <td className="p-4 font-bold">{formatPct(row.averageScorePct)}</td>
-                <td className="p-4 font-bold">{formatPct(row.completionPct)}</td>
-                <td className="p-4 font-bold">{formatPct(row.lastPlayedPct)}</td>
-                <td className="p-4 font-bold">{row.lastActivityAt?.slice(0, 10) ?? '--'}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{row.lastName ?? '--'}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{row.firstName}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{formatPct(row.averageScorePct)}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{formatPct(row.completionPct)}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{formatPct(row.lastPlayedPct)}</td>
+                <td className="whitespace-nowrap p-4 font-bold">{row.lastActivityAt?.slice(0, 10) ?? '--'}</td>
               </tr>
             ))}
           </tbody>
