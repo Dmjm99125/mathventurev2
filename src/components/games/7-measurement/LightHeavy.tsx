@@ -76,6 +76,7 @@ interface LightHeavyProps {
 
 export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
   const MAX_SCORE = 10;
+  const ASSIGNED_ITEM_COUNT = 10;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -123,7 +124,7 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
+      if (allowSkip === false && newAnsweredItems >= ASSIGNED_ITEM_COUNT) {
         setTimeout(() => {
           setIsCompleted(true);
           playSound('fanfare');
@@ -143,7 +144,7 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
       setTimeout(() => playSound('wrong'), 500);
       setMessage(`Look! ${item.w === 10 ? "Heavy goes down." : "Light stays up."}`);
       setTimeout(() => {
-        if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
+        if (allowSkip === false && newAnsweredItems >= ASSIGNED_ITEM_COUNT) {
           setIsCompleted(true);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
@@ -252,7 +253,7 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, ASSIGNED_ITEM_COUNT)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
