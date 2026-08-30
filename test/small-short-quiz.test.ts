@@ -11,3 +11,9 @@ Deno.test("SmallShort consumes wrong choices as assigned quiz items", () => {
   assertMatch(source, /const finishRound = \(newScore: number, newAttempts: number\) => \{[\s\S]{0,400}else \{[\s\S]{0,120}generateLevel\(\)/);
   assertMatch(source, /else \{[\s\S]{0,300}setMessage\('Oops! Try the other one!/);
 });
+
+Deno.test("SmallShort locks assigned completion controls and reports a fixed maximum", () => {
+  assertMatch(source, /const canReplay = allowSkip !== false/);
+  assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+  assertMatch(source, /canReplay &&[\s\S]{0,300}resetGame/);
+});
