@@ -1,4 +1,4 @@
-import { assertMatch } from "jsr:@std/assert";
+import { assert, assertMatch } from "jsr:@std/assert";
 
 const source = await Deno.readTextFile(
   new URL("../src/components/games/7-measurement/SlowFun.tsx", import.meta.url),
@@ -16,4 +16,9 @@ Deno.test("SlowFun locks assigned controls and reports a fixed maximum", () => {
   assertMatch(source, /gameStarted && !isCompleted && canReplay/);
   assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
   assertMatch(source, /canReplay &&[\s\S]{0,300}Play Again!/);
+});
+
+Deno.test("SlowFun free-play terminal completion is not redundantly narrowed", () => {
+  assert(!source.includes("if (allowSkip !== false) onComplete?.(newScore, newAttempts);"));
+  assertMatch(source, /onComplete\?\.\(newScore, newAttempts\)/);
 });

@@ -27,3 +27,8 @@ Deno.test("TinyBuilderRuler locks assigned completion controls and reports a fix
   assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
   assertMatch(source, /\{canReplay && \([\s\S]{0,700}Play Again/);
 });
+
+Deno.test("TinyBuilderRuler free-play terminal completion is not redundantly narrowed", () => {
+  assert(!source.includes("if (allowSkip !== false) onComplete?.(newScore, newAttempts);"));
+  assertMatch(source, /onComplete\?\.\(newScore, newAttempts\)/);
+});

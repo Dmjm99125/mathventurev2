@@ -164,7 +164,7 @@ export function SlowFun({ onComplete, allowSkip = true }: SlowFunProps) {
       } else if (newScore >= MAX_SCORE) {
         setGameActive(false);
         setIsCompleted(true);
-        if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+        onComplete?.(newScore, newAttempts);
         setTimeout(() => {
           playSlowFunSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });

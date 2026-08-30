@@ -131,7 +131,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
-          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+          onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           const prize = toolPrizes[Math.floor(Math.random() * toolPrizes.length)];
           setEarnedTools(prev => [...prev, prize]);
