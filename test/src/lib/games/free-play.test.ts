@@ -1,0 +1,27 @@
+import { assertEquals } from "jsr:@std/assert";
+import {
+  FREE_PLAY_GAME_COUNT_BY_TOPIC,
+  getFreePlayGameCount,
+  isFreePlayDrawingBoard,
+} from "../../../../src/lib/games/free-play.ts";
+
+Deno.test("Free Play extends the six historical drawing-board topics", () => {
+  assertEquals(getFreePlayGameCount("shapes"), 9);
+  assertEquals(getFreePlayGameCount("sequencing"), 10);
+  assertEquals(getFreePlayGameCount("addition"), 16);
+  assertEquals(getFreePlayGameCount("subtraction"), 10);
+  assertEquals(getFreePlayGameCount("numbers"), 9);
+  assertEquals(getFreePlayGameCount("measurement"), 7);
+  assertEquals(FREE_PLAY_GAME_COUNT_BY_TOPIC.colors, 7);
+});
+
+Deno.test("Free Play identifies only the historical drawing-board slots", () => {
+  assertEquals(isFreePlayDrawingBoard("shapes", 8), true);
+  assertEquals(isFreePlayDrawingBoard("sequencing", 9), true);
+  assertEquals(isFreePlayDrawingBoard("addition", 15), true);
+  assertEquals(isFreePlayDrawingBoard("subtraction", 9), true);
+  assertEquals(isFreePlayDrawingBoard("numbers", 8), true);
+  assertEquals(isFreePlayDrawingBoard("measurement", 6), true);
+  assertEquals(isFreePlayDrawingBoard("shapes", 7), false);
+  assertEquals(isFreePlayDrawingBoard("clock", 6), false);
+});

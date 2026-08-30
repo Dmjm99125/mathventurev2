@@ -86,6 +86,7 @@ import { FillMissingTime } from '@/components/games/9-clock/FillMissingTime';
 import { DailyRoutineTime } from '@/components/games/9-clock/DailyRoutineTime';
 import { BuildClock } from '@/components/games/9-clock/BuildClock';
 import { ClockMultiple } from '@/components/games/9-clock/ClockMultiple';
+import { DrawingCanvas } from '@/components/shared/DrawingCanvas';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play, ChevronRight, ChevronLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -102,6 +103,7 @@ import {
   type AttemptGameResultInput,
 } from '@/lib/games/attempt-results';
 import { buildStudentLessonExitHref } from '@/lib/student/portal';
+import { getFreePlayGameCount, isFreePlayDrawingBoard } from '@/lib/games/free-play';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
@@ -171,9 +173,10 @@ export function QuizPage() {
   const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
 
   const topicGameCount = GAME_COUNT_BY_TOPIC[topic as TeacherTopicId];
+  const gameCount = isAssignedQuiz ? topicGameCount : getFreePlayGameCount(topic);
   const questions = topic === 'colors'
-    ? Array(topicGameCount).fill({})
-    : rawQuestions.slice(0, topicGameCount);
+    ? Array(gameCount).fill({})
+    : rawQuestions.slice(0, gameCount);
 
   const lesson = lessonContent[topic];
 
@@ -640,7 +643,9 @@ export function QuizPage() {
 
       {(gameState === 'playing' || gameState === 'feedback') && question && (
         <AssignedQuizGameNavigation allowSkip={!isAssignedQuiz}>
-          {topic === 'colors' && currentIndex === 0 ? (
+          {!isAssignedQuiz && isFreePlayDrawingBoard(topic, currentIndex) ? (
+            <DrawingCanvas onComplete={handleStructuredGameComplete} />
+          ) : topic === 'colors' && currentIndex === 0 ? (
           <ColorMatchingGame onComplete={handleStructuredGameComplete} />
         ) : topic === 'colors' && currentIndex === 1 ? (
           <BalloonFindingGame onComplete={handleStructuredGameComplete} />

@@ -21,7 +21,7 @@ Deno.test("lesson slide navigation uses a responsive mobile grid with a separate
 Deno.test("colors quiz includes multiple choice as its seventh activity", async () => {
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
-  assertEquals(source.includes("Array(topicGameCount).fill({})"), true);
+  assertEquals(source.includes("Array(gameCount).fill({})"), true);
   assertEquals(source.includes("topic === 'colors' && currentIndex === 6"), true);
   assertEquals(source.includes("<MultipleChoice"), true);
 });
@@ -44,12 +44,13 @@ Deno.test("assigned completion removes replay while free play keeps the existing
   assertEquals(source.includes("submitAttempt.mutateAsync"), true);
 });
 
-Deno.test("every quiz game uses the checkpointed completion path and excludes drawing activities", async () => {
+Deno.test("every quiz game uses the checkpointed completion path and restores Free Play drawing activities", async () => {
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
   assertEquals(source.includes("onComplete={handleStructuredGameComplete}"), true);
-  assertEquals(source.includes("DrawingCanvas"), false);
-  assertEquals(source.includes("import { DrawingCanvas"), false);
+  assertEquals(source.includes("import { DrawingCanvas } from '@/components/shared/DrawingCanvas';"), true);
+  assertEquals(source.includes("!isAssignedQuiz && isFreePlayDrawingBoard(topic, currentIndex)"), true);
+  assertEquals(source.includes("getFreePlayGameCount(topic)"), true);
   assertEquals(source.includes("if (isSavingGameRef.current) return;"), true);
   assertEquals(source.includes("setIsSavingGame(true)"), true);
 });
