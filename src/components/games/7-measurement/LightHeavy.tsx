@@ -79,6 +79,7 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [answeredItems, setAnsweredItems] = useState(0);
   const [target, setTarget] = useState<"HEAVY" | "LIGHT">("HEAVY");
   const [currentPair, setCurrentPair] = useState<Item[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -108,7 +109,9 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
   const handleChoice = (item: Item) => {
     if (isRevealed) return;
     const newAttempts = attempts + 1;
+    const newAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
+    setAnsweredItems(prev => prev + 1);
     setIsRevealed(true);
     playSound('creak');
 
@@ -120,10 +123,16 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (newScore >= MAX_SCORE) {
+      if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
-          if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+          playSound('fanfare');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 3000);
+      } else if (allowSkip !== false && newScore >= MAX_SCORE) {
+        setTimeout(() => {
+          setIsCompleted(true);
+          onComplete?.(newScore, newAttempts);
           playSound('fanfare');
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         }, 3000);
@@ -133,13 +142,22 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
     } else {
       setTimeout(() => playSound('wrong'), 500);
       setMessage(`Look! ${item.w === 10 ? "Heavy goes down." : "Light stays up."}`);
-      setTimeout(setupRound, 3000);
+      setTimeout(() => {
+        if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
+          setIsCompleted(true);
+          playSound('fanfare');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        } else {
+          setupRound();
+        }
+      }, 3000);
     }
   };
 
   const resetGame = () => {
     setScore(0);
     setAttempts(0);
+    setAnsweredItems(0);
     setIsCompleted(false);
     setupRound();
   };
@@ -234,13 +252,15 @@ export function LightHeavy({ onComplete, allowSkip = true }: LightHeavyProps) {
             
             <div className="flex gap-4">
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}
-              <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
-                Play Again! 🔄
-              </Button>
+              {allowSkip !== false && (
+                <Button size="lg" onClick={resetGame} className="bg-[#4caf50] hover:bg-[#388e3c] text-white text-2xl font-bold h-16 px-10 rounded-full shadow-[0_6px_0_#2e7d32] hover:shadow-[0_2px_0_#2e7d32] hover:translate-y-1 transition-all">
+                  Play Again! 🔄
+                </Button>
+              )}
             </div>
           </motion.div>
         )}
