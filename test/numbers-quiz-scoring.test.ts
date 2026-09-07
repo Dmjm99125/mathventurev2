@@ -2,7 +2,6 @@ import { assertEquals, assertMatch } from "jsr:@std/assert";
 
 const GAME_FILES = [
   "CountMatch.tsx",
-  "CountMatch3.tsx",
   "CountMatch4.tsx",
   "DeepDive.tsx",
   "DragCorrectNumber.tsx",
@@ -16,7 +15,6 @@ const GAME_FILES = [
 
 const INTERACTIVE_GAME_FILES = [
   "CountMatch.tsx",
-  "CountMatch3.tsx",
   "CountMatch4.tsx",
   "DeepDive.tsx",
   "DragCorrectNumber.tsx",
@@ -27,7 +25,6 @@ const INTERACTIVE_GAME_FILES = [
 
 const REPLAYABLE_GAME_FILES = [
   "CountMatch.tsx",
-  "CountMatch3.tsx",
   "CountMatch4.tsx",
   "DeepDive.tsx",
   "DragCorrectNumber.tsx",
