@@ -188,7 +188,6 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 - Delete: `src/components/ui/alert.tsx`
 - Delete: `src/components/ui/alert-dialog.tsx`
 - Delete: `src/components/ui/progress.tsx`
-- Delete: `src/components/ui/skeleton.tsx`
 - Delete: `src/components/ui/spinner.tsx`
 - Delete: `src/components/ui/sonner.tsx`
 - Delete: `src/components/ui/toast.tsx`
@@ -246,6 +245,7 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 - Delete: `src/components/ui/scroll-area.tsx`
 - Delete: `src/components/ui/separator.tsx`
 - Delete: `src/components/ui/sidebar.tsx`
+- Delete: `src/components/ui/skeleton.tsx`
 - Delete: `src/components/ui/tabs.tsx`
 - Delete: `src/components/ui/tooltip.tsx`
 
