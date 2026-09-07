@@ -60,7 +60,7 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
   const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [targetType, setTargetType] = useState('long');
   const [bars, setBars] = useState<{ id: string, width: string, color: string }[]>([]);
   const [feedback, setFeedback] = useState("");

@@ -44,7 +44,6 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
   const [attempts, setAttempts] = useState(0);
   const [stars, setStars] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [, setWrongShake] = useState(false);
 
   const MAX_SCORE = 5;
@@ -100,7 +99,6 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
   };
 
   const handleDragStart = (e: React.DragEvent, num: number) => {
-    setDraggedItem(num);
     e.dataTransfer.setData('text/plain', num.toString());
   };
 

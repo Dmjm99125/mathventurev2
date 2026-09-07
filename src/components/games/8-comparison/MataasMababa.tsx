@@ -54,7 +54,7 @@ export function MataasMababa({ onComplete, allowSkip = true }: MataasMababaProps
   const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [isLookingForHigh, setIsLookingForHigh] = useState(true);
   const [currentFriend, setCurrentFriend] = useState('🕊️');
   const [leftIsHigh, setLeftIsHigh] = useState(true);

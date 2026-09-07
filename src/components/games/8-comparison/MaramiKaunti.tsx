@@ -64,7 +64,7 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
   const canReplay = allowSkip !== false;
   
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [answeredItems, setAnsweredItems] = useState(0);
   const [isLookingForMore, setIsLookingForMore] = useState(true);
   const [leftFlowers, setLeftFlowers] = useState<{ emoji: string, id: number }[]>([]);

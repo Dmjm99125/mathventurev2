@@ -23,7 +23,18 @@ Deno.test("Quiz-rendered comparison games expose scored completion callbacks", a
     const source = await readGameSource(fileName);
 
     assertMatch(source, /onComplete\?: \(score\?: number, maxScore\?: number\) => void/);
-    assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/);
+    const setterOnlyAttempts = [
+      "Paghahambing1.tsx",
+      "MaramiKaunti.tsx",
+      "MataasMababa.tsx",
+      "SkyExplorer.tsx",
+    ].includes(fileName);
+    assertMatch(
+      source,
+      setterOnlyAttempts
+        ? /const \[, setAttempts\] = useState\(0\)/
+        : /const \[attempts, setAttempts\] = useState\(0\)/,
+    );
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/);
     assertMatch(source, /onComplete\?\.\((?:score|matches|newScore), (?:attempts|MAX_SCORE|MAX_SCORE \* 3|[^)\n]*attempts)\)/);
   }

@@ -81,7 +81,7 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
   const canReplay = allowSkip !== false;
 
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [answeredItems, setAnsweredItems] = useState(0);
   const [isLookingForDay, setIsLookingForDay] = useState(true);
   const [currentPair, setCurrentPair] = useState(timePairs[0]);

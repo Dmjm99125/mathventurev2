@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
 import { Play, ChevronRight } from 'lucide-react';
