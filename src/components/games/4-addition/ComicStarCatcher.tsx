@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, CheckCircle2, XCircle, Star, Rocket, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, Star, Rocket, Sparkles } from 'lucide-react';
 
 const GALAXY_PRIZES = ['🪐', '🌍', '☄️', '🛸', '👽', '☀️', '🌕'];
 

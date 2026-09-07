@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, CheckCircle2, XCircle, Calculator, Trophy, Star } from 'lucide-react';
+import { Play, CheckCircle2, XCircle, Calculator, Star } from 'lucide-react';
 import { getBoundedAdditionOperands } from '@/lib/games/arithmeticBounds';
 
 export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {

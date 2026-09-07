@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -13,7 +13,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
     const [character, setCharacter] = useState('🐻');
     const [score, setScore] = useState(0);
     const [attempts, setAttempts] = useState(0);
-    const [level, setLevel] = useState(1);
+    const [, setLevel] = useState(1);
     
     // Question state
     const [num1, setNum1] = useState(0);
