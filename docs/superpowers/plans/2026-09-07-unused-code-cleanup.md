@@ -441,11 +441,11 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 - Modify: `package.json` to remove the 24 dead Radix packages listed in the Dependency Map.
 - Modify: `package-lock.json` to remove those direct dependencies and any now-unreachable transitive packages.
 
-**Interfaces:** Keep `@radix-ui/react-dialog`, `@radix-ui/react-dropdown-menu`, `@radix-ui/react-drawer`’s existing dependencies, `@radix-ui/react-select`, `@radix-ui/react-slot`, and any other package still imported by reachable source.
+**Interfaces:** Keep `@radix-ui/react-dialog`, `@radix-ui/react-dropdown-menu`, the reachable drawer implementation’s existing dependencies, `@radix-ui/react-select`, `@radix-ui/react-slot`, and any other package still imported by reachable source.
 
 - [ ] **Step 1:** Re-run the runtime package scan and confirm none of the listed dead Radix packages is imported by reachable source.
 - [ ] **Step 2:** Remove the direct packages with `npm.cmd uninstall --package-lock-only` using the exact package list from the Dependency Map, then inspect the manifest diff to ensure reachable packages remain.
-- [ ] **Step 3:** Run `npm.cmd run typecheck` and `npm.cmd run build`.
+- [ ] **Step 3:** Run `npm.cmd run typecheck` and the reachable-source package scan; defer the first meaningful build gate until Task 26 removes the known unused external alias.
 - [ ] **Step 4:** Commit `chore: remove unused radix dependencies`.
 
 ### Task 25: Remove dead form, utility, and visualization dependencies
@@ -458,7 +458,7 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 
 - [ ] **Step 1:** Confirm the exact packages have no reachable source/config imports.
 - [ ] **Step 2:** Remove them with `npm.cmd uninstall --package-lock-only` and inspect both manifest files.
-- [ ] **Step 3:** Run `npm.cmd run typecheck` and `npm.cmd run build`.
+- [ ] **Step 3:** Run `npm.cmd run typecheck` and the reachable-source package scan; defer the first meaningful build gate until Task 26 removes the known unused external alias.
 - [ ] **Step 4:** Commit `chore: remove unused utility dependencies`.
 
 ### Task 26: Remove the unused Vite external alias
