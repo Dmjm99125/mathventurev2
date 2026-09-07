@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui';
 import { motion, PanInfo } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -58,7 +58,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
     };
   }, []);
 
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, item: typeof ITEMS[0]) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, item: typeof ITEMS[0]) => {
     if (gameState !== 'playing') return;
 
     if (!mouthRef.current) return;

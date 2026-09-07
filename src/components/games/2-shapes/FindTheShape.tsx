@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { Card } from '@/components/ui';
 import confetti from 'canvas-confetti';

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -21,7 +21,7 @@ const QUIZ_ITEMS = ITEMS.length;
 
 export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (score?: number, maxScore?: number) => void; allowSkip?: boolean }) {
   const [matches, setMatches] = useState<Record<string, string>>({});
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [message, setMessage] = useState('');
   const [shuffledItems, setShuffledItems] = useState(ITEMS);
   const [shuffledTargets, setShuffledTargets] = useState(TARGETS);
@@ -42,7 +42,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
     setAnsweredItems({});
   };
 
-  const handleDragEnd = (event: any, info: any, item: typeof ITEMS[0]) => {
+  const handleDragEnd = (_event: any, info: any, item: typeof ITEMS[0]) => {
     if (Object.keys(matches).length === QUIZ_ITEMS || answeredItems[item.id]) return;
     let droppedShape = null;
     for (const [shape, ref] of Object.entries(targetRefs.current)) {
