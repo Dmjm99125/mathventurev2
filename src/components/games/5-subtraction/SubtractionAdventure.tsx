@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -25,7 +25,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
 
     const MAX_SCORE = 5;
 
-    const generateQuestion = (currentLevel: number = 1) => {
+    const generateQuestion = () => {
         const [n1, n2] = getBoundedSubtractionOperands();
         const correctAnswer = n1 - n2;
         
@@ -51,7 +51,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
         setScore(0);
         setAttempts(0);
         setCurrentQuestion(1);
-        generateQuestion(1);
+        generateQuestion();
         setGameState('playing');
     };
 
@@ -76,7 +76,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                 }, 1000);
             } else {
                 setCurrentQuestion(q => q + 1);
-                setTimeout(() => generateQuestion(Math.floor(newScore / 2) + 1), 1200);
+                setTimeout(() => generateQuestion(), 1200);
             }
         } else {
             setMessage({ text: `Oops! Subukan muli! (Try again!)`, type: 'error' });

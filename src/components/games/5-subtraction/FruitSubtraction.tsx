@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, CheckCircle2, XCircle, Star, Sparkles } from 'lucide-react';
+import { Play, CheckCircle2, XCircle, Star } from 'lucide-react';
 
 const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍍"];
 
