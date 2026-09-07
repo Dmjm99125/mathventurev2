@@ -46,7 +46,11 @@ Deno.test("measurement quiz games count active wrong interactions as attempts", 
   for (const fileName of GAME_FILES) {
     const source = await readGameSource(fileName);
 
-    assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/);
+    if (fileName === "SnakeGame.tsx") {
+      assertMatch(source, /const \[, setAttempts\] = useState\(0\)/);
+    } else {
+      assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/);
+    }
     assertMatch(source, expectations[fileName]);
   }
 });

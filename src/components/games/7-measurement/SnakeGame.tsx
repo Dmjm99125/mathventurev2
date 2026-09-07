@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import { ChevronRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -51,7 +51,7 @@ interface SnakeGameProps {
 export function SnakeGame({ onComplete, allowSkip = true }: SnakeGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [speedLevel, setSpeedLevel] = useState(1);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);

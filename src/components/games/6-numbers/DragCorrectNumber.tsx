@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 // Simple sound synthesis so we don't need external audio files
@@ -46,7 +45,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
   const [stars, setStars] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
-  const [wrongShake, setWrongShake] = useState(false);
+  const [, setWrongShake] = useState(false);
 
   const MAX_SCORE = 5;
 
@@ -105,14 +104,6 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
     e.dataTransfer.setData('text/plain', num.toString());
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (draggedItem !== null) {
-      handleAnswer(draggedItem);
-      setDraggedItem(null);
-    }
-  };
-
   if (isCompleted) {
     return (
       <div className="w-full flex flex-col items-center justify-center min-h-[500px]">
@@ -163,7 +154,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
           Score: {score}/{MAX_SCORE}
         </div>
         <div className="text-2xl font-bold bg-white/70 px-6 py-2 rounded-2xl shadow-sm tracking-widest">
-          {Array.from({ length: Math.min(stars, 5) }).map((_, i) => '⭐')}
+          {Array.from({ length: Math.min(stars, 5) }).map(() => '⭐')}
         </div>
       </div>
 

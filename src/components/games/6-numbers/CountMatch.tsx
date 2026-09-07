@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '@/components/ui';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Play, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 // Simple sound synthesis

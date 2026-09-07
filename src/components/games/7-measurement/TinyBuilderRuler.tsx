@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -94,7 +94,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
     setupRound();
   }, []);
 
-  const advanceAssignedRound = (newAnsweredItems: number, nextScore: number) => {
+  const advanceAssignedRound = (newAnsweredItems: number) => {
     setAnsweredItems(newAnsweredItems);
 
     if (newAnsweredItems >= MAX_SCORE) {
@@ -124,7 +124,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       setScore(newScore);
 
       if (allowSkip === false) {
-        advanceAssignedRound(newAnsweredItems, newScore);
+        advanceAssignedRound(newAnsweredItems);
         return;
       }
 
@@ -144,7 +144,7 @@ export function TinyBuilderRuler({ onComplete, allowSkip = true }: TinyBuilderRu
       playSound('wrong');
       if (allowSkip === false) {
         setIsRevealed(true);
-        advanceAssignedRound(newAnsweredItems, score);
+        advanceAssignedRound(newAnsweredItems);
         return;
       }
       setGuessedIncorrectly(prev => [...prev, guess]);

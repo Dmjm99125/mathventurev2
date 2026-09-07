@@ -374,6 +374,7 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 - Modify: `src/components/games/7-measurement/SmallShort.tsx` (`React`).
 - Modify: `src/components/games/7-measurement/SnakeGame.tsx` (`React` and `attempts`).
 - Modify: `src/components/games/7-measurement/TinyBuilderRuler.tsx` (`React` and `nextScore`).
+- Modify: `test/measurement-quiz-scoring.test.ts` to accept SnakeGame’s setter-only attempts state while preserving its active-attempt assertion.
 
 **Interfaces:** Number and measurement catalog order, fixed maxima, and completion callbacks remain unchanged.
 
