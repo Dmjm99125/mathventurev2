@@ -7,7 +7,6 @@ async function readSource(relativePath: string) {
 Deno.test("numbers games keep skip buttons in flow instead of overlapping the mobile header", async () => {
   const paths = [
     "src/components/games/6-numbers/CountMatch.tsx",
-    "src/components/games/6-numbers/CountMatch4.tsx",
     "src/components/games/6-numbers/DeepDive.tsx",
     "src/components/games/6-numbers/DragCorrectNumber.tsx",
     "src/components/games/6-numbers/NumberMonster.tsx",
