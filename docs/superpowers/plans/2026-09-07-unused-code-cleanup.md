@@ -442,6 +442,7 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 **Files:**
 - Modify: `package.json` to remove the 24 dead Radix packages listed in the Dependency Map.
 - Modify: `package-lock.json` to remove those direct dependencies and any now-unreachable transitive packages.
+- Delete: `src/components/ui/slider.tsx` and `src/components/ui/switch.tsx`, whose only imports are their own dead Radix packages.
 
 **Interfaces:** Keep `@radix-ui/react-dialog`, `@radix-ui/react-dropdown-menu`, the reachable drawer implementation’s existing dependencies, `@radix-ui/react-select`, `@radix-ui/react-slot`, and any other package still imported by reachable source.
 
