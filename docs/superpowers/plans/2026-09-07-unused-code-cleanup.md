@@ -539,7 +539,7 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 ### Task 31: Remove unreferenced sequencing and addition images
 
 **Files:**
-- Delete: `public/assets/images/3bac.jpg`, `3bg.jpg`, `3s1.png`, `4b.png`, `4bg.jpg`, `4c.png`, `4d.png`, `4e.png`, `4f.png`, and `4g.png`.
+- Delete: `public/assets/images/3bac.jpg`, `3bg.jpg`, `4b.png`, `4bg.jpg`, `4c.png`, `4d.png`, `4e.png`, `4f.png`, and `4g.png`.
 
 **Interfaces:** Keep the live sequencing number assets, lesson images, and addition replacement assets referenced by `src/data/lessonContent.ts` and active games.
 
