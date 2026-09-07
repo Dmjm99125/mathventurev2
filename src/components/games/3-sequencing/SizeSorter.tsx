@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { Play, CheckCircle2, XCircle, Maximize2, Minimize2, Scaling } from 'lucide-react';
+import { Play, CheckCircle2, XCircle, Scaling } from 'lucide-react';
 import { scoreByPosition } from '@/lib/games/sequence-scoring';
 
 const SIZES = [50, 80, 110, 140, 170];

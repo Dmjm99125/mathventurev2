@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -139,7 +139,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
             </motion.div>
           ))}
           {/* Empty Slots */}
-          {slotSequence.slice(currentIndex).map((letter, idx) => (
+          {slotSequence.slice(currentIndex).map((letter) => (
             <motion.div
               key={`empty-${letter}`}
               className="w-16 h-20 md:w-20 md:h-28 bg-[#e8b57d]/40 rounded-t-2xl rounded-b-md border-4 border-dashed border-[#ad6e35]/50 flex flex-col items-center justify-between py-2"

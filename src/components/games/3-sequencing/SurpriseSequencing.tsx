@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -170,7 +170,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
             </motion.div>
           ))}
           {/* Empty Slots */}
-          {slotSequence.slice(currentIndex).map((item, idx) => (
+          {slotSequence.slice(currentIndex).map((item) => (
             <motion.div
               key={`empty-${item}`}
               className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl border-4 border-dashed border-pink-200 flex items-center justify-center relative"
