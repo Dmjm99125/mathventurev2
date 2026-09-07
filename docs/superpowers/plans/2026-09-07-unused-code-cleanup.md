@@ -412,6 +412,7 @@ Keep `@tailwindcss/typography` because `src/index.css` explicitly uses its Tailw
 - Modify: `src/components/games/9-clock/FillMissingTime.tsx` (`React` and unused `event`).
 - Modify: `src/components/games/9-clock/TimeAdventure.tsx` (`React`).
 - Modify: `src/components/games/9-clock/TimeMatcher.tsx` (`React`).
+- Modify: `test/clock-quiz-scoring.test.ts` to accept BuildClock’s setter-only attempts state while preserving its active-drag assertion.
 
 **Interfaces:** Clock drag/drop behavior, terminal scoring, and responsive menu behavior remain unchanged.
 

@@ -30,7 +30,11 @@ Deno.test("clock quiz games count active wrong choices and drags", async () => {
   for (const path of clockGames) {
     const source = await readSource(path);
 
-    assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/, path);
+    if (path.endsWith("BuildClock.tsx")) {
+      assertMatch(source, /const \[, setAttempts\] = useState\(0\)/, path);
+    } else {
+      assertMatch(source, /const \[attempts, setAttempts\] = useState\(0\)/, path);
+    }
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/, path);
   }
 });

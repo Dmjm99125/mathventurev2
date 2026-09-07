@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -158,7 +158,7 @@ export function FillMissingTime({ onComplete, allowSkip = true }: FillMissingTim
     setDragState('dragging');
   };
 
-  const handleDragEnd = (event: any, info: any, opt: number) => {
+  const handleDragEnd = (_event: any, info: any, opt: number) => {
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
     const newAnsweredItems = answeredItems + 1;

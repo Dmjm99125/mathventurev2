@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -63,7 +63,7 @@ interface BuildClockProps {
 export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
   const canReplay = allowSkip !== false;
   const [placedNumbers, setPlacedNumbers] = useState<Record<number, number>>({});
-  const [attempts, setAttempts] = useState(0);
+  const [, setAttempts] = useState(0);
   const [availableNumbers, setAvailableNumbers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [draggedNumber, setDraggedNumber] = useState<number | null>(null);
@@ -120,7 +120,7 @@ export function BuildClock({ onComplete, allowSkip = true }: BuildClockProps) {
     }) ?? null;
   };
 
-  const handleDragEnd = (event: any, info: any, num: number) => {
+  const handleDragEnd = (_event: any, info: any, num: number) => {
     const { x, y } = info.point; // Uses pointer coords from Framer Motion
     setAttempts(prev => prev + 1);
     const targetSlot = allowSkip === false
