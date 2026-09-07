@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -127,7 +127,6 @@ export function MaramiKaunti({ onComplete, allowSkip = true }: MaramiKauntiProps
   const handlePatchClick = (side: 'left' | 'right') => {
     if (feedback === "Ang galing! ⭐") return;
 
-    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
     const newAnsweredItems = answeredItems + 1;
     setAnsweredItems(prev => prev + 1);

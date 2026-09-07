@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
-import { ChevronRight, Star } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 const playSound = (type: 'correct' | 'wrong' | 'fanfare') => {
   const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -135,7 +135,6 @@ export function Paghahambing1({ onComplete, allowSkip = true }: Paghahambing1Pro
   const handleChoice = (id: string) => {
     if (feedback === "Ang galing! ⭐") return; // Prevent multiple clicks
 
-    const newAttempts = attempts + 1;
     const newAnsweredItems = answeredItems + 1;
     setAttempts(prev => prev + 1);
     setAnsweredItems(newAnsweredItems);

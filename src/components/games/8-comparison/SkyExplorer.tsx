@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { ChevronRight } from 'lucide-react';
@@ -122,7 +122,6 @@ export function SkyExplorer({ onComplete, allowSkip = true }: SkyExplorerProps) 
     }
 
     setCanClick(false);
-    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
     const newAnsweredItems = answeredItems + 1;
     setAnsweredItems(newAnsweredItems);
