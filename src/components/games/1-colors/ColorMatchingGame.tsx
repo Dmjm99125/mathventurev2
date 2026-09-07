@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';

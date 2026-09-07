@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, Button } from '@/components/ui';
 import { CheckCircle2, XCircle, Play } from 'lucide-react';
 import { colorsData } from '@/data/colors';

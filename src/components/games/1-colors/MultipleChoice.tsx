@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button, Card } from '@/components/ui';
 import { CheckCircle2, XCircle, Trophy, Play } from 'lucide-react';
