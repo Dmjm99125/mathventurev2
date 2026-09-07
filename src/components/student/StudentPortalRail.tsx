@@ -1,4 +1,3 @@
-import React from "react";
 
 import { Button, Card } from "@/components/ui";
 import type { StudentClassroomSummary } from "@/lib/api";

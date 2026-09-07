@@ -1,4 +1,3 @@
-import React from 'react';
 import type { LessonSlide } from '@/data/lessonContent';
 import { AudioButton } from '@/components/AudioButton';
 import { Card } from '@/components/ui';

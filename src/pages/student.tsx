@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useStudentDashboard, useAssignments, useClasses, useStudentClassroom, useClassPosts } from '@/lib/api/hooks';
 import { Card, Button, Badge } from '@/components/ui';

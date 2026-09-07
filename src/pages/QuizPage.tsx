@@ -225,12 +225,6 @@ export function QuizPage() {
   }, [assignmentId, gameState, savedQuizState?.status, savedQuizState?.currentGameOrder]);
 
   // ── Stage helpers ──────────────────────────────────────────────────────────
-  const currentStage = (): 'video' | 'lesson' | 'quiz' => {
-    if (gameState === 'video') return 'video';
-    if (gameState === 'lesson') return 'lesson';
-    return 'quiz';
-  };
-
   const goToLesson = () => {
     setSlideIndex(0);
     setGameState('lesson');

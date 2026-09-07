@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TopNav } from '@/components/layout';
 import { Users, Home, BookOpen, Github, FileText, Lock, ChevronDown } from 'lucide-react';
 import { Link } from 'wouter';
@@ -15,7 +15,6 @@ const TABS: { value: Tab; label: string }[] = [
 export function About() {
   const [activeTab, setActiveTab] = useState<Tab>('mathventure');
 
-  const activeLabel = TABS.find(t => t.value === activeTab)?.label ?? '';
 
   return (
     <div
