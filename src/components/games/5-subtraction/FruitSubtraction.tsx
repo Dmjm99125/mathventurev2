@@ -20,6 +20,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
     const [isCompleted, setIsCompleted] = useState(false);
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const n1 = Math.floor(Math.random() * 5) + 3; // 3 to 7
@@ -55,16 +56,36 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
         setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Yummy! Correct! 😋' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Yummy! Correct! 😋', type: 'success' });
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -74,7 +95,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
         } else {
             setMessage({ text: `Oops! Try again!`, type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else {
                         setCurrentQuestion(q => q + 1);
@@ -227,7 +248,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
                         ))}
                     </div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#ea580c] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -238,7 +259,7 @@ export function FruitSubtraction({ onComplete, allowSkip = true }: { onComplete?
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"

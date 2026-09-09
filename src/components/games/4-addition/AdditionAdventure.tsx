@@ -24,6 +24,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
     
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const [n1, n2] = getBoundedAdditionOperands();
@@ -85,7 +86,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
                     onComplete?.(newScore, newAttempts);
@@ -98,7 +99,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
         } else {
             setMessage({ text: 'Oops! Subukan muli.', type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setGameState('completed');
                     else generateQuestion();
                 } else {

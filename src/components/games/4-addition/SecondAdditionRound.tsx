@@ -16,6 +16,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
     const [isCompleted, setIsCompleted] = useState(false);
     
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const n1 = Math.floor(Math.random() * 5) + 1; // 1 to 5
@@ -75,7 +76,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     onComplete?.(newScore, newAttempts);
@@ -88,7 +89,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
         } else {
             setMessage({ text: `Oops! It was ${correctAnswer}`, type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else {
                         setCurrentQuestion(q => q + 1);

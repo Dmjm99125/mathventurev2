@@ -52,6 +52,8 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [matches, setMatches] = useState<number[]>([]);
   const [attempts, setAttempts] = useState(0);
+  const [answeredNumbers, setAnsweredNumbers] = useState<number[]>([]);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [shuffledDots, setShuffledDots] = useState<number[]>([]);
   const [wrongShake, setWrongShake] = useState<number | null>(null);
   const [message, setMessage] = useState("Tap a number, then tap the matching dots!");
@@ -64,13 +66,15 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
   const resetGame = () => {
     setMatches([]);
     setAttempts(0);
+    setAnsweredNumbers([]);
+    setIsCompleted(false);
     setShuffledDots([...NUMBERS].sort(() => Math.random() - 0.5));
     setMessage("Tap a number, then tap the matching dots!");
     setSelectedNumber(null);
   };
 
   const handleNumberClick = (num: number) => {
-    if (matches.includes(num)) return;
+    if (matches.includes(num) || (allowSkip === false && answeredNumbers.includes(num))) return;
     playSound('pop');
     setSelectedNumber(num);
     setMessage(`Nahanap mo ba ang ${num} dots?`);
@@ -84,10 +88,14 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
       return;
     }
 
+    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
 
     if (selectedNumber === num) {
       playSound('correct');
+      if (allowSkip === false) {
+        setAnsweredNumbers(prev => [...prev, num]);
+      }
       setMatches(prev => {
         const newMatches = [...prev, num];
         if (newMatches.length === NUMBERS.length) {
@@ -105,18 +113,21 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
       setSelectedNumber(null);
     } else {
       playSound('wrong');
+      if (allowSkip === false) {
+        setAnsweredNumbers(prev => [...prev, selectedNumber]);
+      }
       setMessage("Mali, subukan muli! 🤔");
       setWrongShake(num);
       setTimeout(() => setWrongShake(null), 500);
-      if (allowSkip === false) {
-        setSelectedNumber(null); // Assigned quizzes consume this wrong item.
-        return;
-      }
       setSelectedNumber(null); // Deselect on wrong answer
+    }
+
+    if (allowSkip === false && newAttempts >= NUMBERS.length) {
+      setIsCompleted(true);
     }
   };
 
-  if (matches.length === NUMBERS.length || (allowSkip === false && attempts >= MAX_SCORE)) {
+  if (matches.length === NUMBERS.length || isCompleted) {
     return (
       <div className="w-full flex flex-col items-center justify-center min-h-[500px]">
         <motion.div 
@@ -125,9 +136,10 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
           className="text-center"
         >
           <div className="text-6xl mb-6">🏆</div>
-          <h2 className="text-4xl font-display font-bold text-amber-800 mb-8">
-            You matched them all!
+          <h2 className="text-4xl font-display font-bold text-amber-800 mb-4">
+            {matches.length === NUMBERS.length ? 'You matched them all!' : 'Round complete!'}
           </h2>
+          <p className="text-2xl font-bold text-amber-700 mb-8">Score: {matches.length} / {NUMBERS.length}</p>
           <div className="flex gap-4 justify-center">
             {allowSkip === false && onComplete && (
               <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
@@ -170,18 +182,21 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
           <div className="flex flex-col gap-3">
             {NUMBERS.map(num => {
               const isMatched = matches.includes(num);
+              const isAnswered = allowSkip === false && answeredNumbers.includes(num);
               const isSelected = selectedNumber === num;
               
               return (
                 <motion.div
                   key={`num-${num}`}
-                  whileHover={!isMatched ? { scale: 1.05 } : {}}
-                  whileTap={!isMatched ? { scale: 0.95 } : {}}
+                  whileHover={!isAnswered ? { scale: 1.05 } : {}}
+                  whileTap={!isAnswered ? { scale: 0.95 } : {}}
                   onClick={() => handleNumberClick(num)}
                   className={`h-16 md:h-20 rounded-2xl flex items-center justify-center text-3xl font-bold border-b-4 cursor-pointer transition-colors ${
                     isMatched 
                       ? 'bg-green-200 text-green-700 border-green-300 opacity-60 scale-95 cursor-default'
-                      : isSelected
+                      : isAnswered
+                        ? 'bg-slate-200 text-slate-500 border-slate-300 opacity-60 cursor-default'
+                        : isSelected
                         ? 'bg-amber-400 text-white border-amber-500 shadow-inner'
                         : 'bg-orange-200 text-orange-900 border-orange-300 shadow-md hover:bg-orange-300'
                   }`}

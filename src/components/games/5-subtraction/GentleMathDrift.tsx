@@ -31,6 +31,7 @@ export function GentleMathDrift({ onComplete, allowSkip = true }: { onComplete?:
     const [poppedId, setPoppedId] = useState<number | null>(null);
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const [n1, n2] = getBoundedSubtractionOperands();
@@ -76,6 +77,27 @@ export function GentleMathDrift({ onComplete, allowSkip = true }: { onComplete?:
         setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = opt.value === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setPoppedId(opt.id);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Pop! Beautiful! ✨' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, colors: ['#FF6B6B', '#4ECDC4', '#FF9F43', '#A29BFE'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         setPoppedId(opt.id);
         
         if (opt.value === correctAnswer) {
@@ -83,10 +105,10 @@ export function GentleMathDrift({ onComplete, allowSkip = true }: { onComplete?:
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, colors: ['#FF6B6B', '#4ECDC4', '#FF9F43', '#A29BFE'] });
                 }, 1000);
             } else {
@@ -96,7 +118,7 @@ export function GentleMathDrift({ onComplete, allowSkip = true }: { onComplete?:
         } else {
             setMessage({ text: `Oops! Try again!`, type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else {
                         setCurrentQuestion(q => q + 1);
@@ -229,7 +251,7 @@ export function GentleMathDrift({ onComplete, allowSkip = true }: { onComplete?:
                         🦋🎈🦋
                     </div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#059669] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -240,7 +262,7 @@ export function GentleMathDrift({ onComplete, allowSkip = true }: { onComplete?:
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"

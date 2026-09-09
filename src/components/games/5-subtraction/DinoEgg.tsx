@@ -20,6 +20,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
     const [fossilPrize, setFossilPrize] = useState('');
     
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const isSubtraction = Math.random() > 0.5;
@@ -68,6 +69,24 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
 
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = count === targetAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setNests(prev => prev.map(n => n.id === id ? { ...n, isHatched: isCorrect, isWrong: !isCorrect } : n));
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setFossilPrize(FOSSILS[Math.floor(Math.random() * FOSSILS.length)]);
+                    setIsCompleted(true);
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#f97316', '#15803d', '#fef08a'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         
         if (count === targetAnswer) {
             // Correct
@@ -75,11 +94,11 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setFossilPrize(FOSSILS[Math.floor(Math.random() * FOSSILS.length)]);
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#f97316', '#15803d', '#fef08a'] });
                 }, 1200);
             } else {
@@ -89,7 +108,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
         } else {
             // Wrong
             setNests(prev => prev.map(n => n.id === id ? { ...n, isWrong: true } : n));
-            if (allowSkip === false) {
+            if (isAssignedQuiz) {
                 setIsAnswerLocked(true);
                 setTimeout(() => {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
@@ -194,7 +213,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
                             {fossilPrize}
                         </motion.div>
                         
-                        <Button 
+                    {allowSkip !== false && <Button
                                 size="lg" 
                                 className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#c2410c] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                                 onClick={() => {
@@ -206,7 +225,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
                                 }}
                             >
                                 Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                            </Button>
+                        </Button>}
                             {onComplete && allowSkip === false && (
                                 <Button
                                     size="lg"

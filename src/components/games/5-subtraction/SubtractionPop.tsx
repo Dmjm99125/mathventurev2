@@ -22,6 +22,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
     const [disabledOptions, setDisabledOptions] = useState<Set<number>>(new Set());
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const n1 = Math.floor(Math.random() * 4) + 4; // 4 to 7
@@ -58,16 +59,36 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
         setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Great Job! 🎉' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Great Job! 🎉', type: 'success' });
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -78,7 +99,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
             setMessage({ text: `Oops! Try again!`, type: 'error' });
             setDisabledOptions(prev => new Set(prev).add(selected));
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else {
                         setCurrentQuestion(q => q + 1);
@@ -212,7 +233,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
                         🏆🎈🏆
                     </div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-teal-500 hover:bg-teal-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0d9488] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -223,7 +244,7 @@ export function SubtractionPop({ onComplete, allowSkip = true }: { onComplete?: 
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"

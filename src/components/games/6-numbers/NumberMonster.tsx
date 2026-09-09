@@ -56,6 +56,7 @@ interface NumberMonsterProps {
 
 export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterProps) {
   const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -64,6 +65,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
   const [counts, setCounts] = useState<number[]>([]);
   const [wrongChoices, setWrongChoices] = useState<number[]>([]);
   const [isCorrectlyGuessed, setIsCorrectlyGuessed] = useState(false);
+  const [isAnswerLocked, setIsAnswerLocked] = useState(false);
   const [monsterKey, setMonsterKey] = useState(0); // For chewing animation
   const [borderColor, setBorderColor] = useState(monsterColors[0]);
 
@@ -84,6 +86,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
     setCounts(newCounts.sort(() => Math.random() - 0.5));
     setWrongChoices([]);
     setIsCorrectlyGuessed(false);
+    setIsAnswerLocked(false);
   };
 
   const resetGame = () => {
@@ -98,10 +101,41 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
   }, []);
 
   const handleChoice = (count: number) => {
-    if (isCorrectlyGuessed || wrongChoices.includes(count) || badgeUnlocked) return;
+    if (isAnswerLocked || isCorrectlyGuessed || wrongChoices.includes(count) || badgeUnlocked) return;
 
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+
+    if (allowSkip === false) {
+      const isCorrect = count === targetNumber;
+      const newScore = score + (isCorrect ? 1 : 0);
+      setScore(newScore);
+      setIsAnswerLocked(true);
+
+      if (isCorrect) {
+        playMonsterSound('chomp');
+        setIsCorrectlyGuessed(true);
+        setMonsterKey(prev => prev + 1);
+      } else {
+        playMonsterSound('error');
+        setWrongChoices(prev => [...prev, count]);
+      }
+
+      if (newAttempts >= MAX_SCORE) {
+        setTimeout(() => {
+          playMonsterSound('fanfare');
+          const reward = badgePool[Math.floor(Math.random() * badgePool.length)];
+          setWonBadge(reward);
+          setShelfBadges(prev => [...prev, reward]);
+          setBorderColor(monsterColors[Math.floor(Math.random() * monsterColors.length)]);
+          setBadgeUnlocked(true);
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 1000);
+      } else {
+        setTimeout(() => generateLevel(), 1200);
+      }
+      return;
+    }
 
     if (count === targetNumber) {
       playMonsterSound('chomp');
@@ -111,7 +145,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
       const newScore = score + 1;
       setScore(newScore);
 
-      if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
+      if (isAssignedQuiz ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
         setTimeout(() => {
           playMonsterSound('fanfare');
           const reward = badgePool[Math.floor(Math.random() * badgePool.length)];
@@ -127,7 +161,7 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
     } else {
       playMonsterSound('error');
       setWrongChoices(prev => [...prev, count]);
-      if (allowSkip === false) {
+      if (isAssignedQuiz) {
         setIsCorrectlyGuessed(true);
         setTimeout(() => {
           if (newAttempts >= MAX_SCORE) {
@@ -197,12 +231,12 @@ export function NumberMonster({ onComplete, allowSkip = true }: NumberMonsterPro
             return (
               <motion.div
                 key={`${count}-${idx}`}
-                whileHover={!isWrong && !isCorrectlyGuessed ? { scale: 1.02 } : {}}
-                whileTap={!isWrong && !isCorrectlyGuessed ? { scale: 0.98, y: 4 } : {}}
+                whileHover={!isWrong && !isCorrectlyGuessed && !isAnswerLocked ? { scale: 1.02 } : {}}
+                whileTap={!isWrong && !isCorrectlyGuessed && !isAnswerLocked ? { scale: 0.98, y: 4 } : {}}
                 onClick={() => handleChoice(count)}
                 className={`rounded-2xl p-3 min-h-[60px] flex justify-center items-center flex-wrap gap-2 cursor-pointer transition-colors ${isCorrect
                   ? 'bg-[#dcfce7] border-4 border-[#22c55e] shadow-[0_4px_0_#16a34a]'
-                  : isWrong
+                  : isWrong || isAnswerLocked
                     ? 'bg-[#f1f5f9] border-4 border-[#cbd5e1] shadow-[0_4px_0_#94a3b8] opacity-60 pointer-events-none translate-y-1 shadow-[0_0px_0_#94a3b8]'
                     : 'bg-[#f8fafc] border-4 border-[#e2e8f0] shadow-[0_4px_0_#cbd5e1]'
                   }`}

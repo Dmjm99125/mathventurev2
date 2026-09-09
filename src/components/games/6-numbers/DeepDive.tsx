@@ -54,6 +54,7 @@ interface DeepDiveProps {
 
 export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
   const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -63,6 +64,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
   const [choices, setChoices] = useState<number[]>([]);
   const [wrongBubbles, setWrongBubbles] = useState<number[]>([]);
   const [poppedBubble, setPoppedBubble] = useState<number | null>(null);
+  const [isAnswerLocked, setIsAnswerLocked] = useState(false);
   
   const [chestUnlocked, setChestUnlocked] = useState(false);
   const [wonGem, setWonGem] = useState('');
@@ -82,6 +84,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
     setChoices(newChoices.sort(() => Math.random() - 0.5));
     setWrongBubbles([]);
     setPoppedBubble(null);
+    setIsAnswerLocked(false);
   };
 
   const resetGame = () => {
@@ -96,10 +99,39 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
   }, []);
 
   const handlePop = (val: number) => {
-    if (wrongBubbles.includes(val) || poppedBubble !== null || chestUnlocked) return;
+    if (isAnswerLocked || wrongBubbles.includes(val) || poppedBubble !== null || chestUnlocked) return;
 
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+
+    if (allowSkip === false) {
+      const isCorrect = val === correctNumber;
+      const newScore = score + (isCorrect ? 1 : 0);
+      setScore(newScore);
+      setIsAnswerLocked(true);
+
+      if (isCorrect) {
+        playOceanSound('pop');
+        setPoppedBubble(val);
+      } else {
+        playOceanSound('splash');
+        setWrongBubbles(prev => [...prev, val]);
+      }
+
+      if (newAttempts >= MAX_SCORE) {
+        setTimeout(() => {
+          playOceanSound('fanfare');
+          const gem = rewardGems[Math.floor(Math.random() * rewardGems.length)];
+          setWonGem(gem);
+          setGemsBox(prev => [...prev, gem]);
+          setChestUnlocked(true);
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }, 800);
+      } else {
+        setTimeout(() => generateLevel(), 1000);
+      }
+      return;
+    }
 
     if (val === correctNumber) {
       playOceanSound('pop');
@@ -108,7 +140,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
+      if (isAssignedQuiz ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
         setTimeout(() => {
           playOceanSound('fanfare');
           const gem = rewardGems[Math.floor(Math.random() * rewardGems.length)];
@@ -123,7 +155,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
     } else {
       playOceanSound('splash');
       setWrongBubbles(prev => [...prev, val]);
-      if (allowSkip === false) {
+      if (isAssignedQuiz) {
         setPoppedBubble(val);
         setTimeout(() => {
           if (newAttempts >= MAX_SCORE) {
@@ -218,7 +250,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
                 }}
                 onClick={() => handlePop(val)}
                 className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl font-black text-white cursor-pointer shadow-lg drop-shadow-md border-[3px] border-white/60 select-none ${
-                  isWrong ? 'pointer-events-none cursor-default' : ''
+                  isWrong || isAnswerLocked ? 'pointer-events-none cursor-default' : ''
                 }`}
                 style={{
                   background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 0%, rgba(56, 189, 248, 0.5) 50%, rgba(2, 132, 199, 0.9) 100%)'

@@ -28,6 +28,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
     const [poppedId, setPoppedId] = useState<number | null>(null);
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const n1 = Math.floor(Math.random() * 7) + 1; // 1 to 7
@@ -69,6 +70,28 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
         setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = opt.value === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setPoppedId(opt.id);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Pop! Great job! 🎈' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
+
         setPoppedId(opt.id);
         
         if (opt.value === correctAnswer) {
@@ -76,10 +99,10 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -89,7 +112,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
         } else {
             setMessage({ text: `Oops! Try another balloon!`, type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else {
                         setCurrentQuestion(q => q + 1);
@@ -217,7 +240,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
                         🎈🏆🎈
                     </div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0ea5e9] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -228,7 +251,7 @@ export function SubtractionBalloon({ onComplete, allowSkip = true }: { onComplet
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"

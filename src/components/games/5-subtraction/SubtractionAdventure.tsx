@@ -24,6 +24,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | '' }>({ text: '', type: '' });
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const [n1, n2] = getBoundedSubtractionOperands();
@@ -62,16 +63,36 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
         setAttempts(prev => prev + 1);
         
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Tama! (Correct!) 🎉' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setGameState('completed');
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Tama! (Correct!) 🎉', type: 'success' });
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -81,7 +102,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
         } else {
             setMessage({ text: `Oops! Subukan muli! (Try again!)`, type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setGameState('completed');
                     else {
                         setCurrentQuestion(q => q + 1);
@@ -145,7 +166,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                             ))}
                         </div>
 
-                        <Button 
+                    <Button
                             size="lg" 
                             className="bg-blue-500 hover:bg-blue-600 text-white font-black text-xl md:text-2xl px-8 md:px-12 py-6 md:py-8 rounded-full shadow-[0_6px_0_0_#2563eb] active:translate-y-2 active:shadow-none transition-all w-full border-none"
                             onClick={startGame}
@@ -252,13 +273,13 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                             🏆
                         </div>
                         
-                        <Button 
+                        {allowSkip !== false && <Button
                                 size="lg" 
                                 className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#2563eb] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                                 onClick={() => setGameState('menu')}
                             >
                                 Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                            </Button>
+                            </Button>}
                             {onComplete && allowSkip === false && (
                                 <Button
                                     size="lg"

@@ -23,6 +23,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
     const [prize, setPrize] = useState('🍒');
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const n1 = Math.floor(Math.random() * 4) + 1; // 1 to 4
@@ -92,7 +93,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
             const newScore = score + 1;
             setScore(newScore);
 
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     onComplete?.(newScore, newAttempts);
@@ -105,7 +106,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
         } else {
             setMessage({ text: "Oops! Let's count the scoops again! ✨", type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else {
                         setCurrentQuestion(q => q + 1);

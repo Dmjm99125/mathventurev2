@@ -48,6 +48,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
   const [, setWrongShake] = useState(false);
 
   const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
   const generateGame = () => {
     const answer = Math.floor(Math.random() * 10) + 1;
@@ -81,13 +82,39 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
 
+    if (allowSkip === false) {
+      const isCorrect = selected === targetNumber;
+
+      if (isCorrect) {
+        playSound('correct');
+        setScore(prev => prev + 1);
+        setStars(prev => prev + 1);
+      } else {
+        playSound('wrong');
+        setWrongShake(true);
+        setTimeout(() => setWrongShake(false), 500);
+      }
+
+      if (newAttempts >= MAX_SCORE) {
+        setIsCompleted(true);
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      } else {
+        generateGame();
+      }
+      return;
+    }
+
     if (selected === targetNumber) {
       playSound('correct');
       setIsAnswerLocked(true);
       setScore(s => s + 1);
       setStars(s => s + 1);
 
-      if (allowSkip === false ? newAttempts >= MAX_SCORE : score + 1 >= MAX_SCORE) {
+      if (isAssignedQuiz ? newAttempts >= MAX_SCORE : score + 1 >= MAX_SCORE) {
         setIsCompleted(true);
         confetti({
           particleCount: 150,
@@ -99,7 +126,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
       }
     } else {
       playSound('wrong');
-      if (allowSkip === false) {
+      if (isAssignedQuiz) {
         setIsAnswerLocked(true);
         setTimeout(() => {
           if (newAttempts >= MAX_SCORE) setIsCompleted(true);

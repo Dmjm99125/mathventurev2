@@ -33,6 +33,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
     const [selectedCorrectAnswer, setSelectedCorrectAnswer] = useState<number | null>(null);
 
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const playLaserSound = (isCorrect: boolean) => {
         const audioCtx = createAudioContext();
@@ -114,6 +115,29 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
         setAttempts(prev => prev + 1);
         const correctAnswer = num1 - num2;
 
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            playLaserSound(isCorrect);
+            setScore(newScore);
+            setIsAnswerLocked(true);
+            setSelectedCorrectAnswer(isCorrect ? selected : null);
+            if (!isCorrect && !wrongGuesses.includes(selected)) {
+                setWrongGuesses(prev => [...prev, selected]);
+            }
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    playChimeSound();
+                    setIsCompleted(true);
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#f43f5e', '#0ea5e9', '#10b981', '#f59e0b'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1000);
+            return;
+        }
+
         if (selected === correctAnswer) {
             playLaserSound(true);
             setIsAnswerLocked(true);
@@ -122,11 +146,11 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
             const newScore = score + 1;
             setScore(newScore);
 
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     playChimeSound();
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#f43f5e', '#0ea5e9', '#10b981', '#f59e0b'] });
                 }, 800);
             } else {
@@ -137,7 +161,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
             if (!wrongGuesses.includes(selected)) {
                 playLaserSound(false);
                 setWrongGuesses(prev => [...prev, selected]);
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     setIsAnswerLocked(true);
                     setTimeout(() => {
                         if (newAttempts >= MAX_SCORE) setIsCompleted(true);
@@ -242,7 +266,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
                         {RANKS[Math.floor(Math.random() * RANKS.length)].icon}
                     </motion.div>
 
-                    <Button
+                    {allowSkip !== false && <Button
                         size="lg"
                         className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.6)] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                         onClick={() => {
@@ -254,7 +278,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
                         }}
                     >
                         Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                    </Button>
+                    </Button>}
                     {onComplete && allowSkip === false && (
                         <Button
                             size="lg"

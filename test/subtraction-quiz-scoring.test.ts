@@ -25,6 +25,11 @@ Deno.test("Quiz-rendered subtraction games expose scored terminal completion", a
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/);
     assertMatch(source, /onComplete\?\.\(newScore, newAttempts\)/);
     assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+    assertMatch(source, /if \(allowSkip === false\)/);
+    assertMatch(source, /newAttempts >= MAX_SCORE/);
+    assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
+    assertEquals(source.includes("onComplete?.(score, attempts)"), false, `${fileName} must use the fixed assigned maximum`);
+    assertMatch(source, /allowSkip !== false &&/);
     assertEquals(source.includes("onClick={onComplete}"), false, `${fileName} must not pass DOM events to navigation callbacks`);
     assertEquals(source.includes("onClick={() => onComplete?.()}"), true, `${fileName} preserves no-argument navigation callbacks`);
   }

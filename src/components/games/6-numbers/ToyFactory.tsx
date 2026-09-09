@@ -54,6 +54,7 @@ interface ToyFactoryProps {
 
 export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
   const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
   
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -63,6 +64,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
   const [choices, setChoices] = useState<number[]>([]);
   const [wrongChoices, setWrongChoices] = useState<number[]>([]);
   const [isCorrectlyGuessed, setIsCorrectlyGuessed] = useState(false);
+  const [isAnswerLocked, setIsAnswerLocked] = useState(false);
   const [crateKey, setCrateKey] = useState(0); // To trigger CSS animation reset on crate
   
   const [toyUnlocked, setToyUnlocked] = useState(false);
@@ -100,6 +102,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
     setChoices(buttonValues.sort(() => Math.random() - 0.5));
     setWrongChoices([]);
     setIsCorrectlyGuessed(false);
+    setIsAnswerLocked(false);
   };
 
   const resetGame = () => {
@@ -114,10 +117,39 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
   }, []);
 
   const handleGuess = (val: number) => {
-    if (isCorrectlyGuessed || wrongChoices.includes(val) || toyUnlocked) return;
+    if (isAnswerLocked || isCorrectlyGuessed || wrongChoices.includes(val) || toyUnlocked) return;
 
     const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
+
+    if (allowSkip === false) {
+      const isCorrect = val === activeCount;
+      const newScore = score + (isCorrect ? 1 : 0);
+      setScore(newScore);
+      setIsAnswerLocked(true);
+
+      if (isCorrect) {
+        playFactorySound('stamp');
+        setIsCorrectlyGuessed(true);
+      } else {
+        playFactorySound('error');
+        setWrongChoices(prev => [...prev, val]);
+      }
+
+      if (newAttempts >= MAX_SCORE) {
+        setTimeout(() => {
+          playFactorySound('fanfare');
+          const reward = milestonePrizes[Math.floor(Math.random() * milestonePrizes.length)];
+          setWonToy(reward);
+          setShelfToys(prev => [...prev, reward]);
+          setToyUnlocked(true);
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 700);
+      } else {
+        setTimeout(() => generateLevel(), 1000);
+      }
+      return;
+    }
 
     if (val === activeCount) {
       playFactorySound('stamp');
@@ -126,7 +158,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
+      if (isAssignedQuiz ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
         setTimeout(() => {
           playFactorySound('fanfare');
           const reward = milestonePrizes[Math.floor(Math.random() * milestonePrizes.length)];
@@ -141,7 +173,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
     } else {
       playFactorySound('error');
       setWrongChoices(prev => [...prev, val]);
-      if (allowSkip === false) {
+      if (isAssignedQuiz) {
         setIsCorrectlyGuessed(true);
         setTimeout(() => {
           if (newAttempts >= MAX_SCORE) {
@@ -216,10 +248,10 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
             return (
               <motion.button
                 key={idx}
-                whileHover={!isWrong && !isCorrectlyGuessed ? { scale: 1.05 } : {}}
-                whileTap={!isWrong && !isCorrectlyGuessed ? { scale: 0.95 } : {}}
+                whileHover={!isWrong && !isCorrectlyGuessed && !isAnswerLocked ? { scale: 1.05 } : {}}
+                whileTap={!isWrong && !isCorrectlyGuessed && !isAnswerLocked ? { scale: 0.95 } : {}}
                 onClick={() => handleGuess(val)}
-                disabled={isWrong || isCorrectlyGuessed}
+                disabled={isWrong || isCorrectlyGuessed || isAnswerLocked}
                 className={`h-20 rounded-[20px] text-4xl font-black text-white border-none shadow-[0_6px_0_#b45309] transition-colors ${
                   isCorrect 
                     ? 'bg-green-500 shadow-[0_6px_0_#16a34a]' 

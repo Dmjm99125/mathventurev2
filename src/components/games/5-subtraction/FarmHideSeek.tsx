@@ -23,6 +23,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
     const [wrongGuesses, setWrongGuesses] = useState<number[]>([]);
     
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const generateQuestion = () => {
         const n1 = Math.floor(Math.random() * 4) + 4; // 4 to 7
@@ -62,16 +63,36 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setIsAnswerLocked(true);
+            if (!isCorrect && !wrongGuesses.includes(selected)) {
+                setWrongGuesses(prev => [...prev, selected]);
+            }
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#4ad66d', '#ef4444', '#f59e0b', '#bae6fd'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         
         if (selected === correctAnswer) {
             const newScore = score + 1;
             setScore(newScore);
             setIsAnswerLocked(true);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#4ad66d', '#ef4444', '#f59e0b', '#bae6fd'] });
                 }, 800);
             } else {
@@ -81,7 +102,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
         } else {
             if (!wrongGuesses.includes(selected)) {
                 setWrongGuesses(prev => [...prev, selected]);
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     setIsAnswerLocked(true);
                     setTimeout(() => {
                         if (newAttempts >= MAX_SCORE) setIsCompleted(true);
@@ -200,7 +221,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
                         🏆
                     </motion.div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -212,7 +233,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
                             }}
                         >
                             Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"

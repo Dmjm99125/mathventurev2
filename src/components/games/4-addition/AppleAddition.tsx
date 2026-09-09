@@ -16,6 +16,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
     const inputRef = useRef<HTMLInputElement>(null);
     
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     useEffect(() => {
         newQuestion();
@@ -68,7 +69,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
             const newScore = score + 1;
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     onComplete?.(newScore, newAttempts);
@@ -80,7 +81,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
         } else {
             setMessage({ text: '❌ Try again! Count carefully.', type: 'error' });
             setTimeout(() => {
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     if (newAttempts >= MAX_SCORE) setIsCompleted(true);
                     else newQuestion();
                 } else {

@@ -21,6 +21,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
     const [prize, setPrize] = useState('');
     
     const MAX_SCORE = 5;
+    const isAssignedQuiz = allowSkip === false;
 
     const playSound = (type: 'correct' | 'wrong' | 'reward') => {
         if ('speechSynthesis' in window) {
@@ -76,6 +77,27 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
         const correctAnswer = num1 - num2;
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setIsAnswerLocked(true);
+            setHippoFace(isCorrect ? '😋' : '😮');
+            if (!isCorrect && !wrongGuesses.includes(selected)) {
+                setWrongGuesses(prev => [...prev, selected]);
+            }
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#9b5de5', '#f15bb5', '#fee440', '#00bbf9'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1200);
+            return;
+        }
         
         if (selected === correctAnswer) {
             playSound('correct');
@@ -85,12 +107,12 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
             setIsAnswerLocked(true);
             setScore(newScore);
             
-            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
+            if (isAssignedQuiz ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     playSound('reward');
                     setPrize(REWARDS[Math.floor(Math.random() * REWARDS.length)]);
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#9b5de5', '#f15bb5', '#fee440', '#00bbf9'] });
                 }, 1000);
             } else {
@@ -101,7 +123,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
             if (!wrongGuesses.includes(selected)) {
                 playSound('wrong');
                 setWrongGuesses(prev => [...prev, selected]);
-                if (allowSkip === false) {
+                if (isAssignedQuiz) {
                     setIsAnswerLocked(true);
                     setTimeout(() => {
                         if (newAttempts >= MAX_SCORE) setIsCompleted(true);
@@ -200,7 +222,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
                         {prize}
                     </motion.div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#be185d] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -212,7 +234,7 @@ export function FeedTheHippo({ onComplete, allowSkip = true }: { onComplete?: (s
                             }}
                         >
                             Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                    </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
