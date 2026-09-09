@@ -5,6 +5,8 @@ import { CheckCircle2, XCircle, Trophy, Play } from 'lucide-react';
 import { colorsData } from '@/data/colors';
 import confetti from 'canvas-confetti';
 
+const ASSIGNED_QUESTION_COUNT = 10;
+
 interface MultipleChoiceProps {
   onComplete?: (score?: number, maxScore?: number) => void;
   allowSkip?: boolean;
@@ -19,8 +21,9 @@ export function MultipleChoice({ onComplete, allowSkip = true }: MultipleChoiceP
   const [wrongItems, setWrongItems] = useState(0);
 
   const canReplay = allowSkip !== false;
+  const questions = colorsData.slice(0, ASSIGNED_QUESTION_COUNT);
 
-  const question = colorsData[currentIndex];
+  const question = questions[currentIndex];
 
   const handleSelect = (opt: { image: string; isCorrect: boolean }) => {
     if (gameState !== 'playing') return;
@@ -38,7 +41,7 @@ export function MultipleChoice({ onComplete, allowSkip = true }: MultipleChoiceP
   };
 
   const handleNext = () => {
-    if (currentIndex < colorsData.length - 1) {
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex(c => c + 1);
       setSelectedOption(null);
       setGameState('playing');
@@ -63,15 +66,15 @@ export function MultipleChoice({ onComplete, allowSkip = true }: MultipleChoiceP
           <h1 className="text-4xl font-display font-extrabold mb-2 text-foreground">Excellent!</h1>
           <p className="text-xl font-bold text-muted-foreground mb-8">
             {allowSkip === false ? (
-              <>You scored {score} correct and {wrongItems} wrong out of {colorsData.length}</>
+              <>You scored {score} correct and {wrongItems} wrong out of {questions.length}</>
             ) : (
-              <>You scored {score} out of {colorsData.length}</>
+              <>You scored {score} out of {questions.length}</>
             )}
           </p>
           <div className="flex flex-col gap-3">
             {onComplete && (
-              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, allowSkip === false ? colorsData.length : Math.max(1, totalAttempts))}>
-                Continue <Play className="ml-2 w-5 h-5 fill-current" />
+              <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={() => onComplete(score, allowSkip === false ? questions.length : Math.max(1, totalAttempts))}>
+                {allowSkip === false ? 'Save score & continue' : 'Continue'} <Play className="ml-2 w-5 h-5 fill-current" />
               </Button>
             )}
             {canReplay && (
@@ -103,7 +106,7 @@ export function MultipleChoice({ onComplete, allowSkip = true }: MultipleChoiceP
       {/* Progress HUD */}
       <div className="w-full flex justify-between items-center mb-8 px-4">
         <div className="text-lg font-bold text-slate-500 bg-white/80 px-4 py-2 rounded-xl shadow-sm">
-          Question {currentIndex + 1} of {colorsData.length}
+          Question {currentIndex + 1} of {questions.length}
         </div>
         <div className="text-lg font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl shadow-sm border border-emerald-200">
           Score: {score}

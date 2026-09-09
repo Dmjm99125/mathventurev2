@@ -56,7 +56,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
 
   // Timer effect
   useEffect(() => {
-    if (!gameRunning) return;
+    if (!gameRunning || allowSkip === false) return;
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -67,7 +67,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [gameRunning]);
+  }, [allowSkip, gameRunning]);
 
   // Background walkers spawner
   useEffect(() => {
@@ -93,6 +93,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
     if (!gameRunning || isCompleted) return;
 
     attemptsRef.current += 1;
+    const reachedAssignedLimit = allowSkip === false && attemptsRef.current >= 10;
 
     if (color.name === answer.name) {
       const newScore = score + 1;
@@ -113,7 +114,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
         setTimeout(() => setShowRainbow(true), 50);
       }
 
-      const reachedAssignedGoal = allowSkip === false && newScore >= 10;
+      const reachedAssignedGoal = reachedAssignedLimit;
       if (reachedAssignedGoal) {
         setIsCompleted(true);
         setGameRunning(false);
@@ -122,10 +123,17 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
       if (!reachedAssignedGoal) setTimeout(newRound, 400);
     } else {
       const newLives = lives - 1;
-      setLives(newLives);
+      if (allowSkip !== false) setLives(newLives);
       setMessage("❌ Oops!");
       
-      if (newLives <= 0) {
+      if (allowSkip === false) {
+        if (reachedAssignedLimit) {
+          setIsCompleted(true);
+          setGameRunning(false);
+        } else {
+          setTimeout(newRound, 400);
+        }
+      } else if (newLives <= 0) {
         setGameRunning(false);
       } else {
         setTimeout(newRound, 400);
@@ -221,7 +229,7 @@ export function RainbowColorCatcher({ onComplete, allowSkip = true }: RainbowCol
         ) : isCompleted ? (
           <div className="text-3xl md:text-4xl font-bold mb-4 flex flex-col items-center bg-white/80 p-6 rounded-2xl drop-shadow-lg mx-auto max-w-sm">
             🎉 Great job!<br />
-            <span className="text-2xl mt-2 text-gray-600">You caught 10 colors!</span>
+            <span className="text-2xl mt-2 text-gray-600">You answered {correctItems} correctly out of {totalItems}.</span>
             {onComplete && (
               <Button size="lg" variant="jungle" className="mt-4 rounded-full px-8 text-xl" onClick={() => onComplete(correctItems, totalItems)}>
                 Continue

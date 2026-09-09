@@ -110,6 +110,12 @@ Deno.test("BalloonFindingGame consumes wrong balloons in assigned quizzes", asyn
   assertMatch(source, /allowSkip !== false[\s\S]{0,240}onClick=\{initRound\}/);
 });
 
+Deno.test("BalloonFindingGame completes assigned quizzes after ten total selections", async () => {
+  const source = await readSource("src/components/games/1-colors/BalloonFindingGame.tsx");
+
+  assertMatch(source, /allowSkip === false[\s\S]*totalAttemptsRef\.current >= 10/);
+});
+
 Deno.test("BalloonFindingGame does not generate a target-colored wrong balloon", async () => {
   const source = await readSource("src/components/games/1-colors/BalloonFindingGame.tsx");
 
@@ -131,6 +137,12 @@ Deno.test("RainbowColorCatcher keeps replay available in free play", async () =>
   assertMatch(source, /onClick=\{restartGame\}/);
 });
 
+Deno.test("RainbowColorCatcher completes assigned quizzes after ten total selections", async () => {
+  const source = await readSource("src/components/games/1-colors/RainbowColorCatcher.tsx");
+
+  assertMatch(source, /allowSkip === false[\s\S]*attemptsRef\.current >= 10/);
+});
+
 Deno.test("RainbowColorDeluxe advances after wrong assigned-quiz choices", async () => {
   const source = await readSource("src/components/games/1-colors/RainbowColorDeluxe.tsx");
 
@@ -138,6 +150,12 @@ Deno.test("RainbowColorDeluxe advances after wrong assigned-quiz choices", async
   assertMatch(source, /const canReplay = allowSkip !== false/);
   assertMatch(source, /canReplay[\s\S]*onClick=\{\(\) => startGame\(difficulty\)\}/);
   assertMatch(source, /canReplay[\s\S]*onClick=\{\(\) => setScreen\('pet'\)\}/);
+});
+
+Deno.test("RainbowColorDeluxe completes assigned quizzes after ten total selections", async () => {
+  const source = await readSource("src/components/games/1-colors/RainbowColorDeluxe.tsx");
+
+  assertMatch(source, /allowSkip === false[\s\S]*attemptsRef\.current >= 10/);
 });
 
 Deno.test("RainbowColorDeluxe preserves free-play retry feedback", async () => {
@@ -166,11 +184,14 @@ Deno.test("RainbowGalaxyExplorer preserves free-play retry feedback", async () =
 Deno.test("MultipleChoice counts every wrong assigned-quiz item against a fixed maximum", async () => {
   const source = await readSource("src/components/games/1-colors/MultipleChoice.tsx");
 
+  assertMatch(source, /const ASSIGNED_QUESTION_COUNT = 10/);
+  assertMatch(source, /colorsData\.slice\(0, ASSIGNED_QUESTION_COUNT\)/);
   assertMatch(source, /const \[wrongItems, setWrongItems\] = useState\(0\)/);
   assertMatch(source, /if \(!opt\.isCorrect\) \{[\s\S]*setWrongItems\(items => items \+ 1\)/);
-  assertMatch(source, /allowSkip === false \? colorsData\.length : Math\.max\(1, totalAttempts\)/);
+  assertMatch(source, /allowSkip === false \? questions\.length : Math\.max\(1, totalAttempts\)/);
   assertMatch(source, /You scored \{score\} correct and \{wrongItems\} wrong out of/);
   assertMatch(source, /allowSkip === false \? 'Next Question' : 'Try the next one'/);
+  assertMatch(source, /allowSkip === false \? 'Save score & continue' : 'Continue'/);
 });
 
 Deno.test("MultipleChoice hides replay after an assigned quiz", async () => {

@@ -108,6 +108,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
     if (isWinRef.current) return;
 
     totalAttemptsRef.current += 1;
+    const reachedAssignedLimit = allowSkip === false && totalAttemptsRef.current >= 10;
 
     if (balloon.colorData.name === targetColorRef.current.name) {
       playPop(true);
@@ -115,7 +116,7 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
       setScore(scoreRef.current);
       setBalloons(prev => prev.filter(b => b.id !== balloon.id));
       
-      if (scoreRef.current >= 10) {
+      if (scoreRef.current >= 10 || reachedAssignedLimit) {
         setIsWin(true);
         isWinRef.current = true;
         setBalloons([]); // clear balloons
@@ -127,7 +128,14 @@ export function BalloonFindingGame({ onComplete, allowSkip = true }: BalloonFind
       playPop(false);
       if (allowSkip === false) {
         setBalloons(prev => prev.filter(b => b.id !== balloon.id));
-        createBalloon(false);
+        if (reachedAssignedLimit) {
+          setIsWin(true);
+          isWinRef.current = true;
+          setBalloons([]); // clear balloons
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        } else {
+          createBalloon(false);
+        }
       } else {
         setBalloons(prev => prev.map(b => b.id === balloon.id ? { ...b, opacity: 0.4 } : b));
       }

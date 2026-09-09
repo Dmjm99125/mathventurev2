@@ -70,7 +70,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
   }, []);
 
   useEffect(() => {
-    if (screen !== 'game' || isGameOver) return;
+    if (screen !== 'game' || isGameOver || allowSkip === false) return;
     
     const interval = setInterval(() => {
       setTimeLeft(prev => {
@@ -82,12 +82,13 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [screen, isGameOver]);
+  }, [allowSkip, screen, isGameOver]);
 
   const handleColorClick = (color: string, e: React.MouseEvent) => {
     if (screen !== 'game' || isGameOver || isCompleted) return;
 
     attemptsRef.current += 1;
+    const reachedAssignedLimit = allowSkip === false && attemptsRef.current >= 10;
 
     if (color === targetColor) {
       const newScore = score + 1;
@@ -106,16 +107,21 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
         setStars(prev => prev.filter(s => s.id !== newStar.id));
       }, 600);
       
-      generateBoard(difficulty);
-
-      if (allowSkip === false && newScore >= 10) {
+      if (reachedAssignedLimit) {
         setIsCompleted(true);
         setIsGameOver(true);
+      } else {
+        generateBoard(difficulty);
       }
     } else if (allowSkip === false) {
       setMessage("❌ Wrong choice counted!");
       setMessageColor("text-red-500");
-      generateBoard(difficulty);
+      if (reachedAssignedLimit) {
+        setIsCompleted(true);
+        setIsGameOver(true);
+      } else {
+        generateBoard(difficulty);
+      }
     } else {
       setMessage("❌ Try Again!");
       setMessageColor("text-red-500");
@@ -307,7 +313,7 @@ export function RainbowColorDeluxe({ onComplete, allowSkip = true }: RainbowColo
         <div className="absolute inset-0 bg-white/95 z-50 flex justify-center items-center backdrop-blur-sm animate-in fade-in">
           <div className="p-8 md:p-12 rounded-3xl text-center max-w-sm w-[90%] shadow-2xl">
             <h2 className="text-4xl font-display font-bold text-green-600 mb-4">Great job!</h2>
-            <p className="text-2xl font-bold text-gray-600 mb-8">You found 10 colors!</p>
+            <p className="text-2xl font-bold text-gray-600 mb-8">You answered {correctItems} correctly out of {totalItems}.</p>
             {onComplete && (
               <Button size="lg" variant="default" className="text-xl py-6 rounded-2xl bg-orange-500 hover:bg-orange-600 shadow-md text-white" onClick={() => onComplete(correctItems, totalItems)}>
                 Continue
