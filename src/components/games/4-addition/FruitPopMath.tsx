@@ -74,7 +74,7 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
             const newScore = score + 1;
             setScore(newScore);
             
-            if (newScore >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     onComplete?.(newScore, newAttempts);
@@ -86,9 +86,14 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
         } else {
             setMessage({ text: `Try again! You can count the ${fruit}!`, type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
-                setUserAnswer('');
-                inputRef.current?.focus();
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else newQuestion();
+                } else {
+                    setMessage({ text: '', type: '' });
+                    setUserAnswer('');
+                    inputRef.current?.focus();
+                }
             }, 1500);
         }
     };

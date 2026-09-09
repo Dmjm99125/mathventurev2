@@ -47,6 +47,7 @@ interface CountMatchProps {
 
 export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
   const NUMBERS = [1, 2, 3, 4, 5];
+  const MAX_SCORE = NUMBERS.length;
   
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [matches, setMatches] = useState<number[]>([]);
@@ -54,6 +55,7 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
   const [shuffledDots, setShuffledDots] = useState<number[]>([]);
   const [wrongShake, setWrongShake] = useState<number | null>(null);
   const [message, setMessage] = useState("Tap a number, then tap the matching dots!");
+  const score = matches.length;
 
   useEffect(() => {
     setShuffledDots([...NUMBERS].sort(() => Math.random() - 0.5));
@@ -106,11 +108,15 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
       setMessage("Mali, subukan muli! 🤔");
       setWrongShake(num);
       setTimeout(() => setWrongShake(null), 500);
+      if (allowSkip === false) {
+        setSelectedNumber(null); // Assigned quizzes consume this wrong item.
+        return;
+      }
       setSelectedNumber(null); // Deselect on wrong answer
     }
   };
 
-  if (matches.length === NUMBERS.length) {
+  if (matches.length === NUMBERS.length || (allowSkip === false && attempts >= MAX_SCORE)) {
     return (
       <div className="w-full flex flex-col items-center justify-center min-h-[500px]">
         <motion.div 
@@ -124,7 +130,7 @@ export function CountMatch({ onComplete, allowSkip = true }: CountMatchProps) {
           </h2>
           <div className="flex gap-4 justify-center">
             {allowSkip === false && onComplete && (
-              <Button size="lg" variant="jungle" onClick={() => onComplete?.(matches.length, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                 Next Game <ChevronRight className="ml-2 h-6 w-6" />
               </Button>
             )}

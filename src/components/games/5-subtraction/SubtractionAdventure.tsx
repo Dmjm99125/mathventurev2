@@ -68,7 +68,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
             const newScore = score + 1;
             setScore(newScore);
             
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
                     if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -81,7 +81,15 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
         } else {
             setMessage({ text: `Oops! Subukan muli! (Try again!)`, type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setGameState('completed');
+                    else {
+                        setCurrentQuestion(q => q + 1);
+                        generateQuestion();
+                    }
+                } else {
+                    setMessage({ text: '', type: '' });
+                }
             }, 1200);
         }
     };
@@ -255,7 +263,7 @@ export function SubtractionAdventure({ onComplete, allowSkip = true }: { onCompl
                                 <Button
                                     size="lg"
                                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                    onClick={() => onComplete?.(score, attempts)}
+                                    onClick={() => onComplete?.(score, MAX_SCORE)}
                                 >
                                     Continue to Next Game
                                 </Button>

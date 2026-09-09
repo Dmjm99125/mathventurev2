@@ -68,7 +68,7 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
             const newScore = score + 1;
             setScore(newScore);
             
-            if (newScore >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     onComplete?.(newScore, newAttempts);
@@ -80,9 +80,14 @@ export function AppleAddition({ onComplete, allowSkip = true }: { onComplete?: (
         } else {
             setMessage({ text: '❌ Try again! Count carefully.', type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
-                setUserAnswer('');
-                inputRef.current?.focus();
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else newQuestion();
+                } else {
+                    setMessage({ text: '', type: '' });
+                    setUserAnswer('');
+                    inputRef.current?.focus();
+                }
             }, 1500);
         }
     };

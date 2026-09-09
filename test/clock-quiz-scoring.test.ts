@@ -1,4 +1,4 @@
-import { assertEquals, assertMatch } from "jsr:@std/assert";
+import { assert, assertEquals, assertMatch } from "jsr:@std/assert";
 
 const clockGames = [
   "src/components/games/9-clock/TimeAdventure.tsx",
@@ -63,6 +63,16 @@ Deno.test("TimeAdventure consumes wrong answers as assigned quiz items", async (
   assertMatch(source, /const newAnsweredItems = answeredItems \+ 1/);
   assertMatch(source, /allowSkip === false[\s\S]{0,500}newAnsweredItems >= MAX_SCORE[\s\S]{0,500}setIsCompleted\(true\)/);
   assertMatch(source, /allowSkip === false[\s\S]{0,500}setupRound\(score\)/);
+});
+
+Deno.test("TimeAdventure scores a correct final assigned answer before completing", async () => {
+  const source = await readSource("src/components/games/9-clock/TimeAdventure.tsx");
+  const scoreIndex = source.indexOf("const newScore = score + 1;");
+  const assignedBoundaryIndex = source.indexOf("if (allowSkip === false && newAnsweredItems >= MAX_SCORE)");
+
+  assert(scoreIndex >= 0);
+  assert(assignedBoundaryIndex >= 0);
+  assert(scoreIndex < assignedBoundaryIndex);
 });
 
 Deno.test("TimeAdventure locks assigned replay and reports the fixed maximum", async () => {

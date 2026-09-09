@@ -85,7 +85,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
             const newScore = score + 1;
             setScore(newScore);
             
-            if (newScore >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
                     onComplete?.(newScore, newAttempts);
@@ -98,7 +98,12 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
         } else {
             setMessage({ text: 'Oops! Subukan muli.', type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setGameState('completed');
+                    else generateQuestion();
+                } else {
+                    setMessage({ text: '', type: '' });
+                }
             }, 1500);
         }
     };

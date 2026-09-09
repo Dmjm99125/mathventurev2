@@ -116,6 +116,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
   const handleGuess = (val: number) => {
     if (isCorrectlyGuessed || wrongChoices.includes(val) || toyUnlocked) return;
 
+    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
 
     if (val === activeCount) {
@@ -125,7 +126,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (newScore >= MAX_SCORE) {
+      if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
         setTimeout(() => {
           playFactorySound('fanfare');
           const reward = milestonePrizes[Math.floor(Math.random() * milestonePrizes.length)];
@@ -140,6 +141,19 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
     } else {
       playFactorySound('error');
       setWrongChoices(prev => [...prev, val]);
+      if (allowSkip === false) {
+        setIsCorrectlyGuessed(true);
+        setTimeout(() => {
+          if (newAttempts >= MAX_SCORE) {
+            const reward = milestonePrizes[Math.floor(Math.random() * milestonePrizes.length)];
+            setWonToy(reward);
+            setShelfToys(prev => [...prev, reward]);
+            setToyUnlocked(true);
+          } else {
+            generateLevel();
+          }
+        }, 700);
+      }
     }
   };
 
@@ -260,7 +274,7 @@ export function ToyFactory({ onComplete, allowSkip = true }: ToyFactoryProps) {
               </motion.div>
               
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-14 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-14 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

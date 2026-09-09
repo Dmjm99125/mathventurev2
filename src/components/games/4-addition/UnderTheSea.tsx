@@ -108,7 +108,7 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: (sc
             const newScore = score + 1;
             setScore(newScore);
             
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     onComplete?.(newScore, newAttempts);
@@ -121,7 +121,15 @@ export function UnderTheSea({ onComplete, allowSkip = true }: { onComplete?: (sc
         } else {
             setMessage({ text: `Try counting again! It's ${correctAnswer} 🐠`, type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else {
+                        setCurrentQuestion(q => q + 1);
+                        generateQuestion();
+                    }
+                } else {
+                    setMessage({ text: '', type: '' });
+                }
             }, 2000);
         }
     };

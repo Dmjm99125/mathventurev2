@@ -55,7 +55,7 @@ Deno.test("every quiz game uses the checkpointed completion path and restores Fr
 
   assertEquals(source.includes("onComplete={handleStructuredGameComplete}"), true);
   assertEquals(source.includes("import { DrawingCanvas } from '@/components/shared/DrawingCanvas';"), true);
-  assertEquals(source.includes("!isAssignedQuiz && isFreePlayDrawingBoard(topic, currentIndex)"), true);
+  assertEquals(source.includes("isDrawingBoardAvailable(topic, currentIndex, isAssignedQuiz)"), true);
   assertEquals(source.includes("getFreePlayGameCount(topic)"), true);
   assertEquals(source.includes("if (isSavingGameRef.current) return;"), true);
   assertEquals(source.includes("setIsSavingGame(true)"), true);

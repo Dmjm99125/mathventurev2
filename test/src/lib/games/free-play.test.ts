@@ -3,6 +3,7 @@ import {
   FREE_PLAY_GAME_COUNT_BY_TOPIC,
   getFreePlayGameCount,
   isFreePlayDrawingBoard,
+  isDrawingBoardAvailable,
 } from "../../../../src/lib/games/free-play.ts";
 
 Deno.test("Free Play extends the six historical drawing-board topics", () => {
@@ -24,4 +25,10 @@ Deno.test("Free Play identifies only the historical drawing-board slots", () => 
   assertEquals(isFreePlayDrawingBoard("measurement", 6), true);
   assertEquals(isFreePlayDrawingBoard("shapes", 7), false);
   assertEquals(isFreePlayDrawingBoard("clock", 6), false);
+});
+
+Deno.test("classroom quizzes never expose a Free Play drawing-board slot", () => {
+  assertEquals(isDrawingBoardAvailable("measurement", 6, true), false);
+  assertEquals(isDrawingBoardAvailable("measurement", 6, false), true);
+  assertEquals(isDrawingBoardAvailable("measurement", 5, true), false);
 });

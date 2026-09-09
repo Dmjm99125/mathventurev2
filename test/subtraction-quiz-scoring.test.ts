@@ -1,4 +1,4 @@
-import { assertEquals, assertMatch } from "jsr:@std/assert";
+import { assert, assertEquals, assertMatch } from "jsr:@std/assert";
 
 const GAME_FILES = [
   "SubtractionBalloon.tsx",
@@ -24,7 +24,7 @@ Deno.test("Quiz-rendered subtraction games expose scored terminal completion", a
     assertMatch(source, /const newAttempts = attempts \+ 1/);
     assertMatch(source, /setAttempts\(prev => prev \+ 1\)/);
     assertMatch(source, /onComplete\?\.\(newScore, newAttempts\)/);
-    assertMatch(source, /onComplete\?\.\(score, attempts\)/);
+    assertMatch(source, /onComplete\?\.\(score, MAX_SCORE\)/);
     assertEquals(source.includes("onClick={onComplete}"), false, `${fileName} must not pass DOM events to navigation callbacks`);
     assertEquals(source.includes("onClick={() => onComplete?.()}"), true, `${fileName} preserves no-argument navigation callbacks`);
   }
@@ -37,6 +37,15 @@ Deno.test("subtraction completion keeps strict mode terminal and retry guards", 
     assertEquals(source.includes("allowSkip !== false"), true, `${fileName} keeps skip visibility strict mode`);
     assertEquals(source.includes("allowSkip === false"), true, `${fileName} keeps strict-mode continuation`);
     assertEquals(source.includes("setAttempts(prev => prev + 1)"), true, `${fileName} increments attempts for active interactions`);
+  }
+});
+
+Deno.test("assigned subtraction answers consume one fixed quiz item", async () => {
+  for (const fileName of GAME_FILES) {
+    const source = await readGameSource(fileName);
+
+    assert(source.includes("if (allowSkip === false)"), `${fileName} advances assigned wrong answers`);
+    assert(source.includes("onComplete?.(score, MAX_SCORE)"), `${fileName} reports its fixed assigned maximum`);
   }
 });
 

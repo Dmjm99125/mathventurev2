@@ -8,7 +8,7 @@ const fixedRoundGames = [
   "src/components/games/4-addition/AdditionReplacementGame.tsx",
 ];
 
-const fixedRawScoreGames = [
+const retryUntilCorrectGames = [
   "src/components/games/4-addition/AdditionFunGame.tsx",
   "src/components/games/4-addition/AppleAddition.tsx",
   "src/components/games/4-addition/FruitPopMath.tsx",
@@ -30,7 +30,7 @@ const wrapperGames = [
 ];
 
 Deno.test("addition quiz games report scored terminal results without scoring skips", async () => {
-  for (const path of [...fixedRoundGames, ...fixedRawScoreGames, ...wrapperGames]) {
+  for (const path of [...fixedRoundGames, ...retryUntilCorrectGames, ...wrapperGames]) {
     const source = await readSource(path);
     assert(source.includes("onComplete?: (score?: number, maxScore?: number) => void"), `${path} accepts scored completion callbacks`);
     if (!wrapperGames.includes(path)) {
@@ -42,7 +42,7 @@ Deno.test("addition quiz games report scored terminal results without scoring sk
   assert(fixedRoundSource.includes("onComplete?.(newScore, maxRounds)"), "fixed rounds report correct items out of all rounds");
   assert(fixedRoundSource.includes("onComplete?.(score, maxRounds)"), "fixed rounds report their result from the completion overlay");
 
-  for (const path of fixedRawScoreGames) {
+  for (const path of retryUntilCorrectGames) {
     const source = await readSource(path);
     assert(source.includes("const [attempts, setAttempts] = useState(0)"), `${path} tracks answer attempts`);
     assert(source.includes("setAttempts(value => value + 1)"), `${path} counts wrong and correct answer attempts`);
@@ -65,5 +65,14 @@ Deno.test("addition quiz games report scored terminal results without scoring sk
   for (const path of wrapperGames) {
     const source = await readSource(path);
     assert(source.includes("allowSkip={allowSkip}"), `${path} forwards assigned-mode completion rules`);
+  }
+});
+
+Deno.test("assigned addition answers consume one fixed quiz item", async () => {
+  for (const path of retryUntilCorrectGames) {
+    const source = await readSource(path);
+
+    assert(source.includes("if (allowSkip === false)"), `${path} advances assigned wrong answers instead of retrying forever`);
+    assert(source.includes("onComplete?.(score, MAX_SCORE)"), `${path} reports a fixed assigned maximum`);
   }
 });
