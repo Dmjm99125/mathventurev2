@@ -123,19 +123,19 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
 
     const isCorrect = option === `${targetHour}:00`;
 
-    if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
-      setTimeout(() => {
-        setIsCompleted(true);
-        playSound('fanfare');
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-      }, 1000);
-    } else if (isCorrect) {
+    if (isCorrect) {
       playSound('correct');
       setFeedback('correct');
       const newScore = score + 1;
       setScore(newScore);
 
-      if (newScore >= MAX_SCORE) {
+      if (allowSkip === false && newAnsweredItems >= MAX_SCORE) {
+        setTimeout(() => {
+          setIsCompleted(true);
+          playSound('fanfare');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }, 1000);
+      } else if (newScore >= MAX_SCORE) {
         setTimeout(() => {
           setIsCompleted(true);
           if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -149,7 +149,15 @@ export function TimeAdventure({ onComplete, allowSkip = true }: TimeAdventurePro
       playSound('wrong');
       setFeedback('wrong');
       if (allowSkip === false) {
-        setTimeout(() => setupRound(score), 1200);
+        if (newAnsweredItems >= MAX_SCORE) {
+          setTimeout(() => {
+            setIsCompleted(true);
+            playSound('fanfare');
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+          }, 1000);
+        } else {
+          setTimeout(() => setupRound(score), 1200);
+        }
       } else {
         setTimeout(() => {
           setCanClick(true);
