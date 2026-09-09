@@ -55,7 +55,7 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
             const newScore = score + 1;
             setScore(newScore);
             
-            if (newScore >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -67,9 +67,14 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
         } else {
             setMessage({ text: `Try again! You can count the ${fruit}!`, type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
-                setUserAnswer('');
-                inputRef.current?.focus();
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else newQuestion();
+                } else {
+                    setMessage({ text: '', type: '' });
+                    setUserAnswer('');
+                    inputRef.current?.focus();
+                }
             }, 1500);
         }
     };
@@ -204,7 +209,7 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
                             <Button
                                 size="lg"
                                 className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

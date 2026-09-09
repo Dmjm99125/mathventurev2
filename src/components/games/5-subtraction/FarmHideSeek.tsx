@@ -68,7 +68,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
             setScore(newScore);
             setIsAnswerLocked(true);
             
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -81,6 +81,16 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
         } else {
             if (!wrongGuesses.includes(selected)) {
                 setWrongGuesses(prev => [...prev, selected]);
+                if (allowSkip === false) {
+                    setIsAnswerLocked(true);
+                    setTimeout(() => {
+                        if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                        else {
+                            setCurrentQuestion(q => q + 1);
+                            generateQuestion();
+                        }
+                    }, 1000);
+                }
             }
         }
     };
@@ -207,7 +217,7 @@ export function FarmHideSeek({ onComplete, allowSkip = true }: { onComplete?: (s
                             <Button
                                 size="lg"
                                 className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

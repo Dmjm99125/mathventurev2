@@ -1,4 +1,4 @@
-import { assertEquals, assertMatch } from "jsr:@std/assert";
+import { assert, assertEquals, assertMatch } from "jsr:@std/assert";
 
 const GAME_FILES = [
   "CountMatch.tsx",
@@ -66,5 +66,14 @@ Deno.test("assigned numbers games cannot replay after reaching their terminal st
       /allowSkip !== false &&[\s\S]{0,250}onClick=\{resetGame\}/,
       `${fileName} must make replay free-play-only`,
     );
+  }
+});
+
+Deno.test("assigned numbers answers consume fixed quiz items instead of attempts", async () => {
+  for (const fileName of INTERACTIVE_GAME_FILES) {
+    const source = await readGameSource(fileName);
+
+    assert(source.includes("if (allowSkip === false)"), `${fileName} advances assigned wrong answers`);
+    assertMatch(source, /onComplete\?\.\(score, (?:MAX_SCORE|maxRounds)\)/, `${fileName} reports a fixed assigned maximum`);
   }
 });

@@ -47,7 +47,7 @@ Deno.test("addition quiz games report scored terminal results without scoring sk
     assert(source.includes("const [attempts, setAttempts] = useState(0)"), `${path} tracks answer attempts`);
     assert(source.includes("setAttempts(value => value + 1)"), `${path} counts wrong and correct answer attempts`);
     assert(source.includes("onComplete?.(newScore, newAttempts)"), `${path} reports attempts at automatic terminal completion`);
-    assert(source.includes("onComplete?.(score, attempts)"), `${path} reports attempts from the completion overlay`);
+    assert(source.includes("onComplete?.(score, MAX_SCORE)"), `${path} reports the fixed assigned maximum from the completion overlay`);
   }
 
   const adventureSource = await readSource("src/components/games/4-addition/AdditionAdventure.tsx");
@@ -61,5 +61,14 @@ Deno.test("addition quiz games report scored terminal results without scoring sk
   for (const path of wrapperGames) {
     const source = await readSource(path);
     assert(source.includes("allowSkip={allowSkip}"), `${path} forwards assigned-mode completion rules`);
+  }
+});
+
+Deno.test("assigned addition answers consume one fixed quiz item", async () => {
+  for (const path of retryUntilCorrectGames) {
+    const source = await readSource(path);
+
+    assert(source.includes("if (allowSkip === false)"), `${path} advances assigned wrong answers instead of retrying forever`);
+    assert(source.includes("onComplete?.(score, MAX_SCORE)"), `${path} reports a fixed assigned maximum`);
   }
 });

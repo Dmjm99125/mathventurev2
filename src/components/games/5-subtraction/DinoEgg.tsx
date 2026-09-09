@@ -16,6 +16,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
     const [attempts, setAttempts] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(1);
     const [isCompleted, setIsCompleted] = useState(false);
+    const [isAnswerLocked, setIsAnswerLocked] = useState(false);
     const [fossilPrize, setFossilPrize] = useState('');
     
     const MAX_SCORE = 5;
@@ -55,6 +56,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
         setTargetAnswer(answer);
         setPromptText(text);
         setNests(nestOptions);
+        setIsAnswerLocked(false);
     };
 
     useEffect(() => {
@@ -62,7 +64,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
     }, []);
 
     const handleTapNest = (id: number, count: number) => {
-        if (nests.find(n => n.isHatched)) return; // Prevent clicking after correct answer
+        if (isAnswerLocked || nests.find(n => n.isHatched)) return; // Prevent multiple answers per item
 
         const newAttempts = attempts + 1;
         setAttempts(prev => prev + 1);
@@ -73,7 +75,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
             const newScore = score + 1;
             setScore(newScore);
             
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setFossilPrize(FOSSILS[Math.floor(Math.random() * FOSSILS.length)]);
                     setIsCompleted(true);
@@ -87,6 +89,16 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
         } else {
             // Wrong
             setNests(prev => prev.map(n => n.id === id ? { ...n, isWrong: true } : n));
+            if (allowSkip === false) {
+                setIsAnswerLocked(true);
+                setTimeout(() => {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else {
+                        setCurrentQuestion(q => q + 1);
+                        generateQuestion();
+                    }
+                }, 1000);
+            }
         }
     };
 
@@ -199,7 +211,7 @@ export function DinoEgg({ onComplete, allowSkip = true }: { onComplete?: (score?
                                 <Button
                                     size="lg"
                                     className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                    onClick={() => onComplete?.(score, attempts)}
+                                    onClick={() => onComplete?.(score, MAX_SCORE)}
                                 >
                                     Continue to Next Game
                                 </Button>

@@ -44,6 +44,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
   const [attempts, setAttempts] = useState(0);
   const [stars, setStars] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isAnswerLocked, setIsAnswerLocked] = useState(false);
   const [, setWrongShake] = useState(false);
 
   const MAX_SCORE = 5;
@@ -59,6 +60,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
     }
 
     setOptions(Array.from(opts).sort(() => Math.random() - 0.5));
+    setIsAnswerLocked(false);
   };
 
   const resetGame = () => {
@@ -66,6 +68,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
     setAttempts(0);
     setStars(0);
     setIsCompleted(false);
+    setIsAnswerLocked(false);
     generateGame();
   };
 
@@ -74,14 +77,17 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
   }, []);
 
   const handleAnswer = (selected: number) => {
+    if (isAnswerLocked || isCompleted) return;
+    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
 
     if (selected === targetNumber) {
       playSound('correct');
+      setIsAnswerLocked(true);
       setScore(s => s + 1);
       setStars(s => s + 1);
 
-      if (score + 1 >= MAX_SCORE) {
+      if (allowSkip === false ? newAttempts >= MAX_SCORE : score + 1 >= MAX_SCORE) {
         setIsCompleted(true);
         confetti({
           particleCount: 150,
@@ -93,6 +99,16 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
       }
     } else {
       playSound('wrong');
+      if (allowSkip === false) {
+        setIsAnswerLocked(true);
+        setTimeout(() => {
+          if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+          else {
+            generateGame();
+            setIsAnswerLocked(false);
+          }
+        }, 600);
+      }
       setWrongShake(true);
       setTimeout(() => setWrongShake(false), 500);
     }
@@ -116,7 +132,7 @@ export function DragCorrectNumber({ onComplete, allowSkip = true }: DragCorrectN
           </h2>
           <div className="flex gap-4 justify-center">
             {allowSkip === false && onComplete && (
-              <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+              <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                 Next Game <ChevronRight className="ml-2 h-6 w-6" />
               </Button>
             )}

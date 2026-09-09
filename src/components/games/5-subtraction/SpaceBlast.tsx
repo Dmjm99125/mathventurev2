@@ -122,7 +122,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
             const newScore = score + 1;
             setScore(newScore);
 
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     playChimeSound();
                     setIsCompleted(true);
@@ -137,6 +137,16 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
             if (!wrongGuesses.includes(selected)) {
                 playLaserSound(false);
                 setWrongGuesses(prev => [...prev, selected]);
+                if (allowSkip === false) {
+                    setIsAnswerLocked(true);
+                    setTimeout(() => {
+                        if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                        else {
+                            setCurrentQuestion(q => q + 1);
+                            generateQuestion();
+                        }
+                    }, 1000);
+                }
             }
         }
     };
@@ -249,7 +259,7 @@ export function SpaceBlast({ onComplete, allowSkip = true }: { onComplete?: (sco
                         <Button
                             size="lg"
                             className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                         >
                             Continue to Next Game
                         </Button>

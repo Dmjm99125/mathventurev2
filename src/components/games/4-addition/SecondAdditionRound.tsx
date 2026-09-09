@@ -55,7 +55,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
             const newScore = score + 1;
             setScore(newScore);
             
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -68,7 +68,15 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
         } else {
             setMessage({ text: `Oops! It was ${correctAnswer}`, type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else {
+                        setCurrentQuestion(q => q + 1);
+                        generateQuestion();
+                    }
+                } else {
+                    setMessage({ text: '', type: '' });
+                }
             }, 1500);
         }
     };
@@ -206,7 +214,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
                             <Button
                                 size="lg"
                                 className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

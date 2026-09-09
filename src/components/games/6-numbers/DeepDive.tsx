@@ -98,6 +98,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
   const handlePop = (val: number) => {
     if (wrongBubbles.includes(val) || poppedBubble !== null || chestUnlocked) return;
 
+    const newAttempts = attempts + 1;
     setAttempts(prev => prev + 1);
 
     if (val === correctNumber) {
@@ -107,7 +108,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (newScore >= MAX_SCORE) {
+      if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
         setTimeout(() => {
           playOceanSound('fanfare');
           const gem = rewardGems[Math.floor(Math.random() * rewardGems.length)];
@@ -122,6 +123,19 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
     } else {
       playOceanSound('splash');
       setWrongBubbles(prev => [...prev, val]);
+      if (allowSkip === false) {
+        setPoppedBubble(val);
+        setTimeout(() => {
+          if (newAttempts >= MAX_SCORE) {
+            const gem = rewardGems[Math.floor(Math.random() * rewardGems.length)];
+            setWonGem(gem);
+            setGemsBox(prev => [...prev, gem]);
+            setChestUnlocked(true);
+          } else {
+            generateLevel();
+          }
+        }, 800);
+      }
     }
   };
 
@@ -257,7 +271,7 @@ export function DeepDive({ onComplete, allowSkip = true }: DeepDiveProps) {
               </motion.div>
               
               {allowSkip === false && onComplete && (
-                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, attempts)} className="text-xl px-8 h-16 rounded-full shadow-lg">
+                <Button size="lg" variant="jungle" onClick={() => onComplete?.(score, MAX_SCORE)} className="text-xl px-8 h-16 rounded-full shadow-lg">
                   Next Game <ChevronRight className="ml-2 h-6 w-6" />
                 </Button>
               )}

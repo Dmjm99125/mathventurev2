@@ -76,7 +76,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
             const newScore = score + 1;
             setScore(newScore);
             
-            if (currentQuestion >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -89,7 +89,15 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
         } else {
             setMessage({ text: "Engine check! Count the stars again! ✨", type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else {
+                        setCurrentQuestion(q => q + 1);
+                        generateQuestion();
+                    }
+                } else {
+                    setMessage({ text: '', type: '' });
+                }
             }, 2500);
         }
     };
@@ -257,7 +265,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
                         <Button
                             size="lg"
                             className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
-                            onClick={() => onComplete?.(score, attempts)}
+                            onClick={() => onComplete?.(score, MAX_SCORE)}
                         >
                             Continue to Next Game
                         </Button>

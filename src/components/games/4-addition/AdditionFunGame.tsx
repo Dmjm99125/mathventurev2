@@ -49,7 +49,7 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
             const newScore = score + 1;
             setScore(newScore);
             
-            if (newScore >= MAX_SCORE) {
+            if (allowSkip === false ? newAttempts >= MAX_SCORE : newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
                     if (allowSkip !== false) onComplete?.(newScore, newAttempts);
@@ -61,9 +61,14 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
         } else {
             setMessage({ text: 'Oops! Let\'s try again!', type: 'error' });
             setTimeout(() => {
-                setMessage({ text: '', type: '' });
-                setUserAnswer('');
-                inputRef.current?.focus();
+                if (allowSkip === false) {
+                    if (newAttempts >= MAX_SCORE) setIsCompleted(true);
+                    else newQuestion();
+                } else {
+                    setMessage({ text: '', type: '' });
+                    setUserAnswer('');
+                    inputRef.current?.focus();
+                }
             }, 1500);
         }
     };
@@ -183,7 +188,7 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
                             <Button
                                 size="lg"
                                 className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>
