@@ -49,6 +49,25 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
         const answer = parseInt(userAnswer, 10);
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = answer === num1 + num2;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Great Job! 🎉' : `That answer is incorrect. Count the ${fruit}!`,
+                type: isCorrect ? 'success' : 'error',
+            });
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    newQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (answer === num1 + num2) {
             setMessage({ text: 'Great Job! 🎉', type: 'success' });
@@ -58,7 +77,7 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
             if (newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -189,7 +208,7 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
                     <h1 className="text-4xl md:text-5xl font-bold text-fuchsia-700 drop-shadow-sm">Fruit Pop Genius!</h1>
                     <p className="text-xl md:text-2xl text-fuchsia-600 font-medium mb-4">You solved all the fruit math problems!</p>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
@@ -199,12 +218,12 @@ export function FruitPopMath({ onComplete, allowSkip = true }: { onComplete?: (s
                                 newQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

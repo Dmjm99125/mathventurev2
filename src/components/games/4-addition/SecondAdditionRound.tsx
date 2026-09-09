@@ -49,6 +49,26 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
         const correctAnswer = num1 + num2;
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Great Job! 🎈' : `Oops! It was ${correctAnswer}`,
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Great Job! 🎈', type: 'success' });
@@ -58,7 +78,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -190,7 +210,7 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
                     <h1 className="text-4xl md:text-5xl font-bold text-cyan-700 drop-shadow-sm">You Finished!</h1>
                     <p className="text-xl md:text-2xl text-cyan-600 font-medium mb-4">Score: {score}/{MAX_SCORE}</p>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
@@ -201,12 +221,12 @@ export function SecondAdditionRound({ onComplete, allowSkip = true }: { onComple
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

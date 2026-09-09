@@ -58,6 +58,26 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: (score?: 
         const correctAnswer = num1 + num2;
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Bellissimo! 👨‍🍳' : 'Mamma mia! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#dc2626', '#eab308', '#2563eb', '#ffffff'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Bellissimo! 👨‍🍳', type: 'success' });
@@ -67,7 +87,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: (score?: 
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#dc2626', '#eab308', '#2563eb', '#ffffff'] });
                 }, 1000);
             } else {
@@ -167,7 +187,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: (score?: 
                         {/* Multiple Choice Options (3 choices) */}
                         <div className="grid grid-cols-3 gap-4 w-full max-w-md">
                             {options.map((opt, index) => (
-                                <Button 
+                                <Button
                                     key={index}
                                     className="bg-orange-200 hover:bg-orange-300 text-amber-900 border-4 border-amber-700 font-bold text-4xl h-24 rounded-[1.5rem] active:translate-y-1 active:shadow-none transition-all shadow-[0_6px_0_0_#92400e]"
                                     onClick={() => checkAnswer(opt)}
@@ -223,7 +243,7 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: (score?: 
                         </div>
                     </div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all w-full border-none"
                             onClick={() => {
@@ -235,12 +255,12 @@ export function Pizza({ onComplete, allowSkip = true }: { onComplete?: (score?: 
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

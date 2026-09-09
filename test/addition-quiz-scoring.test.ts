@@ -8,7 +8,7 @@ const fixedRoundGames = [
   "src/components/games/4-addition/AdditionReplacementGame.tsx",
 ];
 
-const retryUntilCorrectGames = [
+const fixedRawScoreGames = [
   "src/components/games/4-addition/AdditionFunGame.tsx",
   "src/components/games/4-addition/AppleAddition.tsx",
   "src/components/games/4-addition/FruitPopMath.tsx",
@@ -30,7 +30,7 @@ const wrapperGames = [
 ];
 
 Deno.test("addition quiz games report scored terminal results without scoring skips", async () => {
-  for (const path of [...fixedRoundGames, ...retryUntilCorrectGames, ...wrapperGames]) {
+  for (const path of [...fixedRoundGames, ...fixedRawScoreGames, ...wrapperGames]) {
     const source = await readSource(path);
     assert(source.includes("onComplete?: (score?: number, maxScore?: number) => void"), `${path} accepts scored completion callbacks`);
     if (!wrapperGames.includes(path)) {
@@ -42,12 +42,16 @@ Deno.test("addition quiz games report scored terminal results without scoring sk
   assert(fixedRoundSource.includes("onComplete?.(newScore, maxRounds)"), "fixed rounds report correct items out of all rounds");
   assert(fixedRoundSource.includes("onComplete?.(score, maxRounds)"), "fixed rounds report their result from the completion overlay");
 
-  for (const path of retryUntilCorrectGames) {
+  for (const path of fixedRawScoreGames) {
     const source = await readSource(path);
     assert(source.includes("const [attempts, setAttempts] = useState(0)"), `${path} tracks answer attempts`);
     assert(source.includes("setAttempts(value => value + 1)"), `${path} counts wrong and correct answer attempts`);
     assert(source.includes("onComplete?.(newScore, newAttempts)"), `${path} reports attempts at automatic terminal completion`);
-    assert(source.includes("onComplete?.(score, attempts)"), `${path} reports attempts from the completion overlay`);
+    assert(source.includes("if (allowSkip === false)"), `${path} has a fixed-round assigned-quiz branch`);
+    assert(source.includes("newAttempts >= MAX_SCORE"), `${path} completes after the fixed number of answered items`);
+    assert(source.includes("onComplete?.(score, MAX_SCORE)"), `${path} reports raw score out of the fixed maximum`);
+    assert(!source.includes("onComplete?.(score, attempts)"), `${path} does not use retries as the quiz maximum`);
+    assert(source.includes("allowSkip !== false &&"), `${path} hides replay controls during an assigned quiz`);
   }
 
   const adventureSource = await readSource("src/components/games/4-addition/AdditionAdventure.tsx");

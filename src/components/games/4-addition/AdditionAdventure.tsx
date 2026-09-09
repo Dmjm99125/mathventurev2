@@ -59,6 +59,26 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
         const correctAnswer = num1 + num2;
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Tama! (Correct!) 🎉' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setGameState('completed');
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    if (newScore % 2 === 0) setLevel(l => l + 1);
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Tama! (Correct!) 🎉', type: 'success' });
@@ -68,7 +88,7 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
             if (newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setGameState('completed');
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -208,18 +228,18 @@ export function AdditionAdventure({ onComplete, allowSkip = true }: { onComplete
                     <h1 className="text-4xl md:text-5xl font-bold text-indigo-700 drop-shadow-sm">Adventure Complete!</h1>
                     <p className="text-xl md:text-2xl text-indigo-600 font-medium mb-4">You and {character} found all the fruits!</p>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => setGameState('menu')}
                         >
                             Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                    </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

@@ -43,6 +43,25 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
         const answer = parseInt(userAnswer, 10);
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = answer === num1 + num2;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Awesome! Correct! 🎉' : 'Oops! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    newQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (answer === num1 + num2) {
             setMessage({ text: 'Awesome! Correct! 🎉', type: 'success' });
@@ -52,7 +71,7 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
             if (newScore >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -168,7 +187,7 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
                     <h1 className="text-4xl md:text-5xl font-bold text-sky-700 drop-shadow-sm">Math Superstar!</h1>
                     <p className="text-xl md:text-2xl text-sky-600 font-medium mb-4">You solved all the addition problems!</p>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
@@ -178,12 +197,12 @@ export function AdditionFunGame({ onComplete, allowSkip = true }: { onComplete?:
                                 newQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-sky-500 hover:bg-sky-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

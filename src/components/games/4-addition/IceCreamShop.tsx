@@ -67,6 +67,26 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
 
+        if (allowSkip === false) {
+            const isCorrect = leftScoops.length === num1 && rightScoops.length === num2;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Perfect Sundae! 🍨' : "Oops! That answer is incorrect.",
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f472b6', '#38bdf8', '#d97706', '#fef08a'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
+
         if (leftScoops.length === num1 && rightScoops.length === num2) {
             setMessage({ text: 'Perfect Sundae! 🍨', type: 'success' });
             const newScore = score + 1;
@@ -75,7 +95,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f472b6', '#38bdf8', '#d97706', '#fef08a'] });
                 }, 1000);
             } else {
@@ -194,13 +214,13 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
                             </div>
                         </div>
 
-                        <Button
+                    <Button
                             className="mt-6 bg-green-500 hover:bg-green-600 text-white font-bold text-2xl h-16 px-8 rounded-full active:translate-y-1 active:shadow-none transition-all border-none shadow-[0_6px_0_0_#15803d]"
                             onClick={checkAnswer}
                             disabled={message.type !== ''}
                         >
                             Serve! <BellRing className="ml-2 w-6 h-6" />
-                        </Button>
+                    </Button>
                     </div>
 
                     {/* Feedback Message */}
@@ -246,7 +266,7 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
                         </div>
                     </div>
 
-                    <Button
+                    {allowSkip !== false && <Button
                         size="lg"
                         className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#15803d] active:translate-y-1 active:shadow-none transition-all w-full"
                         onClick={() => {
@@ -258,12 +278,12 @@ export function IceCreamShop({ onComplete, allowSkip = true }: { onComplete?: (s
                             generateQuestion();
                         }}
                     > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                    </Button>
+                    </Button>}
                     {onComplete && allowSkip === false && (
                         <Button
                             size="lg"
                             className="bg-purple-500 hover:bg-purple-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                            onClick={() => onComplete?.(score, attempts)}
+                            onClick={() => onComplete?.(score, MAX_SCORE)}
                         >
                             Continue to Next Game
                         </Button>

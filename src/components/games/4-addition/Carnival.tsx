@@ -63,6 +63,27 @@ export function Carnival({ onComplete, allowSkip = true }: { onComplete?: (score
         const correctAnswer = num1 + num2;
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setPopped(isCorrect);
+            setMessage({
+                text: isCorrect ? 'Pop! 🎈' : `Oops! It was ${correctAnswer}`,
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 }, colors: ['#ef4444', '#f59e0b', '#3b82f6', '#a855f7'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Pop! 🎈', type: 'success' });
@@ -73,7 +94,7 @@ export function Carnival({ onComplete, allowSkip = true }: { onComplete?: (score
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 }, colors: ['#ef4444', '#f59e0b', '#3b82f6', '#a855f7'] });
                 }, 1000);
             } else {
@@ -170,7 +191,7 @@ export function Carnival({ onComplete, allowSkip = true }: { onComplete?: (score
                         {/* Multiple Choice Options (3 choices for Carnival) */}
                         <div className="grid grid-cols-3 gap-4 w-full max-w-md">
                             {options.map((opt, index) => (
-                                <Button 
+                                <Button
                                     key={index}
                                     className="bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-4xl h-24 rounded-[1.5rem] active:translate-y-1 active:shadow-none transition-all border-none shadow-[0_6px_0_0_#0891b2]"
                                     onClick={() => checkAnswer(opt)}
@@ -226,7 +247,7 @@ export function Carnival({ onComplete, allowSkip = true }: { onComplete?: (score
                         </div>
                     </div>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-red-500 hover:bg-red-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#b91c1c] active:translate-y-1 active:shadow-none transition-all w-full"
                             onClick={() => {
@@ -238,12 +259,12 @@ export function Carnival({ onComplete, allowSkip = true }: { onComplete?: (score
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-red-500 hover:bg-red-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>

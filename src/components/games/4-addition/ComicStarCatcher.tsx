@@ -70,6 +70,27 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
         
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = leftStars.length === num1 && rightStars.length === num2;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setIsLaunching(isCorrect);
+            setMessage({
+                text: isCorrect ? 'Hyperdrive Engaged! 🚀' : 'Engine check! That answer is incorrect.',
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, colors: ['#22d3ee', '#f59e0b', '#c084fc', '#ffffff'] });
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
         if (leftStars.length === num1 && rightStars.length === num2) {
             setMessage({ text: 'Hyperdrive Engaged! 🚀', type: 'success' });
             setIsLaunching(true);
@@ -79,7 +100,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 }, colors: ['#22d3ee', '#f59e0b', '#c084fc', '#ffffff'] });
                 }, 1200);
             } else {
@@ -201,7 +222,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
 
                         </div>
 
-                        <Button 
+                        <Button
                             className="mt-6 bg-red-500 hover:bg-red-600 text-white font-black text-xl md:text-2xl h-16 px-8 rounded-full active:translate-y-1 active:shadow-none transition-all border-none shadow-[0_6px_0_0_#991b1b] uppercase tracking-wide"
                             onClick={checkAnswer}
                             disabled={message.type !== '' || isLaunching}
@@ -257,13 +278,13 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
                         <Button
                             size="lg"
                             className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full uppercase"
-                            onClick={() => onComplete?.(score, attempts)}
+                            onClick={() => onComplete?.(score, MAX_SCORE)}
                         >
                             Continue to Next Game
                         </Button>
                     )}
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black text-xl px-12 py-6 rounded-full shadow-[0_6px_0_0_#0891b2] active:translate-y-1 active:shadow-none transition-all w-full uppercase"
                             onClick={() => {
@@ -276,7 +297,7 @@ export function ComicStarCatcher({ onComplete, allowSkip = true }: { onComplete?
                             }}
                         >
                             Explore More! <Rocket className="ml-2 w-6 h-6" />
-                        </Button>
+                        </Button>}
                 </motion.div>
             )}
         </div>

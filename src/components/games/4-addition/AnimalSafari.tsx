@@ -79,6 +79,26 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: (s
         const correctAnswer = num1 + num2;
         const newAttempts = attempts + 1;
         setAttempts(value => value + 1);
+
+        if (allowSkip === false) {
+            const isCorrect = selected === correctAnswer;
+            const newScore = score + (isCorrect ? 1 : 0);
+            setScore(newScore);
+            setMessage({
+                text: isCorrect ? 'Great counting! 🎉' : `Oops! It was ${correctAnswer}`,
+                type: isCorrect ? 'success' : 'error',
+            });
+            setCurrentQuestion(q => q + 1);
+            setTimeout(() => {
+                if (newAttempts >= MAX_SCORE) {
+                    setIsCompleted(true);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+            return;
+        }
         
         if (selected === correctAnswer) {
             setMessage({ text: 'Spectacular! 🥳', type: 'success' });
@@ -88,7 +108,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: (s
             if (currentQuestion >= MAX_SCORE) {
                 setTimeout(() => {
                     setIsCompleted(true);
-                    if (allowSkip !== false) onComplete?.(newScore, newAttempts);
+                    onComplete?.(newScore, newAttempts);
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }, 1000);
             } else {
@@ -231,7 +251,7 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: (s
                     <h1 className="text-4xl md:text-5xl font-bold text-green-700 drop-shadow-sm">Safari Complete!</h1>
                     <p className="text-xl md:text-2xl text-green-600 font-medium mb-4">Score: {score}/{MAX_SCORE}</p>
                     
-                    <Button 
+                    {allowSkip !== false && <Button
                             size="lg" 
                             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xl px-12 py-6 rounded-full shadow-[0_4px_0_0_#047857] active:translate-y-1 active:shadow-none transition-all"
                             onClick={() => {
@@ -242,12 +262,12 @@ export function AnimalSafari({ onComplete, allowSkip = true }: { onComplete?: (s
                                 generateQuestion();
                             }}
                         > Repeat Game <Play className="ml-2 w-6 h-6 fill-current" />
-                        </Button>
+                        </Button>}
                         {onComplete && allowSkip === false && (
                             <Button
                                 size="lg"
                                 className="bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-12 py-6 rounded-full"
-                                onClick={() => onComplete?.(score, attempts)}
+                                onClick={() => onComplete?.(score, MAX_SCORE)}
                             >
                                 Continue to Next Game
                             </Button>
