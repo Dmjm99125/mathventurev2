@@ -103,7 +103,7 @@ import {
   type AttemptGameResultInput,
 } from '@/lib/games/attempt-results';
 import { buildStudentLessonExitHref } from '@/lib/student/portal';
-import { getFreePlayGameCount, isFreePlayDrawingBoard } from '@/lib/games/free-play';
+import { getFreePlayGameCount, isDrawingBoardAvailable } from '@/lib/games/free-play';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
@@ -637,7 +637,7 @@ export function QuizPage() {
 
       {(gameState === 'playing' || gameState === 'feedback') && question && (
         <AssignedQuizGameNavigation allowSkip={!isAssignedQuiz}>
-          {!isAssignedQuiz && isFreePlayDrawingBoard(topic, currentIndex) ? (
+          {isDrawingBoardAvailable(topic, currentIndex, isAssignedQuiz) ? (
             <DrawingCanvas onComplete={handleStructuredGameComplete} />
           ) : topic === 'colors' && currentIndex === 0 ? (
           <ColorMatchingGame onComplete={handleStructuredGameComplete} />

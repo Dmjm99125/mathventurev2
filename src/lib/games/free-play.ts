@@ -27,3 +27,11 @@ export function getFreePlayGameCount(topicId: string): number {
 export function isFreePlayDrawingBoard(topicId: string, gameOrder: number): boolean {
   return FREE_PLAY_DRAWING_BOARD_GAME_ORDERS[topicId as TeacherTopicId] === gameOrder;
 }
+
+export function isDrawingBoardAvailable(
+  topicId: string,
+  gameOrder: number,
+  isAssignedQuiz: boolean,
+): boolean {
+  return !isAssignedQuiz && isFreePlayDrawingBoard(topicId, gameOrder);
+}
