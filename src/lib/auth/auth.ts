@@ -1,10 +1,13 @@
 import { supabase } from '../supabase/client';
-import { invokeFunction, type Role } from '../api';
+import { invokeFunction, invokeTeacherFunction, type Role } from '../api';
+import { studentSupabase } from '../supabase/student-client';
 import {
   buildVerifyOtpParams,
+  isStudentSessionPayload,
   type StudentLoginResponse,
   type StudentSessionPayload,
 } from './student-auth';
+import { profileFromAuthSession, type UserProfile } from './profile';
 
 // Auth (sign up / sign in / sign out / session) talks to Supabase Auth
 // directly via the anon client -- this is the one exception to "always go
@@ -48,6 +51,35 @@ export async function studentSignIn(input: {
   return completeStudentSession(response);
 }
 
+export async function viewStudentAccount(studentId: string): Promise<UserProfile> {
+  const response = await invokeTeacherFunction<StudentSessionPayload>('student-view-as', {
+    method: 'POST',
+    body: { studentId },
+  });
+
+  if (!isStudentSessionPayload(response)) {
+    throw new Error("We couldn't open that student account.");
+  }
+
+  const { data, error } = await studentSupabase.auth.verifyOtp(
+    buildVerifyOtpParams(response),
+  );
+  if (error) throw error;
+
+  const profile = profileFromAuthSession(data.session);
+  if (!profile || profile.role !== 'student') {
+    await studentSupabase.auth.signOut();
+    throw new Error("We couldn't open that student account.");
+  }
+
+  return profile;
+}
+
+export async function returnToTeacherAccount() {
+  const { error } = await studentSupabase.auth.signOut();
+  if (error) throw error;
+}
+
 export async function signUp(email: string, password: string, role: Role, fullName: string) {
   if (role !== 'teacher') {
     throw new Error('Student sign up requires the name-based student flow.');
@@ -60,8 +92,12 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  const [studentResult, teacherResult] = await Promise.all([
+    studentSupabase.auth.signOut(),
+    supabase.auth.signOut(),
+  ]);
+  if (studentResult.error) throw studentResult.error;
+  if (teacherResult.error) throw teacherResult.error;
 }
 
 export async function getProfile(): Promise<{ id: string; role: Role; full_name: string } | null> {
