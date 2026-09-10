@@ -66,7 +66,10 @@ export function TeacherAddStudentsDialog({
   };
 
   const content = (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div
+      className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain"
+      data-vaul-no-drag
+    >
       {state.step === 'source' && (
         <TeacherAddStudentsSourcePicker
           onSelect={(source) => {
@@ -129,8 +132,8 @@ export function TeacherAddStudentsDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
-        <DrawerContent className="h-[100dvh] rounded-none border-0 px-4 pb-6">
+      <Drawer fixed open={open} onOpenChange={handleOpenChange}>
+        <DrawerContent className="h-[100dvh] max-h-[100dvh] overflow-hidden rounded-none border-0 px-4 pb-6">
           <DrawerHeader className="px-0 pt-6 text-left">
             <DrawerTitle>Add Students</DrawerTitle>
             <DrawerDescription>
