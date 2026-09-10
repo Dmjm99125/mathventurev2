@@ -28,7 +28,19 @@ Deno.test("Free Play identifies only the historical drawing-board slots", () => 
 });
 
 Deno.test("classroom quizzes never expose a Free Play drawing-board slot", () => {
-  assertEquals(isDrawingBoardAvailable("measurement", 6, true), false);
-  assertEquals(isDrawingBoardAvailable("measurement", 6, false), true);
+  const drawingBoards = [
+    ["shapes", 8],
+    ["sequencing", 9],
+    ["addition", 15],
+    ["subtraction", 9],
+    ["numbers", 8],
+    ["measurement", 6],
+  ] as const;
+
+  for (const [topicId, gameOrder] of drawingBoards) {
+    assertEquals(isDrawingBoardAvailable(topicId, gameOrder, false), true);
+    assertEquals(isDrawingBoardAvailable(topicId, gameOrder, true), false);
+  }
+
   assertEquals(isDrawingBoardAvailable("measurement", 5, true), false);
 });

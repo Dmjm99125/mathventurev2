@@ -22,6 +22,12 @@ export type TeacherAssignedQuiz = {
   students: TeacherAssignedQuizStudent[];
 };
 
+export function getTeacherAssignedQuizName(
+  assignment: Pick<AssignmentForTeacher, 'name' | 'lessonId'>,
+): string {
+  return assignment.name?.trim() || assignment.lessonId;
+}
+
 export function buildTeacherAssignedQuizzes(
   assignments: AssignmentForTeacher[],
   students: TeacherClassStudent[],

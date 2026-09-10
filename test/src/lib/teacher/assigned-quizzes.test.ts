@@ -1,6 +1,9 @@
 import { assertEquals } from "jsr:@std/assert";
 import type { AssignmentForTeacher, TeacherClassStudent } from "../../../../src/lib/api/client.ts";
-import { buildTeacherAssignedQuizzes } from "../../../../src/lib/teacher/assigned-quizzes.ts";
+import {
+  buildTeacherAssignedQuizzes,
+  getTeacherAssignedQuizName,
+} from "../../../../src/lib/teacher/assigned-quizzes.ts";
 
 const students: TeacherClassStudent[] = [
   {
@@ -29,12 +32,18 @@ const classAssignment: AssignmentForTeacher = {
 Deno.test("joins class assignments to scored and unstarted students", () => {
   const [quiz] = buildTeacherAssignedQuizzes([classAssignment], students);
 
+  assertEquals(getTeacherAssignedQuizName(quiz.assignment), "Addition Check");
   assertEquals(quiz.students.map((student) => student.id), ["student-1", "student-2"]);
   assertEquals(quiz.students[0].overallScorePct, 80);
   assertEquals(quiz.students[0].gameScores[0].gameId, "addition");
   assertEquals(quiz.students[1].status, "not_started");
   assertEquals(quiz.students[1].overallScore, null);
   assertEquals(quiz.students[1].gameScores, []);
+});
+
+Deno.test("uses the lesson id only when an assignment has no custom name", () => {
+  assertEquals(getTeacherAssignedQuizName({ name: "  ", lessonId: "addition" }), "addition");
+  assertEquals(getTeacherAssignedQuizName({ name: "My Addition Quiz", lessonId: "addition" }), "My Addition Quiz");
 });
 
 Deno.test("limits directly targeted assignments to the target student", () => {

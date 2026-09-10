@@ -370,12 +370,15 @@ export function QuizPage() {
     if (isSavingGameRef.current) return;
     isSavingGameRef.current = true;
     setIsSavingGame(true);
-    const nextResults = withCurrentGameResult(gameResults, gameScore, gameMaxScore);
+    const isDrawingBoardGame = isDrawingBoardAvailable(topic, currentIndex, isAssignedQuiz);
+    const nextResults = isDrawingBoardGame
+      ? gameResults
+      : withCurrentGameResult(gameResults, gameScore, gameMaxScore);
     setGameResults(nextResults);
 
     try {
       if (currentIndex < questions.length - 1) {
-        const nextScore = score + gameScore;
+        const nextScore = score + (isDrawingBoardGame ? 0 : gameScore);
         if (!(await saveQuizCheckpoint(nextResults[nextResults.length - 1], nextScore))) return;
         setScore(nextScore);
         setCurrentIndex((value) => value + 1);
@@ -384,7 +387,7 @@ export function QuizPage() {
         return;
       }
 
-      const finalScore = score + gameScore;
+      const finalScore = score + (isDrawingBoardGame ? 0 : gameScore);
       const didSave = await finishAttempt(nextResults, finalScore);
       if (!didSave) return;
       setScore(finalScore);

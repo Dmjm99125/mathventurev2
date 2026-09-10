@@ -1,5 +1,5 @@
 import { GAME_CATALOG } from '@/lib/games/catalog';
-import type { TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
+import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
 
 export type TeacherAssignedQuizPdfStudentSection = {
   studentName: string;
@@ -49,11 +49,12 @@ export function buildTeacherAssignedQuizPdfModel(
   generatedAt = new Date().toISOString(),
 ): TeacherAssignedQuizPdfModel {
   const { assignment, students } = quiz;
+  const quizName = getTeacherAssignedQuizName(assignment);
   const games = GAME_CATALOG.filter((game) => game.topicId === assignment.lessonId);
 
   return {
-    filename: `quiz-${slugify(assignment.name || assignment.lessonId)}-results.pdf`,
-    title: assignment.name || assignment.lessonId,
+    filename: `quiz-${slugify(quizName)}-results.pdf`,
+    title: quizName,
     subtitle: `Quiz results | ${assignment.lessonId} | ${students.length} student${students.length === 1 ? '' : 's'}`,
     generatedAt: formatDate(generatedAt),
     assignedAt: formatDate(assignment.createdAt),

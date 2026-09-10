@@ -4,7 +4,7 @@ import { Button, Card } from '@/components/ui';
 import { TeacherAssignedQuizPdfButton } from '@/components/teacher/TeacherAssignedQuizPdfButton';
 import type { AssignmentQuizStatus } from '@/lib/api/client';
 import { GAME_CATALOG } from '@/lib/games/catalog';
-import type { TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
+import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
 
 function formatScore(score: number | null, maxScore: number | null, scorePct: number | null) {
   return score == null || maxScore == null || scorePct == null
@@ -62,6 +62,7 @@ export function TeacherAssignedQuizzes({
   return (
     <div className="grid min-w-0 gap-4">
       {assignments.map(({ assignment, students }) => {
+        const assignmentName = getTeacherAssignedQuizName(assignment);
         const isAssignmentExpanded = expandedAssignmentId === assignment.id;
         const assignmentDetailsId = `assigned-quiz-details-${assignment.id}`;
         const completedCount = students.filter((student) => student.status === 'completed').length;
@@ -81,7 +82,7 @@ export function TeacherAssignedQuizzes({
                 }}
               >
                 <span className="block truncate text-lg font-extrabold sm:text-xl">
-                  {assignment.name || assignment.lessonId}
+                  {assignmentName}
                 </span>
                 <span className="mt-1 block text-sm font-bold text-muted-foreground">
                   Lesson: {assignment.lessonId}
@@ -97,7 +98,7 @@ export function TeacherAssignedQuizzes({
                 <TeacherAssignedQuizPdfButton quiz={{ assignment, students }} />
                 <button
                   type="button"
-                  aria-label={`${isAssignmentExpanded ? 'Collapse' : 'Expand'} ${assignment.name || assignment.lessonId}`}
+                  aria-label={`${isAssignmentExpanded ? 'Collapse' : 'Expand'} ${assignmentName}`}
                   aria-expanded={isAssignmentExpanded}
                   aria-controls={assignmentDetailsId}
                   className="rounded-xl p-2 hover:bg-muted"

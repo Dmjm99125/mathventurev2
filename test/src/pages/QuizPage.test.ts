@@ -111,8 +111,16 @@ Deno.test("structured game completion retries the original final result after a 
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
   assertEquals(source.includes("if (pendingCompletion) {\n      await retryCompletion();\n      return;\n    }"), true);
-  const finalScoreIndex = source.indexOf("const finalScore = score + gameScore;");
+  const finalScoreIndex = source.indexOf("const finalScore = score + (isDrawingBoardGame ? 0 : gameScore);");
   const didSaveIndex = source.indexOf("const didSave = await finishAttempt(nextResults, finalScore);", finalScoreIndex);
   const setScoreIndex = source.indexOf("setScore(finalScore);", finalScoreIndex);
   assertEquals(didSaveIndex < setScoreIndex, true);
+});
+
+Deno.test("Free Play drawing-board completion does not create a catalog result", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("const isDrawingBoardGame = isDrawingBoardAvailable(topic, currentIndex, isAssignedQuiz);"), true);
+  assertEquals(source.includes("const nextResults = isDrawingBoardGame\n      ? gameResults\n      : withCurrentGameResult(gameResults, gameScore, gameMaxScore);"), true);
+  assertEquals(source.includes("const finalScore = score + (isDrawingBoardGame ? 0 : gameScore);"), true);
 });

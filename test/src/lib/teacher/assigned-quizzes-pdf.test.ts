@@ -27,6 +27,7 @@ Deno.test("buildTeacherAssignedQuizPdfModel includes summary and every quiz-mode
   const model = buildTeacherAssignedQuizPdfModel(quiz, "2026-09-10T00:00:00Z");
 
   assertEquals(model.filename, "quiz-addition-check-results.pdf");
+  assertEquals(model.title, "Addition Check");
   assertEquals(model.assignedAt, "2026-09-01");
   assertEquals(model.dueAt, "2026-09-30");
   assertEquals(model.summaryRows[0], ["Lovelace", "Ada", "8 / 10 (80%)", "Completed"]);
