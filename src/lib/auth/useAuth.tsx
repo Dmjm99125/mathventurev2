@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { resetActiveAuthClient, setActiveAuthClient } from '../api';
 import { supabase } from '../supabase/client';
 import { studentSupabase } from '../supabase/student-client';
 import {
@@ -48,13 +49,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const teacherProfile = profile?.role === 'teacher' ? profile : null;
       const studentProfile = profileFromAuthSession(studentSessionResult.data.session);
       setTeacherUser(teacherProfile);
-      setViewingStudent(teacherProfile && studentProfile?.role === 'student'
+      const activeStudent = teacherProfile && studentProfile?.role === 'student'
         ? studentProfile
-        : null);
+        : null;
+      if (activeStudent) {
+        setActiveAuthClient(studentSupabase);
+      } else {
+        resetActiveAuthClient();
+      }
+      setViewingStudent(activeStudent);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setTeacherUser(null);
       setViewingStudent(null);
+      resetActiveAuthClient();
     } finally {
       setIsLoading(false);
     }
@@ -83,13 +91,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTeacherUser(profile?.role === 'teacher' ? profile : null);
       if (!profile) {
         setViewingStudent(null);
+        resetActiveAuthClient();
       }
       setIsLoading(false);
     });
 
     const { data: { subscription: studentSubscription } } = studentSupabase.auth.onAuthStateChange((_event, session) => {
       const profile = profileFromAuthSession(session);
-      setViewingStudent(profile?.role === 'student' ? profile : null);
+      if (profile?.role === 'student') {
+        setActiveAuthClient(studentSupabase);
+        setViewingStudent(profile);
+      } else {
+        resetActiveAuthClient();
+        setViewingStudent(null);
+      }
     });
 
     return () => {

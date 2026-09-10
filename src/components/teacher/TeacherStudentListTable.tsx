@@ -4,9 +4,13 @@ import type { TeacherClassStudent } from '@/lib/api';
 export function TeacherStudentListTable({
   students,
   onRemove,
+  onView,
+  viewingStudentId = null,
 }: {
   students: TeacherClassStudent[];
   onRemove(student: TeacherClassStudent): void;
+  onView(student: TeacherClassStudent): void;
+  viewingStudentId?: string | null;
 }) {
   return (
     <div className="min-w-0 overflow-x-auto rounded-[24px] border-2 border-border bg-white">
@@ -35,9 +39,19 @@ export function TeacherStudentListTable({
                 {new Date(student.joinedAt).toLocaleDateString()}
               </td>
               <td className="whitespace-nowrap p-4 text-right">
-                <Button variant="danger" size="sm" onClick={() => onRemove(student)}>
-                  Remove
-                </Button>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="jungle"
+                    size="sm"
+                    onClick={() => onView(student)}
+                    disabled={viewingStudentId === student.id}
+                  >
+                    {viewingStudentId === student.id ? 'Viewing' : 'View Account'}
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => onRemove(student)}>
+                    Remove
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/useLanguage';
@@ -31,13 +31,37 @@ function isAppNavItemActive(location: string, href: string, isTeacher: boolean) 
 }
 
 export function TopNav() {
-  const { user } = useAuth();
+  const {
+    user,
+    isViewingStudent,
+    viewingStudent,
+    returnToTeacherAccount,
+  } = useAuth();
   const { lang, setLang, t } = useLanguage();
   const [location, setLocation] = useLocation();
+  const [isReturning, setIsReturning] = useState(false);
+  const [returnError, setReturnError] = useState<string | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
     setLocation('/');
+  };
+
+  const handleReturnToTeacher = async () => {
+    setIsReturning(true);
+    setReturnError(null);
+    try {
+      await returnToTeacherAccount();
+      setLocation('/teacher');
+    } catch (caught) {
+      setReturnError(
+        caught instanceof Error
+          ? caught.message
+          : "We couldn't return to the teacher account right now.",
+      );
+    } finally {
+      setIsReturning(false);
+    }
   };
 
   const toggleLang = () => {
@@ -55,6 +79,24 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {isViewingStudent && viewingStudent && (
+        <div className="border-b-2 border-primary/20 bg-primary px-4 py-2 text-primary-foreground">
+          <div className="container mx-auto flex flex-col gap-2 text-sm font-bold sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              Viewing account as <span className="font-extrabold">{viewingStudent.full_name}</span>
+              {returnError && <span className="ml-2 text-red-100">{returnError}</span>}
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleReturnToTeacher}
+              disabled={isReturning}
+            >
+              {isReturning ? 'Returning...' : 'Return to teacher account'}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href={user ? (user.role === 'student' ? '/student' : '/teacher') : '/'}>

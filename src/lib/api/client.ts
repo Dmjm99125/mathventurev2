@@ -14,6 +14,16 @@ export type AuthClient = {
   functions: Pick<typeof supabase.functions, 'invoke'>;
 };
 
+let activeAuthClient: AuthClient = supabase;
+
+export function setActiveAuthClient(client: AuthClient) {
+  activeAuthClient = client;
+}
+
+export function resetActiveAuthClient() {
+  activeAuthClient = supabase;
+}
+
 export type InvokeFunctionOptions = {
   method?: 'GET' | 'POST';
   body?: Record<string, unknown>;
@@ -163,7 +173,7 @@ export interface TeacherDashboard {
 export async function invokeFunction<T>(
   name: string,
   options?: InvokeFunctionOptions,
-  client: AuthClient = supabase,
+  client: AuthClient = activeAuthClient,
 ): Promise<T> {
   const query = options?.searchParams
     ? `?${new URLSearchParams(options.searchParams).toString()}`

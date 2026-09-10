@@ -23,6 +23,7 @@ import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentList
 import { TeacherStudentProgressTable } from '@/components/teacher/TeacherStudentProgressTable';
 import { TeacherAssignedQuizzes } from '@/components/teacher/TeacherAssignedQuizzes';
 import { TeacherAssignQuizDialog } from '@/components/teacher/TeacherAssignQuizDialog';
+import { useAuth } from '@/lib/auth';
 import {
   Select,
   SelectContent,
@@ -42,6 +43,8 @@ import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary
 import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
 
 export function TeacherWorkspacePage() {
+  const [, setLocation] = useLocation();
+  const { viewStudentAccount, viewingStudent } = useAuth();
   const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
   const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
   const {
@@ -55,6 +58,8 @@ export function TeacherWorkspacePage() {
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress' | 'assignments'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
+  const [viewError, setViewError] = useState<string | null>(null);
+  const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
 
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null;
   const students = (rosterData?.students ?? []) as TeacherClassStudent[];
@@ -62,6 +67,23 @@ export function TeacherWorkspacePage() {
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
   );
   const assignedQuizzes = buildTeacherAssignedQuizzes(teacherAssignments, students);
+
+  const handleViewStudent = async (student: TeacherClassStudent) => {
+    setViewError(null);
+    setViewingStudentId(student.id);
+    try {
+      await viewStudentAccount(student.id);
+      setLocation('/student');
+    } catch (caught) {
+      setViewError(
+        caught instanceof Error
+          ? caught.message
+          : "We couldn't open that student account right now.",
+      );
+    } finally {
+      setViewingStudentId(null);
+    }
+  };
 
   if (classroomLoading || rosterLoading || assignmentsLoading) {
     return <div className="p-8 text-center font-bold">Loading classroom...</div>;
@@ -102,6 +124,12 @@ export function TeacherWorkspacePage() {
         classId={classroom.id}
       />
 
+      {viewError && (
+        <Card className="mb-5 rounded-[24px] border-destructive/30 bg-destructive/5 p-4 font-bold text-destructive">
+          {viewError}
+        </Card>
+      )}
+
       <div className="mb-5 w-full max-w-sm">
         <label htmlFor="teacher-classroom-view" className="sr-only">Classroom view</label>
         <Select
@@ -120,7 +148,12 @@ export function TeacherWorkspacePage() {
       </div>
 
       {activeTab === 'students' ? (
-        <TeacherStudentListTable students={students} onRemove={setPendingRemoval} />
+        <TeacherStudentListTable
+          students={students}
+          onRemove={setPendingRemoval}
+          onView={handleViewStudent}
+          viewingStudentId={viewingStudent?.id ?? viewingStudentId}
+        />
       ) : activeTab === 'progress' ? (
         <TeacherStudentProgressTable students={students} />
       ) : (

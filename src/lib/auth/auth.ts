@@ -1,10 +1,14 @@
 import { supabase } from '../supabase/client';
-import { invokeFunction, invokeTeacherFunction, type Role } from '../api';
+import {
+  invokeTeacherFunction,
+  resetActiveAuthClient,
+  setActiveAuthClient,
+  type Role,
+} from '../api';
 import { studentSupabase } from '../supabase/student-client';
 import {
   buildVerifyOtpParams,
   isStudentSessionPayload,
-  type StudentLoginResponse,
   type StudentSessionPayload,
 } from './student-auth';
 import { profileFromAuthSession, type UserProfile } from './profile';
@@ -30,27 +34,6 @@ export async function teacherSignIn(email: string, password: string) {
   return data;
 }
 
-async function completeStudentSession(payload: StudentSessionPayload) {
-  const { data, error } = await supabase.auth.verifyOtp(buildVerifyOtpParams(payload));
-  if (error) throw error;
-  return data;
-}
-
-export async function studentSignIn(input: {
-  teacherFirstName: string;
-  lastName: string;
-  firstName: string;
-}) {
-  const response = await invokeFunction<StudentLoginResponse>('student-login', {
-    method: 'POST',
-    body: input,
-  });
-  if (response.status === 'invalid_credentials') {
-    throw new Error("We couldn't sign you in with that information.");
-  }
-  return completeStudentSession(response);
-}
-
 export async function viewStudentAccount(studentId: string): Promise<UserProfile> {
   const response = await invokeTeacherFunction<StudentSessionPayload>('student-view-as', {
     method: 'POST',
@@ -72,12 +55,14 @@ export async function viewStudentAccount(studentId: string): Promise<UserProfile
     throw new Error("We couldn't open that student account.");
   }
 
+  setActiveAuthClient(studentSupabase);
   return profile;
 }
 
 export async function returnToTeacherAccount() {
   const { error } = await studentSupabase.auth.signOut();
   if (error) throw error;
+  resetActiveAuthClient();
 }
 
 export async function signUp(email: string, password: string, role: Role, fullName: string) {
@@ -96,6 +81,7 @@ export async function signOut() {
     studentSupabase.auth.signOut(),
     supabase.auth.signOut(),
   ]);
+  resetActiveAuthClient();
   if (studentResult.error) throw studentResult.error;
   if (teacherResult.error) throw teacherResult.error;
 }
