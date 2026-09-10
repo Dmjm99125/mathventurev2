@@ -13,6 +13,34 @@ import {
 } from './student-auth';
 import { profileFromAuthSession, type UserProfile } from './profile';
 
+export type TeacherReturnAuthError = { message: string };
+
+export type TeacherReturnDeps = {
+  getTeacherEmail: () => Promise<string | null>;
+  verifyTeacherPassword: (
+    email: string,
+    password: string,
+  ) => Promise<TeacherReturnAuthError | null>;
+  signOutStudent: () => Promise<TeacherReturnAuthError | null>;
+};
+
+const defaultTeacherReturnDeps: TeacherReturnDeps = {
+  async getTeacherEmail() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.user.email ?? null;
+  },
+  async verifyTeacherPassword(email, password) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? { message: error.message } : null;
+  },
+  async signOutStudent() {
+    const { error } = await studentSupabase.auth.signOut();
+    return error ? { message: error.message } : null;
+  },
+};
+
 // Auth (sign up / sign in / sign out / session) talks to Supabase Auth
 // directly via the anon client -- this is the one exception to "always go
 // through an edge function", since Supabase Auth is itself the
@@ -59,9 +87,26 @@ export async function viewStudentAccount(studentId: string): Promise<UserProfile
   return profile;
 }
 
-export async function returnToTeacherAccount() {
-  const { error } = await studentSupabase.auth.signOut();
-  if (error) throw error;
+export async function returnToTeacherAccount(
+  password: string,
+  deps: TeacherReturnDeps = defaultTeacherReturnDeps,
+) {
+  if (!password.trim()) {
+    throw new Error('Teacher password is required.');
+  }
+
+  const email = await deps.getTeacherEmail();
+  if (!email) {
+    throw new Error('Teacher session unavailable.');
+  }
+
+  const verifyError = await deps.verifyTeacherPassword(email, password);
+  if (verifyError) {
+    throw new Error('Incorrect teacher password.');
+  }
+
+  const signOutError = await deps.signOutStudent();
+  if (signOutError) throw new Error(signOutError.message);
   resetActiveAuthClient();
 }
 

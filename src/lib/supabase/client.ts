@@ -7,12 +7,15 @@ const denoEnv = (globalThis as {
   Deno?: { env?: { get(name: string): string | undefined } };
 }).Deno?.env;
 
-export const supabaseUrl = runtimeEnv.VITE_SUPABASE_URL ?? denoEnv?.get('VITE_SUPABASE_URL');
-export const supabaseAnonKey = runtimeEnv.VITE_SUPABASE_ANON_KEY ?? denoEnv?.get('VITE_SUPABASE_ANON_KEY');
+const rawSupabaseUrl = runtimeEnv.VITE_SUPABASE_URL ?? denoEnv?.get('VITE_SUPABASE_URL');
+const rawSupabaseAnonKey = runtimeEnv.VITE_SUPABASE_ANON_KEY ?? denoEnv?.get('VITE_SUPABASE_ANON_KEY');
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!rawSupabaseUrl || !rawSupabaseAnonKey) {
   throw new Error('Supabase URL/anon key are missing from the client build.');
 }
+
+export const supabaseUrl: string = rawSupabaseUrl;
+export const supabaseAnonKey: string = rawSupabaseAnonKey;
 
 // This is the ONLY Supabase client in the app. It is used exclusively for
 // authentication (sign up / sign in / sign out / session management).

@@ -5,6 +5,9 @@ import {
   type AuthViewState,
 } from "../../../../src/lib/auth/session-state.ts";
 
+Deno.env.set("VITE_SUPABASE_URL", "https://example.supabase.co");
+Deno.env.set("VITE_SUPABASE_ANON_KEY", "test-anon-key");
+
 Deno.test("profileFromAuthSession maps an authenticated session without another auth request", () => {
   const session: AuthSessionLike = {
     user: {
@@ -43,4 +46,57 @@ Deno.test("student view keeps the teacher profile available while making the stu
     viewingStudent: null,
     isViewingStudent: false,
   } satisfies AuthViewState);
+});
+
+const { returnToTeacherAccount } = await import("../../../../src/lib/auth/auth.ts");
+type TeacherReturnDeps = import("../../../../src/lib/auth/auth.ts").TeacherReturnDeps;
+
+Deno.test("returning to teacher verifies the teacher password before ending student mode", async () => {
+  const calls: string[] = [];
+  const deps: TeacherReturnDeps = {
+    getTeacherEmail: async () => {
+      calls.push("email");
+      return "teacher@example.com";
+    },
+    verifyTeacherPassword: async (email, password) => {
+      calls.push(`verify:${email}:${password}`);
+      return null;
+    },
+    signOutStudent: async () => {
+      calls.push("student-signout");
+      return null;
+    },
+  };
+
+  await returnToTeacherAccount("secret", deps);
+
+  assertEquals(calls, [
+    "email",
+    "verify:teacher@example.com:secret",
+    "student-signout",
+  ]);
+});
+
+Deno.test("returning to teacher does not end student mode after a wrong password", async () => {
+  let signedOut = false;
+  let caughtMessage: string | null = null;
+  const deps: TeacherReturnDeps = {
+    getTeacherEmail: async () => "teacher@example.com",
+    verifyTeacherPassword: async () => ({ message: "Invalid login credentials" }),
+    signOutStudent: async () => {
+      signedOut = true;
+      return null;
+    },
+  };
+
+  await (async () => {
+    try {
+      await returnToTeacherAccount("wrong", deps);
+    } catch (error) {
+      caughtMessage = (error as Error).message;
+    }
+  })();
+
+  assertEquals(caughtMessage, "Incorrect teacher password.");
+  assertEquals(signedOut, false);
 });

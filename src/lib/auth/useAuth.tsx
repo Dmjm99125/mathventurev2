@@ -19,7 +19,7 @@ export type AuthContextType = {
   isLoading: boolean;
   refreshProfile: () => Promise<void>;
   viewStudentAccount: (studentId: string) => Promise<void>;
-  returnToTeacherAccount: () => Promise<void>;
+  returnToTeacherAccount: (password: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -74,8 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setViewingStudent(studentProfile);
   };
 
-  const returnToTeacherAccount = async () => {
-    await clearStudentAccount();
+  const returnToTeacherAccount = async (password: string) => {
+    await clearStudentAccount(password);
     queryClient.clear();
     setViewingStudent(null);
   };

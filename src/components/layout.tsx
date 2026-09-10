@@ -5,9 +5,10 @@ import { useLanguage } from '@/lib/i18n/useLanguage';
 import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student/navigation';
 import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { signOut } from '@/lib/auth';
-import { Button } from './ui';
+import { Button, Input } from './ui';
 import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/shared/utils';
 
 function getTeacherNavItems(t: (key: string) => string) {
@@ -40,6 +41,8 @@ export function TopNav() {
   const { lang, setLang, t } = useLanguage();
   const [location, setLocation] = useLocation();
   const [isReturning, setIsReturning] = useState(false);
+  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  const [teacherPassword, setTeacherPassword] = useState('');
   const [returnError, setReturnError] = useState<string | null>(null);
 
   const handleSignOut = async () => {
@@ -47,11 +50,19 @@ export function TopNav() {
     setLocation('/');
   };
 
-  const handleReturnToTeacher = async () => {
+  const handleReturnToTeacher = () => {
+    setTeacherPassword('');
+    setReturnError(null);
+    setIsReturnDialogOpen(true);
+  };
+
+  const handleConfirmReturn = async () => {
     setIsReturning(true);
     setReturnError(null);
     try {
-      await returnToTeacherAccount();
+      await returnToTeacherAccount(teacherPassword);
+      setIsReturnDialogOpen(false);
+      setTeacherPassword('');
       setLocation('/teacher');
     } catch (caught) {
       setReturnError(
@@ -84,7 +95,6 @@ export function TopNav() {
           <div className="container mx-auto flex flex-col gap-2 text-sm font-bold sm:flex-row sm:items-center sm:justify-between">
             <p>
               Viewing account as <span className="font-extrabold">{viewingStudent.full_name}</span>
-              {returnError && <span className="ml-2 text-red-100">{returnError}</span>}
             </p>
             <Button
               variant="secondary"
@@ -97,6 +107,55 @@ export function TopNav() {
           </div>
         </div>
       )}
+      <Dialog
+        open={isReturnDialogOpen}
+        onOpenChange={(open) => {
+          setIsReturnDialogOpen(open);
+          if (!open) {
+            setTeacherPassword('');
+            setReturnError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Return to teacher account?</DialogTitle>
+            <DialogDescription>
+              Are you sure? Enter the teacher password to end student view and return.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label htmlFor="teacher-return-password" className="text-sm font-bold">
+              Teacher password
+            </label>
+            <Input
+              id="teacher-return-password"
+              type="password"
+              value={teacherPassword}
+              onChange={(event) => setTeacherPassword(event.target.value)}
+              autoComplete="current-password"
+              disabled={isReturning}
+            />
+            {returnError && <p className="text-sm font-bold text-destructive">{returnError}</p>}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsReturnDialogOpen(false)}
+              disabled={isReturning}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleConfirmReturn}
+              disabled={isReturning || !teacherPassword}
+            >
+              {isReturning ? 'Verifying...' : 'Confirm and return'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href={user ? (user.role === 'student' ? '/student' : '/teacher') : '/'}>
@@ -145,10 +204,12 @@ export function TopNav() {
                     <DropdownMenuSeparator />
                   </div>
 
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    {t('common.logout')}
-                  </DropdownMenuItem>
+                  {!isViewingStudent && (
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-2">
+                      <LogOut className="h-4 w-4" />
+                      {t('common.logout')}
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
