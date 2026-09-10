@@ -1,7 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const runtimeEnv = (import.meta as ImportMeta & {
+  env?: Record<string, string | undefined>;
+}).env ?? {};
+const denoEnv = (globalThis as {
+  Deno?: { env?: { get(name: string): string | undefined } };
+}).Deno?.env;
+
+export const supabaseUrl = runtimeEnv.VITE_SUPABASE_URL ?? denoEnv?.get('VITE_SUPABASE_URL');
+export const supabaseAnonKey = runtimeEnv.VITE_SUPABASE_ANON_KEY ?? denoEnv?.get('VITE_SUPABASE_ANON_KEY');
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase URL/anon key are missing from the client build.');

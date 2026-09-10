@@ -10,6 +10,16 @@ import type {
 
 export type Role = 'student' | 'teacher';
 
+export type AuthClient = {
+  functions: Pick<typeof supabase.functions, 'invoke'>;
+};
+
+export type InvokeFunctionOptions = {
+  method?: 'GET' | 'POST';
+  body?: Record<string, unknown>;
+  searchParams?: Record<string, string>;
+};
+
 export interface TeacherClassroomSummary {
   id: string;
   createdAt: string;
@@ -152,12 +162,13 @@ export interface TeacherDashboard {
 // service role key. The browser never queries app tables directly.
 export async function invokeFunction<T>(
   name: string,
-  options?: { method?: 'GET' | 'POST'; body?: Record<string, unknown>; searchParams?: Record<string, string> },
+  options?: InvokeFunctionOptions,
+  client: AuthClient = supabase,
 ): Promise<T> {
   const query = options?.searchParams
     ? `?${new URLSearchParams(options.searchParams).toString()}`
     : '';
-  const { data, error } = await supabase.functions.invoke(`${name}${query}`, {
+  const { data, error } = await client.functions.invoke(`${name}${query}`, {
     method: options?.method ?? 'GET',
     body: options?.body,
   });
@@ -168,6 +179,13 @@ export async function invokeFunction<T>(
     throw new Error(message ?? error.message ?? 'Request failed');
   }
   return data as T;
+}
+
+export function invokeTeacherFunction<T>(
+  name: string,
+  options?: InvokeFunctionOptions,
+): Promise<T> {
+  return invokeFunction<T>(name, options, supabase);
 }
 
 export const api = {
