@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { studentRegister, studentSignIn, teacherSignIn, teacherSignUp } from '@/lib/auth';
+import { studentSignIn, teacherSignIn, teacherSignUp } from '@/lib/auth';
 import { Button, Input, Label, Card } from '@/components/ui';
 import type { Role } from '@/lib/api';
 import { Map, Leaf, Compass, ArrowLeft } from 'lucide-react';
@@ -144,7 +144,7 @@ export function Login() {
         </form>
 
         <p className="mt-6 text-center text-sm font-bold text-muted-foreground">
-          Don't have an account? <Link href="/signup"><span className="text-primary hover:underline cursor-pointer">Sign Up</span></Link>
+          Are you a teacher? <Link href="/signup"><span className="text-primary hover:underline cursor-pointer">Create an account</span></Link>
         </p>
       </Card>
     </div>
@@ -152,13 +152,9 @@ export function Login() {
 }
 
 export function Signup() {
-  const [role, setRole] = useState<Role>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [teacherFirstName, setTeacherFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [firstName, setFirstName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
@@ -169,12 +165,8 @@ export function Signup() {
     setError('');
     setLoading(true);
     try {
-      if (role === 'teacher') {
-        await teacherSignUp(email, password, fullName);
-        await teacherSignIn(email, password);
-      } else {
-        await studentRegister({ teacherFirstName, lastName, firstName });
-      }
+      await teacherSignUp(email, password, fullName);
+      await teacherSignIn(email, password);
       setLocation('/'); 
     } catch (err: any) {
       setError(err.message || 'Signup failed');
@@ -195,96 +187,41 @@ export function Signup() {
       </Link>
       
       <Card className="w-full max-w-md p-8 relative z-10">
-        <h1 className="text-3xl font-display font-bold text-center mb-2">Join the Expedition</h1>
-        <p className="text-center text-muted-foreground mb-8">Create your account to start learning</p>
+        <h1 className="text-3xl font-display font-bold text-center mb-2">Create a Teacher Account</h1>
+        <p className="text-center text-muted-foreground mb-8">Students get their accounts from their teacher.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>{t('auth.role')}</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <Button 
-                type="button" 
-                variant={role === 'student' ? 'jungle' : 'outline'} 
-                onClick={() => setRole('student')}
-              >
-                {t('landing.student')}
-              </Button>
-              <Button 
-                type="button" 
-                variant={role === 'teacher' ? 'default' : 'outline'} 
-                onClick={() => setRole('teacher')}
-              >
-                {t('landing.teacher')}
-              </Button>
-            </div>
+            <Label htmlFor="fullName">{t('auth.name')}</Label>
+            <Input
+              id="fullName"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
           </div>
 
-          {role === 'teacher' ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="fullName">{t('auth.name')}</Label>
-                <Input
-                  id="fullName"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('auth.email')}</Label>
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">{t('auth.email')}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">{t('auth.password')}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-center text-sm font-bold text-muted-foreground">{t('auth.studentSignupHelp')}</p>
-              <div className="space-y-2">
-                <Label htmlFor="teacherFirstName">{t('auth.teacherFirstName')}</Label>
-                <Input
-                  id="teacherFirstName"
-                  required
-                  value={teacherFirstName}
-                  onChange={(e) => setTeacherFirstName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">{t('auth.lastName')}</Label>
-                <Input
-                  id="lastName"
-                  required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="firstName">{t('auth.firstName')}</Label>
-                <Input
-                  id="firstName"
-                  required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-              </div>
-            </>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="password">{t('auth.password')}</Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
           
           {error && <p className="text-destructive text-sm font-bold">{error}</p>}
           

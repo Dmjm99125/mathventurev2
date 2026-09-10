@@ -3,7 +3,6 @@ import { invokeFunction, type Role } from '../api';
 import {
   buildVerifyOtpParams,
   type StudentLoginResponse,
-  type StudentRegisterResponse,
   type StudentSessionPayload,
 } from './student-auth';
 
@@ -32,18 +31,6 @@ async function completeStudentSession(payload: StudentSessionPayload) {
   const { data, error } = await supabase.auth.verifyOtp(buildVerifyOtpParams(payload));
   if (error) throw error;
   return data;
-}
-
-export async function studentRegister(input: {
-  teacherFirstName: string;
-  lastName: string;
-  firstName: string;
-}) {
-  const response = await invokeFunction<StudentRegisterResponse>('student-register', {
-    method: 'POST',
-    body: input,
-  });
-  return completeStudentSession(response);
 }
 
 export async function studentSignIn(input: {

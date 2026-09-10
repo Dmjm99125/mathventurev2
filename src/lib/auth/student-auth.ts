@@ -5,8 +5,6 @@ export type StudentSessionPayload = {
   verifyType: "email";
 };
 
-export type StudentRegisterResponse = StudentSessionPayload;
-
 export type StudentLoginResponse =
   | StudentSessionPayload
   | { status: "invalid_credentials" };

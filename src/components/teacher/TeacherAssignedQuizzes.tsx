@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
+import { TeacherAssignedQuizPdfButton } from '@/components/teacher/TeacherAssignedQuizPdfButton';
 import type { AssignmentQuizStatus } from '@/lib/api/client';
 import { GAME_CATALOG } from '@/lib/games/catalog';
 import type { TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
@@ -68,17 +69,17 @@ export function TeacherAssignedQuizzes({
 
         return (
           <Card key={assignment.id} className="min-w-0 overflow-hidden rounded-[24px]">
-            <button
-              type="button"
-              className="flex w-full items-start justify-between gap-4 p-5 text-left hover:bg-muted/30 sm:p-6"
-              aria-expanded={isAssignmentExpanded}
-              aria-controls={assignmentDetailsId}
-              onClick={() => {
-                setExpandedAssignmentId(isAssignmentExpanded ? null : assignment.id);
-                setExpandedStudentId(null);
-              }}
-            >
-              <span className="min-w-0">
+            <div className="flex items-start gap-3 p-5 sm:p-6">
+              <button
+                type="button"
+                className="min-w-0 flex-1 text-left hover:bg-muted/30"
+                aria-expanded={isAssignmentExpanded}
+                aria-controls={assignmentDetailsId}
+                onClick={() => {
+                  setExpandedAssignmentId(isAssignmentExpanded ? null : assignment.id);
+                  setExpandedStudentId(null);
+                }}
+              >
                 <span className="block truncate text-lg font-extrabold sm:text-xl">
                   {assignment.name || assignment.lessonId}
                 </span>
@@ -91,9 +92,24 @@ export function TeacherAssignedQuizzes({
                   <span>{completedCount}/{students.length} completed</span>
                   {startedCount > completedCount && <span>{startedCount} started</span>}
                 </span>
-              </span>
-              <ChevronDown className={`mt-1 h-5 w-5 shrink-0 transition-transform ${isAssignmentExpanded ? 'rotate-180' : ''}`} />
-            </button>
+              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <TeacherAssignedQuizPdfButton quiz={{ assignment, students }} />
+                <button
+                  type="button"
+                  aria-label={`${isAssignmentExpanded ? 'Collapse' : 'Expand'} ${assignment.name || assignment.lessonId}`}
+                  aria-expanded={isAssignmentExpanded}
+                  aria-controls={assignmentDetailsId}
+                  className="rounded-xl p-2 hover:bg-muted"
+                  onClick={() => {
+                    setExpandedAssignmentId(isAssignmentExpanded ? null : assignment.id);
+                    setExpandedStudentId(null);
+                  }}
+                >
+                  <ChevronDown className={`h-5 w-5 transition-transform ${isAssignmentExpanded ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            </div>
 
             {isAssignmentExpanded && (
               <div id={assignmentDetailsId} className="border-t-2 border-border/60 bg-muted/10 p-4 sm:p-6">

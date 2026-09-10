@@ -53,7 +53,7 @@ export function Landing() {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md mx-auto">
           <Button asChild size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
             <Link href="/signup">
-              <MapIcon className="w-5 h-5" /> Start Exploring
+              <MapIcon className="w-5 h-5" /> Teacher Sign Up
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="w-full sm:w-auto min-w-[200px] text-lg gap-2 bg-white">

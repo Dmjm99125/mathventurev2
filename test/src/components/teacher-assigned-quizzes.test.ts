@@ -6,7 +6,7 @@ Deno.test("assigned quizzes exposes nested score drill-down", () => {
   for (const required of [
     "expandedAssignmentId", "expandedStudentId", "aria-expanded", "View games",
     "GAME_CATALOG", "GAME_CATALOG.filter((game) => game.topicId === assignment.lessonId)",
-    "Assigned", "Due", "Try again", "No quizzes have been assigned",
+    "Assigned", "Due", "Try again", "No quizzes have been assigned", "TeacherAssignedQuizPdfButton",
   ]) {
     assertEquals(source.includes(required), true, `missing ${required}`);
   }
