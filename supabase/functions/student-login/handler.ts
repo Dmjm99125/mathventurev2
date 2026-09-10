@@ -1,59 +1,8 @@
-import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
-import {
-  normalizeFirstName,
-  normalizeLastName,
-  normalizeTeacherFirstName,
-  STUDENT_VERIFY_TYPE,
-} from "../_shared/student_auth.ts";
-import {
-  defaultTeacherScopedStudentLookupPersistence,
-  findStudentEmailByTeacherAndName as resolveStudentEmailByTeacherAndName,
-} from "../_shared/hidden_student_provision.ts";
+import { corsHeaders, errorResponse } from "../_shared/cors.ts";
+const STUDENT_LOGIN_DISABLED_MESSAGE =
+  "Student login is available only through a teacher account.";
 
-type StudentLoginSession = {
-  status: "ok";
-  email: string;
-  tokenHash: string;
-  verifyType: typeof STUDENT_VERIFY_TYPE;
-};
-
-type StudentEmailLookup = string | null | "ambiguous";
-
-type StudentLoginDeps = {
-  findStudentEmailByTeacherAndName(input: {
-    normalizedTeacherFirstName: string;
-    normalizedLastName: string;
-    normalizedFirstName: string;
-  }): Promise<StudentEmailLookup>;
-  issueStudentSession(email: string): Promise<StudentLoginSession>;
-};
-
-const defaultDeps: StudentLoginDeps = {
-  async findStudentEmailByTeacherAndName(input) {
-    return resolveStudentEmailByTeacherAndName(
-      defaultTeacherScopedStudentLookupPersistence,
-      input,
-    );
-  },
-  async issueStudentSession(email) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-    });
-    if (error || !data?.properties?.hashed_token) {
-      throw error ?? new Error("Failed to generate student magic link");
-    }
-    return {
-      status: "ok",
-      email,
-      tokenHash: data.properties.hashed_token,
-      verifyType: STUDENT_VERIFY_TYPE,
-    };
-  },
-};
-
-export function createStudentLoginHandler(deps: StudentLoginDeps = defaultDeps) {
+export function createStudentLoginHandler() {
   return async (req: Request): Promise<Response> => {
     if (req.method === "OPTIONS") {
       return new Response("ok", { headers: corsHeaders });
@@ -63,31 +12,6 @@ export function createStudentLoginHandler(deps: StudentLoginDeps = defaultDeps) 
       return errorResponse("Method not allowed", 405);
     }
 
-    try {
-      const body = await req.json().catch(() => null);
-      const normalizedTeacherFirstName = normalizeTeacherFirstName(
-        typeof body?.teacherFirstName === "string" ? body.teacherFirstName : "",
-      );
-      const normalizedLastName = normalizeLastName(typeof body?.lastName === "string" ? body.lastName : "");
-      const normalizedFirstName = normalizeFirstName(typeof body?.firstName === "string" ? body.firstName : "");
-
-      if (!normalizedTeacherFirstName || !normalizedLastName || !normalizedFirstName) {
-        return jsonResponse({ status: "invalid_credentials" }, 401);
-      }
-
-      const studentEmail = await deps.findStudentEmailByTeacherAndName({
-        normalizedTeacherFirstName,
-        normalizedLastName,
-        normalizedFirstName,
-      });
-      if (!studentEmail || studentEmail === "ambiguous") {
-        return jsonResponse({ status: "invalid_credentials" }, 401);
-      }
-
-      return jsonResponse(await deps.issueStudentSession(studentEmail));
-    } catch (error) {
-      console.error("student-login failed", error);
-      return errorResponse("We couldn't sign that student in right now.", 500);
-    }
+    return errorResponse(STUDENT_LOGIN_DISABLED_MESSAGE, 410);
   };
 }
