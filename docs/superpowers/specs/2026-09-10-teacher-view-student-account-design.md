@@ -88,3 +88,14 @@ Add or update tests for:
 - A student cannot use the old public name-based login to create a session.
 - A teacher cannot view a student who is not in the teacher's classroom.
 - All affected local checks pass.
+
+## Security amendment: protected return to teacher mode
+
+While the teacher is viewing a student account:
+
+- Do not show the normal logout action. The supervised student must not be able to end either session.
+- Keep `Return to teacher account` visible, but require an explicit confirmation dialog and the current teacher account password.
+- Read the teacher email from the preserved primary teacher session and verify the submitted password through that primary Supabase client.
+- Keep student mode active when the password is missing or incorrect; show the error in the dialog.
+- Sign out the secondary student client and return to `/teacher` only after teacher-password verification succeeds.
+- Do not change database schema or Edge Functions for this amendment; the existing dual-client browser flow remains the session boundary.
