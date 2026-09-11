@@ -17,7 +17,7 @@ Deno.test("legacy topic metadata preserves the original menu order and asset pat
   assertEquals(LEGACY_TOPIC_META[8].assetSrc, "/assets/images/1CLO.png");
 });
 
-Deno.test("buildPortalTopicEntries creates assignment-aware lesson hrefs and completion flags", () => {
+Deno.test("buildPortalTopicEntries shows assigned lessons and hides unassigned lessons", () => {
   const entries = buildPortalTopicEntries({
     assignments: [
       { id: "asg-1", lessonId: "colors", classId: "class-1", dueAt: null, completed: false },
@@ -43,9 +43,20 @@ Deno.test("buildPortalTopicEntries creates assignment-aware lesson hrefs and com
     recentScorePct: 80,
   });
 
-  assertEquals(entries[5].href, "/student/lessons/numbers?classId=class-1");
-  assertEquals(entries[5].isCompleted, true);
-  assertEquals(entries[8].isAssigned, false);
+  assertEquals(entries.map((entry) => entry.id), ["colors", "clock"]);
+  assertEquals(entries[1].href, "/student/lessons/clock?assignmentId=asg-2&classId=class-1");
+  assertEquals(entries[1].isAssigned, true);
+  assertEquals(entries[1].isCompleted, true);
+});
+
+Deno.test("buildPortalTopicEntries returns no classroom lesson menu entries without assignments", () => {
+  const entries = buildPortalTopicEntries({
+    assignments: [],
+    classes: [{ id: "class-1", name: "Section Sunflower", teacherName: "Teacher Mia" }],
+    recentAttempts: [{ lessonId: "numbers", score: 5, maxScore: 5 }],
+  });
+
+  assertEquals(entries, []);
 });
 
 Deno.test("buildPortalTopicEntries keeps the earliest pending assignment when a lesson has multiple entries", () => {

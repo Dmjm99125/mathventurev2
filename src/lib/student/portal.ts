@@ -110,6 +110,29 @@ function sortPendingAssignments(assignments: PortalAssignment[]) {
     });
 }
 
+function sortVisibleAssignments(assignments: PortalAssignment[]) {
+  return [...assignments]
+    .filter((assignment) => toPortalTopicId(assignment.lessonId) !== null)
+    .sort((left, right) => {
+      // Keep unfinished quizzes at the front. Within each group, retain the
+      // existing pending-quiz ordering and use the newest completed quiz as
+      // the visible result when a lesson has been assigned more than once.
+      if (left.completed !== right.completed) return left.completed ? 1 : -1;
+      if (!left.completed && !right.completed) {
+        const dueCompare = compareNullableDate(left.dueAt, right.dueAt);
+        if (dueCompare !== 0) return dueCompare;
+
+        const createdCompare = compareNullableDate(left.createdAt, right.createdAt);
+        if (createdCompare !== 0) return createdCompare;
+      } else {
+        const createdCompare = compareNullableDate(right.createdAt, left.createdAt);
+        if (createdCompare !== 0) return createdCompare;
+      }
+
+      return lessonOrder(left.lessonId) - lessonOrder(right.lessonId);
+    });
+}
+
 function toScorePct(score: number, maxScore: number) {
   return maxScore > 0 ? Math.round((score / maxScore) * 100) : null;
 }
@@ -158,7 +181,7 @@ export function buildPortalTopicEntries(input: {
   recentAttempts: PortalRecentAttempt[];
 }): PortalTopicEntry[] {
   const assignmentByLesson = new Map<PortalTopicId, PortalAssignment>();
-  for (const assignment of sortPendingAssignments(input.assignments)) {
+  for (const assignment of sortVisibleAssignments(input.assignments)) {
     const topicId = toPortalTopicId(assignment.lessonId);
     if (topicId && !assignmentByLesson.has(topicId)) {
       assignmentByLesson.set(topicId, assignment);
@@ -173,21 +196,25 @@ export function buildPortalTopicEntries(input: {
   );
   const singleClassId = getSingleClassId(input.classes ?? []);
 
-  return LEGACY_TOPIC_META.map((topic) => {
+  return LEGACY_TOPIC_META.flatMap((topic) => {
     const assignment = assignmentByLesson.get(topic.id);
+    // The classroom quiz menu is intentionally assignment-only. Free Play is
+    // exposed separately from the landing page for unrestricted exploration.
+    if (!assignment) return [];
+
     const attempt = attemptsByLesson.get(topic.id) ?? null;
 
-    return {
+    return [{
       ...topic,
       href: buildStudentLessonHref({
         lessonId: topic.id,
-        assignmentId: assignment?.id ?? null,
-        classId: assignment ? assignment.classId ?? null : singleClassId,
+        assignmentId: assignment.id,
+        classId: assignment.classId ?? singleClassId,
       }),
       isAssigned: Boolean(assignment),
-      isCompleted: Boolean(attempt),
+      isCompleted: assignment.completed || Boolean(attempt),
       recentScorePct: attempt ? toScorePct(attempt.score, attempt.maxScore) : null,
-    };
+    }];
   });
 }
 

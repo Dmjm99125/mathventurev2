@@ -53,7 +53,14 @@ export function LegacyLessonMenu({
       </header>
 
       <div className="grid gap-2">
-        {topicState.map((topic) => {
+        {topicState.length === 0 ? (
+          <div className="rounded-[22px] bg-white/80 px-5 py-8 text-center shadow-sm">
+            <p className="text-lg font-extrabold text-primary">No classroom quizzes yet</p>
+            <p className="mt-1 text-sm font-bold text-muted-foreground">
+              Your teacher&apos;s assigned quizzes will appear here.
+            </p>
+          </div>
+        ) : topicState.map((topic) => {
           const isHighlighted = highlightedLessonId === topic.id;
 
           return (

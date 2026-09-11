@@ -5,6 +5,7 @@ import { LanguageProvider } from '@/lib/i18n/useLanguage';
 
 // Pages
 import { Landing } from '@/pages/landing';
+import { FreePlay } from '@/pages/free-play';
 import { About } from '@/pages/about';
 import { Login, Signup } from '@/pages/auth';
 import {
@@ -31,6 +32,7 @@ function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/free-play" component={FreePlay} />
       <Route path="/about" component={About} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
