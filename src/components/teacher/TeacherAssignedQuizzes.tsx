@@ -1,10 +1,20 @@
 import { Fragment, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { TeacherAssignedQuizPdfButton } from '@/components/teacher/TeacherAssignedQuizPdfButton';
 import type { AssignmentQuizStatus } from '@/lib/api/client';
 import { GAME_CATALOG } from '@/lib/games/catalog';
 import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
+import { useDeleteAssignment, useUpdateAssignment } from '@/lib/api/hooks';
 
 function formatScore(score: number | null, maxScore: number | null, scorePct: number | null) {
   return score == null || maxScore == null || scorePct == null
@@ -24,6 +34,10 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value));
 }
 
+function toDateInputValue(value: string | null) {
+  return value ? new Date(value).toISOString().slice(0, 10) : '';
+}
+
 export function TeacherAssignedQuizzes({
   assignments,
   error,
@@ -35,6 +49,60 @@ export function TeacherAssignedQuizzes({
 }) {
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+  const updateAssignment = useUpdateAssignment();
+  const deleteAssignment = useDeleteAssignment();
+  const [editingQuiz, setEditingQuiz] = useState<TeacherAssignedQuiz | null>(null);
+  const [deletingQuiz, setDeletingQuiz] = useState<TeacherAssignedQuiz | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDueAt, setEditDueAt] = useState('');
+  const [managementError, setManagementError] = useState<string | null>(null);
+
+  const openEditDialog = (quiz: TeacherAssignedQuiz) => {
+    setEditingQuiz(quiz);
+    setEditName(quiz.assignment.name || '');
+    setEditDueAt(toDateInputValue(quiz.assignment.dueAt));
+    setManagementError(null);
+  };
+
+  const closeEditDialog = () => {
+    if (updateAssignment.isPending) return;
+    setEditingQuiz(null);
+    setManagementError(null);
+  };
+
+  const saveEdit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingQuiz) return;
+
+    setManagementError(null);
+    try {
+      await updateAssignment.mutateAsync({
+        assignmentId: editingQuiz.assignment.id,
+        lessonId: editingQuiz.assignment.lessonId,
+        name: editName,
+        dueAt: editDueAt ? `${editDueAt}T23:59:59.999Z` : null,
+      });
+      setEditingQuiz(null);
+    } catch (error) {
+      setManagementError(error instanceof Error ? error.message : "We couldn't update that quiz.");
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingQuiz) return;
+
+    setManagementError(null);
+    try {
+      await deleteAssignment.mutateAsync(deletingQuiz.assignment.id);
+      if (expandedAssignmentId === deletingQuiz.assignment.id) {
+        setExpandedAssignmentId(null);
+        setExpandedStudentId(null);
+      }
+      setDeletingQuiz(null);
+    } catch (error) {
+      setManagementError(error instanceof Error ? error.message : "We couldn't delete that quiz.");
+    }
+  };
 
   if (error) {
     return (
@@ -96,6 +164,25 @@ export function TeacherAssignedQuizzes({
               </button>
               <div className="flex shrink-0 items-center gap-2">
                 <TeacherAssignedQuizPdfButton quiz={{ assignment, students }} />
+                <button
+                  type="button"
+                  aria-label={`Edit ${assignmentName}`}
+                  className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  onClick={() => openEditDialog({ assignment, students })}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Delete ${assignmentName}`}
+                  className="rounded-xl p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => {
+                    setDeletingQuiz({ assignment, students });
+                    setManagementError(null);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
                 <button
                   type="button"
                   aria-label={`${isAssignmentExpanded ? 'Collapse' : 'Expand'} ${assignmentName}`}
@@ -193,6 +280,77 @@ export function TeacherAssignedQuizzes({
           </Card>
         );
       })}
+
+      <Dialog open={editingQuiz !== null} onOpenChange={(open) => !open && closeEditDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit quiz</DialogTitle>
+            <DialogDescription>
+              Update the name or due date. The topic stays {editingQuiz?.assignment.lessonId} so existing student attempts remain valid.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={saveEdit} className="grid gap-5">
+            <div className="grid gap-2">
+              <label htmlFor="edit-assignment-name" className="font-bold">Quiz name</label>
+              <input
+                id="edit-assignment-name"
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
+                maxLength={120}
+                placeholder="Example: Sequencing Review"
+                className="h-11 rounded-xl border-2 border-input bg-background px-3 font-bold"
+              />
+              <p className="text-xs font-bold text-muted-foreground">Leave blank to use the topic name.</p>
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="edit-assignment-due" className="font-bold">Due date</label>
+              <input
+                id="edit-assignment-due"
+                type="date"
+                value={editDueAt}
+                onChange={(event) => setEditDueAt(event.target.value)}
+                className="h-11 rounded-xl border-2 border-input bg-background px-3 font-bold"
+              />
+              <p className="text-xs font-bold text-muted-foreground">Leave blank for no due date.</p>
+            </div>
+            {managementError && <p className="text-sm font-bold text-destructive">{managementError}</p>}
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={closeEditDialog}>Cancel</Button>
+              <Button type="submit" variant="jungle" disabled={updateAssignment.isPending}>
+                {updateAssignment.isPending ? 'Saving...' : 'Save changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deletingQuiz !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleteAssignment.isPending) {
+            setDeletingQuiz(null);
+            setManagementError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this quiz?</DialogTitle>
+            <DialogDescription>
+              “{deletingQuiz ? getTeacherAssignedQuizName(deletingQuiz.assignment) : ''}” will be removed from the classroom. Existing student scores will remain in history but will no longer be attached to this assignment.
+            </DialogDescription>
+          </DialogHeader>
+          {managementError && <p className="text-sm font-bold text-destructive">{managementError}</p>}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="ghost" disabled={deleteAssignment.isPending}>Cancel</Button>
+            </DialogClose>
+            <Button variant="danger" onClick={() => void confirmDelete()} disabled={deleteAssignment.isPending}>
+              {deleteAssignment.isPending ? 'Deleting...' : 'Delete quiz'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

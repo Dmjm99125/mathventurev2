@@ -193,6 +193,31 @@ export function useCreateAssignment() {
   });
 }
 
+export function useUpdateAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null }) =>
+      api.assignments.update(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+    },
+  });
+}
+
+export function useDeleteAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (assignmentId: string) => api.assignments.delete(assignmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+    },
+  });
+}
+
 export function useRemoveStudentFromClass() {
   const queryClient = useQueryClient();
   return useMutation({

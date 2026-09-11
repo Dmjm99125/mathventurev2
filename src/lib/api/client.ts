@@ -234,6 +234,13 @@ export const api = {
       }),
     create: (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) =>
       invokeFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),
+    update: (input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null }) =>
+      invokeFunction<{ assignment: unknown }>('assignments-update', { method: 'POST', body: input }),
+    delete: (assignmentId: string) =>
+      invokeFunction<{ deleted: true }>('assignments-delete', {
+        method: 'POST',
+        body: { assignmentId },
+      }),
   },
   assignmentQuiz: {
     get: (assignmentId: string, lessonId: string) =>
