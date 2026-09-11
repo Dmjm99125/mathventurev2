@@ -110,7 +110,9 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
 
       if (nextPlaced.length === currentPuzzle.parts) {
         setIsMerged(true);
-        confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
+        if (nextLevelScore === currentPuzzle.parts) {
+          confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
+        }
         if (level < 5) {
           setTimeout(() => startLevel(level + 1, selectedLevels), 2500);
         }
@@ -147,6 +149,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
 
   const isLevelDone = isMerged && level < 5;
   const isCompleted = isMerged && level === 5;
+  const isPerfect = allowSkip || wrongAttempts === 0;
 
   if (!currentPuzzle) return null;
 
@@ -269,7 +272,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex items-center gap-3 text-sky-700 font-bold text-2xl md:text-3xl bg-sky-50 px-8 py-4 rounded-full border-2 border-sky-200 shadow-md"
             >
-              <CheckCircle2 className="w-8 h-8" /> Amazing! Next Puzzle...
+              {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? 'Amazing! Next Puzzle...' : 'Puzzle complete. Keep practicing!'}
             </motion.div>
           ) : isCompleted ? (
             <motion.div 
@@ -279,7 +282,7 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
               className="flex flex-col items-center gap-4"
             >
               <div className="flex items-center gap-3 text-sky-700 font-bold text-2xl md:text-4xl bg-white px-12 py-6 rounded-[2rem] border-4 border-sky-200 shadow-xl">
-                <Trophy className="w-12 h-12 text-yellow-500" /> MASTER PUZZLE BUILDER!
+                <Trophy className="w-12 h-12 text-yellow-500" /> {isPerfect ? 'MASTER PUZZLE BUILDER!' : 'PUZZLE COMPLETE!'}
               </div>
               <Button 
                    size="lg" 

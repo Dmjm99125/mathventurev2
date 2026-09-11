@@ -31,6 +31,11 @@ Deno.test("sequencing quiz games report correct items and wrong attempts", async
       `${fileName} should fail closed and require explicit opt-in for skipping`,
     );
     assertEquals(
+      source.includes("const isPerfect = allowSkip || wrongAttempts === 0;"),
+      true,
+      `${fileName} should not show celebratory completion feedback after a wrong assigned placement`,
+    );
+    assertEquals(
       source.includes("const [correctItems, setCorrectItems] = useState(0);"),
       true,
       `${fileName} should track correct items independently of its display score`,

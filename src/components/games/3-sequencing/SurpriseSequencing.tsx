@@ -87,7 +87,9 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
       setScore(nextLevelScore);
 
       if (nextPlaced.length === sequence.length) {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (nextLevelScore === sequence.length) {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
         if (level < 5) {
           setTimeout(() => startLevel(level + 1), 2000);
         }
@@ -125,6 +127,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
 
   const isLevelDone = currentIndex === sequence.length && level < 5;
   const isCompleted = currentIndex === sequence.length && level === 5;
+  const isPerfect = allowSkip || wrongAttempts === 0;
   const slotSequence = allowSkip === false ? [...placed, ...sequence.slice(placed.length)] : sequence;
 
   return (
@@ -228,7 +231,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex items-center gap-3 text-emerald-700 font-bold text-2xl md:text-3xl bg-emerald-50 px-8 py-4 rounded-full border-2 border-emerald-200 shadow-md"
             >
-              <CheckCircle2 className="w-8 h-8" /> Great! Next Level...
+              {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? 'Great! Next Level...' : 'Level complete. Keep practicing!'}
             </motion.div>
           ) : isCompleted ? (
             <motion.div 
@@ -238,7 +241,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
               className="flex flex-col items-center gap-4"
             >
               <div className="flex items-center gap-3 text-pink-700 font-bold text-2xl md:text-4xl bg-pink-100 px-12 py-6 rounded-[2rem] border-4 border-pink-300 shadow-lg">
-                <Trophy className="w-12 h-12 text-yellow-500" /> GRAND CHAMPION!
+                <Trophy className="w-12 h-12 text-yellow-500" /> {isPerfect ? 'GRAND CHAMPION!' : 'SEQUENCE COMPLETE!'}
               </div>
               <Button 
                    size="lg" 

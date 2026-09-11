@@ -52,7 +52,9 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
       setErrorMsg('');
       if (nextPlaced.length === sequence.length) {
         setScore(nextScore);
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (nextScore === sequence.length) {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
       }
       return;
     }
@@ -78,6 +80,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
   };
 
   const isCompleted = currentIndex === sequence.length;
+  const isPerfect = allowSkip || wrongAttempts === 0;
   const slotSequence = allowSkip === false ? [...placed, ...sequence.slice(placed.length)] : sequence;
 
   return (
@@ -203,7 +206,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
               className="flex flex-col items-center gap-4"
             >
               <div className="flex items-center gap-3 text-emerald-700 font-bold text-2xl md:text-3xl bg-emerald-50 px-8 py-4 rounded-full border-2 border-emerald-200 shadow-md">
-                <CheckCircle2 className="w-8 h-8" /> 🏆 Mahusay! Magaling, binabati kita!
+                {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? '🏆 Mahusay! Magaling, binabati kita!' : 'Good try! Ipagpatuloy ang pagsasanay.'}
               </div>
               <Button 
                 size="lg" 

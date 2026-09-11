@@ -93,7 +93,9 @@ export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onCompl
         setCorrectItems(prev => prev + levelScore);
         setWrongAttempts(prev => prev + missingIndices.length - levelScore);
         setActiveSlot(null);
-        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        if (levelScore === expected.length) {
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        }
         setTimeout(() => {
             setTrainStatus('exit');
             if (level < 11) {
@@ -145,6 +147,7 @@ export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onCompl
   };
 
   const isCompleted = trainStatus === 'exit' && level === 11;
+  const isPerfect = allowSkip || wrongAttempts === 0;
   const diffStyle = getDifficultyStyles();
 
   if (!sessions) return null;
@@ -271,8 +274,8 @@ export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onCompl
               className="flex flex-col items-center gap-4 fixed inset-0 bg-emerald-50 z-50 justify-center"
             >
               <div className="text-7xl">👑🏆👑</div>
-              <h1 className="text-4xl md:text-5xl font-bold text-emerald-700 drop-shadow-sm">GRAND TRAIN MASTER!</h1>
-              <p className="text-xl md:text-2xl text-emerald-600 font-medium mb-4">You beat every pattern!</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-emerald-700 drop-shadow-sm">{isPerfect ? 'GRAND TRAIN MASTER!' : 'PATTERN PRACTICE COMPLETE!'}</h1>
+              <p className="text-xl md:text-2xl text-emerald-600 font-medium mb-4">{isPerfect ? 'You beat every pattern!' : 'Good try! Keep practicing your patterns.'}</p>
               
               <Button 
                    size="lg" 
