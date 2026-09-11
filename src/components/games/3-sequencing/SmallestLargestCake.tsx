@@ -97,6 +97,18 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
     }
   };
 
+  const handleRemovePlaced = (index: number) => {
+    if (allowSkip || index >= placed.length) return;
+    const nextPlaced = placed.filter((_, placedIndex) => placedIndex !== index);
+    const nextScore = scoreByPosition(nextPlaced, SIZES);
+    setPlaced(nextPlaced);
+    setCurrentIndex(nextPlaced.length);
+    setCorrectItems(nextScore);
+    setWrongAttempts(nextPlaced.length - nextScore);
+    setScore(0);
+    setErrorMsg('');
+  };
+
   const isCompleted = currentIndex === SIZES.length;
   const isPerfect = allowSkip || wrongAttempts === 0;
   const slotSizes = allowSkip === false ? [...placed, ...SIZES.slice(placed.length)] : SIZES;
@@ -130,17 +142,23 @@ export function SmallestLargestCake({ onComplete, allowSkip = false }: { onCompl
       <div className="flex items-end justify-center gap-4 md:gap-8 mb-10 w-full max-w-3xl bg-white/40 p-6 rounded-[2rem] border-4 border-dashed border-pink-400 min-h-[200px]">
         <AnimatePresence>
           {/* Placed Cakes */}
-          {slotSizes.slice(0, currentIndex).map((size) => (
-            <motion.div
+          {slotSizes.slice(0, currentIndex).map((size, index) => (
+            <motion.button
+              type="button"
               key={`placed-${size}`}
               layout
               initial={{ opacity: 0, scale: 0.5, y: -50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ type: 'spring', bounce: 0.5 }}
-              className="border-b-4 border-pink-200/50 pb-2 px-2"
+              onClick={allowSkip === false ? () => handleRemovePlaced(index) : undefined}
+              disabled={allowSkip}
+              aria-label={`Remove placed cake of size ${size}`}
+              title={allowSkip === false ? 'Tap to remove this cake' : undefined}
+              className="relative border-b-4 border-pink-200/50 pb-2 px-2"
             >
                <Cake size={size} />
-            </motion.div>
+               {allowSkip === false && <XCircle className="absolute right-0 top-0 w-5 h-5 text-rose-500/70" />}
+            </motion.button>
           ))}
           {/* Empty Slots */}
           {SIZES.slice(currentIndex).map((size) => (

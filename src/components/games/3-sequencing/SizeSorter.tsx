@@ -83,6 +83,18 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
     }
   };
 
+  const handleRemovePlaced = (index: number) => {
+    if (allowSkip || index >= placed.length) return;
+    const nextPlaced = placed.filter((_, placedIndex) => placedIndex !== index);
+    const nextScore = scoreByPosition(nextPlaced, order);
+    setPlaced(nextPlaced);
+    setCurrentIndex(nextPlaced.length);
+    setCorrectItems(nextScore);
+    setWrongAttempts(nextPlaced.length - nextScore);
+    setScore(0);
+    setErrorMsg('');
+  };
+
   const isCompleted = currentIndex === order.length;
   const isPerfect = allowSkip || wrongAttempts === 0;
   const slotOrder = allowSkip === false ? [...placed, ...order.slice(placed.length)] : order;
@@ -127,22 +139,29 @@ export function SizeSorter({ onComplete, allowSkip = false }: { onComplete?: (sc
       {/* Target Area (Placed items) */}
       <div className="flex items-end justify-center gap-4 mb-10 w-full min-h-[180px]">
         <AnimatePresence mode="popLayout">
-          {slotOrder.slice(0, currentIndex).map((size) => {
+          {slotOrder.slice(0, currentIndex).map((size, index) => {
             const item = shuffled.find(i => i.size === size)!;
             return (
-              <motion.div
+              <motion.button
+                type="button"
                 key={`placed-${size}`}
                 layout
                 initial={{ opacity: 0, scale: 0.5, y: -50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="rounded-full shadow-[0_8px_0_0_rgba(0,0,0,0.2)] border-4 border-white/50"
+                onClick={allowSkip === false ? () => handleRemovePlaced(index) : undefined}
+                disabled={allowSkip}
+                aria-label={`Remove placed size ${size}`}
+                title={allowSkip === false ? 'Tap to remove this size' : undefined}
+                className="relative rounded-full shadow-[0_8px_0_0_rgba(0,0,0,0.2)] border-4 border-white/50"
                 style={{ 
                    width: size, 
                    height: size, 
                    backgroundColor: item.color,
                    backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 60%)'
                 }}
-              />
+              >
+                {allowSkip === false && <XCircle className="absolute right-0 top-0 w-5 h-5 text-rose-700/80" />}
+              </motion.button>
             );
           })}
         </AnimatePresence>

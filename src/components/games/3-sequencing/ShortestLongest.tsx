@@ -96,6 +96,18 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
     }
   };
 
+  const handleRemovePlaced = (index: number) => {
+    if (allowSkip || index >= placed.length) return;
+    const nextPlaced = placed.filter((_, placedIndex) => placedIndex !== index);
+    const nextScore = scoreByPosition(nextPlaced, SIZES);
+    setPlaced(nextPlaced);
+    setCurrentIndex(nextPlaced.length);
+    setCorrectItems(nextScore);
+    setWrongAttempts(nextPlaced.length - nextScore);
+    setScore(0);
+    setErrorMsg('');
+  };
+
   const isCompleted = currentIndex === SIZES.length;
   const isPerfect = allowSkip || wrongAttempts === 0;
   const slotSizes = allowSkip === false ? [...placed, ...SIZES.slice(placed.length)] : SIZES;
@@ -129,17 +141,23 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
       <div className="flex flex-col items-start justify-center gap-4 mb-10 w-full max-w-2xl bg-white/40 p-6 rounded-[2rem] border-4 border-dashed border-green-400 min-h-[300px]">
         <AnimatePresence>
           {/* Placed Caterpillars */}
-          {slotSizes.slice(0, currentIndex).map((size) => (
-            <motion.div
+          {slotSizes.slice(0, currentIndex).map((size, index) => (
+            <motion.button
+              type="button"
               key={`placed-${size}`}
               layout
               initial={{ opacity: 0, scale: 0.5, x: -50 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               transition={{ type: 'spring', bounce: 0.5 }}
-              className="w-full border-b-2 border-green-200/50 pb-2"
+              onClick={allowSkip === false ? () => handleRemovePlaced(index) : undefined}
+              disabled={allowSkip}
+              aria-label={`Remove placed caterpillar of size ${size}`}
+              title={allowSkip === false ? 'Tap to remove this caterpillar' : undefined}
+              className="relative w-full border-b-2 border-green-200/50 pb-2"
             >
                <Caterpillar size={size} />
-            </motion.div>
+               {allowSkip === false && <XCircle className="absolute right-2 top-2 w-5 h-5 text-rose-500/70" />}
+            </motion.button>
           ))}
           {/* Empty Slots */}
           {SIZES.slice(currentIndex).map((size) => (
