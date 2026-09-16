@@ -42,7 +42,7 @@ Deno.test("buildTeacherClassReportPdfModel derives a classroom-only header and r
           {
             gameId: "colors:0",
             gameOrder: 0,
-            title: "colors-1",
+            title: "Color Matching Game",
             averageScorePct: 100,
             passCount: 1,
             attemptCount: 1,
@@ -58,4 +58,6 @@ Deno.test("buildTeacherClassReportPdfModel derives a classroom-only header and r
   assertEquals(model.subtitle, "Last 30 days | 1 student");
   assertEquals(model.studentRows[0], ["Santos", "Maria", "80%", "12%", "100%", "2026-07-28"]);
   assertEquals(model.topicRows[0], ["colors", "80%", "1", "1"]);
+  const gameRows = (model as typeof model & { gameRows: string[][] }).gameRows;
+  assertEquals(gameRows[0], ["colors", "Color Matching Game", "100%", "1", "1", "2026-07-28"]);
 });

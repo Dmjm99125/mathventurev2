@@ -33,8 +33,8 @@ Deno.test("buildTeacherAssignedQuizPdfModel includes summary and every quiz-mode
   assertEquals(model.summaryRows[0], ["Lovelace", "Ada", "8 / 10 (80%)", "Completed"]);
   assertEquals(model.studentSections[0].studentName, "Lovelace, Ada");
   assertEquals(model.studentSections[0].gameRows.length, 15);
-  assertEquals(model.studentSections[0].gameRows[0], ["1", "addition-1", "1 / 1 (100%)", "2026-09-02"]);
-  assertEquals(model.studentSections[0].gameRows[1], ["2", "addition-2", "--", "--"]);
+  assertEquals(model.studentSections[0].gameRows[0], ["1", "Addition Adventure", "1 / 1 (100%)", "2026-09-02"]);
+  assertEquals(model.studentSections[0].gameRows[1], ["2", "Dice Addition Adventure", "--", "--"]);
 });
 
 Deno.test("buildTeacherAssignedQuizPdfModel preserves unstarted quiz rows", () => {

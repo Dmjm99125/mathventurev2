@@ -7,6 +7,7 @@ export type TeacherClassReportPdfModel = {
   generatedAt: string;
   studentRows: string[][];
   topicRows: string[][];
+  gameRows: string[][];
 };
 
 function slugify(value: string): string {
@@ -50,6 +51,16 @@ export function buildTeacherClassReportPdfModel(
       String(row.passCount),
       String(row.attemptCount),
     ]),
+    gameRows: report.topicBreakdown.flatMap((topic) =>
+      topic.games.map((game) => [
+        topic.topicId,
+        game.title,
+        formatPct(game.averageScorePct),
+        String(game.passCount),
+        String(game.attemptCount),
+        formatDate(game.lastPlayedAt),
+      ])
+    ),
   };
 }
 
@@ -83,6 +94,14 @@ export async function downloadTeacherClassReportPdf(
       : 320,
     head: [["Topic", "Avg Score", "Passes", "Attempts"]],
     body: model.topicRows,
+  });
+
+  autoTable(pdf, {
+    startY: previousTable.lastAutoTable?.finalY
+      ? previousTable.lastAutoTable.finalY + 24
+      : 320,
+    head: [["Topic", "Game", "Avg Score", "Passes", "Attempts", "Last Played"]],
+    body: model.gameRows,
   });
 
   pdf.save(model.filename);
