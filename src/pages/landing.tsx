@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui';
-import { Compass, Sparkles, Map as MapIcon, GraduationCap, Users } from 'lucide-react';
+import { Compass, Sparkles, Map as MapIcon, GraduationCap, Users, Gamepad2 } from 'lucide-react';
 import { TopNav } from '@/components/layout';
 
 export function Landing() {
@@ -50,7 +50,12 @@ export function Landing() {
           Master colors, shapes, numbers, and sequencing through fun, bite-sized mini-games. Built for kids 4-7, loved by teachers.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md mx-auto">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-center justify-center w-full max-w-4xl mx-auto">
+          <Button asChild size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
+            <Link href="/free-play">
+              <Gamepad2 className="w-5 h-5" /> Free Play
+            </Link>
+          </Button>
           <Button asChild size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
             <Link href="/signup">
               <MapIcon className="w-5 h-5" /> Teacher Sign Up

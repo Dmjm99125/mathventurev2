@@ -42,6 +42,14 @@ Deno.test("assigned lessons identify classroom quiz mode and use assignment quiz
   assertEquals(source.includes("useCompleteAssignmentQuiz"), true);
 });
 
+Deno.test("public Free Play uses a guest marker and does not persist through the classroom API", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("searchParams.get('freePlay') === '1'"), true);
+  assertEquals(source.includes("} else if (!isPublicFreePlay) {"), true);
+  assertEquals(source.includes("isPublicFreePlay ? '/free-play' : '/'") , true);
+});
+
 Deno.test("assigned completion removes replay while free play keeps the existing replay action", async () => {
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 

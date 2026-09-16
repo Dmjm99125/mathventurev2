@@ -31,6 +31,23 @@ Deno.test("sequencing quiz games report correct items and wrong attempts", async
       `${fileName} should fail closed and require explicit opt-in for skipping`,
     );
     assertEquals(
+      source.includes("const isPerfect = allowSkip || wrongAttempts === 0;"),
+      true,
+      `${fileName} should not show celebratory completion feedback after a wrong assigned placement`,
+    );
+    if (["ArrangeLetters.tsx", "ArrangeNumbers.tsx", "ShortestLongest.tsx", "SizeSorter.tsx", "SmallestLargestCake.tsx"].includes(fileName)) {
+      assertEquals(
+        source.includes("const handleRemovePlaced = (index: number) =>"),
+        true,
+        `${fileName} should allow an assigned placement to be removed before continuing`,
+      );
+      assertEquals(
+        source.includes("setCurrentIndex(nextPlaced.length);"),
+        true,
+        `${fileName} should reopen the removed placement slot`,
+      );
+    }
+    assertEquals(
       source.includes("const [correctItems, setCorrectItems] = useState(0);"),
       true,
       `${fileName} should track correct items independently of its display score`,

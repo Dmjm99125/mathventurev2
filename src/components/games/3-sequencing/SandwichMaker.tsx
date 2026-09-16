@@ -73,7 +73,9 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
         setErrorMsg('');
 
         if (nextPlaced.length === activePattern.length) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            if (nextLevelScore === activePattern.length) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
             if (level < 3) {
                 setTimeout(() => startLevel(level + 1), 1000);
             }
@@ -111,6 +113,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
 
   const isLevelDone = currentStep === activePattern.length && level < 3;
   const isCompleted = currentStep === activePattern.length && level === 3;
+  const isPerfect = allowSkip || wrongAttempts === 0;
   const platePattern = allowSkip === false ? [...placed, ...activePattern.slice(placed.length)] : activePattern;
 
   return (
@@ -220,7 +223,7 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex items-center gap-3 text-amber-700 font-bold text-xl md:text-2xl bg-amber-50 px-8 py-4 rounded-full border-2 border-amber-400 shadow-md"
             >
-              <CheckCircle2 className="w-8 h-8" /> Tasty! Next Recipe...
+              {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? 'Tasty! Next Recipe...' : 'Recipe complete. Keep practicing!'}
               <Button onClick={() => startLevel(level + 1)} className="ml-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full">Next</Button>
             </motion.div>
           ) : isCompleted ? (
@@ -231,8 +234,8 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
               className="flex flex-col items-center gap-4 fixed inset-0 bg-amber-900/90 z-50 justify-center p-4 text-center"
             >
               <div className="text-7xl animate-bounce">⭐🌟⭐</div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-md">Master Chef Status! 👑🏆</h1>
-              <p className="text-xl md:text-2xl text-amber-200 font-medium mb-4">You built the Giant Double-Decker Club Sandwich!</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-md">{isPerfect ? 'Master Chef Status! 👑🏆' : 'Recipe Complete!'}</h1>
+              <p className="text-xl md:text-2xl text-amber-200 font-medium mb-4">{isPerfect ? 'You built the Giant Double-Decker Club Sandwich!' : 'Good try! Keep practicing the recipe order.'}</p>
               
               <Button 
                    size="lg" 

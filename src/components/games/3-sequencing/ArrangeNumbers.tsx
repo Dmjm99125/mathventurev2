@@ -47,7 +47,9 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
       setErrorMsg('');
       if (nextPlaced.length === SEQUENCE.length) {
         setScore(nextScore);
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (nextScore === SEQUENCE.length) {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
       }
       return;
     }
@@ -72,7 +74,20 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
     }
   };
 
+  const handleRemovePlaced = (index: number) => {
+    if (allowSkip || index >= placed.length) return;
+    const nextPlaced = placed.filter((_, placedIndex) => placedIndex !== index);
+    const nextScore = scoreByPosition(nextPlaced, SEQUENCE);
+    setPlaced(nextPlaced);
+    setCurrentIndex(nextPlaced.length);
+    setCorrectItems(nextScore);
+    setWrongAttempts(nextPlaced.length - nextScore);
+    setScore(0);
+    setErrorMsg('');
+  };
+
   const isCompleted = currentIndex === SEQUENCE.length;
+  const isPerfect = allowSkip || wrongAttempts === 0;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-gradient-to-b from-cyan-100 to-blue-200 p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative border-4 border-cyan-300 shrink-0">
@@ -105,15 +120,21 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
             return num === undefined ? (
               <motion.div key={`empty-${index}`} className="w-14 h-14 md:w-20 md:h-20 bg-cyan-50/50 rounded-2xl border-4 border-dashed border-cyan-300/60 flex items-center justify-center" />
             ) : (
-              <motion.div
+              <motion.button
+                type="button"
                 key={`placed-${index}`}
                 initial={{ opacity: 0, scale: 0.5, y: -50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ type: 'spring', bounce: 0.5 }}
+                onClick={allowSkip === false ? () => handleRemovePlaced(index) : undefined}
+                disabled={allowSkip}
+                aria-label={`Remove placed number ${num}`}
+                title={allowSkip === false ? 'Tap to remove this number' : undefined}
                 className="w-14 h-14 md:w-20 md:h-20 bg-gradient-to-b from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl md:text-4xl font-bold text-white shadow-[0_4px_0_0_#059669] border-2 border-emerald-300"
               >
                 {num}
-              </motion.div>
+                {allowSkip === false && <XCircle className="absolute w-4 h-4 -mt-10 ml-10 text-white/80" />}
+              </motion.button>
             );
           })}
         </AnimatePresence>
@@ -166,7 +187,7 @@ export function ArrangeNumbers({ onComplete, allowSkip = false }: { onComplete?:
               className="flex flex-col items-center gap-4"
             >
               <div className="flex items-center gap-3 text-emerald-700 font-bold text-2xl md:text-3xl bg-emerald-50 px-8 py-4 rounded-full border-2 border-emerald-200 shadow-md">
-                <CheckCircle2 className="w-8 h-8" /> 🎉 Great job!
+                {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? '🎉 Great job!' : 'Good try! Keep practicing.'}
               </div>
               <Button 
                 size="lg" 

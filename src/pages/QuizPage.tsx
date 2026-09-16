@@ -160,6 +160,7 @@ export function QuizPage() {
   const assignmentId = searchParams.get('assignmentId') || undefined;
   const classId = searchParams.get('classId') || undefined;
   const returnTo = searchParams.get('returnTo');
+  const isPublicFreePlay = !assignmentId && searchParams.get('freePlay') === '1';
   const topic = params?.topic || 'colors';
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
@@ -167,7 +168,9 @@ export function QuizPage() {
   const startAssignmentQuiz = useStartAssignmentQuiz();
   const checkpointAssignmentQuiz = useCheckpointAssignmentQuiz();
   const completeAssignmentQuiz = useCompleteAssignmentQuiz();
-  const exitHref = buildStudentLessonExitHref({ classId, returnTo });
+  const exitHref = isPublicFreePlay
+    ? '/free-play'
+    : buildStudentLessonExitHref({ classId, returnTo });
   const isAssignedQuiz = Boolean(assignmentId);
 
   const rawQuestions = allTopics[topic as keyof typeof allTopics] || [];
@@ -320,7 +323,7 @@ export function QuizPage() {
           durationSeconds: savedDurationSeconds,
           gameResults: nextResults,
         });
-      } else {
+      } else if (!isPublicFreePlay) {
         await submitAttempt.mutateAsync({
           lessonId: topic,
           assignmentId,
@@ -886,8 +889,13 @@ export function QuizPage() {
             <p className="mb-6 text-sm font-extrabold text-destructive">{quizPersistenceError}</p>
           )}
           <div className="flex flex-col gap-3">
-            <Button size="lg" variant="jungle" className="w-full text-lg shadow-md" onClick={isAssignedQuiz ? handleExit : () => setLocation('/')}>
-              {isAssignedQuiz ? 'Return to Classroom' : 'Return to Main Menu'}
+            <Button
+              size="lg"
+              variant="jungle"
+              className="w-full text-lg shadow-md"
+              onClick={isAssignedQuiz ? handleExit : () => setLocation(isPublicFreePlay ? '/free-play' : '/')}
+            >
+              {isAssignedQuiz ? 'Return to Classroom' : isPublicFreePlay ? 'Choose another topic' : 'Return to Main Menu'}
             </Button>
             {assignmentId ? null : (<Button
               size="lg"

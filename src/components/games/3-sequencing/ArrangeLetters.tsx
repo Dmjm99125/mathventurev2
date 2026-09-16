@@ -52,7 +52,9 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
       setErrorMsg('');
       if (nextPlaced.length === sequence.length) {
         setScore(nextScore);
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (nextScore === sequence.length) {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
       }
       return;
     }
@@ -77,7 +79,20 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
     }
   };
 
+  const handleRemovePlaced = (index: number) => {
+    if (allowSkip || index >= placed.length) return;
+    const nextPlaced = placed.filter((_, placedIndex) => placedIndex !== index);
+    const nextScore = scoreByPosition(nextPlaced, sequence);
+    setPlaced(nextPlaced);
+    setCurrentIndex(nextPlaced.length);
+    setCorrectItems(nextScore);
+    setWrongAttempts(nextPlaced.length - nextScore);
+    setScore(0);
+    setErrorMsg('');
+  };
+
   const isCompleted = currentIndex === sequence.length;
+  const isPerfect = allowSkip || wrongAttempts === 0;
   const slotSequence = allowSkip === false ? [...placed, ...sequence.slice(placed.length)] : sequence;
 
   return (
@@ -122,12 +137,17 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
           </div>
 
           {/* Placed Letters */}
-          {slotSequence.slice(0, currentIndex).map((letter) => (
-            <motion.div
+          {slotSequence.slice(0, currentIndex).map((letter, index) => (
+            <motion.button
+              type="button"
               key={`placed-${letter}`}
               initial={{ opacity: 0, scale: 0.5, y: -50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ type: 'spring', bounce: 0.5 }}
+              onClick={allowSkip === false ? () => handleRemovePlaced(index) : undefined}
+              disabled={allowSkip}
+              aria-label={`Remove placed letter ${letter}`}
+              title={allowSkip === false ? 'Tap to remove this letter' : undefined}
               className="w-16 h-20 md:w-20 md:h-28 bg-[#ffc88a] rounded-t-2xl rounded-b-md flex flex-col items-center justify-between py-2 text-3xl md:text-5xl font-bold text-[#2c1809] shadow-[0_4px_0_0_#7b4f26] border-4 border-[#ad6e35] relative"
             >
               <div className="text-[10px] md:text-xs opacity-60">😊</div>
@@ -136,7 +156,8 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
                 <div className="w-4 h-4 md:w-5 md:h-5 bg-slate-800 rounded-full border-2 border-slate-600"></div>
                 <div className="w-4 h-4 md:w-5 md:h-5 bg-slate-800 rounded-full border-2 border-slate-600"></div>
               </div>
-            </motion.div>
+               {allowSkip === false && <XCircle className="absolute top-1 right-1 w-4 h-4 text-rose-600/70" />}
+            </motion.button>
           ))}
           {/* Empty Slots */}
           {slotSequence.slice(currentIndex).map((letter) => (
@@ -203,7 +224,7 @@ export function ArrangeLetters({ onComplete, allowSkip = false }: { onComplete?:
               className="flex flex-col items-center gap-4"
             >
               <div className="flex items-center gap-3 text-emerald-700 font-bold text-2xl md:text-3xl bg-emerald-50 px-8 py-4 rounded-full border-2 border-emerald-200 shadow-md">
-                <CheckCircle2 className="w-8 h-8" /> 🏆 Mahusay! Magaling, binabati kita!
+                {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? '🏆 Mahusay! Magaling, binabati kita!' : 'Good try! Ipagpatuloy ang pagsasanay.'}
               </div>
               <Button 
                 size="lg" 

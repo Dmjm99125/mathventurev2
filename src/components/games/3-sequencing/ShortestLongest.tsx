@@ -69,7 +69,9 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
       setErrorMsg('');
       if (nextPlaced.length === SIZES.length) {
         setScore(nextScore);
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if (nextScore === SIZES.length) {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
       }
       return;
     }
@@ -94,7 +96,20 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
     }
   };
 
+  const handleRemovePlaced = (index: number) => {
+    if (allowSkip || index >= placed.length) return;
+    const nextPlaced = placed.filter((_, placedIndex) => placedIndex !== index);
+    const nextScore = scoreByPosition(nextPlaced, SIZES);
+    setPlaced(nextPlaced);
+    setCurrentIndex(nextPlaced.length);
+    setCorrectItems(nextScore);
+    setWrongAttempts(nextPlaced.length - nextScore);
+    setScore(0);
+    setErrorMsg('');
+  };
+
   const isCompleted = currentIndex === SIZES.length;
+  const isPerfect = allowSkip || wrongAttempts === 0;
   const slotSizes = allowSkip === false ? [...placed, ...SIZES.slice(placed.length)] : SIZES;
 
   return (
@@ -126,17 +141,23 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
       <div className="flex flex-col items-start justify-center gap-4 mb-10 w-full max-w-2xl bg-white/40 p-6 rounded-[2rem] border-4 border-dashed border-green-400 min-h-[300px]">
         <AnimatePresence>
           {/* Placed Caterpillars */}
-          {slotSizes.slice(0, currentIndex).map((size) => (
-            <motion.div
+          {slotSizes.slice(0, currentIndex).map((size, index) => (
+            <motion.button
+              type="button"
               key={`placed-${size}`}
               layout
               initial={{ opacity: 0, scale: 0.5, x: -50 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
               transition={{ type: 'spring', bounce: 0.5 }}
-              className="w-full border-b-2 border-green-200/50 pb-2"
+              onClick={allowSkip === false ? () => handleRemovePlaced(index) : undefined}
+              disabled={allowSkip}
+              aria-label={`Remove placed caterpillar of size ${size}`}
+              title={allowSkip === false ? 'Tap to remove this caterpillar' : undefined}
+              className="relative w-full border-b-2 border-green-200/50 pb-2"
             >
                <Caterpillar size={size} />
-            </motion.div>
+               {allowSkip === false && <XCircle className="absolute right-2 top-2 w-5 h-5 text-rose-500/70" />}
+            </motion.button>
           ))}
           {/* Empty Slots */}
           {SIZES.slice(currentIndex).map((size) => (
@@ -197,7 +218,7 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
               className="flex flex-col items-center gap-4"
             >
               <div className="flex items-center gap-3 text-emerald-700 font-bold text-2xl md:text-3xl bg-emerald-50 px-8 py-4 rounded-full border-2 border-emerald-200 shadow-md">
-                <CheckCircle2 className="w-8 h-8" /> 🎉 Great job! Ang galing!
+                {isPerfect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />} {isPerfect ? '🎉 Great job! Ang galing!' : 'Good try! Keep practicing.'}
               </div>
               <Button 
                 size="lg" 
