@@ -1,6 +1,7 @@
 import { useLocation } from 'wouter';
 import { Gamepad2, Sparkles } from 'lucide-react';
 import { TopNav } from '@/components/layout';
+import { FreePlayOfflinePanel } from '@/components/offline/FreePlayOfflinePanel';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { Button, Card } from '@/components/ui';
 import { LEGACY_TOPIC_META, type PortalTopicEntry } from '@/lib/student/portal';
@@ -38,6 +39,8 @@ export function FreePlay() {
             <Sparkles className="h-4 w-4" /> Explore every topic
           </div>
         </Card>
+
+        <FreePlayOfflinePanel />
 
         <div className="w-full max-w-3xl rounded-[32px] border-4 border-white/60 bg-white/10 p-2 shadow-[0_24px_60px_rgba(34,94,49,0.16)] md:p-4">
           <LegacyLessonMenu
