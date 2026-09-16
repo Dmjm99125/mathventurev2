@@ -8,9 +8,11 @@ import { Landing } from '@/pages/landing';
 import { About } from '@/pages/about';
 import { Login, Signup } from '@/pages/auth';
 import {
-  TeacherWorkspacePage,
+  TeacherTodayPage,
+  TeacherStudentsPage,
+  TeacherAssignmentsPage,
   TeacherReportsPage,
-  TeacherSettingsPlaceholder,
+  TeacherSettingsPage,
 } from '@/pages/teacher';
 import { StudentDashboard, StudentClassroomPage } from '@/pages/student';
 import { QuizPage } from '@/pages/QuizPage';
@@ -52,13 +54,19 @@ function AppRoutes() {
       </Route>
       
       <Route path="/teacher">
-        {() => <AppLayout sidebarMode="hidden"><TeacherWorkspacePage /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherTodayPage /></AppLayout>}
+      </Route>
+      <Route path="/teacher/students">
+        {() => <AppLayout sidebarMode="hidden"><TeacherStudentsPage /></AppLayout>}
+      </Route>
+      <Route path="/teacher/assignments">
+        {() => <AppLayout sidebarMode="hidden"><TeacherAssignmentsPage /></AppLayout>}
       </Route>
       <Route path="/teacher/classes">
-        {() => <Redirect to="/teacher" replace />}
+        {() => <Redirect to="/teacher/students" replace />}
       </Route>
       <Route path="/teacher/classes/:classId">
-        {() => <Redirect to="/teacher" replace />}
+        {() => <Redirect to="/teacher/students" replace />}
       </Route>
       <Route path="/teacher/reports/classes/:classId">
         {() => <Redirect to="/teacher/reports" replace />}
@@ -67,7 +75,7 @@ function AppRoutes() {
         {() => <AppLayout sidebarMode="hidden"><TeacherReportsPage /></AppLayout>}
       </Route>
       <Route path="/teacher/settings">
-        {() => <AppLayout sidebarMode="hidden"><TeacherSettingsPlaceholder /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherSettingsPage /></AppLayout>}
       </Route>
       
       <Route component={NotFound} />
