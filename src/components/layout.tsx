@@ -93,7 +93,7 @@ export function TopNav() {
   const navItems = user ? (isTeacher ? teacherNavItems : studentNavItems) : [];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={`sticky top-0 z-40 w-full border-b-2 border-border bg-background/95 ${isTeacher ? 'teacher-topbar' : 'backdrop-blur supports-[backdrop-filter]:bg-background/60'}`}>
       {isViewingStudent && viewingStudent && (
         <div className="border-b-2 border-primary/20 bg-primary px-4 py-2 text-primary-foreground">
           <div className="container mx-auto flex flex-col gap-2 text-sm font-bold sm:flex-row sm:items-center sm:justify-between">
