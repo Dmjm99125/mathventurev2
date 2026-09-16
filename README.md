@@ -100,6 +100,33 @@ mathventure/
    npm run build
    ```
 
+### Teacher password recovery email
+
+Teacher signup intentionally signs in immediately. Only the forgot-password
+flow sends email: Supabase Auth generates a six-digit recovery code, and the
+configured SMTP provider delivers it.
+
+For the hosted Supabase project:
+
+1. Create a Gmail app password for the sending account. Do not use the normal
+   Gmail account password.
+2. In Supabase Authentication settings, enable external email delivery and
+   configure Gmail SMTP with `smtp.gmail.com`, port `465` using SSL or port
+   `587` using STARTTLS, the sender address, the Gmail app password, and a
+   sender name.
+3. Keep email confirmations disabled so teacher signup remains immediate.
+4. Set Email OTP expiration to `300` seconds and OTP length to `6`.
+5. Set the hosted Reset Password email template to include `{{ .Token }}`.
+6. Add the deployed application's `/reset-password` URL to the Supabase
+   Auth redirect URL allow list.
+7. Keep SMTP credentials only in Supabase-managed settings and disable link
+   tracking if it is enabled for the Gmail sending account.
+
+For local development, the settings in `supabase/config.toml` configure a
+six-digit code with a five-minute lifetime and immediate signup. Supabase's
+local Mailpit captures Auth emails; run `npm run supabase:status` to find its
+URL. Gmail credentials are not needed for local tests.
+
 ---
 
 ## 🔬 Academic Research & Background

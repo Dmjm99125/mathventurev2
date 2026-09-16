@@ -6,6 +6,16 @@ enabled = true
 [db]
 port = 54322
 
+[auth.email]
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 300
+secure_password_change = true
+
+[auth.email.template.recovery]
+subject = "Your MathVenture password reset code"
+content_path = "./supabase/templates/recovery.html"
+
 [functions.student-login]
 verify_jwt = false
 
