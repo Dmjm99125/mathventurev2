@@ -7,4 +7,5 @@ Deno.test("landing free play is a public topic menu", async () => {
   assertEquals(landing.includes('href="/free-play"'), true);
   assertEquals(page.includes("No login is needed."), true);
   assertEquals(page.includes("freePlay=1"), true);
+  assertEquals(page.includes("FreePlayOfflinePanel"), true);
 });

@@ -157,6 +157,7 @@ function readableError(error: unknown): string {
 
 async function runMediaDownload(clientId: string | undefined, requestId: string): Promise<void> {
   const statusBeforeDownload = await readStatus();
+  let progressStatus = statusBeforeDownload;
 
   try {
     const manifest = await fetchMediaManifest();
@@ -176,6 +177,7 @@ async function runMediaDownload(clientId: string | undefined, requestId: string)
       ...buildMediaDownloadStatus(manifest, completedUrls),
       state: 'downloading',
     };
+    progressStatus = status;
     await saveStatus(status);
     await broadcastStatus(status, undefined, clientId);
 
@@ -194,6 +196,7 @@ async function runMediaDownload(clientId: string | undefined, requestId: string)
         ...buildMediaDownloadStatus(manifest, completedUrls),
         state: 'downloading',
       };
+      progressStatus = status;
       await saveStatus(status);
       await broadcastStatus(status, undefined, clientId);
     }
@@ -208,12 +211,13 @@ async function runMediaDownload(clientId: string | undefined, requestId: string)
     };
     await writeMetadata({ key: ACTIVE_MEDIA_KEY, value: activeMedia });
     status = { ...buildMediaDownloadStatus(manifest, completedUrls), state: 'ready' };
+    progressStatus = status;
     await saveStatus(status);
     await cleanupMediaCaches(stagingCacheName);
     await broadcastStatus(status, requestId, clientId);
   } catch (error) {
     const status: MediaDownloadStatus = {
-      ...statusBeforeDownload,
+      ...progressStatus,
       state: 'error',
       errorMessage: readableError(error),
     };
@@ -267,7 +271,16 @@ async function checkForMediaUpdate(): Promise<MediaDownloadStatus> {
 
 async function handleWorkerMessage(message: FreePlayWorkerRequest, clientId?: string): Promise<void> {
   if (message.type === 'GET_MEDIA_STATUS') {
-    await broadcastStatus(await readStatus(), message.requestId, clientId);
+    let status = await readStatus();
+    if (!status.totalFiles) {
+      try {
+        status = await checkForMediaUpdate();
+        await saveStatus(status);
+      } catch {
+        // The shell can still open when the manifest is temporarily unavailable.
+      }
+    }
+    await broadcastStatus(status, message.requestId, clientId);
     return;
   }
 

@@ -30,7 +30,6 @@ function progressPercent(completed: number, total: number): number {
 export function FreePlayOfflinePanel() {
   const { status, isLoading, isSupported, errorMessage, download, cancel, retry } = useFreePlayOffline();
   const percent = progressPercent(status.completedBytes, status.totalBytes);
-  const isDownloading = status.state === 'downloading';
 
   const handleDownload = () => {
     void download().catch(() => undefined);

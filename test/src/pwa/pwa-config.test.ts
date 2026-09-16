@@ -39,4 +39,6 @@ Deno.test("PWA worker has an app-shell precache entry point", async () => {
 
   assertMatch(worker, /precacheAndRoute/);
   assertMatch(worker, /self\.__WB_MANIFEST/);
+  assertMatch(worker, /GET_MEDIA_STATUS/);
+  assertMatch(worker, /checkForMediaUpdate/);
 });
