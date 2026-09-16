@@ -104,6 +104,8 @@ import {
 } from '@/lib/games/attempt-results';
 import { buildStudentLessonExitHref } from '@/lib/student/portal';
 import { getFreePlayGameCount, isDrawingBoardAvailable } from '@/lib/games/free-play';
+import { useAuth } from '@/lib/auth';
+import { shouldRecordStandaloneAttempt } from '@/lib/quiz/recording';
 
 type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
@@ -161,6 +163,7 @@ export function QuizPage() {
   const classId = searchParams.get('classId') || undefined;
   const returnTo = searchParams.get('returnTo');
   const isPublicFreePlay = !assignmentId && searchParams.get('freePlay') === '1';
+  const { teacherUser } = useAuth();
   const topic = params?.topic || 'colors';
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
@@ -323,7 +326,10 @@ export function QuizPage() {
           durationSeconds: savedDurationSeconds,
           gameResults: nextResults,
         });
-      } else if (!isPublicFreePlay) {
+      } else if (shouldRecordStandaloneAttempt({
+        isPublicFreePlay,
+        isTeacherContext: Boolean(teacherUser),
+      })) {
         await submitAttempt.mutateAsync({
           lessonId: topic,
           assignmentId,

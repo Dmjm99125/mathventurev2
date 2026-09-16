@@ -46,8 +46,16 @@ Deno.test("public Free Play uses a guest marker and does not persist through the
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
   assertEquals(source.includes("searchParams.get('freePlay') === '1'"), true);
-  assertEquals(source.includes("} else if (!isPublicFreePlay) {"), true);
+  assertEquals(source.includes("shouldRecordStandaloneAttempt"), true);
   assertEquals(source.includes("isPublicFreePlay ? '/free-play' : '/'") , true);
+});
+
+Deno.test("teacher context does not submit standalone lesson attempts", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("useAuth"), true);
+  assertEquals(source.includes("teacherUser"), true);
+  assertEquals(source.includes("shouldRecordStandaloneAttempt"), true);
 });
 
 Deno.test("assigned completion removes replay while free play keeps the existing replay action", async () => {
