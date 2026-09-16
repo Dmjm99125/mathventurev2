@@ -187,3 +187,50 @@ Deno.test("buildTeacherSingleClassroomReport returns one classroom summary plus 
   assertEquals(report.studentRows[0].averageScorePct, 100);
   assertEquals(report.topicBreakdown[0].topicId, "colors");
 });
+
+Deno.test("teacher report recent passes resolve actual game titles with an ID fallback", () => {
+  const overview = buildTeacherReportsOverview({
+    classes: [{ id: "class-a", name: "Class A", joinCode: "AAA111", studentCount: 1 }],
+    students: [{
+      id: "student-1",
+      classId: "class-a",
+      className: "Class A",
+      fullName: "Maria Santos",
+      firstName: "Maria",
+      lastName: "Santos",
+      joinedAt: "2026-07-01T00:00:00.000Z",
+    }],
+    results: [
+      {
+        studentId: "student-1",
+        classId: "class-a",
+        topicId: "shapes",
+        gameId: "shapes:0",
+        gameOrder: 0,
+        score: 1,
+        maxScore: 1,
+        scorePct: 100,
+        passed: true,
+        completedAt: "2026-07-28T08:00:00.000Z",
+      },
+      {
+        studentId: "student-1",
+        classId: "class-a",
+        topicId: "colors",
+        gameId: "colors:99",
+        gameOrder: 99,
+        score: 1,
+        maxScore: 1,
+        scorePct: 100,
+        passed: true,
+        completedAt: "2026-07-29T08:00:00.000Z",
+      },
+    ],
+    windowKey: "all",
+    now: new Date("2026-07-29T09:00:00.000Z"),
+  });
+
+  const recentPasses = overview.recentActivity.recentPasses as Array<{ gameTitle?: string }>;
+  assertEquals(recentPasses[0].gameTitle, "colors:99");
+  assertEquals(recentPasses[1].gameTitle, "Shape Matching");
+});

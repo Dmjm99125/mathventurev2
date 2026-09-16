@@ -37,7 +37,7 @@ export function TeacherReportsRecentActivity({
                 key={`${row.studentId}-${row.gameId}-${row.completedAt}`}
                 className="rounded-2xl border border-[var(--teacher-moss)]/20 p-3 font-bold tabular-nums text-[var(--teacher-ink)]"
               >
-                {row.fullName} | {row.scorePct}% | {formatDate(row.completedAt)}
+                {row.fullName} | {row.gameTitle} | {row.scorePct}% | {formatDate(row.completedAt)}
               </li>
             ))}
           </ul>

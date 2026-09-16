@@ -64,6 +64,7 @@ export type TeacherReportsOverviewPayload = {
       classId: string;
       className: string;
       gameId: string;
+      gameTitle: string;
       completedAt: string;
       scorePct: number;
     }[];
@@ -136,6 +137,7 @@ export type TeacherSingleClassroomReportPayload = {
       studentId: string;
       fullName: string;
       gameId: string;
+      gameTitle: string;
       completedAt: string;
       scorePct: number;
     }[];
@@ -373,15 +375,20 @@ export function buildTeacherReportsOverview(input: {
     .filter((row) => row.passed)
     .sort(byNewestFirst)
     .slice(0, 5)
-    .map((row) => ({
-      studentId: row.studentId,
-      fullName: studentByClassKey.get(`${row.classId}:${row.studentId}`)?.fullName ?? "Student",
-      classId: row.classId,
-      className: studentByClassKey.get(`${row.classId}:${row.studentId}`)?.className ?? "Class",
-      gameId: row.gameId,
-      completedAt: row.completedAt,
-      scorePct: row.scorePct,
-    }));
+    .map((row) => {
+      const catalogEntry = getGameCatalogEntry(row.topicId, row.gameOrder);
+
+      return {
+        studentId: row.studentId,
+        fullName: studentByClassKey.get(`${row.classId}:${row.studentId}`)?.fullName ?? "Student",
+        classId: row.classId,
+        className: studentByClassKey.get(`${row.classId}:${row.studentId}`)?.className ?? "Class",
+        gameId: row.gameId,
+        gameTitle: catalogEntry?.title ?? row.gameId,
+        completedAt: row.completedAt,
+        scorePct: row.scorePct,
+      };
+    });
 
   const activeClasses = classSummaries
     .filter((row): row is typeof row & { lastActivityAt: string } => row.lastActivityAt !== null)
@@ -569,6 +576,7 @@ export function buildTeacherSingleClassroomReport(input: {
         studentId: row.studentId,
         fullName: row.fullName,
         gameId: row.gameId,
+        gameTitle: row.gameTitle,
         completedAt: row.completedAt,
         scorePct: row.scorePct,
       })),

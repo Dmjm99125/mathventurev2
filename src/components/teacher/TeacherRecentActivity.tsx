@@ -36,7 +36,7 @@ export function TeacherRecentActivity({
             <div key={`${pass.studentId}-${pass.gameId}-${pass.completedAt}`} className="grid gap-2 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <div className="min-w-0">
                 <p className="truncate font-bold text-[var(--teacher-ink)]">{pass.fullName}</p>
-                <p className="text-sm font-semibold text-[var(--teacher-ink)]/65">Completed {pass.gameId}</p>
+                <p className="text-sm font-semibold text-[var(--teacher-ink)]/65">Completed {pass.gameTitle}</p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="font-display text-xl font-bold tabular-nums text-[var(--teacher-moss)]">{pass.scorePct}%</p>
