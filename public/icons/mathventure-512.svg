@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">MathVenture</title>
+  <rect width="512" height="512" rx="118" fill="#e8f7ff"/>
+  <path d="M80 317c0-91 72-165 165-165h187v117H245c-27 0-48 21-48 48s21 48 48 48h48v103h-48c-91 0-165-64-165-151Z" fill="#1b8fca"/>
+  <path d="M326 152h106v106H326z" fill="#f5a623"/>
+  <path d="M360 178h38v54h-38z" fill="#fff"/>
+  <path d="M353 346h90v35h-90z" fill="#ef6c57"/>
+</svg>

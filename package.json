@@ -42,6 +42,7 @@
     "typescript": "^5.9.3",
     "vaul": "^1.1.2",
     "vite": "^6.0.7",
+    "vite-plugin-pwa": "^0.21.2",
     "wouter": "^3.3.5"
   },
   "dependencies": {
