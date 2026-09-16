@@ -1,59 +1,145 @@
+import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui';
 import { useAuth, signOut } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { cn } from '@/lib/shared/utils';
+import { Menu, X } from 'lucide-react';
+
+function TeacherNavLinks({
+  location,
+  onNavigate,
+}: {
+  location: string;
+  onNavigate?(): void;
+}) {
+  const { t } = useLanguage();
+
+  return (
+    <>
+      {TEACHER_NAV_ITEMS.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          onClick={onNavigate}
+          className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <span
+            className={cn(
+              'block rounded-xl px-4 py-3 font-bold transition-colors',
+              isTeacherNavActive(location, item.href)
+                ? 'bg-[var(--teacher-moss)] text-[var(--teacher-sand)]'
+                : 'text-[var(--teacher-ink)] hover:bg-[var(--teacher-sage)]/30',
+            )}
+          >
+            {t(item.labelKey)}
+          </span>
+        </Link>
+      ))}
+    </>
+  );
+}
 
 export function TeacherSidebar() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  return (
-    <aside className="hidden min-w-0 flex-col border-b-2 border-border bg-[linear-gradient(180deg,#f4f7e9_0%,#eef5dc_100%)] p-4 sm:flex-row sm:flex-wrap sm:items-center sm:p-5 md:flex lg:fixed lg:bottom-0 lg:left-0 lg:top-16 lg:z-30 lg:h-[calc(100dvh-4rem)] lg:w-[280px] lg:overflow-y-auto lg:flex-col lg:flex-nowrap lg:items-stretch lg:border-b-0 lg:border-r-2 lg:p-6">
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-1 sm:flex-row sm:items-center lg:block lg:flex-none">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border-2 border-border bg-white text-2xl font-display font-bold text-primary sm:h-16 sm:w-16 lg:h-24 lg:w-24 lg:rounded-[28px] lg:text-3xl">
-          {user?.full_name?.trim().slice(0, 1).toUpperCase() ?? 'T'}
-        </div>
-        <p className="text-base font-display font-bold text-foreground sm:text-lg lg:mt-4">
-          Welcome, {user?.full_name ?? 'Teacher'}
+  React.useEffect(() => {
+    setMobileOpen(false);
+  }, [location]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setLocation('/');
+  };
+
+  const identity = (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--teacher-moss)]/30 bg-[var(--teacher-oat)] text-xl font-display font-bold text-[var(--teacher-moss)]">
+        {user?.full_name?.trim().slice(0, 1).toUpperCase() ?? 'T'}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--teacher-moss)]/70">Teacher</p>
+        <p className="truncate font-display text-lg font-bold text-[var(--teacher-ink)]">
+          {user?.full_name ?? 'Teacher'}
         </p>
       </div>
+    </div>
+  );
 
-      <nav aria-label="Teacher navigation" className="mt-3 flex min-w-0 max-w-full gap-2 overflow-x-auto pb-1 sm:mt-0 sm:flex-1 lg:mt-8 lg:flex-none lg:grid lg:max-w-none lg:overflow-visible">
-        {TEACHER_NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="shrink-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+  return (
+    <>
+      <aside className="fixed bottom-0 left-0 top-16 z-30 hidden w-[280px] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-6 lg:flex">
+        {identity}
+        <nav aria-label="Teacher navigation" className="mt-10 grid gap-2">
+          <TeacherNavLinks location={location} />
+        </nav>
+        <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-5">
+          <Button
+            variant="ghost"
+            className="w-full justify-start px-4 text-[var(--teacher-ink)] hover:bg-[var(--teacher-sage)]/30"
+            onClick={handleSignOut}
           >
-            <div
-              className={cn(
-                'rounded-2xl px-4 py-3 font-bold transition-colors',
-                isTeacherNavActive(location, item.href)
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-accent',
-              )}
-            >
-              {t(item.labelKey)}
-            </div>
-          </Link>
-        ))}
-      </nav>
+            {t('common.logout')}
+          </Button>
+        </div>
+      </aside>
 
-      <div className="mt-4 border-t-2 border-border pt-4 sm:ml-auto sm:mt-0 sm:border-l-2 sm:border-t-0 sm:pl-4 lg:ml-0 lg:mt-8 lg:border-l-0 lg:border-t-2 lg:pl-0 lg:pt-6">
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={async () => {
-            await signOut();
-            setLocation('/');
-          }}
-        >
-          {t('common.logout')}
-        </Button>
-      </div>
-    </aside>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className="fixed right-4 top-[4.75rem] z-40 border-[var(--teacher-moss)]/30 bg-[var(--teacher-sand)] text-[var(--teacher-ink)] lg:hidden"
+        aria-expanded={mobileOpen}
+        aria-controls="teacher-mobile-nav"
+        aria-label={mobileOpen ? 'Close teacher navigation' : 'Open teacher navigation'}
+        onClick={() => setMobileOpen((open) => !open)}
+      >
+        {mobileOpen ? <X /> : <Menu />}
+      </Button>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-[var(--teacher-ink)]/35"
+            aria-label="Close teacher navigation"
+            onClick={() => setMobileOpen(false)}
+          />
+          <aside
+            id="teacher-mobile-nav"
+            className="relative flex h-full w-[min(88vw,22rem)] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-5 shadow-xl"
+          >
+            <div className="flex items-center justify-between gap-4">
+              {identity}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Close teacher navigation"
+                onClick={() => setMobileOpen(false)}
+              >
+                <X />
+              </Button>
+            </div>
+            <nav aria-label="Teacher navigation" className="mt-8 grid gap-2">
+              <TeacherNavLinks location={location} onNavigate={() => setMobileOpen(false)} />
+            </nav>
+            <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-5">
+              <Button
+                variant="ghost"
+                className="w-full justify-start px-4 text-[var(--teacher-ink)]"
+                onClick={handleSignOut}
+              >
+                {t('common.logout')}
+              </Button>
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

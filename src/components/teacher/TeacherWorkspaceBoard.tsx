@@ -11,20 +11,17 @@ export function TeacherWorkspaceBoard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full min-h-[calc(100dvh-4rem)] overflow-x-hidden lg:pl-[280px]">
-      <div className="min-h-[calc(100dvh-4rem)] overflow-hidden border-y-2 border-border bg-card shadow-[0_24px_70px_rgba(58,88,42,0.12)] sm:rounded-[32px] sm:border-2">
-        <div className="min-h-[calc(100dvh-4rem)]">
-          <TeacherSidebar />
-
-          <section className="min-w-0 p-4 sm:p-5 md:p-6 lg:p-8">
-            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="min-w-0">{heading}</div>
-              {action ? <div className="w-full md:w-auto md:shrink-0">{action}</div> : null}
-            </div>
-            <div className="mt-6 min-w-0 sm:mt-8">{children}</div>
-          </section>
+    <div className="teacher-shell teacher-grain min-h-[calc(100dvh-4rem)] overflow-x-hidden bg-[var(--teacher-sand)] lg:pl-[280px]">
+      <TeacherSidebar />
+      <main className="teacher-learning-trail min-h-[calc(100dvh-4rem)] min-w-0 px-4 py-8 sm:px-6 md:px-8 lg:px-12 lg:py-12">
+        <div className="mx-auto max-w-[1280px]">
+          <div className="flex min-w-0 flex-col gap-5 border-b border-[var(--teacher-moss)]/20 pb-8 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">{heading}</div>
+            {action ? <div className="w-full md:w-auto md:shrink-0">{action}</div> : null}
+          </div>
+          <div className="min-w-0 pt-8">{children}</div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

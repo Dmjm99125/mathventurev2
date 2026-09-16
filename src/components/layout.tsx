@@ -6,7 +6,7 @@ import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student/navigation'
 import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { signOut } from '@/lib/auth';
 import { Button, Input } from './ui';
-import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User } from 'lucide-react';
+import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User, ClipboardList, BarChart3 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/shared/utils';
@@ -17,9 +17,13 @@ function getTeacherNavItems(t: (key: string) => string) {
     label: t(item.labelKey),
     icon: item.href === '/teacher'
       ? LayoutDashboard
-      : item.href === '/teacher/reports'
+      : item.href === '/teacher/students'
         ? Users
-        : Settings,
+        : item.href === '/teacher/assignments'
+          ? ClipboardList
+          : item.href === '/teacher/reports'
+            ? BarChart3
+            : Settings,
   }));
 }
 
@@ -190,7 +194,7 @@ export function TopNav() {
                     <div className="px-2 py-1.5 text-sm text-muted-foreground border-b border-border/50 mb-1">
                       {user.full_name}
                     </div>
-                    {navItems.map(item => {
+                    {(isTeacher ? [] : navItems).map(item => {
                       const active = isAppNavItemActive(location, item.href, Boolean(isTeacher));
                       return (
                         <DropdownMenuItem key={item.href} asChild>
