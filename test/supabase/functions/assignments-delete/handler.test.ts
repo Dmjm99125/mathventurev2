@@ -42,3 +42,20 @@ Deno.test("assignments-delete returns not found when the teacher does not own th
 
   assertEquals(response.status, 404);
 });
+
+Deno.test("assignments-delete allows the teacher who owns the target class", async () => {
+  let deleted = false;
+  const deps: AssignmentsDeleteDeps = {
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher" }),
+    canManageAssignment: async () => true,
+    deleteAssignment: async () => {
+      deleted = true;
+      return true;
+    },
+  };
+
+  const response = await createAssignmentsDeleteHandler(deps)(request({ assignmentId: "assignment-1" }));
+
+  assertEquals(response.status, 200);
+  assertEquals(deleted, true);
+});

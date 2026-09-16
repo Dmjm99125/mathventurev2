@@ -73,3 +73,25 @@ Deno.test("assignments-update rejects a non-teacher", async () => {
     dueAt: null,
   }))).status, 403);
 });
+
+Deno.test("assignments-update allows the teacher who owns the target class", async () => {
+  let updated = false;
+  const deps: AssignmentsUpdateDeps = {
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher" }),
+    canManageAssignment: async () => true,
+    updateAssignment: async () => {
+      updated = true;
+      return { id: "assignment-1" };
+    },
+  };
+
+  const response = await createAssignmentsUpdateHandler(deps)(request({
+    assignmentId: "assignment-1",
+    lessonId: "addition",
+    name: "Updated",
+    dueAt: null,
+  }));
+
+  assertEquals(response.status, 200);
+  assertEquals(updated, true);
+});

@@ -34,16 +34,42 @@ const defaultDeps: AssignmentsListDeps = {
   },
   async listTeacherAssignments(teacherId, classId) {
     const { adminClient } = await import("../_shared/client.ts");
-    let query = adminClient
+    const select = "id, name, due_at, created_at, class_id, student_id, lesson_id, classes(name)";
+    let assignedByTeacherQuery = adminClient
       .from("assignments")
-      .select("id, name, due_at, created_at, class_id, student_id, lesson_id, classes(name)")
+      .select(select)
       .eq("assigned_by", teacherId)
       .order("created_at", { ascending: false });
-    if (classId) query = query.eq("class_id", classId);
-    const { data, error } = await query;
-    if (error) throw error;
+    if (classId) assignedByTeacherQuery = assignedByTeacherQuery.eq("class_id", classId);
+    const { data: assignedByTeacher, error: assignedByTeacherError } = await assignedByTeacherQuery;
+    if (assignedByTeacherError) throw assignedByTeacherError;
 
-    return (data ?? []).map((row: any) => ({
+    const { data: teacherClasses, error: teacherClassesError } = await adminClient
+      .from("classes")
+      .select("id")
+      .eq("teacher_id", teacherId);
+    if (teacherClassesError) throw teacherClassesError;
+
+    const teacherClassIds = (teacherClasses ?? []).map((row: { id: string }) => row.id);
+    let classOwned: any[] = [];
+    if (teacherClassIds.length > 0) {
+      let classOwnedQuery = adminClient
+        .from("assignments")
+        .select(select)
+        .in("class_id", teacherClassIds)
+        .order("created_at", { ascending: false });
+      if (classId) classOwnedQuery = classOwnedQuery.eq("class_id", classId);
+      const { data, error } = await classOwnedQuery;
+      if (error) throw error;
+      classOwned = data ?? [];
+    }
+
+    const rows = new Map<string, any>();
+    for (const row of [...(assignedByTeacher ?? []), ...classOwned]) {
+      rows.set(row.id, row);
+    }
+
+    return [...rows.values()].map((row: any) => ({
       id: row.id,
       name: row.name || row.lesson_id,
       lessonId: row.lesson_id,
