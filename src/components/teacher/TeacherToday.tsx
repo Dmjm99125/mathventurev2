@@ -15,10 +15,12 @@ export function TeacherToday({
   onAddStudents,
   onAssignQuiz,
   onViewStudent,
+  viewError = null,
 }: {
   onAddStudents(): void;
   onAssignQuiz(): void;
   onViewStudent(studentId: string): Promise<void>;
+  viewError?: string | null;
 }) {
   const classroomQuery = useTeacherClassroom();
   const rosterQuery = useClassRoster();
@@ -99,6 +101,11 @@ export function TeacherToday({
   return (
     <TeacherWorkspaceBoard heading={heading} action={actions}>
       <div className="grid gap-10">
+        {viewError && (
+          <Card className="teacher-section border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">
+            {viewError}
+          </Card>
+        )}
         <TeacherClassroomSnapshot
           summary={reportsQuery.data.classroomSummary}
           studentCount={students.length}

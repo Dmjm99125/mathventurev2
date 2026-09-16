@@ -14,11 +14,11 @@ Deno.test("teacher classroom exposes the assign quiz flow", () => {
   assertStringIncludes(assignmentDialog, "name");
 });
 
-Deno.test("teacher classroom exposes the assigned quizzes view selector", () => {
+Deno.test("teacher assignments page owns the assigned quizzes flow", () => {
   for (const required of [
-    "useAssignments", "TeacherAssignedQuizzes", "Select", "Student List",
-    "Student Progress", "Quizzes Assigned", "useState<'students' | 'progress' | 'assignments'>('students')",
-    "assignmentsLoading", "assignmentsError", "refetch",
+    "TeacherAssignmentsPage", "useAssignments", "TeacherAssignedQuizzes",
+    "TeacherAssignQuizDialog", "assignmentsLoading", "assignmentsError", "refetch",
+    "buildTeacherAssignedQuizzes",
   ]) {
     assertStringIncludes(teacherPage, required);
   }

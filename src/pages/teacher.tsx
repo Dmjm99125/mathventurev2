@@ -23,14 +23,8 @@ import { TeacherStudentListTable } from '@/components/teacher/TeacherStudentList
 import { TeacherStudentProgressTable } from '@/components/teacher/TeacherStudentProgressTable';
 import { TeacherAssignedQuizzes } from '@/components/teacher/TeacherAssignedQuizzes';
 import { TeacherAssignQuizDialog } from '@/components/teacher/TeacherAssignQuizDialog';
-import { useAuth } from '@/lib/auth';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { TeacherToday } from '@/components/teacher/TeacherToday';
+import { useAuth, signOut } from '@/lib/auth';
 import {
   useAssignments,
   useClassRoster,
@@ -41,38 +35,19 @@ import {
 import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
-export function TeacherWorkspacePage() {
-  const [, setLocation] = useLocation();
+function useTeacherStudentAccountActions() {
   const { viewStudentAccount, viewingStudent } = useAuth();
-  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
-  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
-  const {
-    data: assignmentsData,
-    isLoading: assignmentsLoading,
-    error: assignmentsError,
-    refetch,
-  } = useAssignments(classroomData?.classroom && 'createdAt' in classroomData.classroom ? classroomData.classroom.id : undefined);
-  const removeStudent = useRemoveStudentFromClass();
-  const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
-  const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'students' | 'progress' | 'assignments'>('students');
-  const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
+  const [, setLocation] = useLocation();
   const [viewError, setViewError] = useState<string | null>(null);
   const [viewingStudentId, setViewingStudentId] = useState<string | null>(null);
 
-  const classroom = classroomData?.classroom as TeacherClassroomSummary | null;
-  const students = (rosterData?.students ?? []) as TeacherClassStudent[];
-  const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
-    (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
-  );
-  const assignedQuizzes = buildTeacherAssignedQuizzes(teacherAssignments, students);
-
-  const handleViewStudent = async (student: TeacherClassStudent) => {
+  const viewStudent = async (studentId: string) => {
     setViewError(null);
-    setViewingStudentId(student.id);
+    setViewingStudentId(studentId);
     try {
-      await viewStudentAccount(student.id);
+      await viewStudentAccount(studentId);
       setLocation('/student');
     } catch (caught) {
       setViewError(
@@ -85,93 +60,122 @@ export function TeacherWorkspacePage() {
     }
   };
 
-  if (classroomLoading || rosterLoading || assignmentsLoading) {
-    return <div className="p-8 text-center font-bold">Loading classroom...</div>;
+  return {
+    viewStudent,
+    viewError,
+    viewingStudent,
+    viewingStudentId,
+  };
+}
+
+function teacherPageHeading(title: string, description: string) {
+  return (
+    <>
+      <p className="teacher-eyebrow">MathVenture teacher workspace</p>
+      <h1 className="mt-2 font-display text-4xl font-bold tracking-tight text-[var(--teacher-ink)] sm:text-5xl">{title}</h1>
+      <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-[var(--teacher-ink)]/70">{description}</p>
+    </>
+  );
+}
+
+export function TeacherTodayPage() {
+  const classroomQuery = useTeacherClassroom();
+  const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
+  const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
+  const studentActions = useTeacherStudentAccountActions();
+  const classroom = classroomQuery.data?.classroom as TeacherClassroomSummary | null | undefined;
+
+  return (
+    <>
+      <TeacherToday
+        onAddStudents={() => setIsAddStudentsOpen(true)}
+        onAssignQuiz={() => setIsAssignQuizOpen(true)}
+        onViewStudent={studentActions.viewStudent}
+        viewError={studentActions.viewError}
+      />
+      <TeacherAddStudentsDialog open={isAddStudentsOpen} onOpenChange={setIsAddStudentsOpen} />
+      {classroom && (
+        <TeacherAssignQuizDialog
+          open={isAssignQuizOpen}
+          onOpenChange={setIsAssignQuizOpen}
+          classId={classroom.id}
+        />
+      )}
+    </>
+  );
+}
+
+export function TeacherStudentsPage() {
+  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
+  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
+  const removeStudent = useRemoveStudentFromClass();
+  const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
+  const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
+  const studentActions = useTeacherStudentAccountActions();
+  const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
+  const students = rosterData?.students ?? [];
+
+  if (classroomLoading || rosterLoading) {
+    return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading students...</div>;
   }
 
   if (!classroom) {
-    return <div className="p-8 text-center font-bold">Classroom unavailable.</div>;
+    return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Classroom unavailable.</div>;
   }
 
   return (
     <TeacherWorkspaceBoard
-      heading={(
-        <>
-          <h1 className="text-3xl font-display font-bold sm:text-4xl">Classroom</h1>
-          <p className="mt-2 text-sm font-bold text-muted-foreground sm:text-base">
-            Manage your students and monitor progress in one place.
-          </p>
-        </>
-      )}
+      heading={teacherPageHeading('Students', 'Manage your roster, review progress, and open a student account when you need a closer look.')}
       action={(
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          <Button className="w-full sm:w-auto" variant="jungle" onClick={() => setIsAssignQuizOpen(true)}>
-            Assign Quiz
-          </Button>
-          <Button className="w-full sm:w-auto" variant="outline" onClick={() => setIsAddStudentsOpen(true)}>
-            + Add
-          </Button>
-        </div>
+        <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 md:w-auto" onClick={() => setIsAddStudentsOpen(true)}>
+          Add students
+        </Button>
       )}
     >
-      <TeacherAddStudentsDialog
-        open={isAddStudentsOpen}
-        onOpenChange={setIsAddStudentsOpen}
-      />
-      <TeacherAssignQuizDialog
-        open={isAssignQuizOpen}
-        onOpenChange={setIsAssignQuizOpen}
-        classId={classroom.id}
-      />
+      <TeacherAddStudentsDialog open={isAddStudentsOpen} onOpenChange={setIsAddStudentsOpen} />
 
-      {viewError && (
-        <Card className="mb-5 rounded-[24px] border-destructive/30 bg-destructive/5 p-4 font-bold text-destructive">
-          {viewError}
+      {studentActions.viewError && (
+        <Card className="teacher-section mb-6 border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">
+          {studentActions.viewError}
         </Card>
       )}
 
-      <div className="mb-5 w-full max-w-sm">
-        <label htmlFor="teacher-classroom-view" className="sr-only">Classroom view</label>
-        <Select
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as 'students' | 'progress' | 'assignments')}
-        >
-          <SelectTrigger id="teacher-classroom-view" className="h-12 rounded-2xl border-2 border-border bg-white px-4 font-bold">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="students">Student List</SelectItem>
-            <SelectItem value="progress">Student Progress</SelectItem>
-            <SelectItem value="assignments">Quizzes Assigned</SelectItem>
-          </SelectContent>
-        </Select>
+      <div role="tablist" aria-label="Student information" className="mb-6 flex w-fit flex-wrap gap-1 border-b border-[var(--teacher-moss)]/20">
+        {([
+          ['students', 'Student list'],
+          ['progress', 'Student progress'],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === value}
+            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${activeTab === value ? 'border-[var(--teacher-terracotta)] text-[var(--teacher-ink)]' : 'border-transparent text-[var(--teacher-ink)]/60 hover:text-[var(--teacher-ink)]'}`}
+            onClick={() => setActiveTab(value)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'students' ? (
         <TeacherStudentListTable
           students={students}
           onRemove={setPendingRemoval}
-          onView={handleViewStudent}
-          viewingStudentId={viewingStudent?.id ?? viewingStudentId}
-        />
-      ) : activeTab === 'progress' ? (
-        <TeacherStudentProgressTable students={students} />
-      ) : (
-        <TeacherAssignedQuizzes
-          assignments={assignedQuizzes}
-          error={assignmentsError as Error | null}
-          onRetry={() => {
-            void refetch();
+          onView={(student) => {
+            void studentActions.viewStudent(student.id);
           }}
+          viewingStudentId={studentActions.viewingStudent?.id ?? studentActions.viewingStudentId}
         />
+      ) : (
+        <TeacherStudentProgressTable students={students} />
       )}
 
       <Dialog
         open={pendingRemoval !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            setPendingRemoval(null);
-          }
+          if (!open) setPendingRemoval(null);
         }}
       >
         <DialogContent>
@@ -187,13 +191,10 @@ export function TeacherWorkspacePage() {
             </DialogClose>
             <Button
               variant="danger"
+              disabled={removeStudent.isPending}
               onClick={async () => {
-                if (!pendingRemoval) {
-                  return;
-                }
-                await removeStudent.mutateAsync({
-                  studentId: pendingRemoval.id,
-                });
+                if (!pendingRemoval) return;
+                await removeStudent.mutateAsync({ studentId: pendingRemoval.id });
                 setPendingRemoval(null);
               }}
             >
@@ -206,10 +207,48 @@ export function TeacherWorkspacePage() {
   );
 }
 
-export const TeacherClassesHome = TeacherWorkspacePage;
+export function TeacherAssignmentsPage() {
+  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
+  const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
+  const {
+    data: assignmentsData,
+    isLoading: assignmentsLoading,
+    error: assignmentsError,
+    refetch,
+  } = useAssignments(classroom?.id);
+  const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
 
-export function TeacherClassWorkspace(_: { classId: string }) {
-  return <TeacherWorkspacePage />;
+  if (classroomLoading || assignmentsLoading) {
+    return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading assignments...</div>;
+  }
+
+  if (!classroom) {
+    return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Classroom unavailable.</div>;
+  }
+
+  const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
+    (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
+  );
+
+  return (
+    <TeacherWorkspaceBoard
+      heading={teacherPageHeading('Assignments', 'Create clear practice for your class and review what students have been assigned.')}
+      action={(
+        <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 md:w-auto" onClick={() => setIsAssignQuizOpen(true)}>
+          Assign quiz
+        </Button>
+      )}
+    >
+      <TeacherAssignQuizDialog open={isAssignQuizOpen} onOpenChange={setIsAssignQuizOpen} classId={classroom.id} />
+      <TeacherAssignedQuizzes
+        assignments={buildTeacherAssignedQuizzes(teacherAssignments, [])}
+        error={assignmentsError as Error | null}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    </TeacherWorkspaceBoard>
+  );
 }
 
 export function TeacherReportsPage() {
@@ -221,21 +260,14 @@ export function TeacherReportsPage() {
   const { data, isLoading, error } = useTeacherReportsOverview(windowKey);
 
   if (isLoading) {
-    return <div className="p-8 text-center font-bold">Loading reports...</div>;
+    return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading reports...</div>;
   }
 
   return (
     <TeacherWorkspaceBoard
-      heading={(
-        <>
-          <h1 className="text-3xl font-display font-bold sm:text-4xl">Reports</h1>
-          <p className="mt-2 text-sm font-bold text-muted-foreground sm:text-base">
-            Review classroom performance, student activity, and topic mastery in one place.
-          </p>
-        </>
-      )}
+      heading={teacherPageHeading('Reports', 'Review classroom performance, student activity, and topic mastery in one place.')}
       action={data ? (
-        <div className="w-full sm:w-auto [&_button]:w-full sm:[&_button]:w-auto">
+        <div className="w-full md:w-auto [&_button]:w-full md:[&_button]:w-auto">
           <TeacherClassReportPdfButton report={data} disabled={!data.hasData} />
         </div>
       ) : undefined}
@@ -246,16 +278,16 @@ export function TeacherReportsPage() {
       />
 
       {error && (
-        <Card className="mb-6 rounded-[24px] p-6 font-bold text-destructive">
+        <Card className="teacher-section mb-6 border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-6 font-semibold text-[var(--teacher-ink)]">
           {(error as Error).message || "We couldn't load reports right now."}
         </Card>
       )}
 
       {data && (
-        <div className="grid gap-6">
+        <div className="grid gap-10">
           <TeacherReportsClassroomSummary summary={data.classroomSummary} />
           {data.hasData ? null : (
-            <Card className="rounded-[24px] p-6 font-bold text-muted-foreground">
+            <Card className="teacher-section border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-6 font-semibold text-[var(--teacher-ink)]">
               No reportable game results exist for this classroom in the selected window.
             </Card>
           )}
@@ -269,17 +301,42 @@ export function TeacherReportsPage() {
   );
 }
 
-export const TeacherReportsOverviewPage = TeacherReportsPage;
-export const TeacherReportsPlaceholder = TeacherReportsPage;
+export function TeacherSettingsPage() {
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  const [, setLocation] = useLocation();
 
-export function TeacherSettingsPlaceholder() {
+  const handleSignOut = async () => {
+    await signOut();
+    setLocation('/');
+  };
+
   return (
     <TeacherWorkspaceBoard
-      heading={<h1 className="text-3xl font-display font-bold sm:text-4xl">Settings</h1>}
+      heading={teacherPageHeading('Settings', 'Manage the account details and session controls already available to you.')}
     >
-      <Card className="rounded-[24px] p-8 font-bold text-muted-foreground">
-        Settings will be wired in the next teacher flow.
-      </Card>
+      <section className="teacher-section max-w-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-6 sm:p-8" aria-labelledby="teacher-account-settings">
+        <p className="teacher-eyebrow">Account</p>
+        <h2 id="teacher-account-settings" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Your teacher account</h2>
+        <dl className="mt-6 grid gap-4 border-y border-[var(--teacher-moss)]/20 py-5 sm:grid-cols-[10rem_minmax(0,1fr)]">
+          <dt className="text-sm font-bold text-[var(--teacher-ink)]/65">Name</dt>
+          <dd className="font-semibold text-[var(--teacher-ink)]">{user?.full_name ?? 'Teacher'}</dd>
+          <dt className="text-sm font-bold text-[var(--teacher-ink)]/65">Role</dt>
+          <dd className="font-semibold text-[var(--teacher-ink)]">Teacher</dd>
+        </dl>
+        <Button type="button" variant="outline" className="mt-6 border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]" onClick={handleSignOut}>
+          {t('common.logout')}
+        </Button>
+      </section>
     </TeacherWorkspaceBoard>
   );
 }
+
+export const TeacherWorkspacePage = TeacherTodayPage;
+export const TeacherClassesHome = TeacherStudentsPage;
+export function TeacherClassWorkspace(_: { classId: string }) {
+  return <TeacherStudentsPage />;
+}
+export const TeacherReportsOverviewPage = TeacherReportsPage;
+export const TeacherReportsPlaceholder = TeacherReportsPage;
+export const TeacherSettingsPlaceholder = TeacherSettingsPage;
