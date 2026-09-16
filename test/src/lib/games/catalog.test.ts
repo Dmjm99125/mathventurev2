@@ -7,14 +7,14 @@ Deno.test("GAME_CATALOG exposes every playable game in stable topic order", () =
     topicId: "colors",
     gameId: "colors:0",
     gameOrder: 0,
-    title: "colors-1",
+    title: "Color Matching Game",
     maxScore: 1,
   });
   assertEquals(GAME_CATALOG.at(-1), {
     topicId: "clock",
     gameId: "clock:6",
     gameOrder: 6,
-    title: "clock-7",
+    title: "What Time Is It?",
     maxScore: 1,
   });
   assertEquals(getGameCatalogEntry("addition", 14)?.gameId, "addition:14");
@@ -40,4 +40,14 @@ Deno.test("quiz catalog counts exclude non-quiz drawing activities", () => {
     comparison: 11,
     clock: 7,
   });
+});
+
+Deno.test("GAME_CATALOG uses actual display names instead of generated topic labels", () => {
+  assertEquals(GAME_CATALOG[0].title, "Color Matching Game");
+  assertEquals(getGameCatalogEntry("addition", 13)?.title, "Magic Pizza Chef");
+  assertEquals(GAME_CATALOG.at(-1)?.title, "What Time Is It?");
+  assertEquals(
+    GAME_CATALOG.some((entry) => entry.title === entry.topicId + "-" + (entry.gameOrder + 1)),
+    false,
+  );
 });
