@@ -8,4 +8,5 @@ Deno.test("mobile add-students drawer keeps the keyboard form fixed and scrollab
   assertEquals(source.includes("<Drawer fixed"), true);
   assertEquals(source.includes("data-vaul-no-drag"), true);
   assertEquals(source.includes("overflow-y-auto"), true);
+  assertEquals(source.includes("teacher-drawer"), true);
 });

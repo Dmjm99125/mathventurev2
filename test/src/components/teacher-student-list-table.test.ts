@@ -5,4 +5,6 @@ const source = await Deno.readTextFile(new URL("../../../src/components/teacher/
 Deno.test("teacher roster exposes a view account action", () => {
   assertEquals(source.includes("onView"), true);
   assertEquals(source.includes("View Account"), true);
+  assertEquals(source.includes("aria-label=\"Student roster\""), true);
+  assertEquals(source.includes("Remove"), true);
 });

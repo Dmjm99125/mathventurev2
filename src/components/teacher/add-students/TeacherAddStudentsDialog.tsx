@@ -133,7 +133,7 @@ export function TeacherAddStudentsDialog({
   if (isMobile) {
     return (
       <Drawer fixed open={open} onOpenChange={handleOpenChange}>
-        <DrawerContent className="h-[100dvh] max-h-[100dvh] overflow-hidden rounded-none border-0 px-4 pb-6">
+        <DrawerContent className="teacher-drawer h-[100dvh] max-h-[100dvh] overflow-hidden rounded-none border-0 bg-[var(--teacher-sand)] px-4 pb-6">
           <DrawerHeader className="px-0 pt-6 text-left">
             <DrawerTitle>Add Students</DrawerTitle>
             <DrawerDescription>

@@ -23,22 +23,22 @@ export function TeacherStudentProgressTable({
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
 
   return (
-    <div className="min-w-0 overflow-x-auto rounded-[24px] border-2 border-border bg-white">
-      <table className="w-full min-w-[980px] border-collapse text-left">
+    <div className="teacher-table min-w-0 overflow-x-auto rounded-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/45">
+      <table aria-label="Student progress" className="w-full min-w-[980px] border-collapse text-left">
         <thead>
-          <tr className="border-b-2 border-border bg-muted/40">
-            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Last Name</th>
-            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">First Name</th>
-            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Overall Score</th>
-            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">% of app completed</th>
-            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">% on last played</th>
-            <th className="whitespace-nowrap p-4 font-bold text-muted-foreground">Game Scores</th>
+          <tr className="border-b border-[var(--teacher-moss)]/20 bg-[var(--teacher-sage)]/18">
+            <th className="whitespace-nowrap p-4 text-sm font-bold text-[var(--teacher-ink)]/65">Last Name</th>
+            <th className="whitespace-nowrap p-4 text-sm font-bold text-[var(--teacher-ink)]/65">First Name</th>
+            <th className="whitespace-nowrap p-4 text-sm font-bold text-[var(--teacher-ink)]/65">Overall Score</th>
+            <th className="whitespace-nowrap p-4 text-sm font-bold text-[var(--teacher-ink)]/65">% of app completed</th>
+            <th className="whitespace-nowrap p-4 text-sm font-bold text-[var(--teacher-ink)]/65">% on last played</th>
+            <th className="whitespace-nowrap p-4 text-sm font-bold text-[var(--teacher-ink)]/65">Game Scores</th>
           </tr>
         </thead>
         <tbody>
           {students.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-8 text-center font-bold text-muted-foreground">
+              <td colSpan={6} className="p-8 text-center font-semibold text-[var(--teacher-ink)]/65">
                 No detailed progress yet.
               </td>
             </tr>
@@ -49,18 +49,18 @@ export function TeacherStudentProgressTable({
 
             return (
               <Fragment key={student.id}>
-                <tr className="border-b border-border/60">
-                  <td className="whitespace-nowrap p-4 font-bold">{student.lastName ?? '--'}</td>
-                  <td className="whitespace-nowrap p-4 font-bold">{student.firstName}</td>
-                  <td className="whitespace-nowrap p-4 font-bold">
+                <tr className="border-b border-[var(--teacher-moss)]/15 last:border-b-0">
+                  <td className="whitespace-nowrap p-4 font-bold text-[var(--teacher-ink)]">{student.lastName ?? '--'}</td>
+                  <td className="whitespace-nowrap p-4 font-bold text-[var(--teacher-ink)]">{student.firstName}</td>
+                  <td className="whitespace-nowrap p-4 font-bold tabular-nums text-[var(--teacher-ink)]">
                     {formatScore(student.overallScore, student.overallMaxScore, student.overallScorePct)}
                   </td>
-                  <td className="whitespace-nowrap p-4 font-bold">{formatPct(student.appCompletionPct)}</td>
-                  <td className="whitespace-nowrap p-4 font-bold">{formatPct(student.lastPlayedPct)}</td>
+                  <td className="whitespace-nowrap p-4 font-bold tabular-nums text-[var(--teacher-ink)]">{formatPct(student.appCompletionPct)}</td>
+                  <td className="whitespace-nowrap p-4 font-bold tabular-nums text-[var(--teacher-ink)]">{formatPct(student.lastPlayedPct)}</td>
                   <td className="whitespace-nowrap p-4">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-xl border-2 border-border px-3 py-2 text-sm font-bold text-foreground hover:bg-muted"
+                      className="inline-flex items-center gap-2 rounded-xl border border-[var(--teacher-moss)]/30 px-3 py-2 text-sm font-bold text-[var(--teacher-ink)] hover:bg-[var(--teacher-sage)]/20"
                       aria-expanded={isExpanded}
                       aria-controls={detailsId}
                       onClick={() => setExpandedStudentId(isExpanded ? null : student.id)}
@@ -72,7 +72,7 @@ export function TeacherStudentProgressTable({
                 </tr>
                 {isExpanded && (
                   <tr>
-                    <td id={detailsId} colSpan={6} className="bg-muted/20 p-4 sm:p-6">
+                    <td id={detailsId} colSpan={6} className="bg-[var(--teacher-sage)]/10 p-4 sm:p-6">
                       <div className="grid min-w-0 gap-4">
                         {(student.assignments ?? []).map((assignment) => {
                           const assignmentScoresByGameId = new Map(

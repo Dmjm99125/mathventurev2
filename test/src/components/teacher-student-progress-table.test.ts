@@ -15,4 +15,6 @@ Deno.test("teacher progress exposes expandable overall and per-game scores", asy
   assertEquals(source.includes("aria-expanded"), true);
   assertEquals(source.includes("GAME_CATALOG"), true);
   assertEquals(source.includes("GAME_CATALOG.filter((game) => game.topicId === assignment.lessonId)"), true);
+  assertEquals(source.includes("tabular-nums"), true);
+  assertEquals(source.includes("aria-label=\"Student progress\""), true);
 });
