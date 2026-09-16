@@ -49,9 +49,8 @@ redirects to login or the teacher workspace according to the resulting
 session state. The request-success message remains generic so the UI does not
 disclose whether an email belongs to an account.
 
-Resending a recovery code uses Supabase Auth's recovery resend operation and
-is subject to Auth's rate limits. Codes are not stored or inspected by the
-application.
+Resending a recovery code calls `resetPasswordForEmail` again and is subject
+to Auth's rate limits. Codes are not stored or inspected by the application.
 
 ### Change password while signed in
 
