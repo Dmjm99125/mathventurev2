@@ -18,7 +18,7 @@ Deno.test("teacher assignments page owns the assigned quizzes flow", () => {
   for (const required of [
     "TeacherAssignmentsPage", "useAssignments", "TeacherAssignedQuizzes",
     "TeacherAssignQuizDialog", "assignmentsLoading", "assignmentsError", "refetch",
-    "buildTeacherAssignedQuizzes",
+    "buildTeacherAssignedQuizzes", "buildTeacherAssignedQuizzes(teacherAssignments, students)",
   ]) {
     assertStringIncludes(teacherPage, required);
   }

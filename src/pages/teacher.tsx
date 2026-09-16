@@ -209,6 +209,7 @@ export function TeacherStudentsPage() {
 
 export function TeacherAssignmentsPage() {
   const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
+  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
   const {
     data: assignmentsData,
@@ -218,7 +219,7 @@ export function TeacherAssignmentsPage() {
   } = useAssignments(classroom?.id);
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
 
-  if (classroomLoading || assignmentsLoading) {
+  if (classroomLoading || rosterLoading || assignmentsLoading) {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading assignments...</div>;
   }
 
@@ -229,6 +230,7 @@ export function TeacherAssignmentsPage() {
   const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
   );
+  const students = rosterData?.students ?? [];
 
   return (
     <TeacherWorkspaceBoard
@@ -241,7 +243,7 @@ export function TeacherAssignmentsPage() {
     >
       <TeacherAssignQuizDialog open={isAssignQuizOpen} onOpenChange={setIsAssignQuizOpen} classId={classroom.id} />
       <TeacherAssignedQuizzes
-        assignments={buildTeacherAssignedQuizzes(teacherAssignments, [])}
+        assignments={buildTeacherAssignedQuizzes(teacherAssignments, students)}
         error={assignmentsError as Error | null}
         onRetry={() => {
           void refetch();
