@@ -1,33 +1,13 @@
 import { createHash } from 'node:crypto';
 import { readdir, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import type {
+  FreePlayMediaManifest,
+  FreePlayMediaManifestEntry,
+} from '../src/lib/offline/mediaManifest.ts';
+import { FREE_PLAY_MEDIA_EXTENSIONS } from '../src/lib/offline/mediaManifest.ts';
 
-export const SUPPORTED_MEDIA_EXTENSIONS = new Set([
-  '.avif',
-  '.gif',
-  '.jpeg',
-  '.jpg',
-  '.mp3',
-  '.mp4',
-  '.ogg',
-  '.png',
-  '.wav',
-  '.webm',
-  '.webp',
-]);
-
-export interface FreePlayMediaManifestEntry {
-  url: string;
-  bytes: number;
-}
-
-export interface FreePlayMediaManifest {
-  schemaVersion: 1;
-  version: string;
-  totalFiles: number;
-  totalBytes: number;
-  entries: FreePlayMediaManifestEntry[];
-}
+export const SUPPORTED_MEDIA_EXTENSIONS = FREE_PLAY_MEDIA_EXTENSIONS;
 
 export function isSupportedMediaPath(filePath: string): boolean {
   const extension = filePath.slice(filePath.lastIndexOf('.')).toLowerCase();
