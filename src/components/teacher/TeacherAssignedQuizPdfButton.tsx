@@ -13,6 +13,7 @@ export function TeacherAssignedQuizPdfButton({ quiz }: { quiz: TeacherAssignedQu
       type="button"
       size="sm"
       variant="outline"
+      className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
       aria-label={`Export ${quizName} results as PDF`}
       disabled={isExporting}
       onClick={async (event) => {

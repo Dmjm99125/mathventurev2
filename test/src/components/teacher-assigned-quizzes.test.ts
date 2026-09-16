@@ -10,4 +10,6 @@ Deno.test("assigned quizzes exposes nested score drill-down", () => {
   ]) {
     assertEquals(source.includes(required), true, `missing ${required}`);
   }
+  assertEquals(source.includes("aria-label=\"Assigned quizzes\""), true);
+  assertEquals(source.includes("teacher-assignment-list"), true);
 });

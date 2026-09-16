@@ -53,7 +53,7 @@ export function TeacherAssignQuizDialog({
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => nextOpen ? onOpenChange(true) : close()}>
-      <DialogContent>
+      <DialogContent className="teacher-dialog border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)]">
         <DialogHeader>
           <DialogTitle>Assign Quiz</DialogTitle>
           <DialogDescription>
