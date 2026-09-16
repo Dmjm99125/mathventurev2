@@ -3,6 +3,22 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { collectFreePlayMediaManifest } from './scripts/generate-free-play-media-manifest';
+
+function freePlayMediaManifestPlugin() {
+  return {
+    name: 'mathventure-free-play-media-manifest',
+    apply: 'build' as const,
+    async generateBundle() {
+      const manifest = await collectFreePlayMediaManifest(path.resolve(import.meta.dirname, 'public/assets'));
+      this.emitFile({
+        type: 'asset' as const,
+        fileName: 'free-play-media-manifest.json',
+        source: JSON.stringify(manifest, null, 2),
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -15,6 +31,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      freePlayMediaManifestPlugin(),
       VitePWA({
         strategies: 'injectManifest',
         srcDir: 'src/pwa',
