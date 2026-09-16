@@ -77,3 +77,29 @@ Deno.test("offline client rejects unsupported browsers instead of silently prete
   await assertRejects(() => client.getStatus(), Error, "Offline Free Play is not supported");
   client.dispose();
 });
+
+Deno.test("offline client keeps a full-library download pending while progress continues", async () => {
+  const worker = new FakeWorker();
+  const container = new FakeContainer(worker);
+  const client = createFreePlayOfflineClient(
+    container as unknown as Parameters<typeof createFreePlayOfflineClient>[0],
+    { requestTimeoutMs: 10 },
+  );
+  const downloadPromise = client.download();
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const request = worker.messages[0] as { type: string; requestId: string };
+  let settled = false;
+  void downloadPromise.then(() => { settled = true; }, () => { settled = true; });
+  dispatchMessage(container, {
+    type: "MEDIA_PROGRESS",
+    status: { ...readyStatus, state: "downloading", completedFiles: 1, completedBytes: 200 },
+  });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+
+  assertEquals(request.type, "DOWNLOAD_FREE_PLAY_MEDIA");
+  assertEquals(settled, false);
+  dispatchMessage(container, { type: "MEDIA_STATUS", requestId: request.requestId, status: readyStatus });
+  assertEquals(await downloadPromise, readyStatus);
+  client.dispose();
+});

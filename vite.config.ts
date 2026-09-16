@@ -8,13 +8,30 @@ import { collectFreePlayMediaManifest } from './scripts/generate-free-play-media
 function freePlayMediaManifestPlugin() {
   return {
     name: 'mathventure-free-play-media-manifest',
-    apply: 'build' as const,
     async generateBundle() {
       const manifest = await collectFreePlayMediaManifest(path.resolve(import.meta.dirname, 'public/assets'));
       this.emitFile({
         type: 'asset' as const,
         fileName: 'free-play-media-manifest.json',
         source: JSON.stringify(manifest, null, 2),
+      });
+    },
+    configureServer(server) {
+      let manifestPromise: ReturnType<typeof collectFreePlayMediaManifest> | null = null;
+      server.middlewares.use((request, response, next) => {
+        if (request.url?.split('?')[0] !== '/free-play-media-manifest.json') {
+          next();
+          return;
+        }
+
+        manifestPromise ??= collectFreePlayMediaManifest(path.resolve(import.meta.dirname, 'public/assets'));
+        void manifestPromise
+          .then((manifest) => {
+            response.statusCode = 200;
+            response.setHeader('Content-Type', 'application/json; charset=utf-8');
+            response.end(JSON.stringify(manifest, null, 2));
+          })
+          .catch(next);
       });
     },
   };
@@ -38,6 +55,9 @@ export default defineConfig(({ mode }) => {
         filename: 'sw.ts',
         registerType: 'prompt',
         manifest: false,
+        devOptions: {
+          enabled: true,
+        },
         injectManifest: {
           globPatterns: ['**/*.{html,js,css,svg,ico,webmanifest,json}'],
           globIgnores: ['assets/**'],

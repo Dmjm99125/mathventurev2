@@ -15,10 +15,14 @@ export interface FreePlayOfflineClient {
   dispose(): void;
 }
 
+export interface FreePlayOfflineClientOptions {
+  requestTimeoutMs?: number;
+}
+
 interface PendingRequest {
   resolve: (status: MediaDownloadStatus) => void;
   reject: (error: Error) => void;
-  timeoutId: ReturnType<typeof globalThis.setTimeout>;
+  timeoutId?: ReturnType<typeof globalThis.setTimeout>;
 }
 
 interface OfflineServiceWorker {
@@ -61,7 +65,9 @@ function defaultServiceWorkerContainer(): OfflineServiceWorkerContainer | undefi
 
 export function createFreePlayOfflineClient(
   container: OfflineServiceWorkerContainer | undefined = defaultServiceWorkerContainer(),
+  options: FreePlayOfflineClientOptions = {},
 ): FreePlayOfflineClient {
+  const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
   const listeners = new Set<OfflineStatusListener>();
   const pending = new Map<string, PendingRequest>();
   let disposed = false;
@@ -93,7 +99,9 @@ export function createFreePlayOfflineClient(
       return;
     }
     pending.delete(message.requestId);
-    globalThis.clearTimeout(request.timeoutId);
+    if (request.timeoutId) {
+      globalThis.clearTimeout(request.timeoutId);
+    }
 
     if (message.type === 'MEDIA_ERROR' || message.status.state === 'error') {
       request.reject(messageError(message.status));
@@ -119,19 +127,24 @@ export function createFreePlayOfflineClient(
 
   function sendRequest(
     type: 'GET_MEDIA_STATUS' | 'DOWNLOAD_FREE_PLAY_MEDIA' | 'CHECK_MEDIA_UPDATE',
+    timeoutMs: number | null = requestTimeoutMs,
   ): Promise<MediaDownloadStatus> {
     const id = requestId();
     return new Promise<MediaDownloadStatus>((resolve, reject) => {
-      const timeoutId = globalThis.setTimeout(() => {
-        pending.delete(id);
-        reject(new Error('Offline Free Play took too long to respond. Please try again.'));
-      }, REQUEST_TIMEOUT_MS);
+      const timeoutId = timeoutMs === null
+        ? undefined
+        : globalThis.setTimeout(() => {
+            pending.delete(id);
+            reject(new Error('Offline Free Play took too long to respond. Please try again.'));
+          }, timeoutMs);
       pending.set(id, { resolve, reject, timeoutId });
 
       void getWorker()
         .then((worker) => worker.postMessage({ type, requestId: id }))
         .catch((error: unknown) => {
-          globalThis.clearTimeout(timeoutId);
+          if (timeoutId) {
+            globalThis.clearTimeout(timeoutId);
+          }
           pending.delete(id);
           reject(error instanceof Error ? error : new Error('Offline Free Play is unavailable.'));
         });
@@ -141,7 +154,7 @@ export function createFreePlayOfflineClient(
   return {
     getStatus: () => sendRequest('GET_MEDIA_STATUS'),
     checkForUpdate: () => sendRequest('CHECK_MEDIA_UPDATE'),
-    download: () => sendRequest('DOWNLOAD_FREE_PLAY_MEDIA'),
+    download: () => sendRequest('DOWNLOAD_FREE_PLAY_MEDIA', null),
     cancel: async () => {
       const worker = await getWorker();
       worker.postMessage({ type: 'CANCEL_FREE_PLAY_MEDIA', requestId: requestId() });
@@ -154,7 +167,9 @@ export function createFreePlayOfflineClient(
       disposed = true;
       container?.removeEventListener('message', onMessage as EventListener);
       for (const request of pending.values()) {
-        globalThis.clearTimeout(request.timeoutId);
+        if (request.timeoutId) {
+          globalThis.clearTimeout(request.timeoutId);
+        }
         request.reject(new Error('Offline Free Play client was closed.'));
       }
       pending.clear();
