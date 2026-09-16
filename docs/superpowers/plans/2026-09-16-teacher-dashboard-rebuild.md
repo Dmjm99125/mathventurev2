@@ -18,6 +18,7 @@
 - Do not invent sample students, scores, activity, account data, or unsupported settings.
 - Preserve keyboard access, visible focus, semantic landmarks, labeled actions, reduced-motion behavior, and usable mobile layouts.
 - After every code/test/configuration edit, run the smallest relevant local checks; completion requires `npm test`, `npm run typecheck`, and `npm run build` with fresh output.
+- The implementation must produce at least seven coherent, independently testable commits; do not combine unrelated teacher sections into one commit.
 
 ---
 
@@ -176,11 +177,10 @@ git add src/components/teacher/TeacherToday.tsx src/components/teacher/TeacherAt
 git commit -m "feat: add teacher today dashboard"
 ```
 
-## Task 3: Route ownership and page decomposition
+## Task 3: Page ownership and decomposition
 
 **Files:**
 - Modify: `src/pages/teacher.tsx`
-- Modify: `src/App.tsx`
 - Modify: `test/src/pages/teacher-assignment.test.ts`
 - Create: `test/src/pages/teacher-dashboard.test.ts`
 
@@ -197,8 +197,6 @@ git commit -m "feat: add teacher today dashboard"
 import { assertStringIncludes, assertEquals } from "jsr:@std/assert";
 
 const page = await Deno.readTextFile(new URL("../../../src/pages/teacher.tsx", import.meta.url));
-const app = await Deno.readTextFile(new URL("../../../src/App.tsx", import.meta.url));
-
 Deno.test("teacher pages expose one owner per feature", () => {
   for (const required of ["TeacherTodayPage", "TeacherStudentsPage", "TeacherAssignmentsPage", "TeacherReportsPage", "TeacherSettingsPage"]) {
     assertStringIncludes(page, required);
@@ -206,6 +204,49 @@ Deno.test("teacher pages expose one owner per feature", () => {
   assertEquals((page.match(/TeacherAddStudentsDialog/g) ?? []).length > 0, true);
   assertEquals((page.match(/TeacherAssignQuizDialog/g) ?? []).length > 0, true);
 });
+```
+
+- [ ] **Step 2: Run the page tests to verify they fail against the current page structure.**
+
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/pages/teacher-assignment.test.ts test/src/pages/teacher-dashboard.test.ts`
+
+Expected: FAIL because the current page owns classroom tabs and assignment content in one component.
+
+- [ ] **Step 3: Split `src/pages/teacher.tsx` by canonical feature without changing hooks or mutations.**
+
+Move the existing classroom logic into `TeacherStudentsPage`; move assignment logic into `TeacherAssignmentsPage`; make `TeacherTodayPage` render `TeacherToday`; keep report content in `TeacherReportsPage`; replace the current Settings message with an existing-auth/session settings view. Keep dialogs and confirmation behavior intact. Route attention actions to Students and report actions to Reports with `useLocation`.
+
+- [ ] **Step 4: Run the page and assignment tests.**
+
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/pages/teacher-assignment.test.ts test/src/pages/teacher-dashboard.test.ts`
+
+Expected: PASS, with feature ownership and assignment dialog contracts preserved.
+
+- [ ] **Step 5: Commit page decomposition.**
+
+```powershell
+git add src/pages/teacher.tsx test/src/pages/teacher-assignment.test.ts test/src/pages/teacher-dashboard.test.ts
+git commit -m "feat: separate teacher page owners"
+```
+
+## Task 4: Canonical teacher route integration
+
+**Files:**
+- Modify: `src/App.tsx`
+- Modify: `test/src/pages/teacher-dashboard.test.ts`
+
+**Interfaces:**
+- `/teacher` renders `TeacherTodayPage`.
+- `/teacher/students` renders `TeacherStudentsPage`.
+- `/teacher/assignments` renders `TeacherAssignmentsPage`.
+- `/teacher/reports` renders `TeacherReportsPage`.
+- `/teacher/settings` renders `TeacherSettingsPage`.
+- Legacy class and report drill-down routes redirect to the matching canonical section.
+
+- [ ] **Step 1: Add App route assertions before changing `src/App.tsx`.**
+
+```ts
+const app = await Deno.readTextFile(new URL("../../../src/App.tsx", import.meta.url));
 
 Deno.test("App routes canonical teacher destinations and legacy redirects", () => {
   for (const required of [
@@ -215,71 +256,69 @@ Deno.test("App routes canonical teacher destinations and legacy redirects", () =
     'path="/teacher/settings"',
     'path="/teacher/classes"',
     'path="/teacher/classes/:classId"',
+    'path="/teacher/reports/classes/:classId"',
   ]) assertStringIncludes(app, required);
 });
 ```
 
-- [ ] **Step 2: Run the route tests to verify they fail against the current page structure.**
+- [ ] **Step 2: Run the route test to verify it fails.**
 
-Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/pages/teacher-assignment.test.ts test/src/pages/teacher-dashboard.test.ts`
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/pages/teacher-dashboard.test.ts`
 
-Expected: FAIL because the current page owns classroom tabs in one component and App does not expose Students/Assignments routes.
+Expected: FAIL because Students and Assignments routes are not exposed yet.
 
-- [ ] **Step 3: Split `src/pages/teacher.tsx` by canonical route without changing hooks or mutations.**
+- [ ] **Step 3: Wire the canonical and legacy routes.**
 
-Move the existing classroom logic into `TeacherStudentsPage`; move assignment logic into `TeacherAssignmentsPage`; make `TeacherTodayPage` render `TeacherToday`; keep report content in `TeacherReportsPage`; replace the current Settings message with an existing-auth/session settings view. Keep dialogs and confirmation behavior intact. Route attention actions to Students and report actions to Reports with `useLocation`.
+Use `AppLayout sidebarMode="hidden"` consistently for the teacher shell. Make `/teacher` render `TeacherTodayPage`, add Students and Assignments, retain Reports and Settings, redirect `/teacher/classes` and `/teacher/classes/:classId` to `/teacher/students`, and keep `/teacher/reports/classes/:classId` redirecting to `/teacher/reports`.
 
-- [ ] **Step 4: Update `src/App.tsx` routes.**
+- [ ] **Step 4: Run the route test and production typecheck.**
 
-Use `AppLayout sidebarMode="hidden"` consistently for the teacher shell. Add `/teacher/students` and `/teacher/assignments`, make `/teacher` render `TeacherTodayPage`, and redirect legacy class routes to `/teacher/students`. Keep `/teacher/reports/classes/:classId` redirecting to `/teacher/reports`.
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/pages/teacher-dashboard.test.ts`
 
-- [ ] **Step 5: Run the route and assignment tests.**
+Expected: PASS.
 
-Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/pages/teacher-assignment.test.ts test/src/pages/teacher-dashboard.test.ts`
+Run: `npm run typecheck`
 
-Expected: PASS, with assignment dialog ownership and route coverage preserved.
+Expected: PASS.
 
-- [ ] **Step 6: Commit route decomposition.**
+- [ ] **Step 5: Commit route integration.**
 
 ```powershell
-git add src/pages/teacher.tsx src/App.tsx test/src/pages/teacher-assignment.test.ts test/src/pages/teacher-dashboard.test.ts
-git commit -m "feat: split teacher dashboard sections"
+git add src/App.tsx test/src/pages/teacher-dashboard.test.ts
+git commit -m "feat: wire canonical teacher routes"
 ```
 
-## Task 4: Students and Assignments visual migration
+## Task 5: Students visual migration
 
 **Files:**
 - Modify: `src/components/teacher/TeacherStudentListTable.tsx`
 - Modify: `src/components/teacher/TeacherStudentProgressTable.tsx`
-- Modify: `src/components/teacher/TeacherAssignedQuizzes.tsx`
-- Modify: `src/components/teacher/TeacherAssignQuizDialog.tsx`
 - Modify: `src/components/teacher/add-students/*.tsx`
-- Modify: `src/components/teacher/TeacherAssignedQuizPdfButton.tsx`
 - Modify: `test/src/components/teacher-student-list-table.test.ts`
 - Modify: `test/src/components/teacher-student-progress-table.test.ts`
-- Modify: `test/src/components/teacher-assigned-quizzes.test.ts`
+- Modify: `test/src/components/teacher-add-students-mobile.test.ts`
 
 **Interfaces:**
 - Keep table props `students: TeacherClassStudent[]`, `onRemove`, `onView`, and `viewingStudentId` compatible with `TeacherStudentsPage`.
-- Keep assignment props, nested score expansion, `TeacherAssignedQuizPdfButton`, and dialog form fields unchanged.
+- Keep the add-students reducer, import formats, review table, result step, and mobile drawer behavior unchanged.
 
-- [ ] **Step 1: Add visual/interaction assertions to the existing component tests.**
+- [ ] **Step 1: Add visual/interaction assertions to the Students component tests.**
 
-Assert that student tables keep `View student`, `Remove`, real empty states, semantic table headings, and visible action labels. Assert assignment components keep `View games`, `Try again`, `No quizzes have been assigned`, and `TeacherAssignedQuizPdfButton`.
+Assert that student tables keep `View student`, `Remove`, real empty states, semantic table headings, visible action labels, and the existing mobile add-students drawer.
 
-- [ ] **Step 2: Run the focused component tests before styling changes.**
+- [ ] **Step 2: Run the focused Students tests before styling changes.**
 
-Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/components/teacher-student-list-table.test.ts test/src/components/teacher-student-progress-table.test.ts test/src/components/teacher-assigned-quizzes.test.ts`
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/components/teacher-student-list-table.test.ts test/src/components/teacher-student-progress-table.test.ts test/src/components/teacher-add-students-mobile.test.ts`
 
 Expected: PASS on existing functionality.
 
-- [ ] **Step 3: Apply the Organic MathVenture layout to Students and Assignments.**
+- [ ] **Step 3: Apply the Organic MathVenture layout to Students.**
 
-Replace card-heavy wrappers with bordered flat sections, a clear page-level action row, larger tabular numerics, hairline separators, and mobile-safe horizontal table scrolling. Keep all ordinary action copy and all current data fields. Preserve dialog/drawer behavior, nested assignment game drill-down, retry error, and PDF actions.
+Replace card-heavy wrappers with bordered flat sections, a clear page-level action row, larger tabular numerics, hairline separators, and mobile-safe horizontal table scrolling. Keep all ordinary action copy and current data fields. Preserve add/import steps, dialog/drawer behavior, removal confirmation, view-as-student, and progress values.
 
-- [ ] **Step 4: Re-run focused component tests and typecheck.**
+- [ ] **Step 4: Re-run Students tests and typecheck.**
 
-Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/components/teacher-student-list-table.test.ts test/src/components/teacher-student-progress-table.test.ts test/src/components/teacher-assigned-quizzes.test.ts`
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/components/teacher-student-list-table.test.ts test/src/components/teacher-student-progress-table.test.ts test/src/components/teacher-add-students-mobile.test.ts`
 
 Expected: PASS with no changed data contracts.
 
@@ -287,14 +326,58 @@ Run: `npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit Students and Assignments migration.**
+- [ ] **Step 5: Commit Students migration.**
 
 ```powershell
-git add src/components/teacher/TeacherStudentListTable.tsx src/components/teacher/TeacherStudentProgressTable.tsx src/components/teacher/TeacherAssignedQuizzes.tsx src/components/teacher/TeacherAssignQuizDialog.tsx src/components/teacher/add-students src/components/teacher/TeacherAssignedQuizPdfButton.tsx test/src/components/teacher-student-list-table.test.ts test/src/components/teacher-student-progress-table.test.ts test/src/components/teacher-assigned-quizzes.test.ts
-git commit -m "feat: refine teacher students and assignments"
+git add src/components/teacher/TeacherStudentListTable.tsx src/components/teacher/TeacherStudentProgressTable.tsx src/components/teacher/add-students test/src/components/teacher-student-list-table.test.ts test/src/components/teacher-student-progress-table.test.ts test/src/components/teacher-add-students-mobile.test.ts
+git commit -m "feat: refine teacher students workspace"
 ```
 
-## Task 5: Reports, Settings, and theme polish
+## Task 6: Assignments visual migration
+
+**Files:**
+- Modify: `src/components/teacher/TeacherAssignedQuizzes.tsx`
+- Modify: `src/components/teacher/TeacherAssignQuizDialog.tsx`
+- Modify: `src/components/teacher/TeacherAssignedQuizPdfButton.tsx`
+- Modify: `test/src/components/teacher-assigned-quizzes.test.ts`
+- Modify: `test/src/pages/teacher-assignment.test.ts`
+
+**Interfaces:**
+- Keep `TeacherAssignedQuizzes` assignment data, nested score expansion, retry state, and `TeacherAssignedQuizPdfButton` props unchanged.
+- Keep `TeacherAssignQuizDialog` form fields, `useCreateAssignment`, `classId`, `lessonId`, assignment name, due date, and “Assign another” behavior unchanged.
+
+- [ ] **Step 1: Add assignment interaction assertions before styling changes.**
+
+Assert that assignment components keep `View games`, `Try again`, `No quizzes have been assigned`, `TeacherAssignedQuizPdfButton`, `useCreateAssignment`, `classId`, `lessonId`, `assignment-name`, and `Assign another`.
+
+- [ ] **Step 2: Run the focused Assignments tests.**
+
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/components/teacher-assigned-quizzes.test.ts test/src/pages/teacher-assignment.test.ts`
+
+Expected: PASS on existing assignment behavior.
+
+- [ ] **Step 3: Apply the Organic MathVenture layout to Assignments.**
+
+Use one page-level creation action, flat assignment sections, clear status labels, tabular score values, visible retry/error states, and mobile-safe nested score drill-down. Preserve the assignment creation dialog, due date behavior, PDF actions, and every existing assignment status.
+
+- [ ] **Step 4: Re-run Assignments tests and build.**
+
+Run: `deno test --allow-read --allow-env --import-map=deno.json test/src/components/teacher-assigned-quizzes.test.ts test/src/pages/teacher-assignment.test.ts`
+
+Expected: PASS.
+
+Run: `npm run build`
+
+Expected: PASS with the assignment route included in the production bundle.
+
+- [ ] **Step 5: Commit Assignments migration.**
+
+```powershell
+git add src/components/teacher/TeacherAssignedQuizzes.tsx src/components/teacher/TeacherAssignQuizDialog.tsx src/components/teacher/TeacherAssignedQuizPdfButton.tsx test/src/components/teacher-assigned-quizzes.test.ts test/src/pages/teacher-assignment.test.ts
+git commit -m "feat: refine teacher assignments workspace"
+```
+
+## Task 7: Reports, Settings, and theme polish
 
 **Files:**
 - Modify: `src/components/teacher/reports/*.tsx`
@@ -342,7 +425,7 @@ git add src/components/teacher/reports src/index.css src/pages/teacher.tsx test/
 git commit -m "feat: polish teacher reports and visual system"
 ```
 
-## Task 6: Full verification and handoff
+## Task 8: Full verification and handoff
 
 **Files:**
 - Modify only files required by failing verification; do not alter unrelated worktree files.
@@ -371,6 +454,6 @@ Expected: PASS with a fresh `dist/public` bundle.
 
 - [ ] **Step 4: Inspect the final diff and worktree.**
 
-Run: `git diff --check; git status --short; git diff HEAD~6..HEAD --stat`
+Run: `git diff --check; git status --short; git diff HEAD~8..HEAD --stat`
 
 Expected: no whitespace errors; only teacher dashboard files and the plan/spec commits are part of this work; unrelated pre-existing untracked files remain untouched.
