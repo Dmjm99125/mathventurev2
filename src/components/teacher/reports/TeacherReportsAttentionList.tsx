@@ -17,30 +17,30 @@ export function TeacherReportsAttentionList({
   rows: TeacherSingleClassroomReportPayload['attentionStudents'];
 }) {
   return (
-    <Card className="rounded-[24px] p-6">
-      <h2 className="text-2xl font-display font-bold">Students Needing Attention</h2>
+    <Card className="teacher-section border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/45 p-6 shadow-none">
+      <h2 className="text-2xl font-display font-bold text-[var(--teacher-ink)]">Students Needing Attention</h2>
       <div className="mt-4 grid gap-3">
         {rows.length === 0 && (
-          <p className="font-bold text-muted-foreground">
+          <p className="font-semibold text-[var(--teacher-ink)]/65">
             No students are currently flagged in this window.
           </p>
         )}
         {rows.map((row) => (
           <div
             key={row.studentId}
-            className="rounded-2xl border border-border/70 p-4"
+            className="rounded-2xl border border-[var(--teacher-moss)]/20 p-4"
           >
             <div className="flex flex-col gap-3">
               <div>
-                <p className="font-display text-lg font-bold">{row.fullName}</p>
-                <p className="text-sm font-bold text-muted-foreground">
+                <p className="font-display text-lg font-bold text-[var(--teacher-ink)]">{row.fullName}</p>
+                <p className="text-sm font-bold tabular-nums text-[var(--teacher-ink)]/65">
                   Avg {formatPct(row.averageScorePct)} | Completion {formatPct(row.completionPct)}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {row.reasonCodes.map((reason) => (
                     <span
                       key={reason}
-                      className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900"
+                      className="rounded-full bg-[var(--teacher-ochre)]/18 px-3 py-1 text-xs font-bold text-[var(--teacher-ink)]"
                     >
                       {ATTENTION_LABELS[reason]}
                     </span>

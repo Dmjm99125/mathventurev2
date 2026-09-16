@@ -12,6 +12,7 @@ export function TeacherClassReportPdfButton({
   return (
     <Button
       variant="outline"
+      className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
       disabled={disabled}
       onClick={() => downloadTeacherClassReportPdf(report)}
     >

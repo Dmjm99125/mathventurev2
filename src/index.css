@@ -1,6 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;800&family=Nunito:wght@400;600;700;800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;800&family=Nunito:wght@400;600;700;800&display=swap');
 
 @plugin "@tailwindcss/typography";
 
@@ -184,5 +185,75 @@
 @layer utilities {
   .text-shadow {
     text-shadow: 0px 2px 4px rgba(0,0,0,0.2);
+  }
+}
+
+@layer components {
+  .teacher-shell {
+    --teacher-sand: #E8DCC7;
+    --teacher-oat: #D4B895;
+    --teacher-sage: #8B9D83;
+    --teacher-clay: #B08B6E;
+    --teacher-terracotta: #C66B3D;
+    --teacher-ochre: #C08E3A;
+    --teacher-moss: #606C38;
+    --teacher-ink: #2F3A2A;
+    position: relative;
+    isolation: isolate;
+    color: var(--teacher-ink);
+    font-family: 'Epilogue', 'Bricolage Grotesque', sans-serif;
+  }
+
+  .teacher-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.018;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+  }
+
+  .teacher-learning-trail {
+    position: relative;
+  }
+
+  .teacher-learning-trail::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    bottom: 2rem;
+    left: 1rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--teacher-moss) 24%, transparent);
+    pointer-events: none;
+  }
+
+  .teacher-learning-trail > * {
+    position: relative;
+  }
+
+  .teacher-eyebrow {
+    color: color-mix(in srgb, var(--teacher-moss) 72%, var(--teacher-ink));
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .teacher-section {
+    border-radius: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacher-shell *,
+  .teacher-shell *::before,
+  .teacher-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

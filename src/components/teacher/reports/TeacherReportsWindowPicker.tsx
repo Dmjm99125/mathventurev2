@@ -20,7 +20,7 @@ export function TeacherReportsWindowPicker({
       {WINDOWS.map((window) => (
         <Button
           key={window.value}
-          className="shrink-0"
+          className="shrink-0 border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
           variant={window.value === value ? 'default' : 'outline'}
           onClick={() => onChange(window.value)}
         >
