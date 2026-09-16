@@ -9,3 +9,17 @@ Deno.test("login exposes only teacher credentials", () => {
   assertEquals(source.includes("lastName"), false);
   assertEquals(source.includes("firstName"), false);
 });
+
+Deno.test("signup keeps the immediate sign-in flow", () => {
+  assertEquals(source.includes("await teacherSignUp(email, password, fullName);"), true);
+  assertEquals(source.includes("await teacherSignIn(email, password);"), true);
+});
+
+Deno.test("auth pages expose recovery request and six-digit reset controls", () => {
+  assertEquals(source.includes("export function ForgotPassword()"), true);
+  assertEquals(source.includes("export function PasswordReset()"), true);
+  assertEquals(source.includes("requestTeacherPasswordReset"), true);
+  assertEquals(source.includes("verifyTeacherPasswordResetOtp"), true);
+  assertEquals(source.includes('inputMode="numeric"'), true);
+  assertEquals(source.includes("maxLength={PASSWORD_RESET_OTP_LENGTH}"), true);
+});

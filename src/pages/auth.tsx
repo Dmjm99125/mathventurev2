@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { teacherSignIn, teacherSignUp } from '@/lib/auth';
+import {
+  PASSWORD_RESET_OTP_LENGTH,
+  requestTeacherPasswordReset,
+  teacherSignIn,
+  teacherSignUp,
+  validateNewPassword,
+  verifyTeacherPasswordResetOtp,
+} from '@/lib/auth';
+import { supabase } from '@/lib/supabase/client';
 import { Button, Input, Label, Card } from '@/components/ui';
 import { Map, Leaf, Compass, ArrowLeft } from 'lucide-react';
 
@@ -79,8 +87,205 @@ export function Login() {
           </Button>
         </form>
 
+        <p className="mt-4 text-center text-sm font-bold">
+          <Link href="/forgot-password">
+            <span className="cursor-pointer text-primary hover:underline">{t('auth.forgotPassword')}</span>
+          </Link>
+        </p>
+
         <p className="mt-6 text-center text-sm font-bold text-muted-foreground">
           Are you a teacher? <Link href="/signup"><span className="text-primary hover:underline cursor-pointer">Create an account</span></Link>
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+export function ForgotPassword() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      await requestTeacherPasswordReset(email);
+      setMessage(t('auth.resetCodeSent'));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t('auth.resetRequestFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetHref = `/reset-password?email=${encodeURIComponent(email.trim())}`;
+
+  return (
+    <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background overflow-hidden relative">
+      <Card className="w-full max-w-md p-8 relative z-10">
+        <h1 className="text-3xl font-display font-bold text-center mb-2">{t('auth.forgotPasswordTitle')}</h1>
+        <p className="text-center text-muted-foreground mb-8">{t('auth.forgotPasswordDescription')}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="forgot-email">{t('auth.email')}</Label>
+            <Input
+              id="forgot-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
+
+          {message && <p className="text-primary text-sm font-bold">{message}</p>}
+          {error && <p className="text-destructive text-sm font-bold">{error}</p>}
+
+          <Button type="submit" className="w-full" size="lg" disabled={loading} variant="jungle">
+            {loading ? t('common.loading') : t('auth.sendResetCode')}
+          </Button>
+        </form>
+
+        {message && (
+          <Link href={resetHref}>
+            <Button type="button" variant="outline" className="w-full mt-3">
+              {t('auth.continueToReset')}
+            </Button>
+          </Link>
+        )}
+
+        <p className="mt-6 text-center text-sm font-bold text-muted-foreground">
+          <Link href="/login"><span className="text-primary hover:underline cursor-pointer">{t('auth.backToLogin')}</span></Link>
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+export function PasswordReset() {
+  const [email, setEmail] = useState(() => new URLSearchParams(window.location.search).get('email') ?? '');
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [, setLocation] = useLocation();
+  const { t } = useLanguage();
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+    setMessage('');
+    const passwordError = validateNewPassword(newPassword, confirmation);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await verifyTeacherPasswordResetOtp(email, token);
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+      await supabase.auth.signOut();
+      setLocation('/login?reset=success');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t('auth.resetRequestFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setMessage('');
+    setResending(true);
+    try {
+      await requestTeacherPasswordReset(email);
+      setMessage(t('auth.resetCodeResent'));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t('auth.resetRequestFailed'));
+    } finally {
+      setResending(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background overflow-hidden relative">
+      <Card className="w-full max-w-md p-8 relative z-10">
+        <h1 className="text-3xl font-display font-bold text-center mb-2">{t('auth.resetPasswordTitle')}</h1>
+        <p className="text-center text-muted-foreground mb-8">{t('auth.resetPasswordDescription')}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="reset-email">{t('auth.email')}</Label>
+            <Input
+              id="reset-email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reset-code">{t('auth.verificationCode')}</Label>
+            <Input
+              id="reset-code"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={PASSWORD_RESET_OTP_LENGTH}
+              required
+              autoComplete="one-time-code"
+              value={token}
+              onChange={(event) => setToken(event.target.value.replace(/\D/g, '').slice(0, PASSWORD_RESET_OTP_LENGTH))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reset-new-password">{t('auth.newPassword')}</Label>
+            <Input
+              id="reset-new-password"
+              type="password"
+              required
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reset-confirm-password">{t('auth.confirmPassword')}</Label>
+            <Input
+              id="reset-confirm-password"
+              type="password"
+              required
+              autoComplete="new-password"
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+            />
+          </div>
+
+          {message && <p className="text-primary text-sm font-bold">{message}</p>}
+          {error && <p className="text-destructive text-sm font-bold">{error}</p>}
+
+          <Button type="submit" className="w-full" size="lg" disabled={loading || resending} variant="jungle">
+            {loading ? t('common.loading') : t('auth.resetPassword')}
+          </Button>
+          <Button type="button" variant="outline" className="w-full" disabled={loading || resending} onClick={() => void handleResend()}>
+            {resending ? t('common.loading') : t('auth.resendCode')}
+          </Button>
+        </form>
+
+        <p className="mt-6 text-center text-sm font-bold text-muted-foreground">
+          <Link href="/login"><span className="text-primary hover:underline cursor-pointer">{t('auth.backToLogin')}</span></Link>
         </p>
       </Card>
     </div>

@@ -7,7 +7,7 @@ import { LanguageProvider } from '@/lib/i18n/useLanguage';
 import { Landing } from '@/pages/landing';
 import { FreePlay } from '@/pages/free-play';
 import { About } from '@/pages/about';
-import { Login, Signup } from '@/pages/auth';
+import { ForgotPassword, Login, PasswordReset, Signup } from '@/pages/auth';
 import {
   TeacherTodayPage,
   TeacherStudentsPage,
@@ -38,6 +38,8 @@ function AppRoutes() {
       <Route path="/about" component={About} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={PasswordReset} />
       
       <Route path="/student">
         {() => <AppLayout sidebarMode="hidden"><StudentDashboard /></AppLayout>}
