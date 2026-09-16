@@ -177,6 +177,7 @@ export function PasswordReset() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
 
@@ -192,7 +193,10 @@ export function PasswordReset() {
 
     setLoading(true);
     try {
-      await verifyTeacherPasswordResetOtp(email, token);
+      if (!isOtpVerified) {
+        await verifyTeacherPasswordResetOtp(email, token);
+        setIsOtpVerified(true);
+      }
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
       if (updateError) throw updateError;
       await supabase.auth.signOut();
@@ -210,6 +214,7 @@ export function PasswordReset() {
     setResending(true);
     try {
       await requestTeacherPasswordReset(email);
+      setIsOtpVerified(false);
       setMessage(t('auth.resetCodeResent'));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t('auth.resetRequestFailed'));
@@ -233,7 +238,10 @@ export function PasswordReset() {
               required
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setIsOtpVerified(false);
+              }}
             />
           </div>
           <div className="space-y-2">
@@ -247,7 +255,10 @@ export function PasswordReset() {
               required
               autoComplete="one-time-code"
               value={token}
-              onChange={(event) => setToken(event.target.value.replace(/\D/g, '').slice(0, PASSWORD_RESET_OTP_LENGTH))}
+              onChange={(event) => {
+                setToken(event.target.value.replace(/\D/g, '').slice(0, PASSWORD_RESET_OTP_LENGTH));
+                setIsOtpVerified(false);
+              }}
             />
           </div>
           <div className="space-y-2">

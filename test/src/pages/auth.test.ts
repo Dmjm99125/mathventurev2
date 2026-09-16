@@ -23,3 +23,8 @@ Deno.test("auth pages expose recovery request and six-digit reset controls", () 
   assertEquals(source.includes('inputMode="numeric"'), true);
   assertEquals(source.includes("maxLength={PASSWORD_RESET_OTP_LENGTH}"), true);
 });
+
+Deno.test("password reset retains a verified recovery session for password retries", () => {
+  assertEquals(source.includes("if (!isOtpVerified)"), true);
+  assertEquals(source.includes("setIsOtpVerified(true)"), true);
+});
