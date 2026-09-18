@@ -178,7 +178,7 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
               key={`empty-${item}`}
               className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl border-4 border-dashed border-pink-200 flex items-center justify-center relative"
             >
-               <div className="absolute inset-0 flex items-center justify-center text-3xl md:text-4xl opacity-20 filter grayscale blur-[1px]">{item}</div>
+               <div className="absolute inset-0 flex items-center justify-center text-3xl md:text-4xl opacity-20 filter blur-[1px]">{item}</div>
             </motion.div>
           ))}
         </AnimatePresence>

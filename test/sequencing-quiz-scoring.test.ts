@@ -117,6 +117,16 @@ Deno.test("pattern train quiz records a wrong choice as a wrong missing position
   assertEquals(scoreByPosition(["🍎", "🍎"], ["🍎", "🍐"]), 1);
 });
 
+Deno.test("surprise sequencing keeps color-track clues in color", async () => {
+  const source = await readGameSource("SurpriseSequencing.tsx");
+
+  assertEquals(
+    source.includes("filter grayscale"),
+    false,
+    "color-track clues should retain their original colors",
+  );
+});
+
 Deno.test("animal parts quiz scores each selected piece by its final position", async () => {
   const source = await readGameSource("AnimalVehicleBuilder.tsx");
 
