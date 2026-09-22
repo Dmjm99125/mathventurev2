@@ -57,12 +57,28 @@ export function About() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="outline" size="sm" className="gap-2 font-bold bg-white/70 backdrop-blur-md border-white/50 hover:bg-white/90" asChild>
-            <a href="https://github.com/Thalanas110/MathVenture" target="_blank" rel="noopener noreferrer">
-              <Github className="w-4 h-4" />
-              <span className="hidden sm:inline">Repo</span>
-            </a>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 font-bold bg-white/70 backdrop-blur-md border-white/50 hover:bg-white/90">
+                <Github className="w-4 h-4" />
+                <span className="hidden sm:inline">Repo</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 font-bold">
+              <DropdownMenuItem asChild>
+                <a href="https://github.com/dmjm99125/mathventureprototype" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
+                  <Github className="w-4 h-4" />
+                  <span>Legacy</span>
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href="https://github.com/dmjm99125/mathventurev2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
+                  <Github className="w-4 h-4" />
+                  <span>Current</span>
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Background decorative elements */}
