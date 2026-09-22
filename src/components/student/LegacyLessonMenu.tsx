@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui";
 import type { PortalTopicEntry, PortalTopicId } from "@/lib/student/portal";
 import { cn } from "@/lib/shared/utils";
+import { useLanguage } from "@/lib/i18n/useLanguage";
 
 const headerAssets = [
   { key: "let", src: "/assets/images/1let.png", fallback: "Let's Learn!" },
@@ -19,6 +20,7 @@ export function LegacyLessonMenu({
   onSelect: (href: string) => void;
 }) {
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
+  const { t } = useLanguage();
 
   const topicState = useMemo(() => {
     return topics.map((topic) => ({
@@ -28,8 +30,8 @@ export function LegacyLessonMenu({
   }, [brokenImages, topics]);
 
   return (
-    <section className="relative z-10 flex min-h-[560px] flex-col gap-4 rounded-[28px] bg-white/8 p-4 backdrop-blur-[1px] md:p-6">
-      <header className="grid gap-3 md:grid-cols-2 md:items-center">
+    <section className="student-lesson-map relative z-10 flex min-h-[560px] flex-col gap-4 rounded-[28px] p-3 md:p-5">
+      <header className="student-lesson-map__header grid gap-3 rounded-[24px] p-3 md:grid-cols-2 md:items-center md:p-4">
         {headerAssets.map((asset) => {
           const broken = brokenImages[asset.key] === true;
 
@@ -52,7 +54,7 @@ export function LegacyLessonMenu({
         })}
       </header>
 
-      <div className="grid gap-2">
+      <div className="grid gap-3">
         {topicState.length === 0 ? (
           <div className="rounded-[22px] bg-white/80 px-5 py-8 text-center shadow-sm">
             <p className="text-lg font-extrabold text-primary">No classroom quizzes yet</p>
@@ -69,42 +71,34 @@ export function LegacyLessonMenu({
               type="button"
               variant="ghost"
               onClick={() => onSelect(topic.href)}
+              aria-label={`${topic.fallbackLabel}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`}
               className={cn(
-                "group grid min-h-[56px] grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[22px] border border-transparent bg-white/10 px-3 py-2 text-left shadow-[0_8px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm hover:bg-white/18",
-                isHighlighted && "border-white/70 bg-white/22 ring-2 ring-jungle-yellow/60",
+                "student-trail-stop group grid min-h-[72px] grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[22px] border-2 px-3 py-2 text-left transition-transform hover:-translate-y-0.5 md:min-h-[80px] md:grid-cols-[3rem_minmax(0,1fr)_auto] md:px-4",
+                isHighlighted && "student-trail-stop--highlighted ring-4",
               )}
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-400 text-sm font-extrabold text-white shadow-sm">
+              <span className="student-trail-stop__number flex h-11 w-11 items-center justify-center rounded-full text-lg font-extrabold shadow-sm md:h-12 md:w-12">
                 {topic.lessonNumber}
               </span>
 
-              {topic.isBroken ? (
-                <span className="truncate text-lg font-extrabold uppercase tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.28)]">
-                  {topic.fallbackLabel}
-                </span>
-              ) : (
-                <img
-                  src={topic.assetSrc}
-                  alt={topic.fallbackLabel}
-                  className="max-h-10 w-full object-contain object-left drop-shadow-[0_6px_8px_rgba(0,0,0,0.18)]"
-                  onError={() => setBrokenImages((current) => ({ ...current, [topic.id]: true }))}
-                />
-              )}
-
-              <div className="flex items-center gap-2">
-                {topic.isAssigned && (
-                  <span
-                    className="h-3 w-3 rounded-full bg-jungle-orange shadow-sm"
-                    aria-hidden="true"
-                  />
-                )}
-                {topic.isCompleted && (
-                  <span
-                    className="h-3 w-3 rounded-full bg-jungle-green shadow-sm"
-                    aria-hidden="true"
+              <div className="min-w-0">
+                {topic.isBroken ? (
+                  <span className="student-trail-stop__label block truncate text-lg font-extrabold tracking-tight">
+                    {topic.fallbackLabel}
+                  </span>
+                ) : (
+                  <img
+                    src={topic.assetSrc}
+                    alt={topic.fallbackLabel}
+                    className="max-h-10 w-full object-contain object-left drop-shadow-[0_6px_8px_rgba(0,0,0,0.18)]"
+                    onError={() => setBrokenImages((current) => ({ ...current, [topic.id]: true }))}
                   />
                 )}
               </div>
+
+              <span className="student-trail-stop__status whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-extrabold md:text-sm">
+                {topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}
+              </span>
             </Button>
           );
         })}

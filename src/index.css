@@ -262,6 +262,82 @@
     min-width: 0;
   }
 
+  .student-rail-card {
+    border-color: color-mix(in srgb, var(--student-moss) 22%, transparent);
+    color: var(--student-ink);
+    background: color-mix(in srgb, var(--student-sand) 68%, var(--student-oat));
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--student-clay) 48%, transparent);
+  }
+
+  .student-rail-card--next {
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-ochre) 38%, var(--student-sand));
+  }
+
+  .student-rail-card__eyebrow {
+    color: var(--student-moss);
+  }
+
+  .student-rail-card__classroom {
+    border: 2px solid color-mix(in srgb, var(--student-sage) 42%, transparent);
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-sage) 35%, var(--student-sand));
+  }
+
+  .student-progress-chip--ochre {
+    background: color-mix(in srgb, var(--student-ochre) 38%, var(--student-sand));
+  }
+
+  .student-progress-chip--sage {
+    background: color-mix(in srgb, var(--student-sage) 36%, var(--student-sand));
+  }
+
+  .student-progress-chip--clay {
+    background: color-mix(in srgb, var(--student-clay) 36%, var(--student-sand));
+  }
+
+  .student-lesson-map {
+    border: 2px solid color-mix(in srgb, var(--student-moss) 30%, transparent);
+    background: color-mix(in srgb, var(--student-sage) 28%, var(--student-sand));
+    box-shadow: 0 12px 0 color-mix(in srgb, var(--student-moss) 24%, transparent);
+  }
+
+  .student-lesson-map__header {
+    border: 2px solid color-mix(in srgb, var(--student-ochre) 42%, transparent);
+    background: color-mix(in srgb, var(--student-sand) 72%, var(--student-oat));
+  }
+
+  .student-trail-stop {
+    border-color: color-mix(in srgb, var(--student-moss) 28%, transparent);
+    color: var(--student-ink);
+    background: color-mix(in srgb, var(--student-sand) 86%, var(--student-oat));
+    box-shadow: 0 5px 0 color-mix(in srgb, var(--student-clay) 45%, transparent);
+  }
+
+  .student-trail-stop:hover {
+    border-color: var(--student-terracotta);
+  }
+
+  .student-trail-stop--highlighted {
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-ochre) 25%, var(--student-sand));
+    --tw-ring-color: var(--student-ochre);
+  }
+
+  .student-trail-stop__number {
+    color: var(--student-sand);
+    background: var(--student-moss);
+  }
+
+  .student-trail-stop__label {
+    color: var(--student-moss);
+  }
+
+  .student-trail-stop__status {
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-sage) 45%, var(--student-sand));
+  }
+
   .teacher-shell {
     --teacher-sand: #E8DCC7;
     --teacher-oat: #D4B895;
