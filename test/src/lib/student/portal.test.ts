@@ -39,7 +39,7 @@ Deno.test("buildPortalTopicEntries shows assigned lessons and hides unassigned l
     assetSrc: "/assets/images/1col.png",
     href: "/student/lessons/colors?assignmentId=asg-1&classId=class-1",
     isAssigned: true,
-    isCompleted: true,
+    isCompleted: false,
     recentScorePct: 80,
   });
 

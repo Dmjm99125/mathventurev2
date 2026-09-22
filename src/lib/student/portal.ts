@@ -212,7 +212,7 @@ export function buildPortalTopicEntries(input: {
         classId: assignment.classId ?? singleClassId,
       }),
       isAssigned: Boolean(assignment),
-      isCompleted: assignment.completed || Boolean(attempt),
+      isCompleted: assignment.completed,
       recentScorePct: attempt ? toScorePct(attempt.score, attempt.maxScore) : null,
     }];
   });
