@@ -1,0 +1,17 @@
+{
+  "name": "@workspace/mathventure",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "serve": "npm --prefix frontend run serve",
+    "test": "npm --prefix frontend run test",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:functions": "supabase functions serve",
+    "supabase:migrations": "supabase db reset"
+  }
+}

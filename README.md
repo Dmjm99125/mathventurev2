@@ -74,8 +74,7 @@ mathventure/
 
 2. **Install frontend dependencies:**
    ```bash
-   cd frontend
-   npm install
+   npm install --prefix frontend
    ```
 
 3. **Configure Environment Variables:**
@@ -87,16 +86,17 @@ mathventure/
 
 4. **Run the frontend development server:**
    ```bash
-   cd frontend
    npm run dev
    ```
    Open your browser and navigate to `http://localhost:5173` to view the application.
 
 5. **Build the frontend for production:**
    ```bash
-   cd frontend
    npm run build
    ```
+
+The root scripts delegate to the self-contained `frontend/` project. You can
+also run frontend commands directly with `npm --prefix frontend run <script>`.
 
 Backend commands run from the repository root and use the root-level `supabase/` directory:
 
