@@ -338,6 +338,103 @@
     background: color-mix(in srgb, var(--student-sage) 45%, var(--student-sand));
   }
 
+  .student-classroom-header,
+  .student-classroom-quizzes,
+  .student-announcement-card,
+  .student-empty-state {
+    border: 2px solid color-mix(in srgb, var(--student-moss) 24%, transparent);
+    color: var(--student-ink);
+    background: color-mix(in srgb, var(--student-sand) 78%, var(--student-oat));
+    box-shadow: 0 8px 0 color-mix(in srgb, var(--student-clay) 35%, transparent);
+  }
+
+  .student-classroom-header {
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-ochre) 30%, var(--student-sand));
+  }
+
+  .student-section-title {
+    color: var(--student-moss);
+  }
+
+  .student-announcement-card {
+    border-left: 8px solid var(--student-terracotta);
+  }
+
+  .student-quiz-card {
+    border-color: color-mix(in srgb, var(--student-sage) 55%, transparent);
+    background: color-mix(in srgb, var(--student-sage) 22%, var(--student-sand));
+  }
+
+  .student-loading {
+    border-color: var(--student-ochre);
+    color: var(--student-sand);
+    background: var(--student-moss);
+    box-shadow: 0 12px 0 color-mix(in srgb, var(--student-clay) 55%, transparent);
+  }
+
+  .student-loading__background {
+    background: radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--student-ochre) 60%, transparent) 0%, transparent 24%),
+      radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--student-sage) 60%, transparent) 0%, transparent 30%),
+      linear-gradient(160deg, var(--student-moss) 0%, color-mix(in srgb, var(--student-moss) 80%, var(--student-clay)) 58%, var(--student-clay) 100%);
+  }
+
+  .student-loading__ring {
+    border: 28px solid color-mix(in srgb, var(--student-ochre) 32%, transparent);
+  }
+
+  .student-loading__glow {
+    background: color-mix(in srgb, var(--student-sage) 42%, transparent);
+    filter: blur(2rem);
+  }
+
+  .student-loading__brand,
+  .student-loading__badge {
+    color: var(--student-ochre);
+  }
+
+  .student-loading__badge {
+    border-color: var(--student-ochre);
+    background: var(--student-ochre);
+    color: var(--student-moss);
+    box-shadow: 0 12px 0 color-mix(in srgb, var(--student-clay) 80%, transparent);
+  }
+
+  .student-loading__badge-mark {
+    background: var(--student-terracotta);
+    color: var(--student-sand);
+  }
+
+  .student-loading__title {
+    color: var(--student-sand);
+  }
+
+  .student-loading__body {
+    color: color-mix(in srgb, var(--student-sand) 80%, var(--student-sage));
+  }
+
+  .student-loading__track {
+    background: color-mix(in srgb, var(--student-sand) 20%, transparent);
+  }
+
+  .student-loading__fill {
+    background: linear-gradient(90deg, var(--student-ochre), var(--student-sage));
+  }
+
+  .student-loading__shimmer {
+    background: color-mix(in srgb, var(--student-sand) 48%, transparent);
+  }
+
+  .student-loading__step {
+    border-color: color-mix(in srgb, var(--student-sand) 18%, transparent);
+    background: color-mix(in srgb, var(--student-sand) 12%, transparent);
+    color: color-mix(in srgb, var(--student-sand) 80%, var(--student-sage));
+  }
+
+  .student-loading__step svg {
+    color: var(--student-ochre);
+  }
+
   .teacher-shell {
     --teacher-sand: #E8DCC7;
     --teacher-oat: #D4B895;

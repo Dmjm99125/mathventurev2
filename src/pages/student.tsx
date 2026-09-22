@@ -7,6 +7,7 @@ import { allTopics } from '@/data';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
+import { StudentShell } from '@/components/student/StudentShell';
 import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@/lib/student/portal';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 
@@ -17,7 +18,13 @@ export function StudentDashboard() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
-  if (dashLoading || assignLoading || classLoading) return <StudentPortalLoading />;
+  if (dashLoading || assignLoading || classLoading) {
+    return (
+      <StudentShell current="lessons">
+        <StudentPortalLoading />
+      </StudentShell>
+    );
+  }
 
   const assignments = (assignmentsData?.assignments || []) as AssignmentForStudent[];
   const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
@@ -49,7 +56,8 @@ export function StudentDashboard() {
     railSummary.nextAction.kind === 'assignment' ? railSummary.nextAction.lessonId : null;
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <StudentShell current="lessons">
+      <div className="animate-in fade-in duration-500">
       {showDashboardNotice && (
         <Card className="mb-4 rounded-[28px] border-white/70 bg-[#fff7db]/95 p-5 shadow-[0_20px_45px_rgba(59,109,42,0.12)]">
           <h2 className="text-xl font-extrabold text-primary">{t('student.portal.dashboardUnavailableTitle')}</h2>
@@ -62,7 +70,7 @@ export function StudentDashboard() {
         </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(260px,25%)_minmax(0,1fr)]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(260px,25%)_minmax(0,1fr)]">
         <StudentPortalRail
           summary={railSummary}
           classroom={classroom}
@@ -70,7 +78,7 @@ export function StudentDashboard() {
           onOpenClassroom={() => setLocation('/student/classroom')}
         />
 
-        <div className="relative overflow-hidden rounded-[32px] border-4 border-white/60 shadow-[0_24px_60px_rgba(34,94,49,0.16)]">
+        <div className="relative overflow-hidden rounded-[32px] border-4 border-[color:var(--student-moss)]/30 shadow-[0_20px_0_color-mix(in_srgb,var(--student-clay)_42%,transparent)]">
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
@@ -89,7 +97,8 @@ export function StudentDashboard() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </StudentShell>
   );
 }
 
@@ -177,18 +186,25 @@ export function StudentClassroomPage() {
   const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
   const { data: postsData, isLoading: postsLoading } = useClassPosts(classroom?.id ?? '');
   const { data: assignmentsData, isLoading: assignLoading } = useAssignments();
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
   if (classLoading || postsLoading || assignLoading) {
-    return <div className="p-8 text-center font-bold">Loading class details...</div>;
+    return (
+      <StudentShell current="classroom">
+        <StudentPortalLoading />
+      </StudentShell>
+    );
   }
 
   if (!classroom) {
     return (
-      <div className="p-8 text-center space-y-4">
-        <p className="font-bold text-muted-foreground">Classroom not found.</p>
-        <Button variant="outline" onClick={() => setLocation('/student')}>Back to Dashboard</Button>
-      </div>
+      <StudentShell current="classroom">
+        <div className="student-empty-state space-y-4 p-8 text-center">
+          <p className="font-bold">Classroom not found.</p>
+          <Button size="lg" variant="outline" onClick={() => setLocation('/student')}>{t('student.backToLessons')}</Button>
+        </div>
+      </StudentShell>
     );
   }
 
@@ -196,56 +212,58 @@ export function StudentClassroomPage() {
   const assignments = (assignmentsData?.assignments || []) as import('@/lib/api').AssignmentForStudent[];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <header className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => setLocation('/student')}>
+    <StudentShell current="classroom">
+      <div className="student-classroom-page space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 sm:space-y-8">
+      <header className="student-classroom-header flex flex-col gap-4 rounded-[28px] p-5 sm:flex-row sm:items-center sm:p-6">
+        <Button variant="outline" size="lg" className="w-full justify-start sm:w-auto" onClick={() => setLocation('/student')}>
           <ArrowLeft className="h-6 w-6 text-foreground" />
+          {t('student.backToLessons')}
         </Button>
         <div>
-          <h1 className="text-3xl font-display font-extrabold text-foreground">Classroom</h1>
-          <p className="text-muted-foreground font-bold">Teacher: {classroom.teacherName}</p>
+          <h1 className="text-3xl font-display font-extrabold">Classroom</h1>
+          <p className="font-bold opacity-75">Teacher: {classroom.teacherName}</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-2xl font-display font-bold flex items-center gap-2 text-blue-600">
+          <h2 className="student-section-title flex items-center gap-2 text-2xl font-display font-bold">
             <MessageSquare className="h-6 w-6" /> Announcements
           </h2>
           
           {posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map((post: any) => (
-                <Card key={post.id} className="p-5 border-l-4 border-l-blue-500 bg-blue-50/30">
+                <Card key={post.id} className="student-announcement-card p-5 sm:p-6">
                   <div className="flex justify-between items-center mb-3">
-                    <p className="font-bold text-blue-800">{post.authorName}</p>
-                    <p className="text-sm font-bold text-muted-foreground">{new Date(post.createdAt).toLocaleDateString()}</p>
+                    <p className="font-bold">{post.authorName}</p>
+                    <p className="text-sm font-bold opacity-70">{new Date(post.createdAt).toLocaleDateString()}</p>
                   </div>
                   <p className="text-lg font-bold leading-relaxed">{post.content}</p>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card className="p-8 text-center bg-muted/30 border-dashed border-2">
-              <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-              <p className="font-bold text-muted-foreground">No announcements from your teacher yet.</p>
+            <Card className="student-empty-state border-dashed p-8 text-center">
+              <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-50" />
+              <p className="font-bold opacity-75">No announcements from your teacher yet.</p>
             </Card>
           )}
         </div>
 
         <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-display font-bold flex items-center gap-2 mb-4 text-primary">
+          <Card className="student-classroom-quizzes p-5 sm:p-6">
+            <h2 className="student-section-title mb-4 flex items-center gap-2 text-xl font-display font-bold">
               <BookOpen className="h-5 w-5" /> Your Classroom Quizzes
             </h2>
             {assignments.length > 0 ? (
               <div className="space-y-3">
                 {assignments.map(a => (
-                  <div key={a.id} className="p-3 bg-muted/30 rounded-xl border border-border flex justify-between items-center">
+                  <div key={a.id} className="student-quiz-card flex flex-col items-stretch gap-4 rounded-2xl border-2 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="font-bold">{a.name || a.lessonId}</p>
                       <Badge variant="jungle" className="mb-1 capitalize">{a.lessonId}</Badge>
-                      <p className="text-xs font-bold text-muted-foreground">
+                      <p className="text-sm font-bold opacity-75">
                         {a.status === 'completed'
                           ? 'Completed - ' + a.score + ' / ' + a.maxScore
                           : a.status === 'in_progress'
@@ -254,8 +272,9 @@ export function StudentClassroomPage() {
                       </p>
                     </div>
                     <Button
-                      size="sm"
+                      size="lg"
                       variant="jungle"
+                      className="w-full shrink-0 sm:w-auto"
                       onClick={() =>
                         setLocation(
                           buildStudentLessonHref({
@@ -272,12 +291,13 @@ export function StudentClassroomPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm font-bold text-muted-foreground text-center py-4">No pending assignments!</p>
+              <p className="py-4 text-center text-sm font-bold opacity-75">No pending assignments!</p>
             )}
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </StudentShell>
   );
 }
 

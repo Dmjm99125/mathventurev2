@@ -45,7 +45,7 @@ function AppRoutes() {
         {() => <AppLayout sidebarMode="hidden"><StudentDashboard /></AppLayout>}
       </Route>
       <Route path="/student/classroom">
-        {() => <AppLayout><StudentClassroomPage /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><StudentClassroomPage /></AppLayout>}
       </Route>
       <Route path="/student/lessons">
         {() => <Redirect to="/student" replace />}
