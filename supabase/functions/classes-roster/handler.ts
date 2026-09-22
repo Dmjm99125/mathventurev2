@@ -1,10 +1,10 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
-import { GAME_CATALOG } from "../../../src/lib/games/catalog.ts";
+import { GAME_CATALOG } from "../../../frontend/src/lib/games/catalog.ts";
 import {
   calculateDetailedCompletionPct,
   calculateDetailedLastPlayedPct,
-} from "../../../src/lib/teacher/progress.ts";
+} from "../../../frontend/src/lib/teacher/progress.ts";
 import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
 
 type RosterStudentRow = {

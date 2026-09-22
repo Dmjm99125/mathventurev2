@@ -45,20 +45,15 @@ MathVenture is an interactive, gamified math learning platform designed for youn
 
 ```text
 mathventure/
-├── src/
-│   ├── components/      # Shared components (Layout, UI, Audio Buttons)
-│   ├── data/            # Game data, question sets, and topic lists
-│   ├── hooks/           # Custom React hooks
-│   ├── lib/             # Utility contexts (Auth, Language providers)
-│   ├── pages/           # Landing, About, Auth, Student, and Teacher pages
-│   ├── App.tsx          # Router configuration and application shell
-│   └── main.tsx         # Application entry point
-├── public/
-│   └── assets/
-│       ├── images/      # Illustrations and user interface assets
-│       └── papers/      # Academic research manuscripts and PDFs
-├── supabase/            # Database migrations and configurations
-└── package.json         # Scripts and project dependencies
+├── frontend/            # React, Vite, assets, tests, and frontend tooling
+│   ├── src/             # Application source and PWA code
+│   ├── public/          # Browser-served assets and media
+│   ├── test/            # Frontend tests
+│   ├── scripts/         # Frontend build and asset scripts
+│   └── package.json     # Frontend dependencies and commands
+├── supabase/            # Backend migrations, functions, and configuration
+├── test/supabase/       # Backend tests
+└── docs/                # Project documentation and design records
 ```
 
 ---
@@ -77,28 +72,40 @@ mathventure/
    cd mathventure
    ```
 
-2. **Install dependencies:**
+2. **Install frontend dependencies:**
    ```bash
+   cd frontend
    npm install
    ```
 
 3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory (or update the existing one) with your Supabase credentials:
+   Create `frontend/.env` with your Supabase credentials:
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-4. **Run the development server:**
+4. **Run the frontend development server:**
    ```bash
+   cd frontend
    npm run dev
    ```
    Open your browser and navigate to `http://localhost:5173` to view the application.
 
-5. **Build for production:**
+5. **Build the frontend for production:**
    ```bash
+   cd frontend
    npm run build
    ```
+
+Backend commands run from the repository root and use the root-level `supabase/` directory:
+
+```bash
+supabase start
+supabase status
+supabase functions serve
+supabase db reset
+```
 
 ### Teacher password recovery email
 
@@ -124,13 +131,13 @@ For the hosted Supabase project:
 
 For local development, the settings in `supabase/config.toml` configure a
 six-digit code with a five-minute lifetime and immediate signup. Supabase's
-local Mailpit captures Auth emails; run `npm run supabase:status` to find its
-URL. Gmail credentials are not needed for local tests.
+local Mailpit captures Auth emails; run `supabase status` from the repository
+root to find its URL. Gmail credentials are not needed for local tests.
 
 ---
 
 ## 🔬 Academic Research & Background
 
 MathVenture is backed by active educational research investigating gamified learning efficacy. 
-*   **Thesis Manuscript:** You can find the research paper ["Counting the Uncounted"](file:///public/assets/papers/FIN-GROUP1-RESEARCH-MANUSCRIPT.pdf) in the public assets directory.
+*   **Thesis Manuscript:** You can find the research paper ["Counting the Uncounted"](frontend/public/assets/papers/FIN-GROUP1-RESEARCH-MANUSCRIPT.pdf) in the frontend public assets directory.
 *   **Research Team:** Developed and designed by DMM (Main Researcher), MR, GY, ALR, and GV.
