@@ -188,6 +188,80 @@
 }
 
 @layer components {
+  .student-shell {
+    --student-sand: #E8DCC7;
+    --student-oat: #D4B895;
+    --student-sage: #8B9D83;
+    --student-clay: #B08B6E;
+    --student-terracotta: #C66B3D;
+    --student-ochre: #C08E3A;
+    --student-moss: #606C38;
+    --student-ink: #35402F;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--student-ink);
+    background: var(--student-sand);
+  }
+
+  .student-shell__grain {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.18;
+    background-image: repeating-radial-gradient(circle at 1px 1px, rgba(96, 108, 56, 0.2) 0 0.7px, transparent 0.8px 5px);
+    background-size: 5px 5px;
+  }
+
+  .student-shell__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .student-shell__nav-link {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border: 2px solid color-mix(in srgb, var(--student-moss) 30%, transparent);
+    border-radius: 1.25rem;
+    padding: 0.65rem 0.9rem;
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-oat) 42%, transparent);
+    font-size: 1rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: transform 220ms ease, background-color 220ms ease, border-color 220ms ease;
+  }
+
+  .student-shell__nav-link:hover {
+    transform: translateY(-2px);
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-oat) 70%, transparent);
+  }
+
+  .student-shell__nav-link.is-active {
+    border-color: var(--student-moss);
+    color: var(--student-sand);
+    background: var(--student-moss);
+    box-shadow: 0 5px 0 color-mix(in srgb, var(--student-moss) 72%, #000);
+  }
+
+  .student-shell__nav-link:focus-visible,
+  .student-shell button:focus-visible,
+  .student-shell a:focus-visible {
+    outline: 4px solid var(--student-ochre);
+    outline-offset: 3px;
+  }
+
+  .student-shell__content {
+    min-width: 0;
+  }
+
   .teacher-shell {
     --teacher-sand: #E8DCC7;
     --teacher-oat: #D4B895;
@@ -248,6 +322,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .student-shell *,
+  .student-shell *::before,
+  .student-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
   .teacher-shell *,
   .teacher-shell *::before,
   .teacher-shell *::after {
@@ -255,5 +338,16 @@
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .student-shell__nav {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .student-shell__nav-link {
+    min-width: 10rem;
   }
 }
