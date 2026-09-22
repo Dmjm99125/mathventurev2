@@ -19,11 +19,7 @@ export function StudentDashboard() {
   const [, setLocation] = useLocation();
 
   if (dashLoading || assignLoading || classLoading) {
-    return (
-      <StudentShell current="lessons">
-        <StudentPortalLoading />
-      </StudentShell>
-    );
+    return <StudentPortalLoading />;
   }
 
   const assignments = (assignmentsData?.assignments || []) as AssignmentForStudent[];
@@ -190,11 +186,7 @@ export function StudentClassroomPage() {
   const [, setLocation] = useLocation();
 
   if (classLoading || postsLoading || assignLoading) {
-    return (
-      <StudentShell current="classroom">
-        <StudentPortalLoading />
-      </StudentShell>
-    );
+    return <StudentPortalLoading />;
   }
 
   if (!classroom) {
