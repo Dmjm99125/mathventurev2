@@ -26,6 +26,7 @@ Deno.test("PWA config precaches the app shell without silently precaching the me
   assertMatch(config, /globIgnores:\s*\[['"]assets\/\*\*['"]\]/);
   assertMatch(config, /filename:\s*['"]sw\.ts['"]/);
   assertMatch(config, /devOptions:\s*\{[\s\S]*enabled:\s*true/);
+  assertMatch(config, /devOptions:\s*\{[\s\S]*type:\s*['"]module['"]/);
   assertMatch(config, /configureServer/);
   assertMatch(config, /free-play-media-manifest\.json/);
 });

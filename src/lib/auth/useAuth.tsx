@@ -93,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setViewingStudent(null);
         resetActiveAuthClient();
       }
-      setIsLoading(false);
     });
 
     const { data: { subscription: studentSubscription } } = studentSupabase.auth.onAuthStateChange((_event, session) => {

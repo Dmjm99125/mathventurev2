@@ -1,7 +1,12 @@
 import { assertEquals } from "jsr:@std/assert";
+
+const authProviderSource = await Deno.readTextFile(
+  new URL("../../../../src/lib/auth/useAuth.tsx", import.meta.url),
+);
 import { profileFromAuthSession, type AuthSessionLike } from "../../../../src/lib/auth/profile.ts";
 import {
   buildAuthViewState,
+  isAuthReadyForData,
   type AuthViewState,
 } from "../../../../src/lib/auth/session-state.ts";
 
@@ -46,6 +51,20 @@ Deno.test("student view keeps the teacher profile available while making the stu
     viewingStudent: null,
     isViewingStudent: false,
   } satisfies AuthViewState);
+});
+
+Deno.test("authenticated data waits for auth initialization and an active user", () => {
+  assertEquals(isAuthReadyForData(true, null), false);
+  assertEquals(isAuthReadyForData(false, null), false);
+  assertEquals(isAuthReadyForData(false, { id: "student-1" }), true);
+});
+
+Deno.test("initial auth loading is not released by the teacher session callback", () => {
+  const teacherCallbackStart = authProviderSource.indexOf("supabase.auth.onAuthStateChange");
+  const studentCallbackStart = authProviderSource.indexOf("studentSupabase.auth.onAuthStateChange");
+  const teacherCallback = authProviderSource.slice(teacherCallbackStart, studentCallbackStart);
+
+  assertEquals(teacherCallback.includes("setIsLoading(false)"), false);
 });
 
 const { returnToTeacherAccount } = await import("../../../../src/lib/auth/auth.ts");

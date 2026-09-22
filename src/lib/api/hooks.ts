@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../auth';
+import { isAuthReadyForData } from '../auth/session-state';
 import {
   type StudentClassSummary,
   type StudentClassroomSummary,
@@ -39,13 +41,18 @@ function toLegacyClassesResponse(input: {
 }
 
 export function useClasses() {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['classes'],
     queryFn: async () => toLegacyClassesResponse(await api.classes.list()),
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherClassroom() {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['classroom', 'teacher'],
     queryFn: async () => {
@@ -56,10 +63,13 @@ export function useTeacherClassroom() {
           : null,
       };
     },
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useStudentClassroom() {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['classroom', 'student'],
     queryFn: async () => {
@@ -70,28 +80,37 @@ export function useStudentClassroom() {
           : null,
       };
     },
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useClassRoster(classId?: string) {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['classroom', 'roster', classId ?? 'singleton'],
     queryFn: () => api.classes.roster(),
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useAssignments(classId?: string) {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['assignments', classId],
     queryFn: () => api.assignments.list(classId),
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['assignment-quiz', assignmentId, lessonId],
     queryFn: () => api.assignmentQuiz.get(assignmentId!, lessonId!),
-    enabled: Boolean(assignmentId && lessonId),
+    enabled: Boolean(assignmentId && lessonId) && isAuthReadyForData(isLoading, user),
   });
 }
 
@@ -130,31 +149,42 @@ export function useCompleteAssignmentQuiz() {
 }
 
 export function useStudentDashboard() {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['dashboard', 'student'],
     queryFn: () => api.dashboard.student(),
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherDashboard() {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['dashboard', 'teacher'],
     queryFn: () => api.dashboard.teacher(),
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherReportsOverview(window: TeacherReportsWindowKey) {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['teacher-reports', 'overview', window],
     queryFn: () => api.reports.overview(window),
+    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey) {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['teacher-reports', 'class', classId, window],
     queryFn: () => api.reports.classDetail(classId, window),
-    enabled: !!classId,
+    enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
 
@@ -279,10 +309,12 @@ export function useSubmitAttempt() {
 }
 
 export function useClassPosts(classId: string) {
+  const { user, isLoading } = useAuth();
+
   return useQuery({
     queryKey: ['posts', classId],
     queryFn: () => api.posts.list(classId),
-    enabled: !!classId,
+    enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
 

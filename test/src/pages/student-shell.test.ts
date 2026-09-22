@@ -30,6 +30,12 @@ Deno.test("student loading state uses the student shell visual contract", () => 
   assertEquals(pageSource.includes('<StudentShell current="classroom">\n        <StudentPortalLoading />'), false);
 });
 
+Deno.test("student pages keep the centered loader visible while auth initializes", () => {
+  assertEquals(pageSource.includes("const { isLoading: authLoading } = useAuth();"), true);
+  assertEquals(pageSource.includes("if (authLoading || dashLoading || assignLoading || classLoading)"), true);
+  assertEquals(pageSource.includes("if (authLoading || classLoading || postsLoading || assignLoading)"), true);
+});
+
 Deno.test("student loading state stays readable on small screens and reduced motion", () => {
   assertEquals(styleSource.includes(".student-loading-screen"), true);
   assertEquals(styleSource.includes("@media (max-width: 420px)"), true);

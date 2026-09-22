@@ -57,6 +57,7 @@ export default defineConfig(({ mode }) => {
         manifest: false,
         devOptions: {
           enabled: true,
+          type: 'module',
         },
         injectManifest: {
           globPatterns: ['**/*.{html,js,css,svg,ico,webmanifest,json}'],

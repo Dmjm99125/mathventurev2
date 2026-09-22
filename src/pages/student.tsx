@@ -10,15 +10,17 @@ import { StudentPortalRail } from '@/components/student/StudentPortalRail';
 import { StudentShell } from '@/components/student/StudentShell';
 import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@/lib/student/portal';
 import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useAuth } from '@/lib/auth';
 
 export function StudentDashboard() {
+  const { isLoading: authLoading } = useAuth();
   const { data: dashboard, isLoading: dashLoading, error: dashboardError } = useStudentDashboard();
   const { data: assignmentsData, isLoading: assignLoading, error: assignmentsError } = useAssignments();
   const { data: classroomData, isLoading: classLoading, error: classesError } = useStudentClassroom();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
-  if (dashLoading || assignLoading || classLoading) {
+  if (authLoading || dashLoading || assignLoading || classLoading) {
     return <StudentPortalLoading />;
   }
 
@@ -178,6 +180,7 @@ export function StudentLessons() {
 }
 
 export function StudentClassroomPage() {
+  const { isLoading: authLoading } = useAuth();
   const { data: classroomData, isLoading: classLoading } = useStudentClassroom();
   const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
   const { data: postsData, isLoading: postsLoading } = useClassPosts(classroom?.id ?? '');
@@ -185,7 +188,7 @@ export function StudentClassroomPage() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
-  if (classLoading || postsLoading || assignLoading) {
+  if (authLoading || classLoading || postsLoading || assignLoading) {
     return <StudentPortalLoading />;
   }
 

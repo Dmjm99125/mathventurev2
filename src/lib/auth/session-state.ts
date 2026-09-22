@@ -7,6 +7,13 @@ export type AuthViewState = {
   isViewingStudent: boolean;
 };
 
+export function isAuthReadyForData(
+  isLoading: boolean,
+  user: { id: string } | null,
+): boolean {
+  return !isLoading && user !== null;
+}
+
 export function buildAuthViewState(
   teacherUser: UserProfile | null,
   viewingStudent: UserProfile | null,
