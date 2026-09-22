@@ -27,15 +27,15 @@ export function FreePlay() {
     >
       <TopNav />
       <main className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 px-4 py-8 md:py-12">
-        <Card className="w-full max-w-3xl rounded-[28px] border-4 border-white/70 bg-white/90 p-6 text-center shadow-[0_24px_60px_rgba(34,94,49,0.16)] md:p-8">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-jungle-orange text-white shadow-lg">
-            <Gamepad2 className="h-9 w-9" />
+        <Card className="w-full max-w-3xl rounded-[28px] border-4 border-white/70 bg-white/90 p-4 text-center shadow-[0_24px_60px_rgba(34,94,49,0.16)] md:p-5">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-3xl bg-jungle-orange text-white shadow-lg">
+            <Gamepad2 className="h-7 w-7" />
           </div>
           <h1 className="text-4xl font-display font-extrabold text-foreground md:text-5xl">Free Play</h1>
-          <p className="mx-auto mt-3 max-w-2xl text-lg font-bold text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-2xl text-lg font-bold text-muted-foreground">
             Choose any adventure and practice at your own pace. No login is needed.
           </p>
-          <div className="mt-4 flex items-center justify-center gap-2 text-sm font-extrabold text-primary">
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm font-extrabold text-primary">
             <Sparkles className="h-4 w-4" /> Explore every topic
           </div>
         </Card>

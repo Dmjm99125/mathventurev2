@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Download,
   HardDriveDownload,
+  ChevronDown,
   RefreshCw,
   WifiOff,
   X,
@@ -40,10 +41,18 @@ export function FreePlayOfflinePanel() {
   };
 
   return (
-    <section
-      aria-labelledby="free-play-offline-title"
-      className="w-full max-w-3xl overflow-hidden rounded-[28px] border-4 border-white/80 bg-white/95 text-left shadow-[0_18px_50px_rgba(34,94,49,0.12)]"
-    >
+    <details className="group w-full max-w-3xl overflow-hidden rounded-[28px] border-4 border-white/80 bg-white/95 text-left shadow-[0_18px_50px_rgba(34,94,49,0.12)]">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 font-extrabold text-foreground marker:hidden [&::-webkit-details-marker]:hidden md:p-5">
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-jungle-yellow text-jungle-green">
+            <HardDriveDownload className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <span className="truncate">For parents: Offline library</span>
+        </span>
+        <ChevronDown className="h-6 w-6 shrink-0 text-primary transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
+      </summary>
+
+      <section aria-labelledby="free-play-offline-title" className="border-t-2 border-sky-100">
       <div className="grid gap-6 p-5 md:grid-cols-[minmax(0,1fr)_minmax(15rem,0.72fr)] md:p-7">
         <div>
           <div className="flex items-start gap-4">
@@ -149,6 +158,7 @@ export function FreePlayOfflinePanel() {
           </p>
         </div>
       </div>
-    </section>
+      </section>
+    </details>
   );
 }

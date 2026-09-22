@@ -8,4 +8,6 @@ Deno.test("landing free play is a public topic menu", async () => {
   assertEquals(page.includes("No login is needed."), true);
   assertEquals(page.includes("freePlay=1"), true);
   assertEquals(page.includes("FreePlayOfflinePanel"), true);
+  assertEquals(page.includes("rounded-[28px] border-4 border-white/70 bg-white/90 p-4"), true);
+  assertEquals(page.includes("h-12 w-12"), true);
 });

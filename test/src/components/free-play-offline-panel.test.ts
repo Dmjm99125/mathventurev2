@@ -9,5 +9,7 @@ Deno.test("Free Play offline panel uses one explicit, parent-readable download f
   assertMatch(source, /Retry download/);
   assertMatch(source, /role="progressbar"/);
   assertMatch(source, /aria-valuenow/);
+  assertMatch(source, /<details[\s\S]*For parents: Offline library/);
+  assertEquals(source.includes('<details open'), false);
   assertEquals(source.includes("useEffect(() => download"), false);
 });
