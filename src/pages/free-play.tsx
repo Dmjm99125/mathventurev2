@@ -46,6 +46,7 @@ export function FreePlay() {
           <LegacyLessonMenu
             topics={FREE_PLAY_TOPICS}
             highlightedLessonId={null}
+            showStatus={false}
             onSelect={(href) => setLocation(href)}
           />
         </div>

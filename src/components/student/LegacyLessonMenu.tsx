@@ -14,10 +14,12 @@ export function LegacyLessonMenu({
   topics,
   highlightedLessonId,
   onSelect,
+  showStatus = true,
 }: {
   topics: PortalTopicEntry[];
   highlightedLessonId: PortalTopicId | null;
   onSelect: (href: string) => void;
+  showStatus?: boolean;
 }) {
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const { t } = useLanguage();
@@ -71,9 +73,14 @@ export function LegacyLessonMenu({
               type="button"
               variant="ghost"
               onClick={() => onSelect(topic.href)}
-              aria-label={`${topic.fallbackLabel}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`}
+              aria-label={showStatus
+                ? `${topic.fallbackLabel}: ${topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}`
+                : topic.fallbackLabel}
               className={cn(
-                "student-trail-stop group grid min-h-[72px] grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[22px] border-2 px-3 py-2 text-left transition-transform hover:-translate-y-0.5 md:min-h-[80px] md:grid-cols-[3rem_minmax(0,1fr)_auto] md:px-4",
+                "student-trail-stop group grid min-h-[72px] items-center gap-3 rounded-[22px] border-2 px-3 py-2 text-left transition-transform hover:-translate-y-0.5 md:min-h-[80px] md:px-4",
+                showStatus
+                  ? "grid-cols-[2.75rem_minmax(0,1fr)_auto] md:grid-cols-[3rem_minmax(0,1fr)_auto]"
+                  : "grid-cols-[2.75rem_minmax(0,1fr)] md:grid-cols-[3rem_minmax(0,1fr)]",
                 isHighlighted && "student-trail-stop--highlighted ring-4",
               )}
             >
@@ -96,9 +103,11 @@ export function LegacyLessonMenu({
                 )}
               </div>
 
-              <span className="student-trail-stop__status whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-extrabold md:text-sm">
-                {topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}
-              </span>
+              {showStatus && (
+                <span className="student-trail-stop__status whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-extrabold md:text-sm">
+                  {topic.isCompleted ? t("student.status.finished") : t("student.status.assigned")}
+                </span>
+              )}
             </Button>
           );
         })}

@@ -18,3 +18,8 @@ Deno.test("lesson menu exposes written completion status", () => {
   assertEquals(source.includes('student.status.assigned'), true);
   assertEquals(source.includes("min-h-[72px]"), true);
 });
+
+Deno.test("lesson menu can hide assignment status for public Free Play", () => {
+  assertEquals(source.includes("showStatus = true"), true);
+  assertEquals(source.includes("showStatus &&"), true);
+});
