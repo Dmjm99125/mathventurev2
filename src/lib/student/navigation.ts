@@ -1,5 +1,6 @@
 export const STUDENT_NAV_ITEMS = [
   { href: "/student", labelKey: "student.dashboard" },
+  { href: "/student/classroom", labelKey: "student.classroom" },
 ] as const;
 
 export function isStudentNavActive(pathname: string, href: string): boolean {
@@ -8,8 +9,11 @@ export function isStudentNavActive(pathname: string, href: string): boolean {
   if (href === "/student") {
     return cleanPath === "/student"
       || cleanPath === "/student/lessons"
-      || cleanPath.startsWith("/student/lessons/")
-      || cleanPath === "/student/classroom";
+      || cleanPath.startsWith("/student/lessons/");
+  }
+
+  if (href === "/student/classroom") {
+    return cleanPath === "/student/classroom";
   }
 
   return cleanPath === href;
