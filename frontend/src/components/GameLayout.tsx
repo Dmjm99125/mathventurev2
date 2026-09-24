@@ -1,9 +1,9 @@
 import React from 'react';
-import { ArrowLeft, Video, BookOpen, Gamepad2 } from 'lucide-react';
+import { ArrowLeft, Video, BookOpen, Gamepad2, Table2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { Button } from './ui';
 
-export type LessonStage = 'video' | 'lesson' | 'quiz';
+export type LessonStage = 'theme' | 'video' | 'lesson' | 'quiz';
 
 interface GameLayoutProps {
   children: React.ReactNode;
@@ -14,6 +14,7 @@ interface GameLayoutProps {
 }
 
 const STAGES: { key: LessonStage; label: string; Icon: React.ElementType }[] = [
+  { key: 'theme', label: 'Theme', Icon: Table2 },
   { key: 'video',  label: 'Video',      Icon: Video     },
   { key: 'lesson', label: 'Lesson',     Icon: BookOpen  },
   { key: 'quiz',   label: 'Activities', Icon: Gamepad2  },

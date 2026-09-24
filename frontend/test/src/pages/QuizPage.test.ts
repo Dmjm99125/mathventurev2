@@ -140,3 +140,23 @@ Deno.test("Free Play drawing-board completion does not create a catalog result",
   assertEquals(source.includes("const nextResults = isDrawingBoardGame\n      ? gameResults\n      : withCurrentGameResult(gameResults, gameScore, gameMaxScore);"), true);
   assertEquals(source.includes("const finalScore = score + (isDrawingBoardGame ? 0 : gameScore);"), true);
 });
+
+Deno.test("new lessons start with the DepEd theme stage before video", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("type GameState = 'theme' | 'video' | 'lesson'"), true);
+  assertEquals(source.includes("useState<GameState>('theme')"), true);
+  assertEquals(source.includes("if (gameState === 'theme')"), true);
+  assertEquals(source.includes('stage="theme"'), true);
+  assertEquals(source.includes("Continue to video"), true);
+  assertEquals(source.includes("DEPED_THEMES"), true);
+  assertEquals(source.includes("<DepEdThemeTable"), true);
+});
+
+Deno.test("assigned quiz resume still bypasses the theme stage", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("if (savedQuizState.status === 'completed')"), true);
+  assertEquals(source.includes("if (savedQuizState.status === 'in_progress' && gameState === 'theme')"), true);
+  assertEquals(source.includes("setGameState('quiz-intro')"), true);
+});

@@ -5,6 +5,7 @@ import { GAME_COUNT_BY_TOPIC, type TeacherTopicId } from '@/lib/games/catalog';
 
 import { lessonContent } from '@/data/lessonContent';
 import { GameLayout } from '@/components/GameLayout';
+import { DepEdThemeTable } from '@/components/DepEdThemeTable';
 import { LessonSlideCard } from '@/components/LessonSlideCard';
 import { ColorMatchingGame } from '@/components/games/1-colors/ColorMatchingGame';
 import { BalloonFindingGame } from '@/components/games/1-colors/BalloonFindingGame';
@@ -106,8 +107,9 @@ import { buildStudentLessonExitHref } from '@/lib/student/portal';
 import { getFreePlayGameCount, isDrawingBoardAvailable } from '@/lib/games/free-play';
 import { useAuth } from '@/lib/auth';
 import { shouldRecordStandaloneAttempt } from '@/lib/quiz/recording';
+import { DEPED_THEMES } from '@/data/depedThemes';
 
-type GameState = 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
+type GameState = 'theme' | 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 
 function ClassroomQuizBanner({
   error,
@@ -187,7 +189,7 @@ export function QuizPage() {
   const lesson = lessonContent[topic];
 
   // ── Stage state ────────────────────────────────────────────────────────────
-  const [gameState, setGameState] = useState<GameState>('video');
+  const [gameState, setGameState] = useState<GameState>('theme');
   const [slideIndex, setSlideIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -222,7 +224,7 @@ export function QuizPage() {
       return;
     }
 
-    if (savedQuizState.status === 'in_progress' && gameState === 'video') {
+    if (savedQuizState.status === 'in_progress' && gameState === 'theme') {
       setCurrentIndex(savedQuizState.currentGameOrder);
       setScore(savedQuizState.score);
       setGameResults(savedQuizState.gameResults);
@@ -231,6 +233,10 @@ export function QuizPage() {
   }, [assignmentId, gameState, savedQuizState?.status, savedQuizState?.currentGameOrder]);
 
   // ── Stage helpers ──────────────────────────────────────────────────────────
+  const goToVideo = () => {
+    setGameState('video');
+  };
+
   const goToLesson = () => {
     setSlideIndex(0);
     setGameState('lesson');
@@ -469,6 +475,32 @@ export function QuizPage() {
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER: VIDEO STAGE
   // ─────────────────────────────────────────────────────────────────────────
+  if (gameState === 'theme') {
+    return (
+      <GameLayout topic={topic} stage="theme" onExit={handleExit}>
+        <div className="w-full max-w-5xl flex flex-col items-center gap-6 animate-in fade-in duration-500">
+          <div className="text-center space-y-1">
+            <h1 className="text-3xl font-display font-extrabold text-foreground capitalize">{topic}</h1>
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              DepEd Curriculum Theme
+            </p>
+          </div>
+
+          <DepEdThemeTable theme={DEPED_THEMES[topic as TeacherTopicId]} />
+
+          <Button
+            size="lg"
+            variant="jungle"
+            className="h-14 gap-2 rounded-full px-8 text-lg shadow-lg shadow-primary/20 transition-transform hover:scale-105"
+            onClick={goToVideo}
+          >
+            Continue to video <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+      </GameLayout>
+    );
+  }
+
   if (gameState === 'video') {
     return (
       <GameLayout topic={topic} stage="video" onExit={handleExit}>
