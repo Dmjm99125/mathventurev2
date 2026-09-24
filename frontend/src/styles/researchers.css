@@ -19,8 +19,8 @@
 
 .researchers-hero {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 16rem);
+  gap: 1.75rem;
   align-items: center;
   padding: clamp(1.4rem, 4vw, 3rem);
   background: rgba(255, 255, 255, 0.92);
@@ -42,7 +42,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 900;
   color: color-mix(in srgb, var(--landing-ink) 76%, var(--landing-orange));
 }
@@ -65,9 +65,9 @@
 
 .researchers-hero h1 {
   max-width: 44rem;
-  margin: 0.75rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--landing-ink);
-  font-size: clamp(2rem, 4.5vw, 3.75rem);
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
   font-weight: 900;
   letter-spacing: -0.065em;
   line-height: 0.94;
@@ -75,21 +75,20 @@
 
 .researchers-hero-copy > p {
   max-width: 39rem;
-  margin: 0.9rem 0 0;
+  margin: 0.7rem 0 0;
   color: color-mix(in srgb, var(--landing-ink) 76%, white);
-  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  font-size: clamp(0.85rem, 1.1vw, 0.95rem);
   font-weight: 700;
   line-height: 1.5;
 }
 
 .researchers-hero-actions {
   display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.75rem;
   align-self: stretch;
-  padding-top: 1.25rem;
-  border-top: 2px solid color-mix(in srgb, var(--landing-ink) 18%, transparent);
+  padding-left: 1.25rem;
+  border-left: 2px solid color-mix(in srgb, var(--landing-ink) 18%, transparent);
 }
 
 .researchers-hero-actions > a,
@@ -365,6 +364,10 @@
 
   .researchers-hero-actions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-top: 1.25rem;
+    padding-left: 0;
+    border-top: 2px solid color-mix(in srgb, var(--landing-ink) 18%, transparent);
+    border-left: 0;
   }
 
   .researchers-counting-layout {
