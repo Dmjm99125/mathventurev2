@@ -90,11 +90,6 @@ export function SandwichMaker({ onComplete, allowSkip = false }: { onComplete?: 
         setErrorMsg('');
         
         if (currentStep + 1 === activePattern.length) {
-            if (level === 3) {
-                if (allowSkip) {
-                    onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
-                }
-            }
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         }
     } else {

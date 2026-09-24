@@ -82,9 +82,6 @@ export function ShortestLongest({ onComplete, allowSkip = false }: { onComplete?
       setCorrectItems(prev => prev + 1);
       setErrorMsg('');
       if (currentIndex + 1 === SIZES.length) {
-        if (allowSkip) {
-          onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
-        }
         setScore(s => s + 1);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       }

@@ -128,11 +128,6 @@ export function AnimalVehicleBuilder({ onComplete, allowSkip = false }: { onComp
       
       if (currentIndex + 1 === currentPuzzle.parts) {
         setIsMerged(true);
-        if (level === 5) {
-          if (allowSkip) {
-            onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
-          }
-        }
         confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
         
         if (level < 5) {

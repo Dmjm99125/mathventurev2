@@ -105,11 +105,6 @@ export function SurpriseSequencing({ onComplete, allowSkip = false }: { onComple
       setScore(s => s + 5);
       
       if (currentIndex + 1 === sequence.length) {
-        if (level === 5) {
-          if (allowSkip) {
-            onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
-          }
-        }
         setScore(s => s + 50); // huge points!
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         

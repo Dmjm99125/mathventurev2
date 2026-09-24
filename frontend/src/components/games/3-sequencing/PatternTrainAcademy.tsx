@@ -121,11 +121,6 @@ export function PatternTrainAcademy({ onComplete, allowSkip = false }: { onCompl
             
             setTimeout(() => {
                 setTrainStatus('exit');
-                if (level === 11) {
-                    if (allowSkip) {
-                        onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);
-                    }
-                }
                 setTimeout(() => {
                     if (level < 11) {
                         startLevel(level + 1);

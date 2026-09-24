@@ -79,8 +79,13 @@ Deno.test("sequencing quiz games report correct items and wrong attempts", async
     );
     assertEquals(
       source.includes("onComplete?.(correctItems + 1, correctItems + wrongAttempts + 1);"),
+      false,
+      `${fileName} should not auto-advance Free Play after its final item`,
+    );
+    assertEquals(
+      source.includes("onClick={allowSkip ?"),
       true,
-      `${fileName} should report the terminal interaction with wrong attempts included`,
+      `${fileName} should keep an explicit same-game Free Play replay action`,
     );
     assertEquals(
       source.includes("onComplete?.(correctItems, correctItems + wrongAttempts)"),
