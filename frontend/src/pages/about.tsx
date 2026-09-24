@@ -150,12 +150,12 @@ export function About() {
                 <div className="researchers-counting-layout">
                   <article className="researchers-primary-profile">
                     <img className="researchers-face researchers-face--professor" src="/assets/images/MR.png" alt="Ms. Rachelle Ann D. Ignacio" />
-                    <span className="researchers-profile-role">Professor and researcher</span>
+                    <span className="researchers-profile-role">Professor & Research Adviser</span>
                     <h4>Ms. Rachelle Ann D. Ignacio</h4>
                   </article>
 
                   <div className="researchers-profile-grid">
-                    <ResearchProfile image="dmm.png" name="Donna May Mesina" />
+                    <ResearchProfile image="dmm.png" name="Donna May Mesina" role="Research lead" />
                     <ResearchProfile image="gy.png" name="Guienn Garganta" />
                     <ResearchProfile image="alr.png" name="Alyssa Rica Librero" />
                     <ResearchProfile image="gv.png" name="Georgia Victoria Villafania" />
@@ -174,12 +174,12 @@ export function About() {
   );
 }
 
-function ResearchProfile({ image, name }: { image: string; name: string }) {
+function ResearchProfile({ image, name, role = 'Research contributor' }: { image: string; name: string; role?: string }) {
   return (
     <article className="researchers-profile-card">
       <img className="researchers-face" src={`/assets/images/${image}`} alt={name} />
       <div>
-        <span className="researchers-profile-role">Research contributor</span>
+        <span className="researchers-profile-role">{role}</span>
         <h4>{name}</h4>
       </div>
     </article>
