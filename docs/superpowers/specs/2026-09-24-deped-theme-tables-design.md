@@ -16,7 +16,7 @@ Create `frontend/src/data/depedThemes.ts` with a typed record keyed by the exist
 
 Create `frontend/src/components/DepEdThemeTable.tsx` as the only presentation component for the curriculum data. It will render a semantic table with a caption, table head, row headers, and content cells. The table will be inside a horizontal-scroll wrapper with a readable minimum width, allowing left-right swiping on mobile without causing page-wide overflow.
 
-Extend `QuizPage`'s stage state with a `theme` stage and initialize new visits there. The forward sequence is:
+Extend `GameLayout`'s lesson progress stages and `QuizPage`'s stage state with a `theme` stage, so the progress indicator accurately shows the new first step. Initialize new visits there. The forward sequence is:
 
 ```text
 theme -> video -> lesson -> quiz-intro -> activities
