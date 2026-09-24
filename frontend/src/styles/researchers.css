@@ -20,7 +20,7 @@
 .researchers-hero {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1.25rem;
   align-items: center;
   padding: clamp(1.4rem, 4vw, 3rem);
   background: rgba(255, 255, 255, 0.92);
@@ -33,7 +33,6 @@
 .researchers-eyebrow,
 .researchers-section-label,
 .researchers-profile-role {
-  font-size: 0.74rem;
   letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
@@ -43,12 +42,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 900;
   color: color-mix(in srgb, var(--landing-ink) 76%, var(--landing-orange));
 }
 
 .researchers-section-label,
 .researchers-profile-role {
+  font-size: 0.74rem;
   font-weight: 900;
 }
 
@@ -64,20 +65,20 @@
 
 .researchers-hero h1 {
   max-width: 44rem;
-  margin: 1rem 0 0;
+  margin: 0.75rem 0 0;
   color: var(--landing-ink);
-  font-size: clamp(2.5rem, 6vw, 5.25rem);
-  font-weight: 600;
+  font-size: clamp(2rem, 4.5vw, 3.75rem);
+  font-weight: 900;
   letter-spacing: -0.065em;
   line-height: 0.94;
 }
 
 .researchers-hero-copy > p {
   max-width: 39rem;
-  margin: 1.25rem 0 0;
+  margin: 0.9rem 0 0;
   color: color-mix(in srgb, var(--landing-ink) 76%, white);
-  font-size: clamp(1rem, 1.8vw, 1.2rem);
-  font-weight: 600;
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  font-weight: 700;
   line-height: 1.5;
 }
 
