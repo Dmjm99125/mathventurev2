@@ -19,7 +19,7 @@
 
 .researchers-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 1fr;
   gap: 2rem;
   align-items: center;
   padding: clamp(1.4rem, 4vw, 3rem);
@@ -34,7 +34,6 @@
 .researchers-section-label,
 .researchers-profile-role {
   font-size: 0.74rem;
-  font-weight: 900;
   letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
@@ -44,7 +43,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  font-weight: 600;
   color: color-mix(in srgb, var(--landing-ink) 76%, var(--landing-orange));
+}
+
+.researchers-section-label,
+.researchers-profile-role {
+  font-weight: 900;
 }
 
 .researchers-eyebrow-dot {
@@ -62,7 +67,7 @@
   margin: 1rem 0 0;
   color: var(--landing-ink);
   font-size: clamp(2.5rem, 6vw, 5.25rem);
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: -0.065em;
   line-height: 0.94;
 }
@@ -72,16 +77,25 @@
   margin: 1.25rem 0 0;
   color: color-mix(in srgb, var(--landing-ink) 76%, white);
   font-size: clamp(1rem, 1.8vw, 1.2rem);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
 }
 
 .researchers-hero-actions {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-self: stretch;
+  padding-top: 1.25rem;
+  border-top: 2px solid color-mix(in srgb, var(--landing-ink) 18%, transparent);
+}
+
+.researchers-hero-actions > a,
+.researchers-hero-actions > button {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.55rem;
-  align-self: start;
+  min-width: 0;
+  width: 100%;
 }
 
 .researchers-toolbar-button {
@@ -91,6 +105,7 @@
   color: var(--landing-ink);
   background: rgba(255, 255, 255, 0.76);
   font-weight: 900;
+  justify-content: center;
 }
 
 .researchers-toolbar-button:hover {
@@ -348,7 +363,7 @@
   }
 
   .researchers-hero-actions {
-    justify-content: flex-start;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .researchers-counting-layout {
@@ -381,12 +396,15 @@
 
   .researchers-hero-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+    padding-top: 1rem;
   }
 
   .researchers-hero-actions > a,
+  .researchers-hero-actions > button,
   .researchers-hero-actions > [data-radix-popper-content-wrapper] {
     min-width: 0;
+    width: 100%;
   }
 
   .researchers-toolbar-button {
