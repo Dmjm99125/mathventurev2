@@ -118,45 +118,41 @@ export function Landing() {
                 </Link>
               </div>
             </aside>
-          </section>
-
-          <section className="landing-activity-section" aria-labelledby="landing-activity-title">
-            <div className="landing-section-heading">
-              <div>
-                <span className="landing-panel-label">Inside the adventure</span>
-                <h2 id="landing-activity-title">Learn by playing</h2>
+            <section className="landing-activity-section" aria-labelledby="landing-activity-title">
+              <div className="landing-section-heading">
+                <div>
+                  <span className="landing-panel-label">Inside the adventure</span>
+                  <h2 id="landing-activity-title">Learn by playing</h2>
+                </div>
+                <p>Small games. Big discoveries.</p>
               </div>
-              <p>Small games. Big discoveries.</p>
-            </div>
 
-            <div className="landing-activity-grid">
-              <Link className="landing-activity-card landing-activity-card--pink" href="/free-play">
-                <span className="landing-activity-icon"><Shapes aria-hidden="true" /></span>
-                <span className="landing-activity-copy">
-                  <strong>Colors &amp; Shapes</strong>
-                  <small>Spot, match, and explore.</small>
-                </span>
-                <ArrowUpRight aria-hidden="true" />
-              </Link>
+              <ul className="landing-activity-list">
+                <li className="landing-activity-item landing-activity-item--pink">
+                  <span className="landing-activity-icon"><Shapes aria-hidden="true" /></span>
+                  <span className="landing-activity-copy">
+                    <strong>Colors &amp; Shapes</strong>
+                    <small>Spot, match, and explore.</small>
+                  </span>
+                </li>
 
-              <Link className="landing-activity-card landing-activity-card--yellow" href="/free-play">
-                <span className="landing-activity-icon"><Hash aria-hidden="true" /></span>
-                <span className="landing-activity-copy">
-                  <strong>Numbers 1–10</strong>
-                  <small>Count, pair, and sequence.</small>
-                </span>
-                <ArrowUpRight aria-hidden="true" />
-              </Link>
+                <li className="landing-activity-item landing-activity-item--yellow">
+                  <span className="landing-activity-icon"><Hash aria-hidden="true" /></span>
+                  <span className="landing-activity-copy">
+                    <strong>Numbers 1–10</strong>
+                    <small>Count, pair, and sequence.</small>
+                  </span>
+                </li>
 
-              <Link className="landing-activity-card landing-activity-card--cyan" href="/signup">
-                <span className="landing-activity-icon"><BarChart3 aria-hidden="true" /></span>
-                <span className="landing-activity-copy">
-                  <strong>Teacher Dashboard</strong>
-                  <small>Track progress and assign lessons.</small>
-                </span>
-                <ArrowUpRight aria-hidden="true" />
-              </Link>
-            </div>
+                <li className="landing-activity-item landing-activity-item--cyan">
+                  <span className="landing-activity-icon"><BarChart3 aria-hidden="true" /></span>
+                  <span className="landing-activity-copy">
+                    <strong>Teacher Dashboard</strong>
+                    <small>Track progress and assign lessons.</small>
+                  </span>
+                </li>
+              </ul>
+            </section>
           </section>
         </div>
       </main>
