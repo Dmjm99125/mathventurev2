@@ -78,81 +78,84 @@ export function Landing() {
               </div>
             </div>
 
-            <aside className="landing-action-panel">
-              <div className="landing-panel-heading">
-                <div>
-                  <span className="landing-panel-label">Your first stop</span>
-                  <h2>Choose a path</h2>
+            <div className="landing-right-column">
+              <aside className="landing-action-panel">
+                <div className="landing-panel-heading">
+                  <div>
+                    <span className="landing-panel-label">Your first stop</span>
+                    <h2>Choose a path</h2>
+                  </div>
+                  <div className="landing-compass-badge" aria-hidden="true">
+                    <Compass />
+                  </div>
                 </div>
-                <div className="landing-compass-badge" aria-hidden="true">
-                  <Compass />
+
+                <div className="landing-path-list">
+                  <Link className="landing-path-link landing-path-link--pink" href="/free-play">
+                    <span className="landing-path-icon"><Gamepad2 aria-hidden="true" /></span>
+                    <span>
+                      <strong>Free Play</strong>
+                      <small>Jump into a quick game</small>
+                    </span>
+                    <ArrowUpRight aria-hidden="true" />
+                  </Link>
+
+                  <Link className="landing-path-link landing-path-link--yellow" href="/signup">
+                    <span className="landing-path-icon"><Shapes aria-hidden="true" /></span>
+                    <span>
+                      <strong>Teacher Sign Up</strong>
+                      <small>Bring the adventure to class</small>
+                    </span>
+                    <ArrowUpRight aria-hidden="true" />
+                  </Link>
+
+                  <Link className="landing-path-link landing-path-link--cyan" href="/about">
+                    <span className="landing-path-icon"><Users aria-hidden="true" /></span>
+                    <span>
+                      <strong>Meet the Researchers</strong>
+                      <small>See the people behind MathVenture</small>
+                    </span>
+                    <ArrowUpRight aria-hidden="true" />
+                  </Link>
                 </div>
-              </div>
+              </aside>
 
-              <div className="landing-path-list">
-                <Link className="landing-path-link landing-path-link--pink" href="/free-play">
-                  <span className="landing-path-icon"><Gamepad2 aria-hidden="true" /></span>
-                  <span>
-                    <strong>Free Play</strong>
-                    <small>Jump into a quick game</small>
-                  </span>
-                  <ArrowUpRight aria-hidden="true" />
-                </Link>
-
-                <Link className="landing-path-link landing-path-link--yellow" href="/signup">
-                  <span className="landing-path-icon"><Shapes aria-hidden="true" /></span>
-                  <span>
-                    <strong>Teacher Sign Up</strong>
-                    <small>Bring the adventure to class</small>
-                  </span>
-                  <ArrowUpRight aria-hidden="true" />
-                </Link>
-
-                <Link className="landing-path-link landing-path-link--cyan" href="/about">
-                  <span className="landing-path-icon"><Users aria-hidden="true" /></span>
-                  <span>
-                    <strong>Meet the Researchers</strong>
-                    <small>See the people behind MathVenture</small>
-                  </span>
-                  <ArrowUpRight aria-hidden="true" />
-                </Link>
-              </div>
-            </aside>
-            <section className="landing-activity-section" aria-labelledby="landing-activity-title">
-              <div className="landing-section-heading">
-                <div>
-                  <span className="landing-panel-label">Inside the adventure</span>
-                  <h2 id="landing-activity-title">Learn by playing</h2>
+              <section className="landing-activity-section" aria-labelledby="landing-activity-title">
+                <div className="landing-section-heading">
+                  <div>
+                    <span className="landing-panel-label">Inside the adventure</span>
+                    <h2 id="landing-activity-title">Learn by playing</h2>
+                  </div>
+                  <p>Small games. Big discoveries.</p>
                 </div>
-                <p>Small games. Big discoveries.</p>
-              </div>
 
-              <ul className="landing-activity-list">
-                <li className="landing-activity-item landing-activity-item--pink">
-                  <span className="landing-activity-icon"><Shapes aria-hidden="true" /></span>
-                  <span className="landing-activity-copy">
-                    <strong>Colors &amp; Shapes</strong>
-                    <small>Spot, match, and explore.</small>
-                  </span>
-                </li>
+                <ul className="landing-activity-list">
+                  <li className="landing-activity-item landing-activity-item--pink">
+                    <span className="landing-activity-icon"><Shapes aria-hidden="true" /></span>
+                    <span className="landing-activity-copy">
+                      <strong>Colors &amp; Shapes</strong>
+                      <small>Spot, match, and explore.</small>
+                    </span>
+                  </li>
 
-                <li className="landing-activity-item landing-activity-item--yellow">
-                  <span className="landing-activity-icon"><Hash aria-hidden="true" /></span>
-                  <span className="landing-activity-copy">
-                    <strong>Numbers 1–10</strong>
-                    <small>Count, pair, and sequence.</small>
-                  </span>
-                </li>
+                  <li className="landing-activity-item landing-activity-item--yellow">
+                    <span className="landing-activity-icon"><Hash aria-hidden="true" /></span>
+                    <span className="landing-activity-copy">
+                      <strong>Numbers 1–10</strong>
+                      <small>Count, pair, and sequence.</small>
+                    </span>
+                  </li>
 
-                <li className="landing-activity-item landing-activity-item--cyan">
-                  <span className="landing-activity-icon"><BarChart3 aria-hidden="true" /></span>
-                  <span className="landing-activity-copy">
-                    <strong>Teacher Dashboard</strong>
-                    <small>Track progress and assign lessons.</small>
-                  </span>
-                </li>
-              </ul>
-            </section>
+                  <li className="landing-activity-item landing-activity-item--cyan">
+                    <span className="landing-activity-icon"><BarChart3 aria-hidden="true" /></span>
+                    <span className="landing-activity-copy">
+                      <strong>Teacher Dashboard</strong>
+                      <small>Track progress and assign lessons.</small>
+                    </span>
+                  </li>
+                </ul>
+              </section>
+            </div>
           </section>
         </div>
       </main>

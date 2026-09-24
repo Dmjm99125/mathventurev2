@@ -584,8 +584,7 @@
   }
 
   .landing-brand-panel,
-  .landing-action-panel,
-  .landing-activity-section {
+  .landing-right-column {
     border: 3px solid var(--landing-ink);
     border-radius: 2rem;
     box-shadow: 0 10px 0 rgba(23, 63, 38, 0.22);
@@ -601,6 +600,14 @@
     background-image: linear-gradient(135deg, transparent 0 68%, rgba(0, 255, 255, 0.14) 68% 100%),
       radial-gradient(circle at 92% 18%, rgba(255, 113, 206, 0.45) 0 2.3rem, transparent 2.4rem),
       radial-gradient(circle at 84% 24%, rgba(223, 255, 0, 0.68) 0 0.7rem, transparent 0.8rem);
+  }
+
+  .landing-right-column {
+    display: grid;
+    grid-row: 1 / span 2;
+    min-width: 0;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);
   }
 
   .landing-brand-panel::after {
@@ -763,6 +770,9 @@
   .landing-action-panel {
     padding: clamp(1.25rem, 3vw, 2rem);
     color: white;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     background-color: var(--landing-ink);
     background-image: radial-gradient(circle at 85% 8%, rgba(0, 255, 255, 0.42) 0 3.5rem, transparent 3.6rem),
       repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 12px);
@@ -873,8 +883,13 @@
 
   .landing-activity-section {
     margin-top: 0;
+    border: 0;
+    border-top: 1px solid color-mix(in srgb, var(--landing-ink) 28%, transparent);
+    border-radius: 0;
+    box-shadow: none;
     padding: clamp(1.25rem, 3vw, 2rem);
-    background: rgba(255, 255, 255, 0.9);
+    color: var(--landing-ink);
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .landing-section-heading {
@@ -900,33 +915,38 @@
   }
 
   .landing-activity-item {
+    position: relative;
+    isolation: isolate;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0.85rem;
     align-items: center;
     min-height: 4.4rem;
-    border: 1px solid color-mix(in srgb, var(--landing-ink) 24%, transparent);
+    border: 0;
     border-radius: 1rem;
     padding: 0.65rem 0.75rem;
     color: var(--landing-ink);
   }
 
-  .landing-activity-item--pink {
-    background-color: var(--landing-pink);
-    background-image: radial-gradient(circle at 1px 1px, rgba(23, 63, 38, 0.2) 1px, transparent 1.5px);
-    background-size: 10px 10px;
+  .landing-activity-item::before {
+    position: absolute;
+    inset: 0.18rem;
+    z-index: -1;
+    border-radius: inherit;
+    content: '';
+    filter: blur(0.55rem);
+    opacity: 0.78;
+    transform: scale(1.015);
   }
 
-  .landing-activity-item--yellow {
-    background-color: var(--landing-yellow);
-    background-image: repeating-linear-gradient(135deg, rgba(23, 63, 38, 0.12) 0 2px, transparent 2px 10px);
+  .landing-activity-item > * {
+    position: relative;
+    z-index: 1;
   }
 
-  .landing-activity-item--cyan {
-    background-color: var(--landing-cyan);
-    background-image: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.55) 0 1.2rem, transparent 1.3rem),
-      radial-gradient(circle at 8% 90%, rgba(255, 113, 206, 0.44) 0 1rem, transparent 1.1rem);
-  }
+  .landing-activity-item--pink::before { background: var(--landing-pink); }
+  .landing-activity-item--yellow::before { background: var(--landing-yellow); }
+  .landing-activity-item--cyan::before { background: var(--landing-cyan); }
 
   .landing-activity-icon {
     display: grid;
@@ -1008,6 +1028,10 @@
     grid-row: auto;
   }
 
+  .landing-right-column {
+    grid-row: auto;
+  }
+
   .landing-brand-panel {
     min-height: auto;
   }
@@ -1030,8 +1054,7 @@
   }
 
   .landing-brand-panel,
-  .landing-action-panel,
-  .landing-activity-section {
+  .landing-right-column {
     border-radius: 1.45rem;
   }
 
