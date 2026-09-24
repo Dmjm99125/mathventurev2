@@ -1,0 +1,292 @@
+@layer components {
+  .student-shell {
+    --student-sand: #E8DCC7;
+    --student-oat: #D4B895;
+    --student-sage: #8B9D83;
+    --student-clay: #B08B6E;
+    --student-terracotta: #C66B3D;
+    --student-ochre: #C08E3A;
+    --student-moss: #606C38;
+    --student-ink: #35402F;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--student-ink);
+    background: var(--student-sand);
+  }
+
+  .student-shell__grain {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.18;
+    background-image: repeating-radial-gradient(circle at 1px 1px, rgba(96, 108, 56, 0.2) 0 0.7px, transparent 0.8px 5px);
+    background-size: 5px 5px;
+  }
+
+  .student-shell__nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .student-shell__nav-link {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border: 2px solid color-mix(in srgb, var(--student-moss) 30%, transparent);
+    border-radius: 1.25rem;
+    padding: 0.65rem 0.9rem;
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-oat) 42%, transparent);
+    font-size: 1rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: transform 220ms ease, background-color 220ms ease, border-color 220ms ease;
+  }
+
+  .student-shell__nav-link:hover {
+    transform: translateY(-2px);
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-oat) 70%, transparent);
+  }
+
+  .student-shell__nav-link.is-active {
+    border-color: var(--student-moss);
+    color: var(--student-sand);
+    background: var(--student-moss);
+    box-shadow: 0 5px 0 color-mix(in srgb, var(--student-moss) 72%, #000);
+  }
+
+  .student-shell__nav-link:focus-visible,
+  .student-shell button:focus-visible,
+  .student-shell a:focus-visible {
+    outline: 4px solid var(--student-ochre);
+    outline-offset: 3px;
+  }
+
+  .student-shell__content {
+    min-width: 0;
+  }
+
+  .student-rail-card {
+    border-color: color-mix(in srgb, var(--student-moss) 22%, transparent);
+    color: var(--student-ink);
+    background: color-mix(in srgb, var(--student-sand) 68%, var(--student-oat));
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--student-clay) 48%, transparent);
+  }
+
+  .student-rail-card--next {
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-ochre) 38%, var(--student-sand));
+  }
+
+  .student-rail-card__eyebrow {
+    color: var(--student-moss);
+  }
+
+  .student-rail-card__classroom {
+    border: 2px solid color-mix(in srgb, var(--student-sage) 42%, transparent);
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-sage) 35%, var(--student-sand));
+  }
+
+  .student-progress-chip--ochre {
+    background: color-mix(in srgb, var(--student-ochre) 38%, var(--student-sand));
+  }
+
+  .student-progress-chip--sage {
+    background: color-mix(in srgb, var(--student-sage) 36%, var(--student-sand));
+  }
+
+  .student-progress-chip--clay {
+    background: color-mix(in srgb, var(--student-clay) 36%, var(--student-sand));
+  }
+
+  .student-lesson-map {
+    border: 2px solid color-mix(in srgb, var(--student-moss) 30%, transparent);
+    background: color-mix(in srgb, var(--student-sage) 28%, var(--student-sand));
+    box-shadow: 0 12px 0 color-mix(in srgb, var(--student-moss) 24%, transparent);
+  }
+
+  .student-lesson-map__header {
+    border: 2px solid color-mix(in srgb, var(--student-ochre) 42%, transparent);
+    background: color-mix(in srgb, var(--student-sand) 72%, var(--student-oat));
+  }
+
+  .student-trail-stop {
+    border-color: color-mix(in srgb, var(--student-moss) 28%, transparent);
+    color: var(--student-ink);
+    background: color-mix(in srgb, var(--student-sand) 86%, var(--student-oat));
+    box-shadow: 0 5px 0 color-mix(in srgb, var(--student-clay) 45%, transparent);
+  }
+
+  .student-trail-stop:hover {
+    border-color: var(--student-terracotta);
+  }
+
+  .student-trail-stop--highlighted {
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-ochre) 25%, var(--student-sand));
+    --tw-ring-color: var(--student-ochre);
+  }
+
+  .student-trail-stop__number {
+    color: var(--student-sand);
+    background: var(--student-moss);
+  }
+
+  .student-trail-stop__label {
+    color: var(--student-moss);
+  }
+
+  .student-trail-stop__status {
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-sage) 45%, var(--student-sand));
+  }
+
+  .student-classroom-header,
+  .student-classroom-quizzes,
+  .student-announcement-card,
+  .student-empty-state {
+    border: 2px solid color-mix(in srgb, var(--student-moss) 24%, transparent);
+    color: var(--student-ink);
+    background: color-mix(in srgb, var(--student-sand) 78%, var(--student-oat));
+    box-shadow: 0 8px 0 color-mix(in srgb, var(--student-clay) 35%, transparent);
+  }
+
+  .student-classroom-header {
+    border-color: var(--student-terracotta);
+    background: color-mix(in srgb, var(--student-ochre) 30%, var(--student-sand));
+  }
+
+  .student-section-title {
+    color: var(--student-moss);
+  }
+
+  .student-announcement-card {
+    border-left: 8px solid var(--student-terracotta);
+  }
+
+  .student-quiz-card {
+    border-color: color-mix(in srgb, var(--student-sage) 55%, transparent);
+    background: color-mix(in srgb, var(--student-sage) 22%, var(--student-sand));
+  }
+
+  .student-loading-screen {
+    --student-sand: #E8DCC7;
+    --student-oat: #D4B895;
+    --student-sage: #8B9D83;
+    --student-clay: #B08B6E;
+    --student-terracotta: #C66B3D;
+    --student-ochre: #C08E3A;
+    --student-moss: #606C38;
+    --student-ink: #35402F;
+    display: grid;
+    min-height: 100dvh;
+    place-items: center;
+    overflow: hidden;
+    padding: clamp(1rem, 4vw, 2rem);
+    color: var(--student-ink);
+    background-color: var(--student-sand);
+    background-image: radial-gradient(circle at 15% 12%, color-mix(in srgb, var(--student-ochre) 24%, transparent), transparent 28%),
+      radial-gradient(circle at 90% 86%, color-mix(in srgb, var(--student-sage) 28%, transparent), transparent 32%),
+      repeating-radial-gradient(circle at 1px 1px, rgba(96, 108, 56, 0.16) 0 0.7px, transparent 0.8px 5px);
+    background-size: auto, auto, 5px 5px;
+  }
+
+  .student-loading-card {
+    width: min(100%, 34rem);
+    border: 3px solid var(--student-moss);
+    border-radius: 2rem;
+    padding: clamp(2rem, 7vw, 3.5rem) clamp(1.25rem, 6vw, 3rem);
+    text-align: center;
+    background: color-mix(in srgb, var(--student-sand) 72%, var(--student-oat));
+    box-shadow: 0 10px 0 color-mix(in srgb, var(--student-clay) 56%, transparent);
+  }
+
+  .student-loading__badge {
+    display: grid;
+    width: 4.5rem;
+    height: 4.5rem;
+    place-items: center;
+    margin: 0 auto 1.5rem;
+    border: 3px solid var(--student-moss);
+    border-radius: 1.5rem;
+    color: var(--student-sand);
+    background: var(--student-moss);
+    box-shadow: 0 6px 0 color-mix(in srgb, var(--student-clay) 72%, transparent);
+  }
+
+  .student-loading__title {
+    margin: 0;
+    color: var(--student-moss);
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.08;
+  }
+
+  .student-loading__body {
+    max-width: 24rem;
+    margin: 0.75rem auto 0;
+    color: color-mix(in srgb, var(--student-ink) 72%, var(--student-sage));
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  .student-loading__progress {
+    margin-top: 2rem;
+  }
+
+  .student-loading__track {
+    height: 0.75rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--student-sage) 36%, var(--student-sand));
+  }
+
+  .student-loading__fill {
+    width: 42%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--student-terracotta);
+    animation: student-loading-progress 1.8s ease-in-out infinite alternate;
+  }
+
+  .student-loading__steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .student-loading__step {
+    display: flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border: 2px solid color-mix(in srgb, var(--student-sage) 42%, transparent);
+    border-radius: 1rem;
+    padding: 0.5rem;
+    color: var(--student-moss);
+    background: color-mix(in srgb, var(--student-sage) 18%, var(--student-sand));
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .student-loading__step svg {
+    flex: 0 0 auto;
+    color: var(--student-terracotta);
+  }
+
+  @keyframes student-loading-progress {
+    from { transform: translateX(0); }
+    to { transform: translateX(125%); }
+  }
+}

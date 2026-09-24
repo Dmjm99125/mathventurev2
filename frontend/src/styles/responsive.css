@@ -1,0 +1,113 @@
+@media (prefers-reduced-motion: reduce) {
+  .student-loading-screen .student-loading__fill {
+    animation: none !important;
+  }
+
+  .student-shell *,
+  .student-shell *::before,
+  .student-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .teacher-shell *,
+  .teacher-shell *::before,
+  .teacher-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .landing-board {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-brand-panel {
+    grid-row: auto;
+  }
+
+  .landing-right-column {
+    grid-row: auto;
+    grid-template-rows: auto auto;
+    min-height: auto;
+  }
+
+  .landing-brand-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .landing-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .landing-page {
+    background-attachment: scroll;
+  }
+
+  .landing-main {
+    padding-inline: 0.85rem;
+  }
+
+  .landing-brand-panel,
+  .landing-right-column {
+    border-radius: 1.45rem;
+  }
+
+  .landing-brand-panel {
+    padding: 1.35rem;
+  }
+
+  .landing-legacy-wordmark {
+    margin-top: 1.5rem;
+  }
+
+  .landing-actions {
+    flex-direction: column;
+  }
+
+  .landing-primary-action,
+  .landing-secondary-action {
+    width: 100%;
+  }
+}
+
+@media (min-width: 640px) {
+  .student-shell__nav {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .student-shell__nav-link {
+    min-width: 10rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .student-loading__steps {
+    grid-template-columns: 1fr;
+  }
+
+  .student-loading__step {
+    justify-content: flex-start;
+    padding-inline: 0.75rem;
+  }
+}

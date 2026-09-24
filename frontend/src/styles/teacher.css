@@ -1,0 +1,59 @@
+@layer components {
+  .teacher-shell {
+    --teacher-sand: #E8DCC7;
+    --teacher-oat: #D4B895;
+    --teacher-sage: #8B9D83;
+    --teacher-clay: #B08B6E;
+    --teacher-terracotta: #C66B3D;
+    --teacher-ochre: #C08E3A;
+    --teacher-moss: #606C38;
+    --teacher-ink: #2F3A2A;
+    position: relative;
+    isolation: isolate;
+    color: var(--teacher-ink);
+    font-family: 'Epilogue', 'Bricolage Grotesque', sans-serif;
+  }
+
+  .teacher-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.16;
+    background-image: repeating-radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--teacher-ink) 16%, transparent) 0 0.7px, transparent 0.8px 5px);
+    background-size: 5px 5px;
+  }
+
+  .teacher-learning-trail {
+    position: relative;
+  }
+
+  .teacher-learning-trail::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    bottom: 2rem;
+    left: 1rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--teacher-moss) 24%, transparent);
+    pointer-events: none;
+  }
+
+  .teacher-learning-trail > * {
+    position: relative;
+  }
+
+  .teacher-eyebrow {
+    color: color-mix(in srgb, var(--teacher-moss) 72%, var(--teacher-ink));
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .teacher-section {
+    border-radius: 1.25rem;
+  }
+}
