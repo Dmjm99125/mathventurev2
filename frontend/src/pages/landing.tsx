@@ -2,7 +2,17 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui';
-import { Compass, Sparkles, Map as MapIcon, GraduationCap, Users, Gamepad2 } from 'lucide-react';
+import {
+  ArrowUpRight,
+  BarChart3,
+  Compass,
+  Gamepad2,
+  GraduationCap,
+  Hash,
+  Shapes,
+  Sparkles,
+  Users,
+} from 'lucide-react';
 import { TopNav } from '@/components/layout';
 
 export function Landing() {
@@ -22,90 +32,134 @@ export function Landing() {
   if (isLoading || user) return null;
 
   return (
-    <div
-      className="min-h-[100dvh] flex flex-col bg-cover bg-center"
-      style={{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.47), rgba(255, 255, 255, 0.74)), url('/assets/images/INDBG.jpg')` }}
-    >
+    <div className="landing-page min-h-[100dvh] flex flex-col">
       <TopNav />
 
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 relative overflow-hidden">
+      <main className="landing-main flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="landing-shell mx-auto w-full max-w-6xl">
+          <section className="landing-board">
+            <div className="landing-brand-panel">
+              <div className="landing-kicker">
+                <span className="landing-kicker-dot" aria-hidden="true" />
+                Learning games for curious kids
+              </div>
 
-        {/* Background decorative elements */}
-        <div aria-hidden="true" className="pointer-events-none absolute top-20 left-10 md:left-40 bg-jungle-yellow/20 w-32 h-32 rounded-full blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute bottom-20 right-10 md:right-40 bg-jungle-orange/20 w-48 h-48 rounded-full blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/10 w-96 h-96 rounded-full blur-3xl -z-10" />
+              <img
+                className="landing-legacy-wordmark"
+                src="/assets/images/1let.png"
+                alt="Let's learn!"
+              />
 
-        <div className="mb-8 inline-flex items-center justify-center p-4 bg-jungle-orange text-white rounded-3xl shadow-xl rotate-3 hover:rotate-0 transition-transform">
-          <Compass className="w-12 h-12" />
-        </div>
+              <h1>
+                Make math your next <span>adventure.</span>
+                <Sparkles className="landing-heading-spark" aria-hidden="true" />
+              </h1>
 
-        <h1 className="text-5xl md:text-7xl font-display font-extrabold text-foreground mb-6 max-w-4xl leading-tight">
-          A wild jungle adventure for <span className="text-jungle-orange relative">
-            curious minds
-            <Sparkles className="absolute -top-6 -right-6 text-jungle-yellow w-8 h-8 animate-pulse" />
-          </span>
-        </h1>
+              <p className="landing-intro">
+                Explore colors, shapes, numbers, and patterns through short games made for young learners.
+              </p>
 
-        <p className="text-xl md:text-2xl font-bold text-muted-foreground mb-12 max-w-2xl">
-          Master colors, shapes, numbers, and sequencing through fun, bite-sized mini-games. Built for kids 4-7, loved by teachers.
-        </p>
+              <div className="landing-actions">
+                <Button asChild size="lg" variant="jungle" className="landing-primary-action">
+                  <Link href="/free-play">
+                    <Gamepad2 aria-hidden="true" /> Play free games
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="landing-secondary-action">
+                  <Link href="/login">
+                    <GraduationCap aria-hidden="true" /> Log in
+                  </Link>
+                </Button>
+              </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-center justify-center w-full max-w-4xl mx-auto">
-          <Button asChild size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
-            <Link href="/free-play">
-              <Gamepad2 className="w-5 h-5" /> Free Play
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="jungle" className="w-full sm:w-auto min-w-[200px] text-lg gap-2">
-            <Link href="/signup">
-              <MapIcon className="w-5 h-5" /> Teacher Sign Up
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto min-w-[200px] text-lg gap-2 bg-white">
-            <Link href="/login">
-              <GraduationCap className="w-5 h-5" />Login
-            </Link>
-          </Button>
-        </div>
+              <div className="landing-audience-note">
+                <Users aria-hidden="true" />
+                <span>Built for kids 4–7, loved by teachers.</span>
+              </div>
+            </div>
 
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto text-left">
-          <FeatureCard
-            title="Colors & Shapes"
-            desc="Identify the colorful jungle friends and shapes hiding in the foliage."
-            color="bg-primary/10 text-primary"
-          />
-          <FeatureCard
-            title="Numbers 1-10"
-            desc="Count bananas, match pairs, and learn number sequencing."
-            color="bg-jungle-orange/10 text-jungle-orange"
-          />
-          <FeatureCard
-            title="Teacher Dashboard"
-            desc="Track student progress, assign lessons, and identify who needs help."
-            color="bg-accent/20 text-foreground"
-          />
-        </div>
+            <aside className="landing-action-panel">
+              <div className="landing-panel-heading">
+                <div>
+                  <span className="landing-panel-label">Your first stop</span>
+                  <h2>Choose a path</h2>
+                </div>
+                <div className="landing-compass-badge" aria-hidden="true">
+                  <Compass />
+                </div>
+              </div>
 
-        <div className="mt-16 text-center">
-          <Button asChild size="lg" variant="outline" className="text-lg gap-2 bg-white">
-            <Link href="/about">
-              <Users className="w-5 h-5" /> Meet The Researchers
-            </Link>
-          </Button>
+              <div className="landing-path-list">
+                <Link className="landing-path-link landing-path-link--pink" href="/free-play">
+                  <span className="landing-path-icon"><Gamepad2 aria-hidden="true" /></span>
+                  <span>
+                    <strong>Free Play</strong>
+                    <small>Jump into a quick game</small>
+                  </span>
+                  <ArrowUpRight aria-hidden="true" />
+                </Link>
+
+                <Link className="landing-path-link landing-path-link--yellow" href="/signup">
+                  <span className="landing-path-icon"><Shapes aria-hidden="true" /></span>
+                  <span>
+                    <strong>Teacher Sign Up</strong>
+                    <small>Bring the adventure to class</small>
+                  </span>
+                  <ArrowUpRight aria-hidden="true" />
+                </Link>
+
+                <Link className="landing-path-link landing-path-link--cyan" href="/about">
+                  <span className="landing-path-icon"><Users aria-hidden="true" /></span>
+                  <span>
+                    <strong>Meet the Researchers</strong>
+                    <small>See the people behind MathVenture</small>
+                  </span>
+                  <ArrowUpRight aria-hidden="true" />
+                </Link>
+              </div>
+            </aside>
+          </section>
+
+          <section className="landing-activity-section" aria-labelledby="landing-activity-title">
+            <div className="landing-section-heading">
+              <div>
+                <span className="landing-panel-label">Inside the adventure</span>
+                <h2 id="landing-activity-title">Learn by playing</h2>
+              </div>
+              <p>Small games. Big discoveries.</p>
+            </div>
+
+            <div className="landing-activity-grid">
+              <Link className="landing-activity-card landing-activity-card--pink" href="/free-play">
+                <span className="landing-activity-icon"><Shapes aria-hidden="true" /></span>
+                <span className="landing-activity-copy">
+                  <strong>Colors &amp; Shapes</strong>
+                  <small>Spot, match, and explore.</small>
+                </span>
+                <ArrowUpRight aria-hidden="true" />
+              </Link>
+
+              <Link className="landing-activity-card landing-activity-card--yellow" href="/free-play">
+                <span className="landing-activity-icon"><Hash aria-hidden="true" /></span>
+                <span className="landing-activity-copy">
+                  <strong>Numbers 1–10</strong>
+                  <small>Count, pair, and sequence.</small>
+                </span>
+                <ArrowUpRight aria-hidden="true" />
+              </Link>
+
+              <Link className="landing-activity-card landing-activity-card--cyan" href="/signup">
+                <span className="landing-activity-icon"><BarChart3 aria-hidden="true" /></span>
+                <span className="landing-activity-copy">
+                  <strong>Teacher Dashboard</strong>
+                  <small>Track progress and assign lessons.</small>
+                </span>
+                <ArrowUpRight aria-hidden="true" />
+              </Link>
+            </div>
+          </section>
         </div>
       </main>
-    </div>
-  );
-}
-
-function FeatureCard({ title, desc, color }: { title: string, desc: string, color: string }) {
-  return (
-    <div className="p-6 rounded-3xl bg-white border-2 border-border shadow-sm hover:-translate-y-1 transition-transform">
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${color}`}>
-        <Sparkles className="w-6 h-6" />
-      </div>
-      <h3 className="text-xl font-display font-bold mb-2">{title}</h3>
-      <p className="text-muted-foreground font-bold">{desc}</p>
     </div>
   );
 }
