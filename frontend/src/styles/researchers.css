@@ -146,9 +146,12 @@
   color: var(--landing-orange);
 }
 
-.researchers-workspace-header .researchers-section-label,
-.researchers-tab-panel .researchers-section-label {
+.researchers-workspace-header .researchers-section-label {
   color: var(--landing-yellow);
+}
+
+.researchers-tab-panel .researchers-section-label {
+  color: var(--landing-ink);
 }
 
 .researchers-workspace-header h2 {
