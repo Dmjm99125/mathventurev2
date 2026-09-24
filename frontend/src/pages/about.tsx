@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { TopNav } from '@/components/layout';
-import { Users, Home, BookOpen, Github, FileText, Lock, ChevronDown } from 'lucide-react';
 import { Link } from 'wouter';
+import { TopNav } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { BookOpen, ChevronDown, FileText, Github, Home, Lock, Users } from 'lucide-react';
 
 type Tab = 'mathventure' | 'counting';
 
@@ -15,172 +15,173 @@ const TABS: { value: Tab; label: string }[] = [
 export function About() {
   const [activeTab, setActiveTab] = useState<Tab>('mathventure');
 
-
   return (
-    <div
-      className="min-h-[100dvh] flex flex-col bg-cover bg-center"
-      style={{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('/assets/images/INDBG.jpg')` }}
-    >
+    <div className="landing-page researchers-page min-h-[100dvh] flex flex-col">
       <TopNav />
 
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 relative overflow-hidden">
-        {/* Top Right Action Bar */}
-        <div className="absolute top-4 right-4 md:top-8 md:right-8 flex items-center gap-3 z-20">
-          <Link href="/">
-            <Button variant="outline" size="sm" className="gap-2 font-bold bg-white/70 backdrop-blur-md border-white/50 hover:bg-white/90">
-              <Home className="w-4 h-4" />
-              <span className="hidden sm:inline">Home</span>
-            </Button>
-          </Link>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 font-bold bg-white/70 backdrop-blur-md border-white/50 hover:bg-white/90">
-                <BookOpen className="w-4 h-4" />
-                <span className="hidden sm:inline">Papers</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 font-bold">
-              <DropdownMenuItem asChild>
-                <a href="/assets/papers/FIN-GROUP1-RESEARCH-MANUSCRIPT.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
-                  <FileText className="w-4 h-4" />
-                  <span>Counting the Uncounted</span>
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled className="flex items-center gap-2 justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  <span>MathVenture</span>
-                </div>
-                <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">WIP</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 font-bold bg-white/70 backdrop-blur-md border-white/50 hover:bg-white/90">
-                <Github className="w-4 h-4" />
-                <span className="hidden sm:inline">Repo</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 font-bold">
-              <DropdownMenuItem asChild>
-                <a href="https://github.com/dmjm99125/mathventureprototype" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
-                  <Github className="w-4 h-4" />
-                  <span>Legacy</span>
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href="https://github.com/dmjm99125/mathventurev2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
-                  <Github className="w-4 h-4" />
-                  <span>Current</span>
-                </a>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Background decorative elements */}
-        <div className="absolute top-20 left-10 md:left-40 bg-jungle-yellow/20 w-32 h-32 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 md:right-40 bg-jungle-orange/20 w-48 h-48 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/10 w-96 h-96 rounded-full blur-3xl -z-10" />
-
-        <div className="w-full max-w-6xl mx-auto px-4">
-          {/* Header */}
-          <div className="text-center mb-10 relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-jungle-yellow/30 w-64 h-64 rounded-full blur-3xl -z-10" />
-            <div className="inline-flex items-center justify-center p-3 bg-jungle-orange text-white rounded-2xl shadow-lg rotate-[-5deg] hover:rotate-0 transition-transform mb-6">
-              <Users className="w-8 h-8" />
-            </div>
-            <h2 className="text-4xl md:text-6xl font-display font-extrabold text-foreground mb-4">
-              About The Researchers
-            </h2>
-            <p className="text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto">
-              The creative mind and developer behind MathVenture.
-            </p>
-          </div>
-
-          {/* Tab Switcher — pill tabs on md+, dropdown on mobile */}
-          <div className="flex justify-center mb-10">
-            {/* Mobile dropdown */}
-            <div className="relative md:hidden">
-              <select
-                value={activeTab}
-                onChange={e => setActiveTab(e.target.value as Tab)}
-                className="appearance-none bg-white/70 backdrop-blur-md border-2 border-white rounded-2xl px-5 py-3 pr-10 font-bold text-base shadow-lg text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-jungle-orange/50"
-              >
-                {TABS.map(t => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <main className="researchers-main flex-1">
+        <div className="researchers-shell">
+          <header className="researchers-hero">
+            <div className="researchers-hero-copy">
+              <div className="researchers-eyebrow">
+                <span className="researchers-eyebrow-dot" aria-hidden="true" />
+                Meet the people behind MathVenture
+              </div>
+              <h1>Learning feels better when it is made with care.</h1>
+              <p>
+                MathVenture brings together playful learning activities and research-informed ideas for young learners, teachers, and families.
+              </p>
             </div>
 
-            {/* Desktop pill tabs */}
-            <div className="hidden md:inline-flex bg-white/60 backdrop-blur-md border-2 border-white rounded-2xl p-1.5 gap-1 shadow-lg">
-              {TABS.map(t => (
+            <div className="researchers-hero-actions" aria-label="About page actions">
+              <Link href="/">
+                <Button variant="outline" size="sm" className="researchers-toolbar-button">
+                  <Home aria-hidden="true" />
+                  <span>Home</span>
+                </Button>
+              </Link>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="researchers-toolbar-button">
+                    <BookOpen aria-hidden="true" />
+                    <span>Papers</span>
+                    <ChevronDown aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 font-bold">
+                  <DropdownMenuItem asChild>
+                    <a href="/assets/papers/FIN-GROUP1-RESEARCH-MANUSCRIPT.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
+                      <FileText className="w-4 h-4" />
+                      <span>Counting the Uncounted</span>
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled className="flex items-center gap-2 justify-between w-full">
+                    <span className="flex items-center gap-2">
+                      <Lock className="w-4 h-4" />
+                      <span>MathVenture</span>
+                    </span>
+                    <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">WIP</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="researchers-toolbar-button">
+                    <Github aria-hidden="true" />
+                    <span>Project links</span>
+                    <ChevronDown aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 font-bold">
+                  <DropdownMenuItem asChild>
+                    <a href="https://github.com/dmjm99125/mathventureprototype" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
+                      <Github className="w-4 h-4" />
+                      <span>Legacy repository</span>
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="https://github.com/dmjm99125/mathventurev2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
+                      <Github className="w-4 h-4" />
+                      <span>Current repository</span>
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          <section className="researchers-workspace" aria-label="Research and team information">
+            <div className="researchers-workspace-header">
+              <div>
+                <span className="researchers-section-label">Explore the work</span>
+                <h2>Who we are and what we study</h2>
+              </div>
+              <Users className="researchers-workspace-icon" aria-hidden="true" />
+            </div>
+
+            <div className="researchers-tabs" role="tablist" aria-label="Research areas">
+              {TABS.map((tab) => (
                 <button
-                  key={t.value}
-                  onClick={() => setActiveTab(t.value)}
-                  className={`px-6 py-2.5 rounded-xl font-bold text-sm md:text-base transition-all duration-300 ${activeTab === t.value
-                      ? 'bg-jungle-orange text-white shadow-md scale-105'
-                      : 'text-muted-foreground hover:bg-white/70'
-                    }`}
+                  key={tab.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.value}
+                  className={`researchers-tab${activeTab === tab.value ? ' is-active' : ''}`}
+                  onClick={() => setActiveTab(tab.value)}
                 >
-                  {t.label}
+                  {tab.label}
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* MathVenture Tab — only Donna May Mesina */}
-          {activeTab === 'mathventure' && (
-            <div className="flex justify-center animate-in fade-in duration-300">
-              <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-8 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2 max-w-xs w-full">
-                <img src="/assets/images/dmm.png" alt="Donna May Mesina" className="w-[220px] object-contain rounded-2xl" />
-                <img src="/assets/images/re6.gif" alt="Avatar" className="w-[150px] object-contain mt-auto" />
-              </div>
-            </div>
-          )}
-
-          {/* Counting the Uncounted Tab — MR left (tall), 2x2 grid right with DMM first */}
-          {activeTab === 'counting' && (
-            <div className="flex justify-center animate-in fade-in duration-300">
-              <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-[auto_1fr] gap-8 items-stretch">
-
-                {/* Left: Ma'am Rachelle — tall card */}
-                <div className="flex flex-col items-center justify-start gap-2 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2 md:w-64">
-                  <img src="/assets/images/MR.png" alt="Ma'am Rachelle Ignacio" className="w-[200px] object-contain rounded-2xl" />
-                  <img src="/assets/images/MR.gif" alt="Details" className="w-[200px] object-contain" />
-                  <img src="/assets/images/re3.png" alt="Avatar" className="w-[100px] object-contain" />
+            {activeTab === 'mathventure' && (
+              <section className="researchers-tab-panel" role="tabpanel" aria-label="MathVenture team">
+                <div className="researchers-panel-intro">
+                  <span className="researchers-section-label">MathVenture</span>
+                  <h3>Playful practice for the early years.</h3>
+                  <p>
+                    MathVenture is designed around short, friendly activities that help children build confidence with colors, shapes, numbers, and patterns.
+                  </p>
                 </div>
 
-                {/* Right: 2×2 grid — DMM first */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                    <img src="/assets/images/dmm.png" alt="Donna May Mesina" className="w-full max-w-[180px] object-contain rounded-2xl" />
-                    <img src="/assets/images/re6.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
+                <article className="researchers-feature-profile">
+                  <img className="researchers-face" src="/assets/images/dmm.png" alt="Donna May Mesina" />
+                  <div>
+                    <span className="researchers-profile-role">Creator and developer</span>
+                    <h4>Donna May Mesina</h4>
+                    <p>Creative mind and developer behind MathVenture.</p>
                   </div>
-                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                    <img src="/assets/images/gy.png" alt="Researcher GY" className="w-full max-w-[180px] object-contain rounded-2xl" />
-                    <img src="/assets/images/re4.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
-                  </div>
-                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                    <img src="/assets/images/alr.png" alt="Researcher ALR" className="w-full max-w-[180px] object-contain rounded-2xl" />
-                    <img src="/assets/images/re5.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
-                  </div>
-                  <div className="flex flex-col items-center justify-between gap-4 bg-white/70 backdrop-blur-md p-6 rounded-[2rem] shadow-xl border-4 border-white transform transition-transform hover:-translate-y-2">
-                    <img src="/assets/images/gv.png" alt="Researcher GV" className="w-full max-w-[180px] object-contain rounded-2xl" />
-                    <img src="/assets/images/re7.gif" alt="Avatar" className="w-[130px] object-contain mt-auto" />
+                </article>
+              </section>
+            )}
+
+            {activeTab === 'counting' && (
+              <section className="researchers-tab-panel" role="tabpanel" aria-label="Counting the Uncounted research team">
+                <div className="researchers-panel-intro">
+                  <span className="researchers-section-label">Counting the Uncounted</span>
+                  <h3>Understanding how young learners experience mathematics.</h3>
+                  <p>
+                    Read the research project exploring mathematical literacy levels among kindergarten learners in New Cabalan Elementary School.
+                  </p>
+                </div>
+
+                <div className="researchers-counting-layout">
+                  <article className="researchers-primary-profile">
+                    <img className="researchers-face researchers-face--professor" src="/assets/images/MR.png" alt="Ms. Rachelle Ann D. Ignacio" />
+                    <span className="researchers-profile-role">Professor and researcher</span>
+                    <h4>Ms. Rachelle Ann D. Ignacio</h4>
+                  </article>
+
+                  <div className="researchers-profile-grid">
+                    <ResearchProfile image="dmm.png" name="Donna May Mesina" />
+                    <ResearchProfile image="gy.png" name="Guienn Garganta" />
+                    <ResearchProfile image="alr.png" name="Alyssa Rica Librero" />
+                    <ResearchProfile image="gv.png" name="Georgia Victoria Villafania" />
                   </div>
                 </div>
 
-              </div>
-            </div>
-          )}
+                <a className="researchers-paper-link" href="/assets/papers/FIN-GROUP1-RESEARCH-MANUSCRIPT.pdf" target="_blank" rel="noopener noreferrer">
+                  <FileText aria-hidden="true" /> Read the research paper
+                </a>
+              </section>
+            )}
+          </section>
         </div>
       </main>
     </div>
+  );
+}
+
+function ResearchProfile({ image, name }: { image: string; name: string }) {
+  return (
+    <article className="researchers-profile-card">
+      <img className="researchers-face" src={`/assets/images/${image}`} alt={name} />
+      <div>
+        <span className="researchers-profile-role">Research contributor</span>
+        <h4>{name}</h4>
+      </div>
+    </article>
   );
 }
