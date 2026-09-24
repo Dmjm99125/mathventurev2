@@ -108,6 +108,7 @@
   border-radius: 999px;
   color: var(--landing-ink);
   background: rgba(255, 255, 255, 0.76);
+  font-size: 1.1rem;
   font-weight: 900;
   justify-content: center;
 }
