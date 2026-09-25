@@ -34,7 +34,7 @@ export function GameLayout({ children, topic, title, stage, onExit }: GameLayout
   const activeIdx = stage ? STAGES.findIndex(s => s.key === stage) : -1;
 
   return (
-    <div className="absolute inset-0 bg-background z-50 flex flex-col">
+    <div className="font-comic-sans absolute inset-0 bg-background z-50 flex flex-col">
       <div className="h-16 border-b-2 border-border bg-white flex items-center px-4 justify-between shrink-0 shadow-sm">
         <Button variant="ghost" size="sm" onClick={handleExit} className="gap-2 font-bold text-muted-foreground">
           <ArrowLeft className="h-4 w-4" /> Exit
