@@ -246,6 +246,10 @@ export function QuizPage() {
     setGameState('quiz-intro');
   };
 
+  const skipToGames = () => {
+    setGameState('quiz-intro');
+  };
+
   const handleExit = () => {
     setLocation(exitHref);
   };
@@ -549,7 +553,7 @@ export function QuizPage() {
           )}
 
           {/* Navigation */}
-          <div className="flex w-full justify-center">
+          <div className="flex w-full flex-col justify-center gap-3 sm:flex-row">
             <Button
               size="lg"
               variant="jungle"
@@ -557,6 +561,14 @@ export function QuizPage() {
               onClick={goToLesson}
             >
               Next: Lesson <ChevronRight className="h-5 w-5" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2 text-lg h-14 px-8 rounded-full"
+              onClick={skipToGames}
+            >
+              Skip to games <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -632,6 +644,15 @@ export function QuizPage() {
               ))}
             </div>
           </div>
+
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full max-w-2xl gap-2 font-bold"
+            onClick={skipToGames}
+          >
+            Skip to games <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
       </GameLayout>
     );

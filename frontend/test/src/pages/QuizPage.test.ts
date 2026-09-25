@@ -141,6 +141,16 @@ Deno.test("Free Play drawing-board completion does not create a catalog result",
   assertEquals(source.includes("const finalScore = score + (isDrawingBoardGame ? 0 : gameScore);"), true);
 });
 
+Deno.test("video and lesson stages let every learner skip to the games intro", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
+
+  assertEquals(source.includes("const skipToGames = () => {"), true);
+  assertEquals(source.includes("setGameState('quiz-intro');"), true);
+  assertEquals(source.includes("Skip to games"), true);
+  assertEquals((source.match(/onClick=\{skipToGames\}/g) ?? []).length, 2);
+  assertEquals(source.includes("!isAssignedQuiz && skipToGames"), false);
+});
+
 Deno.test("new lessons start with the DepEd theme stage before video", async () => {
   const source = await Deno.readTextFile(new URL("../../../src/pages/QuizPage.tsx", import.meta.url));
 
