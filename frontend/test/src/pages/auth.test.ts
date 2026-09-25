@@ -28,3 +28,7 @@ Deno.test("password reset retains a verified recovery session for password retri
   assertEquals(source.includes("if (!isOtpVerified)"), true);
   assertEquals(source.includes("setIsOtpVerified(true)"), true);
 });
+
+Deno.test("login applies the scoped Comic Sans typography revision", () => {
+  assertEquals(source.includes('className="auth-page font-comic-sans min-h-[100dvh]'), true);
+});

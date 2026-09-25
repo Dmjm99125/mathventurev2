@@ -19,7 +19,7 @@ export function FreePlay() {
 
   return (
     <div
-      className="min-h-[100dvh] bg-cover bg-center"
+      className="free-play-page font-comic-sans min-h-[100dvh] bg-cover bg-center"
       style={{
         backgroundImage:
           "linear-gradient(180deg, rgba(124,214,255,0.88) 0%, rgba(215,245,255,0.7) 65%, rgba(190,220,107,0.28) 100%), url('/assets/images/1bg.jpg')",

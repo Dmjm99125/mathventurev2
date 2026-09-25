@@ -36,7 +36,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-background overflow-hidden relative">
+    <div className="auth-page font-comic-sans min-h-[100dvh] flex items-center justify-center p-4 bg-background overflow-hidden relative">
       {/* Decorative Jungle Leaves */}
       <Leaf className="absolute top-10 left-10 text-primary/20 h-32 w-32 -rotate-45" />
       <Leaf className="absolute bottom-10 right-10 text-jungle-orange/20 h-40 w-40 rotate-12" />

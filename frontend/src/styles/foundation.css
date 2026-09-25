@@ -177,6 +177,11 @@
 }
 
 @layer utilities {
+  .font-comic-sans,
+  .font-comic-sans * {
+    font-family: "Comic Sans MS", "Comic Sans", cursive !important;
+  }
+
   .text-shadow {
     text-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   }
