@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { validateSupabaseUrl } from './url';
 
 const runtimeEnv = (import.meta as ImportMeta & {
   env?: Record<string, string | undefined>;
@@ -14,7 +15,7 @@ if (!rawSupabaseUrl || !rawSupabaseAnonKey) {
   throw new Error('Supabase URL/anon key are missing from the client build.');
 }
 
-export const supabaseUrl: string = rawSupabaseUrl;
+export const supabaseUrl: string = validateSupabaseUrl(rawSupabaseUrl);
 export const supabaseAnonKey: string = rawSupabaseAnonKey;
 
 // This is the ONLY Supabase client in the app. It is used exclusively for
