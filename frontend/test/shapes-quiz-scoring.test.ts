@@ -81,9 +81,10 @@ Deno.test("ShapeHunter treats every assigned-quiz answer as one scored item", as
   assertEquals(source.includes("onComplete?.(score, QUIZ_ROUNDS)"), true);
 });
 
-Deno.test("ShapeMatcher treats every assigned-quiz drop as one scored item", async () => {
+Deno.test("ShapeMatcher treats every assigned-quiz click match as one scored item", async () => {
   const source = await readGameSource("ShapeMatcher.tsx");
 
+  assertEquals(source.includes("const handleTargetClick = (targetShape: string) =>"), true);
   assertEquals(source.includes("const [answeredItems, setAnsweredItems] = useState<Record<string, boolean>>({});"), true);
   assertEquals(source.includes("const isQuizComplete = allowSkip === false"), true);
   assertEquals(source.includes("setAnsweredItems(nextAnsweredItems);"), true);
@@ -91,4 +92,24 @@ Deno.test("ShapeMatcher treats every assigned-quiz drop as one scored item", asy
   assertEquals(source.includes("!answeredItems[item.id]"), true);
   assertEquals(source.includes("onComplete?.(Object.keys(matches).length, QUIZ_ITEMS)"), true);
   assertEquals(source.includes("allowSkip !== false && ("), true);
+});
+
+Deno.test("Shapes drag games use click interactions for touchscreens", async () => {
+  const monsterCafe = await readGameSource("MonsterCafe.tsx");
+  const shapeMatcher = await readGameSource("ShapeMatcher.tsx");
+
+  assertMatch(monsterCafe, /const handleItemClick = \(item: typeof ITEMS\[0\]\) =>/);
+  assertMatch(monsterCafe, /onClick=\{\(\) => handleItemClick\(item\)\}/);
+  assertMatch(monsterCafe, /Click an item to feed me!/);
+  assertEquals(monsterCafe.includes("handleDragEnd"), false);
+  assertEquals(monsterCafe.includes("onDragEnd"), false);
+  assertEquals(monsterCafe.includes("dragSnapToOrigin"), false);
+
+  assertMatch(shapeMatcher, /const \[selectedItemId, setSelectedItemId\] = useState<string \| null>\(null\)/);
+  assertMatch(shapeMatcher, /onClick=\{\(\) => handleItemClick\(item\.id\)\}/);
+  assertMatch(shapeMatcher, /onClick=\{\(\) => handleTargetClick\(target\.shape\)\}/);
+  assertMatch(shapeMatcher, /Click a toy, then click its matching shape box!/);
+  assertEquals(shapeMatcher.includes("handleDragEnd"), false);
+  assertEquals(shapeMatcher.includes("onDragEnd"), false);
+  assertEquals(shapeMatcher.includes("targetRefs"), false);
 });
