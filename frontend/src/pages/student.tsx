@@ -24,7 +24,7 @@ export function StudentDashboard() {
     return <StudentPortalLoading />;
   }
 
-  const assignments = (assignmentsData?.assignments || []) as AssignmentForStudent[];
+  const assignments = (assignmentsData?.pages.flatMap((page) => page.assignments) || []) as AssignmentForStudent[];
   const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
   const dashboardSummary = dashboard ?? {
     completedLessons: 0,
@@ -204,7 +204,7 @@ export function StudentClassroomPage() {
   }
 
   const posts = postsData?.posts || [];
-  const assignments = (assignmentsData?.assignments || []) as import('@/lib/api').AssignmentForStudent[];
+  const assignments = (assignmentsData?.pages.flatMap((page) => page.assignments) || []) as import('@/lib/api').AssignmentForStudent[];
 
   return (
     <StudentShell current="classroom">

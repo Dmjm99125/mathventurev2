@@ -30,6 +30,11 @@ export type InvokeFunctionOptions = {
   searchParams?: Record<string, string>;
 };
 
+export interface PageInfo {
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export interface TeacherClassroomSummary {
   id: string;
   createdAt: string;
@@ -214,8 +219,17 @@ export const api = {
         method: 'POST',
         body: joinCode ? { joinCode } : undefined,
       }),
-    roster: () =>
-      invokeFunction<{ students: TeacherClassStudent[] }>('classes-roster'),
+    roster: (options?: { cursor?: string | null; pageSize?: number }) =>
+      invokeFunction<{ students: TeacherClassStudent[]; page: PageInfo }>('classes-roster', {
+        searchParams: {
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+          ...(options?.cursor ? { cursor: options.cursor } : {}),
+        },
+      }),
+    rosterStudent: (studentId: string) =>
+      invokeFunction<{ students: TeacherClassStudent[]; page: PageInfo }>('classes-roster', {
+        searchParams: { studentId },
+      }),
     addStudents: (students: TeacherAddStudentDraft[]) =>
       invokeFunction<TeacherAddStudentsResult>('classes-add-students', {
         method: 'POST',
@@ -228,9 +242,16 @@ export const api = {
       }),
   },
   assignments: {
-    list: (classId?: string) =>
-      invokeFunction<{ assignments: (AssignmentForStudent | AssignmentForTeacher)[] }>('assignments-list', {
-        searchParams: classId ? { classId } : undefined,
+    list: (classId?: string, options?: { cursor?: string | null; pageSize?: number }) =>
+      invokeFunction<{
+        assignments: (AssignmentForStudent | AssignmentForTeacher)[];
+        page: PageInfo;
+      }>('assignments-list', {
+        searchParams: {
+          ...(classId ? { classId } : {}),
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+          ...(options?.cursor ? { cursor: options.cursor } : {}),
+        },
       }),
     create: (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) =>
       invokeFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),
@@ -295,13 +316,22 @@ export const api = {
     create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
   },
   reports: {
-    overview: (window: TeacherReportsWindowKey) =>
+    overview: (window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
       invokeFunction<TeacherSingleClassroomReportPayload>('reports-overview', {
-        searchParams: { window },
+        searchParams: {
+          window,
+          ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+        },
       }),
-    classDetail: (classId: string, window: TeacherReportsWindowKey) =>
+    classDetail: (classId: string, window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
       invokeFunction<TeacherSingleClassroomReportPayload>('reports-class', {
-        searchParams: { classId, window },
+        searchParams: {
+          classId,
+          window,
+          ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+        },
       }),
   },
 };

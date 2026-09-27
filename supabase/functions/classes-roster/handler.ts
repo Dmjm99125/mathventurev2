@@ -5,14 +5,52 @@ import {
   calculateDetailedCompletionPct,
   calculateDetailedLastPlayedPct,
 } from "../../../frontend/src/lib/teacher/progress.ts";
+import { decodeCursor, encodeCursor, PaginationInputError, parsePageRequest } from "../_shared/pagination.ts";
 import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
 
-type RosterStudentRow = {
+type RosterSummaryStudent = {
   id: string;
   fullName: string;
   firstName: string;
   lastName: string | null;
   joinedAt: string;
+  appCompletionPct: number | null;
+  lastPlayedPct: number | null;
+  overallScore: number | null;
+  overallMaxScore: number | null;
+  overallScorePct: number | null;
+};
+
+type TeacherGameScore = {
+  gameId: string;
+  score: number;
+  maxScore: number;
+  scorePct: number;
+  completedAt: string;
+};
+
+type TeacherAssignmentScore = {
+  assignmentId: string;
+  name: string;
+  lessonId: string;
+  dueAt: string | null;
+  createdAt: string;
+  status: "not_started" | "in_progress" | "completed";
+  overallScore: number | null;
+  overallMaxScore: number | null;
+  overallScorePct: number | null;
+  gameScores: TeacherGameScore[];
+};
+
+type DetailedRosterStudent = RosterSummaryStudent & {
+  gameScores: TeacherGameScore[];
+  assignments: TeacherAssignmentScore[];
+};
+
+type RosterPage = {
+  students: RosterSummaryStudent[];
+  nextCursor: string | null;
+  hasMore: boolean;
 };
 
 type AssignmentRow = {
@@ -28,7 +66,7 @@ type AssignmentRow = {
 type DetailedGameResultRow = {
   attemptId: string;
   studentId: string;
-  attemptStudentId: string;
+  attemptStudentId?: string;
   gameId: string;
   score: number;
   maxScore: number;
@@ -51,10 +89,37 @@ type ClassesRosterDeps = {
   getTeacherClassroom(
     teacherId: string,
   ): Promise<{ id: string; teacherId: string; name: string } | null>;
-  listRosterStudents(classId: string): Promise<RosterStudentRow[]>;
-  listAssignments(classId: string, studentIds: string[]): Promise<AssignmentRow[]>;
-  listCompletedAttempts(studentIds: string[], classId: string): Promise<AttemptRow[]>;
-  listDetailedGameResults(studentIds: string[], classId: string): Promise<DetailedGameResultRow[]>;
+  listRosterPage?: (
+    teacherId: string,
+    pageSize: number,
+    cursor: string | null,
+  ) => Promise<RosterPage>;
+  listStudentDetail?: (
+    classId: string,
+    studentId: string,
+  ) => Promise<DetailedRosterStudent | null>;
+  listRosterStudents?: (classId: string) => Promise<RosterSummaryStudent[]>;
+  listAssignments?: (classId: string, studentIds: string[]) => Promise<AssignmentRow[]>;
+  listCompletedAttempts?: (studentIds: string[], classId: string) => Promise<AttemptRow[]>;
+  listDetailedGameResults?: (
+    studentIds: string[],
+    classId: string,
+  ) => Promise<DetailedGameResultRow[]>;
+};
+
+type RosterCursor = {
+  joinedAt: string;
+  studentId: string;
+};
+
+type RosterRpcRow = RosterSummaryStudent;
+
+type RosterRpcPayload = {
+  students?: RosterRpcRow[];
+  page?: {
+    nextCursor?: { joinedAt?: string; studentId?: string } | null;
+    hasMore?: boolean;
+  };
 };
 
 type ClassStudentQueryRow = {
@@ -103,12 +168,204 @@ type AttemptGameResultQueryRow = {
   score: number;
   max_score: number;
   completed_at: string;
-  attempts: {
-    student_id: string;
-  } | {
-    student_id: string;
-  }[];
 };
+
+function toGameScores(rows: DetailedGameResultRow[]): TeacherGameScore[] {
+  const latestByGameId = new Map<string, DetailedGameResultRow>();
+  for (const row of rows) {
+    const current = latestByGameId.get(row.gameId);
+    if (!current || row.completedAt > current.completedAt) {
+      latestByGameId.set(row.gameId, row);
+    }
+  }
+
+  return Array.from(latestByGameId.values())
+    .sort((left, right) => left.gameId.localeCompare(right.gameId))
+    .map((row) => ({
+      gameId: row.gameId,
+      score: row.score,
+      maxScore: row.maxScore,
+      scorePct: row.maxScore > 0 ? Math.round((row.score / row.maxScore) * 100) : 0,
+      completedAt: row.completedAt,
+    }));
+}
+
+function toAssignmentScore(
+  assignment: AssignmentRow,
+  attempt: AttemptRow | null,
+  rows: DetailedGameResultRow[],
+): TeacherAssignmentScore {
+  const isCompleted = attempt?.status === "completed";
+  return {
+    assignmentId: assignment.id,
+    name: assignment.name,
+    lessonId: assignment.lessonId,
+    dueAt: assignment.dueAt,
+    createdAt: assignment.createdAt,
+    status: attempt?.status ?? "not_started",
+    overallScore: isCompleted ? attempt.score : null,
+    overallMaxScore: isCompleted ? attempt.maxScore : null,
+    overallScorePct: isCompleted && attempt.maxScore > 0
+      ? Math.round((attempt.score / attempt.maxScore) * 100)
+      : null,
+    gameScores: toGameScores(rows),
+  };
+}
+
+function buildDetailedStudent(
+  student: RosterSummaryStudent,
+  assignments: AssignmentRow[],
+  attempts: AttemptRow[],
+  detailedRows: DetailedGameResultRow[],
+): DetailedRosterStudent {
+  const attemptsByAssignment = new Map<string, AttemptRow>();
+  const attemptsById = new Map<string, AttemptRow>();
+  for (const attempt of attempts) {
+    attemptsById.set(attempt.attemptId, attempt);
+    if (!attempt.assignmentId) continue;
+    const current = attemptsByAssignment.get(attempt.assignmentId);
+    if (!current || attempt.updatedAt > current.updatedAt) {
+      attemptsByAssignment.set(attempt.assignmentId, attempt);
+    }
+  }
+
+  const rowsByAttemptId = new Map<string, DetailedGameResultRow[]>();
+  for (const row of detailedRows) {
+    if (
+      !attemptsById.has(row.attemptId)
+      || (row.attemptStudentId && row.attemptStudentId !== row.studentId)
+    ) continue;
+    const rows = rowsByAttemptId.get(row.attemptId) ?? [];
+    rows.push(row);
+    rowsByAttemptId.set(row.attemptId, rows);
+  }
+
+  const ownRows = detailedRows.filter((row) =>
+    row.studentId === student.id
+    && (!row.attemptStudentId || row.attemptStudentId === row.studentId)
+  );
+  const latestAttempt = attempts
+    .filter((attempt) => attempt.studentId === student.id && attempt.status === "completed" && attempt.completedAt)
+    .sort((left, right) => (right.completedAt ?? "").localeCompare(left.completedAt ?? ""))[0] ?? null;
+
+  return {
+    ...student,
+    appCompletionPct: calculateDetailedCompletionPct(ownRows, GAME_CATALOG.length),
+    lastPlayedPct: calculateDetailedLastPlayedPct(ownRows),
+    overallScore: latestAttempt?.score ?? null,
+    overallMaxScore: latestAttempt?.maxScore ?? null,
+    overallScorePct: latestAttempt && latestAttempt.maxScore > 0
+      ? Math.round((latestAttempt.score / latestAttempt.maxScore) * 100)
+      : null,
+    gameScores: toGameScores(ownRows),
+    assignments: assignments
+      .map((assignment) => toAssignmentScore(
+        assignment,
+        attemptsByAssignment.get(assignment.id) ?? null,
+        rowsByAttemptId.get(attemptsByAssignment.get(assignment.id)?.attemptId ?? "") ?? [],
+      ))
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
+  };
+}
+
+async function loadDefaultStudentDetail(
+  classId: string,
+  studentId: string,
+): Promise<DetailedRosterStudent | null> {
+  const { adminClient } = await import("../_shared/client.ts");
+  const { data: enrollment, error: enrollmentError } = await adminClient
+    .from("class_students")
+    .select("joined_at, profiles(id, full_name, first_name, last_name)")
+    .eq("class_id", classId)
+    .eq("student_id", studentId)
+    .maybeSingle();
+  if (enrollmentError) throw enrollmentError;
+  if (!enrollment) return null;
+
+  const enrollmentRow = enrollment as unknown as ClassStudentQueryRow;
+  const profile = Array.isArray(enrollmentRow.profiles)
+    ? enrollmentRow.profiles[0]
+    : enrollmentRow.profiles;
+  if (!profile) return null;
+
+  const student: RosterSummaryStudent = {
+    id: profile.id,
+    fullName: profile.full_name,
+    firstName: profile.first_name ?? profile.full_name,
+    lastName: profile.last_name ?? null,
+    joinedAt: enrollmentRow.joined_at,
+    appCompletionPct: null,
+    lastPlayedPct: null,
+    overallScore: null,
+    overallMaxScore: null,
+    overallScorePct: null,
+  };
+
+  const { data: assignmentData, error: assignmentError } = await adminClient
+    .from("assignments")
+    .select("id, name, lesson_id, class_id, student_id, due_at, created_at")
+    .or(`class_id.eq.${classId},student_id.eq.${studentId}`)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(1000);
+  if (assignmentError) throw assignmentError;
+
+  const assignments = ((assignmentData ?? []) as AssignmentQueryRow[]).map((row) => ({
+    id: row.id,
+    name: row.name?.trim() || row.lesson_id,
+    lessonId: row.lesson_id,
+    classId: row.class_id,
+    studentId: row.student_id,
+    dueAt: row.due_at,
+    createdAt: row.created_at,
+  }));
+  const assignmentIds = assignments.map((assignment) => assignment.id);
+
+  const { data: attemptData, error: attemptError } = assignmentIds.length
+    ? await adminClient
+      .from("attempts")
+      .select("id, assignment_id, student_id, status, score, max_score, completed_at, updated_at")
+      .eq("student_id", studentId)
+      .eq("class_id", classId)
+      .in("assignment_id", assignmentIds)
+      .order("updated_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(1000)
+    : { data: [], error: null };
+  if (attemptError) throw attemptError;
+
+  const attempts = ((attemptData ?? []) as AttemptQueryRow[]).map((row) => ({
+    attemptId: row.id,
+    assignmentId: row.assignment_id,
+    studentId: row.student_id,
+    status: row.status,
+    score: row.score,
+    maxScore: row.max_score,
+    completedAt: row.completed_at,
+    updatedAt: row.updated_at,
+  }));
+  const attemptIds = attempts.map((attempt) => attempt.attemptId);
+  const { data: resultData, error: resultError } = attemptIds.length
+    ? await adminClient
+      .from("attempt_game_results")
+      .select("attempt_id, student_id, game_id, score, max_score, completed_at")
+      .in("attempt_id", attemptIds)
+      .order("completed_at", { ascending: false })
+      .limit(10000)
+    : { data: [], error: null };
+  if (resultError) throw resultError;
+
+  const detailedRows = ((resultData ?? []) as AttemptGameResultQueryRow[]).map((row) => ({
+    attemptId: row.attempt_id,
+    studentId: row.student_id,
+    gameId: row.game_id,
+    score: row.score,
+    maxScore: row.max_score,
+    completedAt: row.completed_at,
+  }));
+
+  return buildDetailedStudent(student, assignments, attempts, detailedRows);
+}
 
 const defaultDeps: ClassesRosterDeps = {
   async getAuthedProfile(req) {
@@ -135,137 +392,56 @@ const defaultDeps: ClassesRosterDeps = {
       { listTeacherClasses: async () => classrooms },
       teacherId,
     );
+    return { id: classroom.id, teacherId: classroom.teacherId, name: classroom.name };
+  },
+  async listRosterPage(teacherId, pageSize, cursor) {
+    const { adminClient } = await import("../_shared/client.ts");
+    const decoded = cursor ? decodeCursor<RosterCursor>(cursor) : null;
+    const { data, error } = await adminClient.rpc("get_teacher_roster_page", {
+      p_teacher_id: teacherId,
+      p_page_size: pageSize,
+      p_cursor_joined_at: decoded?.joinedAt ?? null,
+      p_cursor_student_id: decoded?.studentId ?? null,
+    });
+    if (error) throw error;
+
+    const payload = data as RosterRpcPayload | null;
+    if (!payload || !Array.isArray(payload.students) || !payload.page) {
+      throw new Error("Invalid teacher roster aggregate");
+    }
+
+    const rpcCursor = payload.page.nextCursor;
     return {
-      id: classroom.id,
-      teacherId: classroom.teacherId,
-      name: classroom.name,
+      students: payload.students,
+      nextCursor: rpcCursor?.joinedAt && rpcCursor.studentId
+        ? encodeCursor({ joinedAt: rpcCursor.joinedAt, studentId: rpcCursor.studentId })
+        : null,
+      hasMore: payload.page.hasMore === true,
     };
   },
-  async listRosterStudents(classId) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("class_students")
-      .select("joined_at, profiles(id, full_name, first_name, last_name)")
-      .eq("class_id", classId);
-    if (error) throw error;
-
-    return ((data ?? []) as unknown as ClassStudentQueryRow[])
-      .map((row) => {
-        const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-        if (!profile) return null;
-        return {
-          id: profile.id,
-          fullName: profile.full_name,
-          firstName: profile.first_name ?? profile.full_name,
-          lastName: profile.last_name ?? null,
-          joinedAt: row.joined_at,
-        };
-      })
-      .filter((row): row is RosterStudentRow => row !== null);
-  },
-  async listAssignments(classId, studentIds) {
-    const { adminClient } = await import("../_shared/client.ts");
-    let query = adminClient
-      .from("assignments")
-      .select("id, name, lesson_id, class_id, student_id, due_at, created_at")
-      .eq("class_id", classId)
-      .order("created_at", { ascending: false });
-    if (studentIds.length) {
-      query = adminClient
-        .from("assignments")
-        .select("id, name, lesson_id, class_id, student_id, due_at, created_at")
-        .or("class_id.eq." + classId + ",student_id.in.(" + studentIds.join(",") + ")")
-        .order("created_at", { ascending: false });
-    }
-    const { data, error } = await query;
-    if (error) throw error;
-
-    return (data ?? []).map((row) => {
-      const value = row as AssignmentQueryRow;
-      return {
-        id: value.id,
-        name: value.name?.trim() || value.lesson_id,
-        lessonId: value.lesson_id,
-        classId: value.class_id,
-        studentId: value.student_id,
-        dueAt: value.due_at,
-        createdAt: value.created_at,
-      };
-    });
-  },
-  async listCompletedAttempts(studentIds, classId) {
-    if (!studentIds.length) return [];
-
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("attempts")
-      .select("id, assignment_id, student_id, status, score, max_score, completed_at, updated_at")
-      .in("student_id", studentIds)
-      .eq("class_id", classId);
-    if (error) throw error;
-
-    return (data ?? []).map((row) => {
-      const value = row as AttemptQueryRow;
-      return {
-        attemptId: value.id,
-        assignmentId: value.assignment_id,
-        studentId: value.student_id,
-        status: value.status,
-        score: value.score,
-        maxScore: value.max_score,
-        completedAt: value.completed_at,
-        updatedAt: value.updated_at,
-      };
-    });
-  },
-  async listDetailedGameResults(studentIds, classId) {
-    if (!studentIds.length) return [];
-
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("attempt_game_results")
-      .select("attempt_id, student_id, game_id, score, max_score, completed_at, attempts!inner(student_id, class_id)")
-      .in("student_id", studentIds)
-      .eq("attempts.class_id", classId);
-    if (error) throw error;
-
-    return ((data ?? []) as AttemptGameResultQueryRow[])
-      .map((row) => {
-        const attempt = Array.isArray(row.attempts) ? row.attempts[0] : row.attempts;
-        if (!attempt) return null;
-        return {
-          attemptId: row.attempt_id,
-          studentId: row.student_id,
-          attemptStudentId: attempt.student_id,
-          gameId: row.game_id,
-          score: row.score,
-          maxScore: row.max_score,
-          completedAt: row.completed_at,
-        };
-      })
-      .filter((row): row is DetailedGameResultRow => row !== null);
+  async listStudentDetail(classId, studentId) {
+    return loadDefaultStudentDetail(classId, studentId);
   },
 };
 
-function toGameScores(rows: DetailedGameResultRow[]) {
-  const latestByGameId = new Map<string, DetailedGameResultRow>();
-  for (const row of rows) {
-    const current = latestByGameId.get(row.gameId);
-    if (!current || row.completedAt > current.completedAt) {
-      latestByGameId.set(row.gameId, row);
-    }
+async function loadLegacyDetail(
+  deps: ClassesRosterDeps,
+  classId: string,
+  studentId: string,
+): Promise<DetailedRosterStudent | null> {
+  if (!deps.listRosterStudents || !deps.listAssignments || !deps.listCompletedAttempts || !deps.listDetailedGameResults) {
+    throw new Error("Roster detail dependencies are incomplete");
   }
-  return Array.from(latestByGameId.values())
-    .sort((left, right) => left.gameId.localeCompare(right.gameId))
-    .map((row) => ({
-      gameId: row.gameId,
-      score: row.score,
-      maxScore: row.maxScore,
-      scorePct: row.maxScore > 0
-        ? Math.round((row.score / row.maxScore) * 100)
-        : 0,
-      completedAt: row.completedAt,
-    }));
+
+  const students = await deps.listRosterStudents(classId);
+  const student = students.find((row) => row.id === studentId);
+  if (!student) return null;
+  const [assignments, attempts, detailedRows] = await Promise.all([
+    deps.listAssignments(classId, [studentId]),
+    deps.listCompletedAttempts([studentId], classId),
+    deps.listDetailedGameResults([studentId], classId),
+  ]);
+  return buildDetailedStudent(student, assignments, attempts, detailedRows);
 }
 
 export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps) {
@@ -281,94 +457,50 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
       const classroom = await deps.getTeacherClassroom(profile.id);
       if (!classroom) return errorResponse("Classroom not found", 404);
 
-      const students = await deps.listRosterStudents(classroom.id);
-      const studentIds = students.map((student) => student.id);
-      const [assignments, attempts, detailedRows] = await Promise.all([
-        deps.listAssignments(classroom.id, studentIds),
-        deps.listCompletedAttempts(studentIds, classroom.id),
-        deps.listDetailedGameResults(studentIds, classroom.id),
-      ]);
-
-      const validDetailedRows = detailedRows.filter((row) => row.studentId === row.attemptStudentId);
-      const attemptsById = new Map(attempts.map((attempt) => [attempt.attemptId, attempt]));
-      const completedDetailedRows = validDetailedRows.filter(
-        (row) => attemptsById.get(row.attemptId)?.status === "completed",
-      );
-      const rowsByStudentId = new Map<string, DetailedGameResultRow[]>();
-      for (const row of completedDetailedRows) {
-        const existing = rowsByStudentId.get(row.studentId) ?? [];
-        existing.push(row);
-        rowsByStudentId.set(row.studentId, existing);
+      const url = new URL(req.url);
+      const requestedStudentId = url.searchParams.get("studentId");
+      if (requestedStudentId) {
+        const student = deps.listStudentDetail
+          ? await deps.listStudentDetail(classroom.id, requestedStudentId)
+          : await loadLegacyDetail(deps, classroom.id, requestedStudentId);
+        return student
+          ? jsonResponse({ students: [student], page: { nextCursor: null, hasMore: false } })
+          : errorResponse("Student not found in this classroom", 404);
       }
 
-      const latestAttemptByStudentId = new Map<string, AttemptRow>();
-      for (const row of attempts) {
-        if (row.status !== "completed" || !row.completedAt) continue;
-        const current = latestAttemptByStudentId.get(row.studentId);
-        if (!current || row.completedAt > (current.completedAt ?? "")) {
-          latestAttemptByStudentId.set(row.studentId, row);
-        }
-      }
-
-      const assignmentsByStudentId = new Map<string, AssignmentRow[]>();
-      for (const student of students) {
-        assignmentsByStudentId.set(
-          student.id,
-          assignments.filter((assignment) =>
-            assignment.classId === classroom.id || assignment.studentId === student.id
-          ),
-        );
-      }
-
-      return jsonResponse({
-        students: students.map((student) => {
-          const ownRows = rowsByStudentId.get(student.id) ?? [];
-          const latestAttempt = latestAttemptByStudentId.get(student.id) ?? null;
-          const assignmentScores = (assignmentsByStudentId.get(student.id) ?? [])
-            .map((assignment) => {
-            const assignmentAttempts = attempts
-              .filter((attempt) =>
-                attempt.studentId === student.id && attempt.assignmentId === assignment.id
-              )
-              .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
-            const attempt = assignmentAttempts[0] ?? null;
-            const assignmentRows = attempt
-              ? validDetailedRows.filter((row) => row.attemptId === attempt.attemptId)
-              : [];
-            const isCompleted = attempt?.status === "completed";
-
-            return {
-              assignmentId: assignment.id,
-              name: assignment.name,
-              lessonId: assignment.lessonId,
-              dueAt: assignment.dueAt,
-              createdAt: assignment.createdAt,
-              status: attempt?.status ?? "not_started",
-              overallScore: isCompleted ? attempt.score : null,
-              overallMaxScore: isCompleted ? attempt.maxScore : null,
-              overallScorePct: isCompleted && attempt.maxScore > 0
-                ? Math.round((attempt.score / attempt.maxScore) * 100)
-                : null,
-              gameScores: toGameScores(assignmentRows),
-            };
-            })
-            .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-
-          return {
+      const { pageSize, cursor } = parsePageRequest(url);
+      if (deps.listRosterPage) {
+        const page = await deps.listRosterPage(profile.id, pageSize, cursor);
+        return jsonResponse({
+          students: page.students.map((student) => ({
             ...student,
-            appCompletionPct: calculateDetailedCompletionPct(ownRows, GAME_CATALOG.length),
-            lastPlayedPct: calculateDetailedLastPlayedPct(ownRows),
-            overallScore: latestAttempt?.score ?? null,
-            overallMaxScore: latestAttempt?.maxScore ?? null,
-            overallScorePct: latestAttempt && latestAttempt.maxScore > 0
-              ? Math.round((latestAttempt.score / latestAttempt.maxScore) * 100)
-              : null,
-            gameScores: toGameScores(ownRows),
-            assignments: assignmentScores,
-          };
-        }),
+            gameScores: [],
+            assignments: [],
+          })),
+          page: {
+            nextCursor: page.nextCursor,
+            hasMore: page.hasMore,
+          },
+        });
+      }
+
+      if (!deps.listRosterStudents) throw new Error("Roster page dependencies are incomplete");
+      const students = await deps.listRosterStudents(classroom.id);
+      return jsonResponse({
+        students: students.slice(0, pageSize).map((student) => ({
+          ...student,
+          gameScores: [],
+          assignments: [],
+        })),
+        page: {
+          nextCursor: students.length > pageSize ? "legacy-more" : null,
+          hasMore: students.length > pageSize,
+        },
       });
     } catch (error) {
+      if (error instanceof PaginationInputError) {
+        return errorResponse(error.message, error.status);
+      }
       console.error("classes-roster failed", error);
       return errorResponse("We couldn't load that class roster right now.", 500);
     }

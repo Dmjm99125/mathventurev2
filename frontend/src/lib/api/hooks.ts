@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth';
 import { isAuthReadyForData } from '../auth/session-state';
 import {
@@ -87,19 +87,33 @@ export function useStudentClassroom() {
 export function useClassRoster(classId?: string) {
   const { user, isLoading } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['classroom', 'roster', classId ?? 'singleton'],
-    queryFn: () => api.classes.roster(),
+    queryFn: ({ pageParam }) => api.classes.roster({ cursor: pageParam }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
+  });
+}
+
+export function useClassRosterStudent(studentId?: string | null) {
+  const { user, isLoading } = useAuth();
+
+  return useQuery({
+    queryKey: ['classroom', 'roster', 'student', studentId],
+    queryFn: () => api.classes.rosterStudent(studentId!),
+    enabled: Boolean(studentId) && isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useAssignments(classId?: string) {
   const { user, isLoading } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['assignments', classId],
-    queryFn: () => api.assignments.list(classId),
+    queryFn: ({ pageParam }) => api.assignments.list(classId, { cursor: pageParam }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
@@ -168,22 +182,22 @@ export function useTeacherDashboard() {
   });
 }
 
-export function useTeacherReportsOverview(window: TeacherReportsWindowKey) {
+export function useTeacherReportsOverview(window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'overview', window],
-    queryFn: () => api.reports.overview(window),
+    queryKey: ['teacher-reports', 'overview', window, studentCursor ?? null],
+    queryFn: () => api.reports.overview(window, { studentCursor }),
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
-export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey) {
+export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'class', classId, window],
-    queryFn: () => api.reports.classDetail(classId, window),
+    queryKey: ['teacher-reports', 'class', classId, window, studentCursor ?? null],
+    queryFn: () => api.reports.classDetail(classId, window, { studentCursor }),
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }

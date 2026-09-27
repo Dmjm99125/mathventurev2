@@ -1,7 +1,20 @@
 import type {
   TeacherReportGameResultRecord,
   TeacherReportStudentRecord,
+  TeacherReportsWindowKey,
+  TeacherSingleClassroomReportPayload,
 } from "../../../frontend/src/lib/teacher/reports/index.ts";
+import {
+  resolveTeacherReportsWindow,
+} from "../../../frontend/src/lib/teacher/reports/index.ts";
+import {
+  decodeCursor,
+  encodeCursor,
+} from "./pagination.ts";
+import {
+  parseTeacherReportAggregate,
+  type TeacherReportAggregate,
+} from "./aggregate_contract.ts";
 import { getTeacherSingletonClass } from "./teacher_singleton_class.ts";
 
 type ClassroomRow = {
@@ -243,3 +256,62 @@ export function createLoadTeacherReportsDataset(
 }
 
 export const loadTeacherReportsDataset = createLoadTeacherReportsDataset();
+
+export type TeacherReportAggregateRequest = {
+  teacherId: string;
+  startAt: string | null;
+  endAt: string;
+  studentLimit: number;
+  studentCursor: string | null;
+};
+
+export async function loadBoundedTeacherReportAggregate(
+  input: TeacherReportAggregateRequest,
+): Promise<TeacherReportAggregate> {
+  const { adminClient } = await import("./client.ts");
+  const decodedCursor = input.studentCursor
+    ? decodeCursor<{ studentId: string }>(input.studentCursor)
+    : null;
+  const { data, error } = await adminClient.rpc("get_teacher_report_summary", {
+    p_teacher_id: input.teacherId,
+    p_start_at: input.startAt,
+    p_end_at: input.endAt,
+    p_student_limit: input.studentLimit,
+    p_student_cursor: decodedCursor?.studentId ?? null,
+  });
+  if (error) throw error;
+  return parseTeacherReportAggregate(data);
+}
+
+export function buildTeacherSingleClassroomAggregateReport(input: {
+  aggregate: TeacherReportAggregate;
+  windowKey: TeacherReportsWindowKey;
+  now: Date;
+}): TeacherSingleClassroomReportPayload {
+  const window = resolveTeacherReportsWindow(input.windowKey, input.now);
+  const { aggregate } = input;
+  return {
+    windowKey: window.key,
+    windowLabel: window.label,
+    hasData: aggregate.topicBreakdown.length > 0,
+    classroomSummary: aggregate.classroom,
+    attentionStudents: aggregate.attentionStudents.map((student) => ({
+      ...student,
+      reasonCodes: student.reasonCodes.filter((reason): reason is
+        "low_average" | "inactive_while_class_active" | "low_completion" =>
+        reason === "low_average"
+        || reason === "inactive_while_class_active"
+        || reason === "low_completion"
+      ),
+    })),
+    recentActivity: aggregate.recentActivity,
+    studentRows: aggregate.studentRows,
+    studentRowsPage: {
+      nextCursor: aggregate.page.nextCursor
+        ? encodeCursor({ studentId: aggregate.page.nextCursor })
+        : null,
+      hasMore: aggregate.page.hasMore,
+    },
+    topicBreakdown: aggregate.topicBreakdown,
+  };
+}

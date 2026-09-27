@@ -1,6 +1,42 @@
 import { assertEquals } from "jsr:@std/assert";
 import { createClassesRosterHandler } from "../../../../supabase/functions/classes-roster/handler.ts";
 
+Deno.test("classes-roster summary returns bounded rows without loading details", async () => {
+  let detailCalls = 0;
+  const handler = createClassesRosterHandler({
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher One" }),
+    getTeacherClassroom: async () => ({ id: "classroom-1", teacherId: "teacher-1", name: "Classroom" }),
+    listRosterPage: async () => ({
+      students: [{
+        id: "student-1",
+        fullName: "Student One",
+        firstName: "Student",
+        lastName: "One",
+        joinedAt: "2026-07-20T00:00:00.000Z",
+        appCompletionPct: 12,
+        lastPlayedPct: 80,
+        overallScore: 8,
+        overallMaxScore: 10,
+        overallScorePct: 80,
+      }],
+      nextCursor: "next-cursor",
+      hasMore: true,
+    }),
+    listStudentDetail: async () => {
+      detailCalls += 1;
+      return null;
+    },
+  } as unknown as Parameters<typeof createClassesRosterHandler>[0]);
+
+  const response = await handler(new Request("http://local/classes-roster?pageSize=50"));
+  const json = await response.json();
+
+  assertEquals(json.page, { nextCursor: "next-cursor", hasMore: true });
+  assertEquals(json.students[0].assignments, []);
+  assertEquals(json.students[0].gameScores, []);
+  assertEquals(detailCalls, 0);
+});
+
 Deno.test("classes-roster derives names and detailed progress from child game rows", async () => {
   const handler = createClassesRosterHandler({
     getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher One" }),
@@ -92,9 +128,9 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
         updatedAt: "2026-07-29T09:00:00.000Z",
       },
     ],
-  } as Parameters<typeof createClassesRosterHandler>[0]);
+  } as unknown as Parameters<typeof createClassesRosterHandler>[0]);
 
-  const response = await handler(new Request("http://local/classes-roster"));
+  const response = await handler(new Request("http://local/classes-roster?studentId=student-1"));
   const json = await response.json();
 
   assertEquals(json.students[0], {
@@ -190,9 +226,9 @@ Deno.test("classes-roster leaves detailed progress empty when no child rows exis
     listAssignments: async () => [],
     listDetailedGameResults: async () => [],
     listCompletedAttempts: async () => [],
-  });
+  } as unknown as Parameters<typeof createClassesRosterHandler>[0]);
 
-  const response = await handler(new Request("http://local/classes-roster"));
+  const response = await handler(new Request("http://local/classes-roster?studentId=student-1"));
   const json = await response.json();
 
   assertEquals(json.students[0].appCompletionPct, null);

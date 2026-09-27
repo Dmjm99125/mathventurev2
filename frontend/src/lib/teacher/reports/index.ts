@@ -145,6 +145,10 @@ export type TeacherSingleClassroomReportPayload = {
     inactiveStudentCount: number;
   };
   studentRows: TeacherClassReportPayload["studentRows"];
+  studentRowsPage: {
+    nextCursor: string | null;
+    hasMore: boolean;
+  };
   topicBreakdown: TeacherClassReportPayload["topicBreakdown"];
 };
 
@@ -585,6 +589,7 @@ export function buildTeacherSingleClassroomReport(input: {
         .length,
     },
     studentRows: classReport.studentRows,
+    studentRowsPage: { nextCursor: null, hasMore: false },
     topicBreakdown: classReport.topicBreakdown,
   };
 }

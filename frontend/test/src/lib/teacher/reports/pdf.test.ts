@@ -32,6 +32,7 @@ Deno.test("buildTeacherClassReportPdfModel derives a classroom-only header and r
         lastActivityAt: "2026-07-28T08:00:00.000Z",
       },
     ],
+    studentRowsPage: { nextCursor: null, hasMore: false },
     topicBreakdown: [
       {
         topicId: "colors",

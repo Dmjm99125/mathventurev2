@@ -107,14 +107,20 @@ export function TeacherTodayPage() {
 
 export function TeacherStudentsPage() {
   const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
-  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
+  const {
+    data: rosterData,
+    isLoading: rosterLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useClassRoster();
   const removeStudent = useRemoveStudentFromClass();
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
   const studentActions = useTeacherStudentAccountActions();
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
-  const students = rosterData?.students ?? [];
+  const students = rosterData?.pages.flatMap((page) => page.students) ?? [];
 
   if (classroomLoading || rosterLoading) {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading students...</div>;
@@ -160,16 +166,46 @@ export function TeacherStudentsPage() {
       </div>
 
       {activeTab === 'students' ? (
-        <TeacherStudentListTable
-          students={students}
-          onRemove={setPendingRemoval}
-          onView={(student) => {
-            void studentActions.viewStudent(student.id);
-          }}
-          viewingStudentId={studentActions.viewingStudent?.id ?? studentActions.viewingStudentId}
-        />
+        <>
+          <TeacherStudentListTable
+            students={students}
+            onRemove={setPendingRemoval}
+            onView={(student) => {
+              void studentActions.viewStudent(student.id);
+            }}
+            viewingStudentId={studentActions.viewingStudent?.id ?? studentActions.viewingStudentId}
+          />
+          {hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading students...' : 'Load more students'}
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
-        <TeacherStudentProgressTable students={students} />
+        <>
+          <TeacherStudentProgressTable students={students} />
+          {hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading students...' : 'Load more students'}
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog
@@ -216,6 +252,9 @@ export function TeacherAssignmentsPage() {
     isLoading: assignmentsLoading,
     error: assignmentsError,
     refetch,
+    fetchNextPage: fetchNextAssignmentPage,
+    hasNextPage: hasNextAssignmentPage,
+    isFetchingNextPage: isFetchingNextAssignmentPage,
   } = useAssignments(classroom?.id);
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
 
@@ -227,10 +266,10 @@ export function TeacherAssignmentsPage() {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Classroom unavailable.</div>;
   }
 
-  const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
+  const teacherAssignments = (assignmentsData?.pages.flatMap((page) => page.assignments) ?? []).filter(
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
   );
-  const students = rosterData?.students ?? [];
+  const students = rosterData?.pages.flatMap((page) => page.students) ?? [];
 
   return (
     <TeacherWorkspaceBoard
@@ -249,17 +288,34 @@ export function TeacherAssignmentsPage() {
           void refetch();
         }}
       />
+      {hasNextAssignmentPage && (
+        <div className="mt-4 flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+            onClick={() => void fetchNextAssignmentPage()}
+            disabled={isFetchingNextAssignmentPage}
+          >
+            {isFetchingNextAssignmentPage ? 'Loading assignments...' : 'Load more assignments'}
+          </Button>
+        </div>
+      )}
     </TeacherWorkspaceBoard>
   );
 }
 
 export function TeacherReportsPage() {
   const [location, setLocation] = useLocation();
+  const [studentCursor, setStudentCursor] = useState<string | null>(null);
   const windowKey = React.useMemo(
     () => parseTeacherReportsWindow(window.location.search),
     [location],
   );
-  const { data, isLoading, error } = useTeacherReportsOverview(windowKey);
+  React.useEffect(() => {
+    setStudentCursor(null);
+  }, [windowKey]);
+  const { data, isLoading, error } = useTeacherReportsOverview(windowKey, studentCursor);
 
   if (isLoading) {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading reports...</div>;
@@ -297,6 +353,31 @@ export function TeacherReportsPage() {
           <TeacherReportsRecentActivity data={data.recentActivity} />
           <TeacherClassReportStudentTable rows={data.studentRows} />
           <TeacherClassReportTopicBreakdown rows={data.topicBreakdown} />
+          {(studentCursor || data.studentRowsPage.hasMore) && (
+            <div className="flex justify-center gap-3">
+              {studentCursor && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                  onClick={() => setStudentCursor(null)}
+                >
+                  Previous students
+                </Button>
+              )}
+              {data.studentRowsPage.hasMore && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                  onClick={() => setStudentCursor(data.studentRowsPage.nextCursor)}
+                  disabled={!data.studentRowsPage.nextCursor}
+                >
+                  Next students
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </TeacherWorkspaceBoard>
