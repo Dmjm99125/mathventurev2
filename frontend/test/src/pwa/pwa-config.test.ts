@@ -46,3 +46,12 @@ Deno.test("PWA worker has an app-shell precache entry point", async () => {
   assertMatch(worker, /GET_MEDIA_STATUS/);
   assertMatch(worker, /checkForMediaUpdate/);
 });
+
+Deno.test("app startup registers the PWA service worker and exposes install state", async () => {
+  const main = await readProjectFile("src/main.tsx");
+  const hook = await readProjectFile("src/hooks/usePwaInstall.ts");
+
+  assertMatch(main, /virtual:pwa-register/);
+  assertMatch(main, /registerSW\(\{[\s\S]*immediate:\s*true/);
+  assertMatch(hook, /usePwaInstall/);
+});
