@@ -428,6 +428,144 @@ select jsonb_build_object(
 );
 $$;
 
+create or replace function public.get_teacher_roster_page(
+  p_teacher_id uuid,
+  p_page_size integer default 50,
+  p_cursor_joined_at timestamptz default null,
+  p_cursor_student_id uuid default null
+)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+with params as (
+  select least(greatest(coalesce(p_page_size, 50), 1), 100)::integer as page_size
+),
+teacher_class as (
+  select id
+  from public.classes
+  where teacher_id = p_teacher_id
+  order by created_at asc, id asc
+  limit 1
+),
+roster_page as (
+  select
+    cs.student_id,
+    cs.joined_at,
+    p.full_name,
+    coalesce(p.first_name, p.full_name) as first_name,
+    p.last_name
+  from public.class_students cs
+  join teacher_class tc on tc.id = cs.class_id
+  join public.profiles p on p.id = cs.student_id
+  where p_cursor_joined_at is null
+    or cs.joined_at > p_cursor_joined_at
+    or (cs.joined_at = p_cursor_joined_at and cs.student_id > p_cursor_student_id)
+  order by cs.joined_at asc, cs.student_id asc
+  limit ((select page_size from params) + 1)
+),
+page_students as (
+  select *
+  from roster_page
+  order by joined_at asc, student_id asc
+  limit (select page_size from params)
+),
+completed_results as (
+  select
+    agr.student_id,
+    agr.game_id,
+    agr.score,
+    agr.max_score,
+    agr.score_pct,
+    agr.passed,
+    agr.completed_at
+  from public.attempt_game_results agr
+  join public.attempts a on a.id = agr.attempt_id
+  join page_students ps on ps.student_id = agr.student_id
+  join teacher_class tc on tc.id = a.class_id
+  where a.status = 'completed'
+),
+latest_attempts as (
+  select distinct on (a.student_id)
+    a.student_id,
+    a.score,
+    a.max_score,
+    a.completed_at
+  from public.attempts a
+  join page_students ps on ps.student_id = a.student_id
+  join teacher_class tc on tc.id = a.class_id
+  where a.status = 'completed'
+  order by a.student_id, a.completed_at desc nulls last, a.id desc
+),
+metrics as (
+  select
+    ps.student_id,
+    ps.joined_at,
+    ps.full_name,
+    ps.first_name,
+    ps.last_name,
+    case
+      when count(cr.game_id) = 0 then null
+      else round(count(distinct cr.game_id) filter (where cr.passed)::numeric / 80 * 100)::integer
+    end as app_completion_pct,
+    (array_agg(cr.score_pct order by cr.completed_at desc nulls last))[1] as last_played_pct,
+    la.score as overall_score,
+    la.max_score as overall_max_score,
+    la.completed_at as overall_completed_at
+  from page_students ps
+  left join completed_results cr on cr.student_id = ps.student_id
+  left join latest_attempts la on la.student_id = ps.student_id
+  group by
+    ps.student_id,
+    ps.joined_at,
+    ps.full_name,
+    ps.first_name,
+    ps.last_name,
+    la.score,
+    la.max_score,
+    la.completed_at
+),
+page_meta as (
+  select
+    count(*) > (select page_size from params) as has_more,
+    case
+      when count(*) > (select page_size from params)
+        then (array_agg(jsonb_build_object(
+          'joinedAt', joined_at,
+          'studentId', student_id
+        ) order by joined_at asc, student_id asc))[ (select page_size from params) + 1 ]
+      else null
+    end as next_cursor
+  from roster_page
+)
+select jsonb_build_object(
+  'students', coalesce(
+    (select jsonb_agg(jsonb_build_object(
+      'id', student_id,
+      'fullName', full_name,
+      'firstName', first_name,
+      'lastName', last_name,
+      'joinedAt', joined_at,
+      'appCompletionPct', app_completion_pct,
+      'lastPlayedPct', last_played_pct,
+      'overallScore', overall_score,
+      'overallMaxScore', overall_max_score,
+      'overallScorePct', case
+        when overall_max_score > 0 then round(overall_score::numeric / overall_max_score::numeric * 100)::integer
+        else null
+      end
+    ) order by joined_at asc, student_id asc) from metrics),
+    '[]'::jsonb
+  ),
+  'page', jsonb_build_object(
+    'nextCursor', (select next_cursor from page_meta),
+    'hasMore', coalesce((select has_more from page_meta), false)
+  )
+);
+$$;
+
 revoke all on function public.get_teacher_dashboard_summary(uuid) from public, anon, authenticated;
 grant execute on function public.get_teacher_dashboard_summary(uuid) to service_role;
 
@@ -436,3 +574,6 @@ grant execute on function public.get_student_dashboard_summary(uuid, integer) to
 
 revoke all on function public.get_teacher_report_summary(uuid, timestamptz, timestamptz, integer, uuid) from public, anon, authenticated;
 grant execute on function public.get_teacher_report_summary(uuid, timestamptz, timestamptz, integer, uuid) to service_role;
+
+revoke all on function public.get_teacher_roster_page(uuid, integer, timestamptz, uuid) from public, anon, authenticated;
+grant execute on function public.get_teacher_roster_page(uuid, integer, timestamptz, uuid) to service_role;

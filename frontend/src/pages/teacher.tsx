@@ -107,14 +107,20 @@ export function TeacherTodayPage() {
 
 export function TeacherStudentsPage() {
   const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
-  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
+  const {
+    data: rosterData,
+    isLoading: rosterLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useClassRoster();
   const removeStudent = useRemoveStudentFromClass();
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
   const studentActions = useTeacherStudentAccountActions();
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
-  const students = rosterData?.students ?? [];
+  const students = rosterData?.pages.flatMap((page) => page.students) ?? [];
 
   if (classroomLoading || rosterLoading) {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading students...</div>;
@@ -160,16 +166,46 @@ export function TeacherStudentsPage() {
       </div>
 
       {activeTab === 'students' ? (
-        <TeacherStudentListTable
-          students={students}
-          onRemove={setPendingRemoval}
-          onView={(student) => {
-            void studentActions.viewStudent(student.id);
-          }}
-          viewingStudentId={studentActions.viewingStudent?.id ?? studentActions.viewingStudentId}
-        />
+        <>
+          <TeacherStudentListTable
+            students={students}
+            onRemove={setPendingRemoval}
+            onView={(student) => {
+              void studentActions.viewStudent(student.id);
+            }}
+            viewingStudentId={studentActions.viewingStudent?.id ?? studentActions.viewingStudentId}
+          />
+          {hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading students...' : 'Load more students'}
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
-        <TeacherStudentProgressTable students={students} />
+        <>
+          <TeacherStudentProgressTable students={students} />
+          {hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading students...' : 'Load more students'}
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog
@@ -230,7 +266,7 @@ export function TeacherAssignmentsPage() {
   const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
   );
-  const students = rosterData?.students ?? [];
+  const students = rosterData?.pages.flatMap((page) => page.students) ?? [];
 
   return (
     <TeacherWorkspaceBoard

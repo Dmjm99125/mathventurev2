@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { TeacherClassStudent } from '@/lib/api';
+import { useClassRosterStudent } from '@/lib/api/hooks';
 import { GAME_CATALOG } from '@/lib/games/catalog';
 
 function formatPct(value: number | null) {
@@ -21,6 +22,7 @@ export function TeacherStudentProgressTable({
   students: TeacherClassStudent[];
 }) {
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+  const detailQuery = useClassRosterStudent(expandedStudentId);
 
   return (
     <div className="teacher-table min-w-0 overflow-x-auto rounded-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/45">
@@ -73,8 +75,11 @@ export function TeacherStudentProgressTable({
                 {isExpanded && (
                   <tr>
                     <td id={detailsId} colSpan={6} className="bg-[var(--teacher-sage)]/10 p-4 sm:p-6">
-                      <div className="grid min-w-0 gap-4">
-                        {(student.assignments ?? []).map((assignment) => {
+                      {detailQuery.isLoading && <p className="font-bold text-muted-foreground">Loading student detail...</p>}
+                      {detailQuery.error && <p className="font-bold text-destructive">We couldn't load this student's detail.</p>}
+                      {!detailQuery.isLoading && !detailQuery.error && (
+                        <div className="grid min-w-0 gap-4">
+                          {(detailQuery.data?.students[0]?.assignments ?? []).map((assignment) => {
                           const assignmentScoresByGameId = new Map(
                             assignment.gameScores.map((game) => [game.gameId, game]),
                           );
@@ -116,11 +121,12 @@ export function TeacherStudentProgressTable({
                               </div>
                             </section>
                           );
-                        })}
-                        {!(student.assignments ?? []).length && (
-                          <p className="font-bold text-muted-foreground">No classroom assignments yet.</p>
-                        )}
-                      </div>
+                          })}
+                          {!(detailQuery.data?.students[0]?.assignments ?? []).length && (
+                            <p className="font-bold text-muted-foreground">No classroom assignments yet.</p>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )}

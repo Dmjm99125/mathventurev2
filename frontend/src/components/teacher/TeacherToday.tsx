@@ -27,7 +27,7 @@ export function TeacherToday({
   const classroom = classroomQuery.data?.classroom as TeacherClassroomSummary | null | undefined;
   const assignmentsQuery = useAssignments(classroom?.id);
   const reportsQuery = useTeacherReportsOverview('30d');
-  const students = rosterQuery.data?.students ?? [];
+  const students = rosterQuery.data?.pages.flatMap((page) => page.students) ?? [];
   const assignments = (assignmentsQuery.data?.assignments ?? []).filter(
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
   );

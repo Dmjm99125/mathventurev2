@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth';
 import { isAuthReadyForData } from '../auth/session-state';
 import {
@@ -87,10 +87,22 @@ export function useStudentClassroom() {
 export function useClassRoster(classId?: string) {
   const { user, isLoading } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['classroom', 'roster', classId ?? 'singleton'],
-    queryFn: () => api.classes.roster(),
+    queryFn: ({ pageParam }) => api.classes.roster({ cursor: pageParam }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
+  });
+}
+
+export function useClassRosterStudent(studentId?: string | null) {
+  const { user, isLoading } = useAuth();
+
+  return useQuery({
+    queryKey: ['classroom', 'roster', 'student', studentId],
+    queryFn: () => api.classes.rosterStudent(studentId!),
+    enabled: Boolean(studentId) && isAuthReadyForData(isLoading, user),
   });
 }
 
