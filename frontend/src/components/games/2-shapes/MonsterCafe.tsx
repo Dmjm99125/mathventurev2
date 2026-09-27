@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui';
-import { motion, PanInfo } from 'framer-motion';
+import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 const ITEMS = [
@@ -29,7 +29,6 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
   const [gameState, setGameState] = useState<'playing'|'correct'|'wrong'|'completed'>('playing');
   const [roundId, setRoundId] = useState(0); // to force remount of items
   
-  const mouthRef = useRef<HTMLDivElement>(null);
   const quizAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startRound = () => {
@@ -58,59 +57,42 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
     };
   }, []);
 
-  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, item: typeof ITEMS[0]) => {
+  const handleItemClick = (item: typeof ITEMS[0]) => {
     if (gameState !== 'playing') return;
 
-    if (!mouthRef.current) return;
-    const mouthRect = mouthRef.current.getBoundingClientRect();
-    
-    // info.point contains x and y relative to the viewport for the pointer
-    const x = info.point.x;
-    const y = info.point.y;
-    
-    // Add padding to make it easier for kids to hit the target
-    const pad = 30;
-    const isOverMouth = 
-      x >= mouthRect.left - pad &&
-      x <= mouthRect.right + pad &&
-      y >= mouthRect.top - pad &&
-      y <= mouthRect.bottom + pad;
+    if (allowSkip === false) {
+      const isCorrect = item.shape === currentShape;
+      const newAttempts = attempts + 1;
+      const newScore = score + (isCorrect ? 1 : 0);
+      const newCompletedItems = completedItems + 1;
 
-    if (isOverMouth) {
-      if (allowSkip === false) {
-        const isCorrect = item.shape === currentShape;
-        const newAttempts = attempts + 1;
-        const newScore = score + (isCorrect ? 1 : 0);
-        const newCompletedItems = completedItems + 1;
+      setAttempts(newAttempts);
+      setCompletedItems(newCompletedItems);
+      setScore(newScore);
+      setGameState(newCompletedItems >= QUIZ_ROUNDS ? 'completed' : isCorrect ? 'correct' : 'wrong');
 
-        setAttempts(newAttempts);
-        setCompletedItems(newCompletedItems);
-        setScore(newScore);
-        setGameState(newCompletedItems >= QUIZ_ROUNDS ? 'completed' : isCorrect ? 'correct' : 'wrong');
-
-        if (isCorrect) {
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        }
-
-        if (newCompletedItems < QUIZ_ROUNDS) {
-          quizAdvanceTimeoutRef.current = setTimeout(() => {
-            quizAdvanceTimeoutRef.current = null;
-            startRound();
-          }, 800);
-        }
-
-        return;
-      }
-
-      setAttempts((currentAttempts) => currentAttempts + 1);
-      if (item.shape === currentShape) {
-        const newScore = score + 1;
-        setScore(newScore);
-        setGameState('correct');
+      if (isCorrect) {
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      } else {
-        setGameState('wrong');
       }
+
+      if (newCompletedItems < QUIZ_ROUNDS) {
+        quizAdvanceTimeoutRef.current = setTimeout(() => {
+          quizAdvanceTimeoutRef.current = null;
+          startRound();
+        }, 800);
+      }
+
+      return;
+    }
+
+    setAttempts(currentAttempts => currentAttempts + 1);
+    if (item.shape === currentShape) {
+      const newScore = score + 1;
+      setScore(newScore);
+      setGameState('correct');
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    } else {
+      setGameState('wrong');
     }
   };
 
@@ -148,8 +130,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
         {/* Monster */}
         <div className="flex flex-col items-center mb-8 relative">
           <div className="text-[5rem] mb-2 animate-bounce">👀</div>
-          <div 
-            ref={mouthRef}
+          <div
             className={`w-36 h-20 rounded-b-[5rem] transition-colors duration-300 shadow-inner relative flex items-center justify-center
               ${gameState === 'correct' ? 'bg-green-400' : gameState === 'wrong' ? 'bg-red-400' : 'bg-black'}`}
           >
@@ -158,7 +139,7 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
           </div>
           
           <div className={`mt-4 text-2xl font-bold transition-all ${gameState === 'playing' ? 'text-orange-900/60' : gameState === 'correct' ? 'text-green-600 scale-110' : 'text-red-600 scale-110'}`}>
-            {gameState === 'playing' ? 'Drag item to mouth' : gameState === 'correct' ? 'YUM! 😋' : 'Oops! 😢'}
+            {gameState === 'playing' ? 'Click an item to feed me!' : gameState === 'correct' ? 'YUM! 😋' : 'Oops! 😢'}
           </div>
         </div>
 
@@ -167,11 +148,9 @@ export function MonsterCafe({ onComplete, allowSkip = true }: { onComplete?: (sc
           {choices.map((item, idx) => (
             <motion.div
               key={`${roundId}-${idx}`}
-              drag
-              dragSnapToOrigin={true}
-              onDragEnd={(e, info) => handleDragEnd(e, info, item)}
-              whileDrag={{ scale: 1.15, zIndex: 50, rotate: -5 }}
-              className={`bg-[#fee1b5] border-b-4 border-[#e6b87c] p-4 rounded-2xl flex flex-col items-center cursor-grab active:cursor-grabbing touch-none
+              onClick={() => handleItemClick(item)}
+              whileTap={{ scale: 0.95 }}
+              className={`bg-[#fee1b5] border-b-4 border-[#e6b87c] p-4 rounded-2xl flex flex-col items-center cursor-pointer
                 ${gameState !== 'playing' ? 'opacity-50 pointer-events-none' : 'hover:-translate-y-1'}`}
             >
               <span className="text-[4rem] mb-2 pointer-events-none drop-shadow-sm">{item.emoji}</span>
