@@ -104,39 +104,6 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
     }
   }, [allMatched, allowSkip, isCompleted, quizComplete]);
 
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData('itemId', id);
-    setSelectedItemId(id);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, colorId: string) => {
-    e.preventDefault();
-    if (isCompleted) return;
-    const itemId = e.dataTransfer.getData('itemId');
-
-    const item = items.find(i => i.id === itemId);
-    if (!item) {
-      setSelectedItemId(null);
-      return;
-    }
-    setTotalAttempts(attempts => attempts + 1);
-    if (item.color === colorId) {
-      setItems(prev => prev.map(i => i.id === itemId ? { ...i, matched: true } : i));
-    } else {
-      if (allowSkip === false) {
-        setItems(prev => prev.map(i => i.id === itemId ? { ...i, quizWrong: true } : i));
-      }
-      setSelectedItemId(null);
-      return;
-    }
-    setSelectedItemId(null);
-  };
-
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center p-4">
       <div className="w-full flex flex-col gap-3 mb-4 px-4 md:flex-row md:items-center md:justify-between">
@@ -159,16 +126,14 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
         <h2 className="text-4xl font-display font-bold flex items-center justify-center gap-3 mb-2">
           <span className="text-4xl">🎨</span> Color Matching Game
         </h2>
-        <p className="text-lg text-muted-foreground">Drag or touch the object to the correct color!</p>
+        <p className="text-lg text-muted-foreground">Click an object, then click the matching color!</p>
       </div>
 
-      {/* Color Buckets (Drop Zones) */}
+      {/* Color Buckets */}
       <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-12 w-full">
         {COLORS.map(color => (
           <div
             key={color.id}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, color.id)}
             onClick={() => handleMatch(color.id)}
             className="w-32 h-32 md:w-40 md:h-40 rounded-2xl flex items-center justify-center shadow-md cursor-pointer transition-transform hover:scale-105 active:scale-95"
             style={{ backgroundColor: color.hex }}
@@ -182,7 +147,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
 
       <div className="w-full max-w-2xl border-t-2 border-dashed border-border mb-8"></div>
 
-      {/* Draggable Items */}
+      {/* Clickable Items */}
       <div className="flex flex-wrap justify-center gap-4 md:gap-6 min-h-[100px]">
         {items.map(item => {
           if (item.matched || item.quizWrong) return null; // Hide answered items
@@ -192,10 +157,8 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
           return (
             <Card
               key={item.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, item.id)}
               onClick={() => setSelectedItemId(isSelected ? null : item.id)}
-              className={`w-24 h-24 md:w-28 md:h-28 flex items-center justify-center text-5xl md:text-6xl cursor-grab active:cursor-grabbing transition-all ${isSelected ? 'ring-4 ring-primary scale-110 shadow-xl' : 'hover:scale-105 shadow-sm'
+              className={`w-24 h-24 md:w-28 md:h-28 flex items-center justify-center text-5xl md:text-6xl cursor-pointer transition-all ${isSelected ? 'ring-4 ring-primary scale-110 shadow-xl' : 'hover:scale-105 shadow-sm'
                 }`}
             >
               {item.emoji}
