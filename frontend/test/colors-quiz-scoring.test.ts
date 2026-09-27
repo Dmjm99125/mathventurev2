@@ -103,6 +103,18 @@ Deno.test("ColorMatchingGame applies assigned wrong-item handling to drag and to
   assertMatch(source, /if \(item\.matched \|\| item\.quizWrong\) return null/);
 });
 
+Deno.test("ColorMatchingGame uses click selection instead of native drag and drop", async () => {
+  const source = await readSource("src/components/games/1-colors/ColorMatchingGame.tsx");
+
+  assertMatch(source, /onClick=\{\(\) => setSelectedItemId\(isSelected \? null : item\.id\)\}/);
+  assertMatch(source, /onClick=\{\(\) => handleMatch\(color\.id\)\}/);
+  assertMatch(source, /Click an object, then click the matching color!/);
+  assertEquals(source.includes("draggable"), false);
+  assertEquals(source.includes("onDragStart"), false);
+  assertEquals(source.includes("onDragOver"), false);
+  assertEquals(source.includes("onDrop"), false);
+});
+
 Deno.test("BalloonFindingGame consumes wrong balloons in assigned quizzes", async () => {
   const source = await readSource("src/components/games/1-colors/BalloonFindingGame.tsx");
 
