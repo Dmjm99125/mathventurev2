@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui';
 import confetti from 'canvas-confetti';
@@ -26,8 +26,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
   const [shuffledItems, setShuffledItems] = useState(ITEMS);
   const [shuffledTargets, setShuffledTargets] = useState(TARGETS);
   const [answeredItems, setAnsweredItems] = useState<Record<string, boolean>>({});
-  
-  const targetRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   useEffect(() => {
     resetGame();
@@ -40,56 +39,55 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
     setShuffledItems([...ITEMS].sort(() => Math.random() - 0.5));
     setShuffledTargets([...TARGETS].sort(() => Math.random() - 0.5));
     setAnsweredItems({});
-  };
-
-  const handleDragEnd = (_event: any, info: any, item: typeof ITEMS[0]) => {
-    if (Object.keys(matches).length === QUIZ_ITEMS || answeredItems[item.id]) return;
-    let droppedShape = null;
-    for (const [shape, ref] of Object.entries(targetRefs.current)) {
-      if (!ref) continue;
-      const rect = ref.getBoundingClientRect();
-      const pad = 30; // generous padding for kids
-      if (
-        info.point.x >= rect.left - pad &&
-        info.point.x <= rect.right + pad &&
-        info.point.y >= rect.top - pad &&
-        info.point.y <= rect.bottom + pad
-      ) {
-        droppedShape = shape;
-        break;
-      }
-    }
-
-    if (droppedShape) {
-      setAttempts((currentAttempts) => currentAttempts + 1);
-      const nextAnsweredItems = { ...answeredItems, [item.id]: true };
-      if (allowSkip === false) setAnsweredItems(nextAnsweredItems);
-      if (droppedShape === item.match) {
-        setMatches(prev => {
-          const next = { ...prev, [item.id]: droppedShape };
-          if (allowSkip !== false && Object.keys(next).length === ITEMS.length) {
-            setMessage("HOORAY! You matched them all! 🎉");
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-          } else {
-            setMessage("Correct! 🌟");
-          }
-          return next;
-        });
-      } else if (allowSkip === false) {
-        setMessage("Wrong answer");
-      } else {
-        setMessage("Try another one! ❌");
-        setTimeout(() => {
-           setMessage(prev => prev === "Try another one! ❌" ? "" : prev);
-        }, 1500);
-      }
-    }
+    setSelectedItemId(null);
   };
 
   const isWon = Object.keys(matches).length === ITEMS.length;
   const isQuizComplete = allowSkip === false
     ? Object.keys(answeredItems).length === QUIZ_ITEMS
     : isWon;
+
+  const handleItemClick = (itemId: string) => {
+    if (isQuizComplete || answeredItems[itemId]) return;
+    setSelectedItemId(current => current === itemId ? null : itemId);
+    setMessage('');
+  };
+
+  const handleTargetClick = (targetShape: string) => {
+    if (!selectedItemId || Object.keys(matches).length === QUIZ_ITEMS || answeredItems[selectedItemId]) return;
+
+    const item = ITEMS.find(candidate => candidate.id === selectedItemId);
+    if (!item) {
+      setSelectedItemId(null);
+      return;
+    }
+
+    setAttempts(currentAttempts => currentAttempts + 1);
+    const nextAnsweredItems = { ...answeredItems, [item.id]: true };
+    if (allowSkip === false) setAnsweredItems(nextAnsweredItems);
+
+    if (targetShape === item.match) {
+      setMatches(prev => {
+        const next = { ...prev, [item.id]: targetShape };
+        if (allowSkip !== false && Object.keys(next).length === ITEMS.length) {
+          setMessage("HOORAY! You matched them all! 🎉");
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        } else {
+          setMessage("Correct! 🌟");
+        }
+        return next;
+      });
+    } else if (allowSkip === false) {
+      setMessage("Wrong answer");
+    } else {
+      setMessage("Try another one! ❌");
+      setTimeout(() => {
+        setMessage(prev => prev === "Try another one! ❌" ? "" : prev);
+      }, 1500);
+    }
+
+    setSelectedItemId(null);
+  };
 
   return (
     <div className="w-full max-w-5xl mx-auto bg-[#fdf5e6] p-4 md:p-8 rounded-[3rem] shadow-xl flex flex-col items-center relative overflow-hidden shrink-0 h-fit min-h-[600px] border-4 border-[#ffd8a8]">
@@ -98,7 +96,7 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
       <div className="w-full flex justify-between items-center mb-6 flex-wrap gap-4 bg-white/60 p-5 rounded-3xl shadow-sm border border-orange-100">
         <div className="flex flex-col">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-[#ff4500] drop-shadow-sm mb-1 tracking-wide">Shape Matcher!</h1>
-          <p className="text-lg text-gray-700 font-bold">Drag the toy to the matching shape box!</p>
+          <p className="text-lg text-gray-700 font-bold">Click a toy, then click its matching shape box!</p>
         </div>
         {onComplete && allowSkip !== false && (
           <Button 
@@ -120,18 +118,17 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
 
       <div className="flex flex-col md:flex-row gap-8 w-full justify-center items-start flex-1 mb-8 px-2 md:px-8 z-10">
         
-        {/* Draggable Items Column */}
+        {/* Selectable Items Column */}
         <div className="flex flex-row flex-wrap md:flex-col gap-4 justify-center items-center w-full md:w-32 bg-white/50 p-4 rounded-3xl border-2 border-[#ffcc80] shadow-sm min-h-[120px]">
           <AnimatePresence mode="popLayout">
             {shuffledItems.map(item => !matches[item.id] && !answeredItems[item.id] && (
               <motion.div
                 key={item.id}
                 layoutId={`item-${item.id}`}
-                drag
-                dragSnapToOrigin={true}
-                onDragEnd={(e, info) => handleDragEnd(e, info, item)}
-                whileDrag={{ scale: 1.2, zIndex: 50, rotate: -10 }}
-                className="w-20 h-20 md:w-24 md:h-24 bg-white border-4 border-[#4da6ff] rounded-[2rem] flex justify-center items-center text-5xl md:text-6xl cursor-grab active:cursor-grabbing shadow-[0_6px_0_0_#3388dd] active:shadow-none active:translate-y-1 touch-none"
+                onClick={() => handleItemClick(item.id)}
+                whileTap={{ scale: 0.95 }}
+                className={`w-20 h-20 md:w-24 md:h-24 bg-white border-4 border-[#4da6ff] rounded-[2rem] flex justify-center items-center text-5xl md:text-6xl cursor-pointer shadow-[0_6px_0_0_#3388dd] active:shadow-none active:translate-y-1 transition-all
+                  ${selectedItemId === item.id ? 'ring-4 ring-[#ff9900] scale-105' : ''}`}
               >
                 {item.emoji}
               </motion.div>
@@ -150,8 +147,8 @@ export function ShapeMatcher({ onComplete, allowSkip = true }: { onComplete?: (s
             return (
               <div
                 key={target.shape}
-                ref={el => { targetRefs.current[target.shape] = el; }}
-                className={`flex flex-col items-center p-4 min-h-[160px] md:min-h-[180px] border-4 border-dashed rounded-3xl transition-colors duration-300 relative
+                onClick={() => handleTargetClick(target.shape)}
+                className={`flex flex-col items-center p-4 min-h-[160px] md:min-h-[180px] border-4 border-dashed rounded-3xl transition-colors duration-300 relative cursor-pointer
                   ${hasMatches ? 'bg-[#bfffbf] border-[#008000] border-solid shadow-inner' : 'bg-[#fff9ef] border-[#ff9900]'}`}
               >
                 <div className="text-xl md:text-2xl font-bold text-[#d2691e] mb-2 z-0 uppercase tracking-widest">{target.name}</div>
