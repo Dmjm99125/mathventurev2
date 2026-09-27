@@ -95,11 +95,11 @@ Deno.test("ColorMatchingGame consumes wrong items in assigned quizzes", async ()
   assertMatch(source, /onComplete\(correctItems, allowSkip === false \? items\.length : totalItems\)/);
 });
 
-Deno.test("ColorMatchingGame applies assigned wrong-item handling to drag and touch paths", async () => {
+Deno.test("ColorMatchingGame applies assigned wrong-item handling to its click path", async () => {
   const source = await readSource("src/components/games/1-colors/ColorMatchingGame.tsx");
 
   assertMatch(source, /quizWrong: false/);
-  assertMatch(source, /const handleDrop[\s\S]*allowSkip === false[\s\S]*quizWrong: true/);
+  assertMatch(source, /const handleMatch[\s\S]*allowSkip === false[\s\S]*quizWrong: true/);
   assertMatch(source, /if \(item\.matched \|\| item\.quizWrong\) return null/);
 });
 
