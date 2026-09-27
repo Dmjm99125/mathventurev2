@@ -242,9 +242,16 @@ export const api = {
       }),
   },
   assignments: {
-    list: (classId?: string) =>
-      invokeFunction<{ assignments: (AssignmentForStudent | AssignmentForTeacher)[] }>('assignments-list', {
-        searchParams: classId ? { classId } : undefined,
+    list: (classId?: string, options?: { cursor?: string | null; pageSize?: number }) =>
+      invokeFunction<{
+        assignments: (AssignmentForStudent | AssignmentForTeacher)[];
+        page: PageInfo;
+      }>('assignments-list', {
+        searchParams: {
+          ...(classId ? { classId } : {}),
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+          ...(options?.cursor ? { cursor: options.cursor } : {}),
+        },
       }),
     create: (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) =>
       invokeFunction<{ assignment: unknown }>('assignments-create', { method: 'POST', body: input }),

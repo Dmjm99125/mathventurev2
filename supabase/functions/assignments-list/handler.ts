@@ -1,5 +1,11 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
+import {
+  decodeCursor,
+  encodeCursor,
+  PaginationInputError,
+  parsePageRequest,
+} from "../_shared/pagination.ts";
 
 export type AssignmentListRecord = {
   id: string;
@@ -20,95 +26,143 @@ export type AssignmentListAttempt = {
   updatedAt?: string;
 };
 
+export type AssignmentListPage = {
+  assignments: AssignmentListRecord[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
+type AssignmentSource = AssignmentListRecord[] | AssignmentListPage;
+
 export type AssignmentsListDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  listTeacherAssignments(teacherId: string, classId: string | null): Promise<AssignmentListRecord[]>;
-  listStudentAssignments(studentId: string): Promise<AssignmentListRecord[]>;
+  listTeacherAssignments(
+    teacherId: string,
+    classId: string | null,
+    pageSize?: number,
+    cursor?: string | null,
+  ): Promise<AssignmentSource>;
+  listStudentAssignments(
+    studentId: string,
+    pageSize?: number,
+    cursor?: string | null,
+  ): Promise<AssignmentSource>;
   listAttempts(studentId: string, assignmentIds: string[]): Promise<Map<string, AssignmentListAttempt>>;
 };
+
+type AssignmentQueryRow = {
+  id: string;
+  name: string | null;
+  due_at: string | null;
+  created_at: string;
+  class_id: string | null;
+  student_id: string | null;
+  lesson_id: string;
+  classes?: { name: string } | { name: string }[] | null;
+};
+
+type AssignmentCursor = {
+  createdAt: string;
+  id: string;
+};
+
+function mapAssignment(row: AssignmentQueryRow): AssignmentListRecord {
+  const classroom = Array.isArray(row.classes) ? row.classes[0] : row.classes;
+  return {
+    id: row.id,
+    name: row.name?.trim() || row.lesson_id,
+    lessonId: row.lesson_id,
+    classId: row.class_id ?? null,
+    studentId: row.student_id ?? null,
+    className: classroom?.name ?? null,
+    dueAt: row.due_at ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+function pageFromRows(rows: AssignmentListRecord[], pageSize: number): AssignmentListPage {
+  const hasMore = rows.length > pageSize;
+  const assignments = rows.slice(0, pageSize);
+  const last = assignments.at(-1);
+  return {
+    assignments,
+    nextCursor: hasMore && last
+      ? encodeCursor({ createdAt: last.createdAt, id: last.id })
+      : null,
+    hasMore,
+  };
+}
+
+function normalizePage(source: AssignmentSource, pageSize: number): AssignmentListPage {
+  return Array.isArray(source) ? pageFromRows(source, pageSize) : source;
+}
+
+function applyAssignmentCursor<T extends { created_at: string; id: string }>(
+  query: T,
+  cursor: string | null,
+): T {
+  if (!cursor) return query;
+  const decoded = decodeCursor<AssignmentCursor>(cursor);
+  return query.or(
+    `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
+  );
+}
 
 const defaultDeps: AssignmentsListDeps = {
   async getAuthedProfile(req) {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async listTeacherAssignments(teacherId, classId) {
+  async listTeacherAssignments(teacherId, classId, pageSize = 50, cursor = null) {
     const { adminClient } = await import("../_shared/client.ts");
-    const select = "id, name, due_at, created_at, class_id, student_id, lesson_id, classes(name)";
-    let assignedByTeacherQuery = adminClient
-      .from("assignments")
-      .select(select)
-      .eq("assigned_by", teacherId)
-      .order("created_at", { ascending: false });
-    if (classId) assignedByTeacherQuery = assignedByTeacherQuery.eq("class_id", classId);
-    const { data: assignedByTeacher, error: assignedByTeacherError } = await assignedByTeacherQuery;
-    if (assignedByTeacherError) throw assignedByTeacherError;
-
     const { data: teacherClasses, error: teacherClassesError } = await adminClient
       .from("classes")
       .select("id")
-      .eq("teacher_id", teacherId);
+      .eq("teacher_id", teacherId)
+      .limit(100);
     if (teacherClassesError) throw teacherClassesError;
 
     const teacherClassIds = (teacherClasses ?? []).map((row: { id: string }) => row.id);
-    let classOwned: any[] = [];
-    if (teacherClassIds.length > 0) {
-      let classOwnedQuery = adminClient
-        .from("assignments")
-        .select(select)
-        .in("class_id", teacherClassIds)
-        .order("created_at", { ascending: false });
-      if (classId) classOwnedQuery = classOwnedQuery.eq("class_id", classId);
-      const { data, error } = await classOwnedQuery;
-      if (error) throw error;
-      classOwned = data ?? [];
-    }
-
-    const rows = new Map<string, any>();
-    for (const row of [...(assignedByTeacher ?? []), ...classOwned]) {
-      rows.set(row.id, row);
-    }
-
-    return [...rows.values()].map((row: any) => ({
-      id: row.id,
-      name: row.name || row.lesson_id,
-      lessonId: row.lesson_id,
-      classId: row.class_id ?? null,
-      studentId: row.student_id ?? null,
-      className: row.classes?.name ?? null,
-      dueAt: row.due_at ?? null,
-      createdAt: row.created_at,
-    }));
+    const ownershipFilter = teacherClassIds.length
+      ? `assigned_by.eq.${teacherId},class_id.in.(${teacherClassIds.join(",")})`
+      : `assigned_by.eq.${teacherId}`;
+    let query = adminClient
+      .from("assignments")
+      .select("id, name, due_at, created_at, class_id, student_id, lesson_id, classes(name)")
+      .or(ownershipFilter)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(pageSize + 1);
+    if (classId) query = query.eq("class_id", classId);
+    query = applyAssignmentCursor(query, cursor);
+    const { data, error } = await query;
+    if (error) throw error;
+    return pageFromRows((data ?? []).map((row) => mapAssignment(row as AssignmentQueryRow),), pageSize);
   },
-  async listStudentAssignments(studentId) {
+  async listStudentAssignments(studentId, pageSize = 50, cursor = null) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data: classRows, error: classError } = await adminClient
       .from("class_students")
       .select("class_id")
-      .eq("student_id", studentId);
+      .eq("student_id", studentId)
+      .limit(100);
     if (classError) throw classError;
-    const classIds = (classRows ?? []).map((row: any) => row.class_id);
+    const classIds = (classRows ?? []).map((row: { class_id: string }) => row.class_id);
 
-    const { data, error } = await adminClient
+    const targetFilter = classIds.length
+      ? `student_id.eq.${studentId},class_id.in.(${classIds.join(",")})`
+      : `student_id.eq.${studentId}`;
+    let query = adminClient
       .from("assignments")
       .select("id, name, due_at, created_at, lesson_id, class_id, student_id")
-      .or(
-        classIds.length
-          ? "student_id.eq." + studentId + ",class_id.in.(" + classIds.join(",") + ")"
-          : "student_id.eq." + studentId,
-      )
-      .order("created_at", { ascending: false });
+      .or(targetFilter)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(pageSize + 1);
+    query = applyAssignmentCursor(query, cursor);
+    const { data, error } = await query;
     if (error) throw error;
-
-    return (data ?? []).map((row: any) => ({
-      id: row.id,
-      name: row.name || row.lesson_id,
-      lessonId: row.lesson_id,
-      classId: row.class_id ?? null,
-      studentId: row.student_id ?? null,
-      dueAt: row.due_at ?? null,
-      createdAt: row.created_at,
-    }));
+    return pageFromRows((data ?? []).map((row) => mapAssignment(row as AssignmentQueryRow),), pageSize);
   },
   async listAttempts(studentId, assignmentIds) {
     if (!assignmentIds.length) return new Map();
@@ -116,28 +170,24 @@ const defaultDeps: AssignmentsListDeps = {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("attempts")
-      .select("assignment_id, status, current_game_order, score, max_score, updated_at")
+      .select("assignment_id, status, current_game_order, score, max_score, updated_at, id")
       .eq("student_id", studentId)
-      .in("assignment_id", assignmentIds);
+      .in("assignment_id", assignmentIds)
+      .order("updated_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(Math.min(1000, assignmentIds.length * 10));
     if (error) throw error;
 
     const attemptsByAssignment = new Map<string, AssignmentListAttempt>();
     for (const row of data ?? []) {
-      const current = attemptsByAssignment.get(row.assignment_id);
-      const candidate = {
+      if (!row.assignment_id || attemptsByAssignment.has(row.assignment_id)) continue;
+      attemptsByAssignment.set(row.assignment_id, {
         status: row.status as AssignmentListAttempt["status"],
         currentGameOrder: row.current_game_order,
         score: row.score,
         maxScore: row.max_score,
         updatedAt: row.updated_at,
-      };
-      if (
-        !current
-        || candidate.status === "completed"
-        || (current.status !== "completed" && candidate.updatedAt! > current.updatedAt!)
-      ) {
-        attemptsByAssignment.set(row.assignment_id, candidate);
-      }
+      });
     }
     return attemptsByAssignment;
   },
@@ -152,21 +202,23 @@ export function createAssignmentsListHandler(deps: AssignmentsListDeps = default
       const profile = await deps.getAuthedProfile(req);
       if (!profile) return errorResponse("Unauthorized", 401);
 
+      const { pageSize, cursor } = parsePageRequest(new URL(req.url));
       if (profile.role === "teacher") {
         const classId = new URL(req.url).searchParams.get("classId");
-        return jsonResponse({
-          assignments: await deps.listTeacherAssignments(profile.id, classId),
-        });
+        const source = await deps.listTeacherAssignments(profile.id, classId, pageSize, cursor);
+        const page = normalizePage(source, pageSize);
+        return jsonResponse({ assignments: page.assignments, page: { nextCursor: page.nextCursor, hasMore: page.hasMore } });
       }
 
-      const assignments = await deps.listStudentAssignments(profile.id);
+      const source = await deps.listStudentAssignments(profile.id, pageSize, cursor);
+      const page = normalizePage(source, pageSize);
       const attemptsByAssignment = await deps.listAttempts(
         profile.id,
-        assignments.map((assignment) => assignment.id),
+        page.assignments.map((assignment) => assignment.id),
       );
 
       return jsonResponse({
-        assignments: assignments.map((assignment) => {
+        assignments: page.assignments.map((assignment) => {
           const attempt = attemptsByAssignment.get(assignment.id);
           return {
             ...assignment,
@@ -177,8 +229,10 @@ export function createAssignmentsListHandler(deps: AssignmentsListDeps = default
             completed: attempt?.status === "completed",
           };
         }),
+        page: { nextCursor: page.nextCursor, hasMore: page.hasMore },
       });
     } catch (error) {
+      if (error instanceof PaginationInputError) return errorResponse(error.message, error.status);
       console.error("assignments-list failed", error);
       return errorResponse("We couldn't load assignments right now.", 500);
     }

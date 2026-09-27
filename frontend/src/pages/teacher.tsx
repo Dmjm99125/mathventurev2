@@ -252,6 +252,9 @@ export function TeacherAssignmentsPage() {
     isLoading: assignmentsLoading,
     error: assignmentsError,
     refetch,
+    fetchNextPage: fetchNextAssignmentPage,
+    hasNextPage: hasNextAssignmentPage,
+    isFetchingNextPage: isFetchingNextAssignmentPage,
   } = useAssignments(classroom?.id);
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
 
@@ -263,7 +266,7 @@ export function TeacherAssignmentsPage() {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Classroom unavailable.</div>;
   }
 
-  const teacherAssignments = (assignmentsData?.assignments ?? []).filter(
+  const teacherAssignments = (assignmentsData?.pages.flatMap((page) => page.assignments) ?? []).filter(
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
   );
   const students = rosterData?.pages.flatMap((page) => page.students) ?? [];
@@ -285,6 +288,19 @@ export function TeacherAssignmentsPage() {
           void refetch();
         }}
       />
+      {hasNextAssignmentPage && (
+        <div className="mt-4 flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+            onClick={() => void fetchNextAssignmentPage()}
+            disabled={isFetchingNextAssignmentPage}
+          >
+            {isFetchingNextAssignmentPage ? 'Loading assignments...' : 'Load more assignments'}
+          </Button>
+        </div>
+      )}
     </TeacherWorkspaceBoard>
   );
 }

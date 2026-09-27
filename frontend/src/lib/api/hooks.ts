@@ -109,9 +109,11 @@ export function useClassRosterStudent(studentId?: string | null) {
 export function useAssignments(classId?: string) {
   const { user, isLoading } = useAuth();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['assignments', classId],
-    queryFn: () => api.assignments.list(classId),
+    queryFn: ({ pageParam }) => api.assignments.list(classId, { cursor: pageParam }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
