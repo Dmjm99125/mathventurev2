@@ -2,7 +2,11 @@ import { assert, assertStringIncludes } from "jsr:@std/assert";
 
 const page = await Deno.readTextFile(new URL("../../../src/pages/teacher.tsx", import.meta.url));
 const summary = await Deno.readTextFile(new URL("../../../src/components/teacher/reports/TeacherReportsClassroomSummary.tsx", import.meta.url));
-const styles = await Deno.readTextFile(new URL("../../../src/index.css", import.meta.url));
+const styles = [
+  await Deno.readTextFile(new URL("../../../src/index.css", import.meta.url)),
+  await Deno.readTextFile(new URL("../../../src/styles/teacher.css", import.meta.url)),
+  await Deno.readTextFile(new URL("../../../src/styles/responsive.css", import.meta.url)),
+].join("\n");
 const layout = await Deno.readTextFile(new URL("../../../src/components/layout.tsx", import.meta.url));
 
 Deno.test("settings exposes real account and session controls", () => {

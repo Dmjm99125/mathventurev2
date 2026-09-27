@@ -11,5 +11,5 @@ Deno.test("subtraction quiz keeps its nine playable game slots and Free Play kee
   }
   assertEquals(source.includes("topic === 'subtraction' && currentIndex === 9"), false);
   assertEquals(source.includes("import { DrawingCanvas } from '@/components/shared/DrawingCanvas';"), true);
-  assertEquals(source.includes("!isAssignedQuiz && isFreePlayDrawingBoard(topic, currentIndex)"), true);
+  assertEquals(source.includes("isDrawingBoardAvailable(topic, currentIndex, isAssignedQuiz)"), true);
 });

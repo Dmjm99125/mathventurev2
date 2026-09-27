@@ -78,13 +78,13 @@ export function About() {
                   <DropdownMenuItem asChild>
                     <a href="https://github.com/dmjm99125/mathventureprototype" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
                       <Github className="w-4 h-4" />
-                      <span>Legacy repository</span>
+                      <span><span>Legacy</span> repository</span>
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <a href="https://github.com/dmjm99125/mathventurev2" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full text-primary">
                       <Github className="w-4 h-4" />
-                      <span>Current repository</span>
+                      <span><span>Current</span> repository</span>
                     </a>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

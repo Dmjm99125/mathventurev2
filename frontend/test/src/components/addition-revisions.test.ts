@@ -42,7 +42,7 @@ Deno.test("addition flow puts four replacement games first and keeps drawing can
   }
   assertEquals(source.includes("topic === 'addition' && currentIndex === 0"), true);
   assertEquals(source.includes("import { DrawingCanvas } from '@/components/shared/DrawingCanvas';"), true);
-  assertEquals(source.includes("!isAssignedQuiz && isFreePlayDrawingBoard(topic, currentIndex)"), true);
+  assertEquals(source.includes("isDrawingBoardAvailable(topic, currentIndex, isAssignedQuiz)"), true);
 });
 
 Deno.test("replacement addition games expose the Skip Game action", async () => {

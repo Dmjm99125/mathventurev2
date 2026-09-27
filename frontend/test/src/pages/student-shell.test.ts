@@ -4,7 +4,11 @@ const appSource = await Deno.readTextFile(new URL("../../../src/App.tsx", import
 const pageSource = await Deno.readTextFile(new URL("../../../src/pages/student.tsx", import.meta.url));
 const loadingSource = await Deno.readTextFile(new URL("../../../src/components/student/StudentPortalLoading.tsx", import.meta.url));
 const languageSource = await Deno.readTextFile(new URL("../../../src/lib/i18n/useLanguage.tsx", import.meta.url));
-const styleSource = await Deno.readTextFile(new URL("../../../src/index.css", import.meta.url));
+const styleSource = [
+  await Deno.readTextFile(new URL("../../../src/index.css", import.meta.url)),
+  await Deno.readTextFile(new URL("../../../src/styles/student.css", import.meta.url)),
+  await Deno.readTextFile(new URL("../../../src/styles/responsive.css", import.meta.url)),
+].join("\n");
 
 Deno.test("student classroom route delegates navigation to the student shell", () => {
   assertEquals(appSource.includes('<AppLayout sidebarMode="hidden"><StudentClassroomPage /></AppLayout>'), true);
