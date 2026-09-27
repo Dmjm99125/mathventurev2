@@ -26,7 +26,7 @@ Deno.test("classes-roster summary returns bounded rows without loading details",
       detailCalls += 1;
       return null;
     },
-  } as Parameters<typeof createClassesRosterHandler>[0]);
+  } as unknown as Parameters<typeof createClassesRosterHandler>[0]);
 
   const response = await handler(new Request("http://local/classes-roster?pageSize=50"));
   const json = await response.json();
@@ -128,7 +128,7 @@ Deno.test("classes-roster derives names and detailed progress from child game ro
         updatedAt: "2026-07-29T09:00:00.000Z",
       },
     ],
-  } as Parameters<typeof createClassesRosterHandler>[0]);
+  } as unknown as Parameters<typeof createClassesRosterHandler>[0]);
 
   const response = await handler(new Request("http://local/classes-roster?studentId=student-1"));
   const json = await response.json();
@@ -226,7 +226,7 @@ Deno.test("classes-roster leaves detailed progress empty when no child rows exis
     listAssignments: async () => [],
     listDetailedGameResults: async () => [],
     listCompletedAttempts: async () => [],
-  } as Parameters<typeof createClassesRosterHandler>[0]);
+  } as unknown as Parameters<typeof createClassesRosterHandler>[0]);
 
   const response = await handler(new Request("http://local/classes-roster?studentId=student-1"));
   const json = await response.json();

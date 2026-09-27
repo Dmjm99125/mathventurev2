@@ -97,17 +97,6 @@ function normalizePage(source: AssignmentSource, pageSize: number): AssignmentLi
   return Array.isArray(source) ? pageFromRows(source, pageSize) : source;
 }
 
-function applyAssignmentCursor<T extends { created_at: string; id: string }>(
-  query: T,
-  cursor: string | null,
-): T {
-  if (!cursor) return query;
-  const decoded = decodeCursor<AssignmentCursor>(cursor);
-  return query.or(
-    `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
-  );
-}
-
 const defaultDeps: AssignmentsListDeps = {
   async getAuthedProfile(req) {
     const { getAuthedProfile } = await import("../_shared/client.ts");
@@ -134,7 +123,12 @@ const defaultDeps: AssignmentsListDeps = {
       .order("id", { ascending: false })
       .limit(pageSize + 1);
     if (classId) query = query.eq("class_id", classId);
-    query = applyAssignmentCursor(query, cursor);
+    if (cursor) {
+      const decoded = decodeCursor<AssignmentCursor>(cursor);
+      query = query.or(
+        `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
+      );
+    }
     const { data, error } = await query;
     if (error) throw error;
     return pageFromRows((data ?? []).map((row) => mapAssignment(row as AssignmentQueryRow),), pageSize);
@@ -159,7 +153,12 @@ const defaultDeps: AssignmentsListDeps = {
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(pageSize + 1);
-    query = applyAssignmentCursor(query, cursor);
+    if (cursor) {
+      const decoded = decodeCursor<AssignmentCursor>(cursor);
+      query = query.or(
+        `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
+      );
+    }
     const { data, error } = await query;
     if (error) throw error;
     return pageFromRows((data ?? []).map((row) => mapAssignment(row as AssignmentQueryRow),), pageSize);
