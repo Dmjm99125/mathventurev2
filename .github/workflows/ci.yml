@@ -32,6 +32,11 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: 2.x
+
       - name: Install frontend dependencies
         run: npm ci --prefix frontend
 
@@ -52,10 +57,20 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: 2.x
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
 
       - name: Test Supabase functions
         run: >-
