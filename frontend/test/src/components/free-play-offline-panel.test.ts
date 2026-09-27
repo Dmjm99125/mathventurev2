@@ -13,3 +13,14 @@ Deno.test("Free Play offline panel uses one explicit, parent-readable download f
   assertEquals(source.includes('<details open'), false);
   assertEquals(source.includes("useEffect(() => download"), false);
 });
+
+Deno.test("Free Play offline panel exposes a responsive PWA install action", async () => {
+  const source = await Deno.readTextFile(new URL("../../../src/components/offline/FreePlayOfflinePanel.tsx", import.meta.url));
+
+  assertMatch(source, /InstallAppAction/);
+  assertMatch(source, /showFallback/);
+  assertMatch(source, /w-full sm:w-auto/);
+  assertMatch(source, /flex-col/);
+  assertMatch(source, /sm:flex-row/);
+  assertMatch(source, /min-w-0/);
+});

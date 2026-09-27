@@ -10,6 +10,7 @@ import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, Us
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/shared/utils';
+import { InstallAppAction } from '@/components/pwa/InstallAppAction';
 
 function getTeacherNavItems(t: (key: string) => string) {
   return TEACHER_NAV_ITEMS.map((item) => ({
@@ -160,17 +161,18 @@ export function TopNav() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <div className="min-w-0 flex items-center gap-2">
           <Link href={user ? (user.role === 'student' ? '/student' : '/teacher') : '/'}>
-            <div className="flex items-center gap-2 cursor-pointer group">
+            <div className="flex min-w-0 cursor-pointer items-center gap-2 group">
               <Compass className="h-8 w-8 text-primary group-hover:rotate-45 transition-transform" />
-              <span className="font-display font-bold text-2xl text-primary tracking-tight">MathVenture</span>
+              <span className="truncate font-display text-xl font-bold tracking-tight text-primary sm:text-2xl">MathVenture</span>
             </div>
           </Link>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+          <InstallAppAction compact className="hidden sm:inline-flex" />
           <Button variant="ghost" size="sm" onClick={toggleLang} className="gap-2 font-bold text-muted-foreground">
             <Globe className="h-4 w-4" />
             {lang === 'en' ? 'EN' : 'TL'}

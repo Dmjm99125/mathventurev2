@@ -9,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui';
+import { InstallAppAction } from '@/components/pwa/InstallAppAction';
 import { useFreePlayOffline } from '@/hooks/useFreePlayOffline';
 
 function formatBytes(bytes: number): string {
@@ -59,7 +60,7 @@ export function FreePlayOfflinePanel() {
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-jungle-yellow text-jungle-green">
               <HardDriveDownload className="h-7 w-7" aria-hidden="true" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-primary">Offline library</p>
               <h2 id="free-play-offline-title" className="mt-1 text-2xl font-display font-extrabold text-foreground md:text-3xl">
                 Keep Free Play ready without internet.
@@ -76,8 +77,8 @@ export function FreePlayOfflinePanel() {
               <span>{errorMessage ?? 'Offline Free Play is not supported in this browser.'}</span>
             </div>
           ) : status.state === 'not-downloaded' ? (
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Button variant="jungle" size="lg" onClick={handleDownload} disabled={isLoading}>
+            <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <Button variant="jungle" size="lg" className="w-full sm:w-auto" onClick={handleDownload} disabled={isLoading}>
                 <Download className="mr-2 h-5 w-5" aria-hidden="true" />
                 Download Free Play for offline
               </Button>
@@ -85,8 +86,8 @@ export function FreePlayOfflinePanel() {
             </div>
           ) : status.state === 'downloading' ? (
             <div className="mt-5 space-y-4">
-              <div className="flex items-end justify-between gap-4">
-                <div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
                   <p className="text-lg font-extrabold text-foreground">Saving Free Play</p>
                   <p className="text-sm font-bold text-muted-foreground" aria-live="polite">
                     {status.totalFiles ? `${status.completedFiles.toLocaleString()} of ${status.totalFiles.toLocaleString()} files` : 'Preparing the library list…'}
@@ -104,7 +105,7 @@ export function FreePlayOfflinePanel() {
               >
                 <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${percent}%` }} />
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm font-bold text-muted-foreground">
+              <div className="flex flex-col items-stretch gap-3 text-sm font-bold text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                 <span>{formatBytes(status.completedBytes)} saved{status.totalBytes ? ` of ${formatBytes(status.totalBytes)}` : ''}</span>
                 <Button variant="ghost" size="sm" onClick={() => void cancel()}>
                   <X className="mr-1.5 h-4 w-4" aria-hidden="true" />
@@ -113,7 +114,7 @@ export function FreePlayOfflinePanel() {
               </div>
             </div>
           ) : status.state === 'ready' ? (
-            <div className="mt-5 flex items-start gap-3 rounded-2xl bg-emerald-50 p-4 text-emerald-800" role="status">
+            <div className="mt-5 flex min-w-0 items-start gap-3 rounded-2xl bg-emerald-50 p-4 text-emerald-800" role="status">
               <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
               <div>
                 <p className="font-extrabold">Offline ready</p>
@@ -121,21 +122,21 @@ export function FreePlayOfflinePanel() {
               </div>
             </div>
           ) : status.state === 'update-available' ? (
-            <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <p className="w-full text-lg font-extrabold text-foreground">Update available</p>
-              <Button variant="jungle" size="lg" onClick={handleDownload}>
+              <Button variant="jungle" size="lg" className="w-full sm:w-auto" onClick={handleDownload}>
                 <RefreshCw className="mr-2 h-5 w-5" aria-hidden="true" />
                 Download update
               </Button>
               <span className="text-sm font-bold text-muted-foreground">Your current offline library stays usable while it updates.</span>
             </div>
           ) : (
-            <div className="mt-5 flex flex-wrap items-center gap-3" role="alert">
-              <div className="flex items-start gap-3 rounded-2xl bg-rose-50 p-4 text-rose-800">
+            <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center" role="alert">
+              <div className="flex min-w-0 items-start gap-3 rounded-2xl bg-rose-50 p-4 text-rose-800">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
                 <span className="text-sm font-bold">{errorMessage ?? status.errorMessage ?? 'The download stopped before it finished.'}</span>
               </div>
-              <Button variant="outline" size="md" onClick={handleRetry}>
+              <Button variant="outline" size="md" className="w-full sm:w-auto" onClick={handleRetry}>
                 <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
                 Retry download
               </Button>
@@ -143,7 +144,7 @@ export function FreePlayOfflinePanel() {
           )}
         </div>
 
-        <div className="flex flex-col justify-between rounded-2xl bg-sky-50 p-5">
+        <div className="flex min-w-0 flex-col justify-between rounded-2xl bg-sky-50 p-5">
           <div>
             <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-primary">What gets saved</p>
             <p className="mt-3 text-4xl font-display font-extrabold tabular-nums text-foreground">
@@ -156,6 +157,18 @@ export function FreePlayOfflinePanel() {
           <p className="mt-6 text-sm font-semibold leading-6 text-muted-foreground">
             Free Play stays local. Quizzes and teacher progress still need an internet connection.
           </p>
+        </div>
+      </div>
+
+      <div className="border-t-2 border-sky-100 px-5 pb-5 md:px-7 md:pb-7">
+        <div className="flex min-w-0 flex-col gap-3 rounded-2xl bg-sky-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="font-extrabold text-foreground">Install MathVenture</p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-muted-foreground">
+              Keep the app one tap away; this is separate from saving Free Play media.
+            </p>
+          </div>
+          <InstallAppAction showFallback className="w-full sm:w-auto" />
         </div>
       </div>
       </section>
