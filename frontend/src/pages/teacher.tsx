@@ -307,11 +307,15 @@ export function TeacherAssignmentsPage() {
 
 export function TeacherReportsPage() {
   const [location, setLocation] = useLocation();
+  const [studentCursor, setStudentCursor] = useState<string | null>(null);
   const windowKey = React.useMemo(
     () => parseTeacherReportsWindow(window.location.search),
     [location],
   );
-  const { data, isLoading, error } = useTeacherReportsOverview(windowKey);
+  React.useEffect(() => {
+    setStudentCursor(null);
+  }, [windowKey]);
+  const { data, isLoading, error } = useTeacherReportsOverview(windowKey, studentCursor);
 
   if (isLoading) {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading reports...</div>;
@@ -349,6 +353,31 @@ export function TeacherReportsPage() {
           <TeacherReportsRecentActivity data={data.recentActivity} />
           <TeacherClassReportStudentTable rows={data.studentRows} />
           <TeacherClassReportTopicBreakdown rows={data.topicBreakdown} />
+          {(studentCursor || data.studentRowsPage.hasMore) && (
+            <div className="flex justify-center gap-3">
+              {studentCursor && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                  onClick={() => setStudentCursor(null)}
+                >
+                  Previous students
+                </Button>
+              )}
+              {data.studentRowsPage.hasMore && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
+                  onClick={() => setStudentCursor(data.studentRowsPage.nextCursor)}
+                  disabled={!data.studentRowsPage.nextCursor}
+                >
+                  Next students
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </TeacherWorkspaceBoard>

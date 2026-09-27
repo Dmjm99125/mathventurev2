@@ -316,13 +316,22 @@ export const api = {
     create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
   },
   reports: {
-    overview: (window: TeacherReportsWindowKey) =>
+    overview: (window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
       invokeFunction<TeacherSingleClassroomReportPayload>('reports-overview', {
-        searchParams: { window },
+        searchParams: {
+          window,
+          ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+        },
       }),
-    classDetail: (classId: string, window: TeacherReportsWindowKey) =>
+    classDetail: (classId: string, window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
       invokeFunction<TeacherSingleClassroomReportPayload>('reports-class', {
-        searchParams: { classId, window },
+        searchParams: {
+          classId,
+          window,
+          ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
+          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
+        },
       }),
   },
 };

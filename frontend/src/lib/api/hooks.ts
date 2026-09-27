@@ -182,22 +182,22 @@ export function useTeacherDashboard() {
   });
 }
 
-export function useTeacherReportsOverview(window: TeacherReportsWindowKey) {
+export function useTeacherReportsOverview(window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'overview', window],
-    queryFn: () => api.reports.overview(window),
+    queryKey: ['teacher-reports', 'overview', window, studentCursor ?? null],
+    queryFn: () => api.reports.overview(window, { studentCursor }),
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
-export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey) {
+export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'class', classId, window],
-    queryFn: () => api.reports.classDetail(classId, window),
+    queryKey: ['teacher-reports', 'class', classId, window, studentCursor ?? null],
+    queryFn: () => api.reports.classDetail(classId, window, { studentCursor }),
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
