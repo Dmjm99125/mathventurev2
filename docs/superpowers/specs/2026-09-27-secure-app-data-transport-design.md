@@ -69,4 +69,3 @@ deno test --allow-env --allow-read --config frontend/deno.json --lock=frontend/d
 ```
 
 The Supabase test lane requires Deno. Remote GitHub Actions remains the authoritative check when local Deno is unavailable.
-

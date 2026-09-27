@@ -300,4 +300,3 @@ Expected: the search finds only the explicit documentation warning, no frontend 
 git add README.md
 git commit -m "docs: define HTTPS app-data transport boundary"
 ```
-
