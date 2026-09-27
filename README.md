@@ -84,6 +84,12 @@ mathventure/
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
+### App-data transport security
+
+Application data is sent through Supabase Edge Functions over HTTPS/TLS. Hosted builds must use an `https://` Supabase URL; only loopback HTTP URLs are accepted for local development.
+
+The frontend does not contain a transport encryption key and does not wrap app-data requests or responses in a second AES envelope. Do not add a `VITE_TRANSPORT_ENCRYPTION_KEY` or copy any Supabase Function Secret into frontend environment variables. Sensitive database fields requiring AES-256-GCM at rest must be handled inside Edge Functions as a separate, field-specific design.
+
 4. **Run the frontend development server:**
    ```bash
    npm run dev
