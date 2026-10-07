@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => {
         },
         injectManifest: {
           globPatterns: ['**/*.{html,js,css,svg,ico,webmanifest,json}'],
-          globIgnores: ['assets/**'],
+          globIgnores: ['assets/**/*.{avif,gif,jpeg,jpg,mp3,mp4,ogg,png,wav,webm,webp}'],
         },
       }),
     ],
