@@ -190,6 +190,181 @@ export function createAssignmentOperationApplier(
   };
 }
 
+export type AssignmentQuizContext = {
+  lessonId: string;
+  classId: string | null;
+  studentId: string | null;
+};
+
+export type AssignmentQuizAttemptRecord = {
+  id: string;
+  student_id: string;
+  assignment_id: string;
+  lesson_id: string;
+  status: "in_progress" | "completed";
+  current_game_order: number;
+  score: number;
+  max_score: number;
+  [key: string]: unknown;
+};
+
+export type AssignmentQuizGameResultRecord = {
+  topicId: string;
+  gameId: string;
+  gameOrder: number;
+  score: number;
+  maxScore: number;
+  completedAt?: string;
+};
+
+export type AssignmentQuizOperationPersistence = {
+  getAssignmentContext(assignmentId: string): Promise<AssignmentQuizContext | null>;
+  isStudentEnrolledInClass(studentId: string, classId: string): Promise<boolean>;
+  getAttempt(studentId: string, assignmentId: string): Promise<AssignmentQuizAttemptRecord | null>;
+  createAttempt(input: {
+    id: string;
+    studentId: string;
+    assignmentId: string;
+    lessonId: string;
+    classId: string | null;
+  }): Promise<AssignmentQuizAttemptRecord>;
+  updateAttempt(
+    studentId: string,
+    attemptId: string,
+    input: Record<string, unknown>,
+  ): Promise<AssignmentQuizAttemptRecord>;
+  listGameResults(attemptId: string): Promise<AssignmentQuizGameResultRecord[]>;
+  upsertGameResult(input: AssignmentQuizGameResultRecord & { attemptId: string; studentId: string }): Promise<void>;
+};
+
+function quizState(
+  assignmentId: string,
+  lessonId: string,
+  attempt: AssignmentQuizAttemptRecord | null,
+  gameResults: AssignmentQuizGameResultRecord[],
+) {
+  return {
+    status: attempt?.status ?? "not_started",
+    assignmentId,
+    lessonId,
+    attemptId: attempt?.id ?? null,
+    currentGameOrder: attempt?.current_game_order ?? 0,
+    score: attempt?.score ?? 0,
+    maxScore: attempt?.max_score ?? 0,
+    gameResults,
+    completedAt: attempt?.completed_at ?? null,
+  };
+}
+
+function validGameResult(value: unknown, lessonId: string): value is AssignmentQuizGameResultRecord {
+  if (!value || typeof value !== "object") return false;
+  const result = value as Partial<AssignmentQuizGameResultRecord>;
+  return result.topicId === lessonId
+    && typeof result.gameId === "string"
+    && result.gameId === `${lessonId}:${result.gameOrder}`
+    && Number.isInteger(result.gameOrder)
+    && (result.gameOrder as number) >= 0
+    && Number.isFinite(result.score)
+    && Number.isFinite(result.maxScore)
+    && (result.maxScore as number) > 0
+    && (result.score as number) >= 0
+    && (result.score as number) <= (result.maxScore as number);
+}
+
+function numericPayload(payload: Record<string, unknown>, key: string): number | null {
+  const value = Number(payload[key]);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+export function createAssignmentQuizOperationApplier(
+  persistence: AssignmentQuizOperationPersistence,
+): (studentId: string, operation: OfflineOperation) => Promise<OfflineOperationExecution> {
+  return async (studentId, operation) => {
+    const payload = operation.payload;
+    const assignmentId = payloadString(payload, "assignmentId");
+    const lessonId = payloadString(payload, "lessonId");
+    if (!assignmentId || !lessonId) return { status: "rejected", error: "assignmentId and lessonId are required." };
+    const context = await persistence.getAssignmentContext(assignmentId);
+    if (!context) return { status: "rejected", error: "Assignment not found." };
+    if (context.lessonId !== lessonId) return { status: "rejected", error: "lessonId does not match the assignment." };
+    if (context.studentId && context.studentId !== studentId) {
+      return { status: "rejected", error: "That assignment is not available to this student." };
+    }
+    if (context.classId && !await persistence.isStudentEnrolledInClass(studentId, context.classId)) {
+      return { status: "rejected", error: "That assignment is not available to this student." };
+    }
+
+    let attempt = await persistence.getAttempt(studentId, assignmentId);
+    let gameResults = attempt ? await persistence.listGameResults(attempt.id) : [];
+    if (operation.type === "assignmentQuiz.start") {
+      if (!attempt) {
+        attempt = await persistence.createAttempt({
+          id: operation.entityId,
+          studentId,
+          assignmentId,
+          lessonId,
+          classId: context.classId,
+        });
+        gameResults = [];
+      }
+      return { status: "accepted", result: { state: quizState(assignmentId, lessonId, attempt, gameResults) } };
+    }
+    if (!attempt) return { status: "rejected", error: "Start the assignment quiz before submitting progress." };
+    if (attempt.status === "completed") {
+      return { status: "accepted", result: { state: quizState(assignmentId, lessonId, attempt, gameResults) } };
+    }
+
+    const result = payload.gameResult;
+    if (operation.type === "assignmentQuiz.checkpoint") {
+      if (!validGameResult(result, lessonId)) return { status: "rejected", error: "gameResult is invalid." };
+      if ((result as AssignmentQuizGameResultRecord).gameOrder < attempt.current_game_order) {
+        const wasSaved = gameResults.some((row) => row.gameId === (result as AssignmentQuizGameResultRecord).gameId);
+        if (wasSaved) return { status: "accepted", result: { duplicate: true, attemptId: attempt.id } };
+      }
+      if ((result as AssignmentQuizGameResultRecord).gameOrder !== attempt.current_game_order) {
+        return { status: "rejected", error: "Checkpoint is out of order." };
+      }
+      const score = numericPayload(payload, "score");
+      if (score === null) return { status: "rejected", error: "score must be a valid number." };
+      const game = result as AssignmentQuizGameResultRecord;
+      await persistence.upsertGameResult({ ...game, attemptId: attempt.id, studentId });
+      attempt = await persistence.updateAttempt(studentId, attempt.id, {
+        current_game_order: game.gameOrder + 1,
+        score,
+      });
+      gameResults = await persistence.listGameResults(attempt.id);
+      return { status: "accepted", result: { state: quizState(assignmentId, lessonId, attempt, gameResults) } };
+    }
+
+    if (operation.type === "assignmentQuiz.complete") {
+      const score = numericPayload(payload, "score");
+      const maxScore = numericPayload(payload, "maxScore");
+      if (score === null || maxScore === null || maxScore <= 0 || score > maxScore) {
+        return { status: "rejected", error: "score and maxScore must be valid numbers." };
+      }
+      const submitted = Array.isArray(payload.gameResults) ? payload.gameResults : [];
+      const parsed = submitted.filter((value): value is AssignmentQuizGameResultRecord => validGameResult(value, lessonId));
+      if (parsed.length !== submitted.length) return { status: "rejected", error: "gameResults contains an invalid result." };
+      if (parsed.some((game) => game.gameOrder > attempt!.current_game_order)) {
+        return { status: "rejected", error: "Cannot complete games out of order." };
+      }
+      const currentSubmitted = [...gameResults, ...parsed].some((game) => game.gameOrder === attempt!.current_game_order);
+      if (!currentSubmitted) return { status: "rejected", error: "Complete the current game before submitting the quiz." };
+      for (const game of parsed) await persistence.upsertGameResult({ ...game, attemptId: attempt.id, studentId });
+      attempt = await persistence.updateAttempt(studentId, attempt.id, {
+        status: "completed",
+        current_game_order: Math.max(attempt.current_game_order, ...parsed.map((game) => game.gameOrder + 1)),
+        score,
+        max_score: maxScore,
+        completed_at: typeof payload.completedAt === "string" ? payload.completedAt : new Date().toISOString(),
+      });
+      gameResults = await persistence.listGameResults(attempt.id);
+      return { status: "accepted", result: { state: quizState(assignmentId, lessonId, attempt, gameResults) } };
+    }
+    return { status: "retryable", error: "Operation is not an assignment quiz mutation." };
+  };
+}
+
 export async function applyOfflineOperation(
   teacherId: string,
   operation: OfflineOperation,
@@ -249,6 +424,98 @@ export async function applyOfflineOperation(
       },
     };
     return createAssignmentOperationApplier(persistence)(teacherId, operation);
+  }
+  if (
+    operation.type === "assignmentQuiz.start"
+    || operation.type === "assignmentQuiz.checkpoint"
+    || operation.type === "assignmentQuiz.complete"
+  ) {
+    const { adminClient } = await import("./client.ts");
+    const persistence: AssignmentQuizOperationPersistence = {
+      async getAssignmentContext(assignmentId) {
+        const { data, error } = await adminClient.from("assignments")
+          .select("lesson_id, class_id, student_id").eq("id", assignmentId).maybeSingle();
+        if (error) throw error;
+        return data
+          ? { lessonId: data.lesson_id, classId: data.class_id ?? null, studentId: data.student_id ?? null }
+          : null;
+      },
+      async isStudentEnrolledInClass(studentId, classId) {
+        const { data, error } = await adminClient.from("class_students")
+          .select("class_id").eq("student_id", studentId).eq("class_id", classId).maybeSingle();
+        if (error) throw error;
+        return Boolean(data);
+      },
+      async getAttempt(studentId, assignmentId) {
+        const { data, error } = await adminClient.from("attempts")
+          .select("id, student_id, assignment_id, lesson_id, status, current_game_order, score, max_score, completed_at")
+          .eq("student_id", studentId).eq("assignment_id", assignmentId)
+          .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        if (error) throw error;
+        return data as AssignmentQuizAttemptRecord | null;
+      },
+      async createAttempt(input) {
+        const { data, error } = await adminClient.from("attempts").insert({
+          id: input.id,
+          student_id: input.studentId,
+          assignment_id: input.assignmentId,
+          lesson_id: input.lessonId,
+          class_id: input.classId,
+          status: "in_progress",
+          quiz_mode: true,
+          current_game_order: 0,
+          score: 0,
+          max_score: 0,
+          duration_seconds: null,
+        }).select("id, student_id, assignment_id, lesson_id, status, current_game_order, score, max_score, completed_at").single();
+        if (error || !data) throw error ?? new Error("Failed to start assignment quiz");
+        return data as AssignmentQuizAttemptRecord;
+      },
+      async updateAttempt(studentId, attemptId, input) {
+        const update: Record<string, unknown> = {};
+        if (input.status !== undefined) update.status = input.status;
+        if (input.current_game_order !== undefined) update.current_game_order = input.current_game_order;
+        if (input.score !== undefined) update.score = input.score;
+        if (input.max_score !== undefined) update.max_score = input.max_score;
+        if (input.completed_at !== undefined) update.completed_at = input.completed_at;
+        const { data, error } = await adminClient.from("attempts").update(update)
+          .eq("id", attemptId).eq("student_id", studentId)
+          .select("id, student_id, assignment_id, lesson_id, status, current_game_order, score, max_score, completed_at")
+          .single();
+        if (error || !data) throw error ?? new Error("Failed to update assignment quiz");
+        return data as AssignmentQuizAttemptRecord;
+      },
+      async listGameResults(attemptId) {
+        const { data, error } = await adminClient.from("attempt_game_results")
+          .select("topic_id, game_id, game_order, score, max_score, completed_at")
+          .eq("attempt_id", attemptId).order("game_order", { ascending: true });
+        if (error) throw error;
+        return (data ?? []).map((row: Record<string, unknown>) => ({
+          topicId: row.topic_id as string,
+          gameId: row.game_id as string,
+          gameOrder: row.game_order as number,
+          score: row.score as number,
+          maxScore: row.max_score as number,
+          completedAt: row.completed_at as string | undefined,
+        }));
+      },
+      async upsertGameResult(input) {
+        const { error } = await adminClient.from("attempt_game_results").upsert({
+          attempt_id: input.attemptId,
+          student_id: input.studentId,
+          topic_id: input.topicId,
+          game_id: input.gameId,
+          game_order: input.gameOrder,
+          score: input.score,
+          max_score: input.maxScore,
+          score_pct: Math.round((input.score / input.maxScore) * 100),
+          passed: input.score / input.maxScore >= 0.6,
+          completed_at: input.completedAt ?? new Date().toISOString(),
+        }, { onConflict: "attempt_id,game_id" });
+        if (error) throw error;
+      },
+    };
+    return createAssignmentQuizOperationApplier(persistence)(teacherId, operation);
   }
   return {
     status: "retryable",
