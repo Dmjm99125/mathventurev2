@@ -24,6 +24,7 @@ export type OfflineSyncDeps = {
     teacherId: string,
     operation: OfflineOperation,
   ) => Promise<OfflineOperationExecution>;
+  isActorAllowed?: (actorId: string, teacherId: string) => Promise<boolean>;
   recordOperation: (
     teacherId: string,
     operation: OfflineOperation,
@@ -54,6 +55,26 @@ function defaultDependencies(): OfflineSyncDeps {
       } as StoredOfflineOperation;
     },
     applyOperation: (teacherId, operation) => applyOfflineOperation(teacherId, operation),
+    isActorAllowed: async (actorId, teacherId) => {
+      if (actorId === teacherId) return true;
+      const { adminClient } = await import("../_shared/client.ts");
+      const { data: memberships, error: membershipError } = await adminClient
+        .from("class_students")
+        .select("class_id")
+        .eq("student_id", actorId);
+      if (membershipError) throw membershipError;
+      const classIds = (memberships ?? []).map((row: { class_id: string }) => row.class_id);
+      if (!classIds.length) return false;
+      const { data: classroom, error: classroomError } = await adminClient
+        .from("classes")
+        .select("id")
+        .eq("teacher_id", teacherId)
+        .in("id", classIds)
+        .limit(1)
+        .maybeSingle();
+      if (classroomError) throw classroomError;
+      return Boolean(classroom);
+    },
     recordOperation: async (teacherId, operation, execution) => {
       const { adminClient } = await import("../_shared/client.ts");
       const { error } = await adminClient.from("offline_sync_operations").insert({
@@ -115,7 +136,12 @@ export function createOfflineSyncHandler(
 
     const results: Array<Record<string, unknown>> = [];
     for (const value of input.operations) {
-      const validation = validateOfflineOperation(value, input.deviceId, profile.id);
+      const candidateActorId = value && typeof value === "object" && typeof (value as { actorId?: unknown }).actorId === "string"
+        ? (value as { actorId: string }).actorId
+        : profile.id;
+      const actorAllowed = candidateActorId === profile.id
+        || Boolean(dependencies.isActorAllowed && await dependencies.isActorAllowed(candidateActorId, profile.id));
+      const validation = validateOfflineOperation(value, input.deviceId, actorAllowed ? candidateActorId : profile.id);
       if (!validation.valid) {
         results.push(resultForInvalidOperation(value, validation.error));
         continue;
