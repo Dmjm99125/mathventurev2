@@ -365,6 +365,138 @@ export function createAssignmentQuizOperationApplier(
   };
 }
 
+export type AttemptSubmitOperationInput = {
+  id: string;
+  studentId: string;
+  lessonId: string;
+  assignmentId: string | null;
+  classId: string | null;
+  score: number;
+  maxScore: number;
+  durationSeconds: number | null;
+};
+
+export type AttemptGameResultOperationInput = {
+  attemptId: string;
+  studentId: string;
+  topicId: string;
+  gameId: string;
+  gameOrder: number;
+  score: number;
+  maxScore: number;
+  scorePct: number;
+  passed: boolean;
+  completedAt: string;
+};
+
+export type ActivityOperationPersistence = {
+  resolveAttemptClassId(input: {
+    studentId: string;
+    assignmentId: string | null;
+    requestedClassId: string | null;
+  }): Promise<string | null>;
+  insertAttempt(input: AttemptSubmitOperationInput): Promise<Record<string, unknown>>;
+  insertAttemptGameResults(rows: AttemptGameResultOperationInput[]): Promise<void>;
+  isTeacherForClass(classId: string, teacherId: string): Promise<boolean>;
+  insertPost(input: {
+    id: string;
+    classId: string;
+    authorId: string;
+    content: string;
+  }): Promise<Record<string, unknown>>;
+};
+
+function validDetailedGameResult(value: unknown): value is {
+  topicId: string;
+  gameId: string;
+  gameOrder: number;
+  score: number;
+  maxScore: number;
+  completedAt?: string;
+} {
+  if (!value || typeof value !== "object") return false;
+  const result = value as Record<string, unknown>;
+  return typeof result.topicId === "string"
+    && typeof result.gameId === "string"
+    && result.gameId.length > 0
+    && Number.isInteger(result.gameOrder)
+    && Number.isFinite(result.score)
+    && Number.isFinite(result.maxScore)
+    && (result.maxScore as number) > 0
+    && (result.score as number) >= 0
+    && (result.score as number) <= (result.maxScore as number);
+}
+
+export function createActivityOperationApplier(
+  persistence: ActivityOperationPersistence,
+): (actorId: string, operation: OfflineOperation) => Promise<OfflineOperationExecution> {
+  return async (actorId, operation) => {
+    const payload = operation.payload;
+    if (operation.type === "attempt.submit") {
+      const lessonId = payloadString(payload, "lessonId");
+      const score = Number(payload.score);
+      const maxScore = Number(payload.maxScore);
+      if (!lessonId) return { status: "rejected", error: "lessonId is required." };
+      if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || score < 0 || score > maxScore) {
+        return { status: "rejected", error: "score and maxScore must be valid numbers." };
+      }
+      if (payload.assignmentId) return { status: "rejected", error: "Use the assignment quiz flow for assigned work." };
+      const gameResults = Array.isArray(payload.gameResults) ? payload.gameResults : [];
+      if (!gameResults.every(validDetailedGameResult)) {
+        return { status: "rejected", error: "gameResults must contain valid detailed game rows." };
+      }
+      const completedAt = typeof payload.completedAt === "string" ? payload.completedAt : new Date().toISOString();
+      const durationSeconds = payload.durationSeconds == null ? null : Number(payload.durationSeconds);
+      if (durationSeconds !== null && (!Number.isFinite(durationSeconds) || durationSeconds < 0)) {
+        return { status: "rejected", error: "durationSeconds must be a valid number." };
+      }
+      const classId = await persistence.resolveAttemptClassId({
+        studentId: actorId,
+        assignmentId: null,
+        requestedClassId: payloadString(payload, "classId") || null,
+      });
+      const attempt = await persistence.insertAttempt({
+        id: operation.entityId,
+        studentId: actorId,
+        lessonId,
+        assignmentId: null,
+        classId,
+        score,
+        maxScore,
+        durationSeconds,
+      });
+      await persistence.insertAttemptGameResults(gameResults.map((value) => {
+        const row = value as typeof value & { completedAt?: string };
+        return {
+          attemptId: operation.entityId,
+          studentId: actorId,
+          topicId: row.topicId,
+          gameId: row.gameId,
+          gameOrder: row.gameOrder,
+          score: row.score,
+          maxScore: row.maxScore,
+          scorePct: Math.round((row.score / row.maxScore) * 100),
+          passed: row.score / row.maxScore >= 0.6,
+          completedAt: row.completedAt ?? completedAt,
+        };
+      }));
+      return { status: "accepted", result: { attempt } };
+    }
+
+    if (operation.type === "post.create") {
+      const classId = payloadString(payload, "classId");
+      const content = payloadString(payload, "content");
+      if (!classId || !content) return { status: "rejected", error: "classId and content are required." };
+      if (!await persistence.isTeacherForClass(classId, actorId)) {
+        return { status: "rejected", error: "The teacher does not own the target class." };
+      }
+      const post = await persistence.insertPost({ id: operation.entityId, classId, authorId: actorId, content });
+      return { status: "accepted", result: { post } };
+    }
+    return { status: "retryable", error: "Operation is not an activity mutation." };
+  };
+}
+
 export async function applyOfflineOperation(
   teacherId: string,
   operation: OfflineOperation,
@@ -516,6 +648,71 @@ export async function applyOfflineOperation(
       },
     };
     return createAssignmentQuizOperationApplier(persistence)(teacherId, operation);
+  }
+  if (operation.type === "attempt.submit" || operation.type === "post.create") {
+    const { adminClient } = await import("./client.ts");
+    const persistence: ActivityOperationPersistence = {
+      async resolveAttemptClassId(input) {
+        if (input.requestedClassId) {
+          const { data, error } = await adminClient.from("class_students").select("class_id")
+            .eq("student_id", input.studentId).eq("class_id", input.requestedClassId).maybeSingle();
+          if (error) throw error;
+          if (!data) throw new Error("The student is not enrolled in the requested class.");
+          return input.requestedClassId;
+        }
+        const { data, error } = await adminClient.from("class_students").select("class_id")
+          .eq("student_id", input.studentId).order("joined_at", { ascending: false }).limit(1).maybeSingle();
+        if (error) throw error;
+        return (data?.class_id as string | undefined) ?? null;
+      },
+      async insertAttempt(input) {
+        const { data, error } = await adminClient.from("attempts").insert({
+          id: input.id,
+          student_id: input.studentId,
+          lesson_id: input.lessonId,
+          assignment_id: input.assignmentId,
+          class_id: input.classId,
+          score: input.score,
+          max_score: input.maxScore,
+          duration_seconds: input.durationSeconds,
+        }).select("id, lesson_id, score, max_score, completed_at").single();
+        if (error || !data) throw error ?? new Error("Failed to insert attempt");
+        return data;
+      },
+      async insertAttemptGameResults(rows) {
+        if (!rows.length) return;
+        const { error } = await adminClient.from("attempt_game_results").insert(rows.map((row) => ({
+          attempt_id: row.attemptId,
+          student_id: row.studentId,
+          topic_id: row.topicId,
+          game_id: row.gameId,
+          game_order: row.gameOrder,
+          score: row.score,
+          max_score: row.maxScore,
+          score_pct: row.scorePct,
+          passed: row.passed,
+          completed_at: row.completedAt,
+        })));
+        if (error) throw error;
+      },
+      async isTeacherForClass(classId, ownerId) {
+        const { data, error } = await adminClient.from("classes").select("id")
+          .eq("id", classId).eq("teacher_id", ownerId).maybeSingle();
+        if (error) throw error;
+        return Boolean(data);
+      },
+      async insertPost(input) {
+        const { data, error } = await adminClient.from("class_posts").insert({
+          id: input.id,
+          class_id: input.classId,
+          author_id: input.authorId,
+          content: input.content,
+        }).select("id, class_id, author_id, content, created_at").single();
+        if (error || !data) throw error ?? new Error("Failed to create post");
+        return data;
+      },
+    };
+    return createActivityOperationApplier(persistence)(teacherId, operation);
   }
   return {
     status: "retryable",
