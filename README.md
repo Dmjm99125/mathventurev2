@@ -27,6 +27,10 @@ MathVenture is an interactive, gamified math learning platform designed for youn
 *   **Student Monitoring:** Detailed statistics, progress tracking, and activity reports for each student.
 *   **Assignments:** Assign specific topics or custom quizzes to groups of students.
 
+### Offline classroom use
+
+After one successful online teacher login and classroom-pack download, the installed PWA can continue working without internet. Assignments, roster changes, posts, quiz checkpoints, attempts, dashboards, and cached student switching are saved locally and synchronized later with **Sync now**. The first online login, account creation, password reset/change, and first classroom provisioning still require internet. See [Offline classroom operation](docs/offline-classroom.md).
+
 ---
 
 ## 🛠️ Technology Stack

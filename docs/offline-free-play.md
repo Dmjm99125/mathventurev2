@@ -17,7 +17,7 @@ If the download is interrupted, choose **Retry download**. Completed files remai
 
 - `/free-play` and its Free Play lesson routes open from the app shell after the library is ready.
 - Free Play gameplay stays local and never submits an attempt to the API.
-- Teacher dashboards, assigned quizzes, reports, classroom progress, and account actions remain online-only.
+- Authenticated classroom work has a separate offline workflow documented in [Offline classroom operation](offline-classroom.md). Public Free Play media caching does not provision classroom data or teacher login credentials.
 - A newer media build appears as **Update available**. Downloading the update does not replace the previous working library until the new version is complete.
 
 ## Deployment requirements
