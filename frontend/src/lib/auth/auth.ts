@@ -20,6 +20,8 @@ import {
 } from '../offline/classroom/crypto';
 import type { OfflineStore } from '../offline/classroom/store';
 import { createIndexedDbStore } from '../offline/classroom/store';
+import { createOfflineRepository } from '../offline/classroom/repository';
+import { bootstrapRepository, type BootstrapInvoker } from '../offline/classroom/bootstrap';
 
 export type OfflineEnrollmentRecord = {
   deviceId: string;
@@ -153,6 +155,23 @@ export async function teacherSignUp(email: string, password: string, fullName: s
 export async function teacherSignIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  const user = data.user;
+  if (user) {
+    const profile: UserProfile = {
+      id: user.id,
+      role: 'teacher',
+      full_name: typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '',
+    };
+    try {
+      const store = createIndexedDbStore();
+      const enrollment = await enrollOfflineDevice(profile, password, store);
+      const repository = createOfflineRepository(store, undefined, undefined, enrollment.deviceId);
+      const invoke: BootstrapInvoker = (name, options) => invokeTeacherFunction(name, options);
+      await bootstrapRepository(repository, () => invoke('offline-bootstrap', { method: 'GET' }));
+    } catch (bootstrapError) {
+      console.warn('Offline classroom provisioning skipped', bootstrapError);
+    }
+  }
   return data;
 }
 

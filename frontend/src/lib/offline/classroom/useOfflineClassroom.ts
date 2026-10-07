@@ -4,6 +4,7 @@ import { createOfflineRepository, type OfflineRepository } from './repository.ts
 import { syncOfflineClassroom } from './index.ts';
 import { offlineStatusReducer, type OfflineLifecycleState } from './status.ts';
 import type { BootstrapInvoker } from './bootstrap.ts';
+import { getOrCreateDeviceId } from './crypto.ts';
 
 const initialState: OfflineLifecycleState = {
   status: typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false ? 'offline' : 'online',
@@ -27,7 +28,12 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
 }) {
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
   const resolvedRepository = useMemo(
-    () => repository ?? createOfflineRepository(createIndexedDbStore()),
+    () => {
+      if (repository) return repository;
+      const storage = typeof window === 'undefined' ? undefined : window.localStorage;
+      const deviceId = storage ? getOrCreateDeviceId(storage) : 'local-device';
+      return createOfflineRepository(createIndexedDbStore(), undefined, undefined, deviceId);
+    },
     [repository],
   );
   const syncNow = useCallback(async () => {
