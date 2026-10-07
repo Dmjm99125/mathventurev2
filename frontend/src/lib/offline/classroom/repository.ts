@@ -38,6 +38,8 @@ export type OfflineRepository = {
   persistBootstrap(snapshot: OfflineBootstrapResponse): Promise<void>;
   applyMutation(input: OfflineMutationInput): Promise<OfflineOutboxOperation>;
   getOutbox(): Promise<OfflineOutboxOperation[]>;
+  updateOutbox(operationId: string, patch: Partial<OfflineOutboxOperation>): Promise<void>;
+  deleteOutbox(operationId: string): Promise<void>;
   getSyncSummary(): Promise<{ pendingCount: number; failedCount: number }>;
 };
 
@@ -175,6 +177,17 @@ export function createOfflineRepository(
       return records
         .map((record) => record.value as OfflineOutboxOperation)
         .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+    },
+    async updateOutbox(operationId, patch) {
+      const current = await store.get('outbox', operationId);
+      if (!current) return;
+      await store.put('outbox', {
+        key: operationId,
+        value: { ...(current.value as OfflineOutboxOperation), ...patch },
+      });
+    },
+    async deleteOutbox(operationId) {
+      await store.delete('outbox', operationId);
     },
     async getSyncSummary() {
       const operations = await this.getOutbox();
