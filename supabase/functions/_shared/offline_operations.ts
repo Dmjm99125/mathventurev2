@@ -1,3 +1,10 @@
+import {
+  defaultHiddenStudentProvisionPersistence,
+  normalizeStudentIdentity,
+  provisionHiddenStudentForClass,
+  type NormalizedStudentIdentity,
+} from "./hidden_student_provision.ts";
+
 export const MAX_OFFLINE_SYNC_BATCH = 50;
 
 export const OFFLINE_OPERATION_TYPES = [
@@ -406,6 +413,69 @@ export type ActivityOperationPersistence = {
   }): Promise<Record<string, unknown>>;
 };
 
+export type RosterOperationPersistence = {
+  getTeacherClassroom(teacherId: string): Promise<{ id: string; teacherId: string; name: string } | null>;
+  hasStudentWithNormalizedName(normalizedLastName: string, normalizedFirstName: string): Promise<boolean>;
+  provisionStudentForClass(input: {
+    classId: string;
+    identity: NormalizedStudentIdentity;
+  }): Promise<{ studentId: string; email: string }>;
+  removeMembership(input: { classId: string; studentId: string }): Promise<void>;
+};
+
+function rosterNameKey(identity: NormalizedStudentIdentity): string {
+  return `${identity.normalizedLastName}:${identity.normalizedFirstName}`;
+}
+
+export function createRosterOperationApplier(
+  persistence: RosterOperationPersistence,
+): (teacherId: string, operation: OfflineOperation) => Promise<OfflineOperationExecution> {
+  return async (teacherId, operation) => {
+    const classroom = await persistence.getTeacherClassroom(teacherId);
+    if (!classroom) return { status: "rejected", error: "Classroom not found." };
+    if (operation.type === "class.ensure") {
+      return { status: "accepted", result: { classroom } };
+    }
+    if (operation.type === "class.addStudents") {
+      if (!Array.isArray(operation.payload.students) || operation.payload.students.length === 0) {
+        return { status: "rejected", error: "At least one student is required." };
+      }
+      const identities: NormalizedStudentIdentity[] = [];
+      for (const value of operation.payload.students) {
+        const student = value && typeof value === "object" ? value as Record<string, unknown> : {};
+        const identity = normalizeStudentIdentity({
+          lastName: typeof student.lastName === "string" ? student.lastName : "",
+          firstName: typeof student.firstName === "string" ? student.firstName : "",
+        });
+        if (!identity) return { status: "rejected", error: "Every student row needs both Last Name and First Name." };
+        identities.push(identity);
+      }
+      const seen = new Set<string>();
+      for (const identity of identities) {
+        const key = rosterNameKey(identity);
+        if (seen.has(key)) return { status: "rejected", error: "Each student name can appear only once per batch." };
+        seen.add(key);
+        if (await persistence.hasStudentWithNormalizedName(identity.normalizedLastName, identity.normalizedFirstName)) {
+          return { status: "rejected", error: `A student named ${identity.fullName} already exists.` };
+        }
+      }
+      const students = [];
+      for (const identity of identities) {
+        const created = await persistence.provisionStudentForClass({ classId: classroom.id, identity });
+        students.push({ localStudentId: operation.entityId, studentId: created.studentId, email: created.email, fullName: identity.fullName });
+      }
+      return { status: "accepted", result: { students } };
+    }
+    if (operation.type === "class.removeStudent") {
+      const studentId = payloadString(operation.payload, "studentId") || operation.entityId;
+      if (!studentId) return { status: "rejected", error: "studentId is required." };
+      await persistence.removeMembership({ classId: classroom.id, studentId });
+      return { status: "accepted", result: { removed: true, studentId } };
+    }
+    return { status: "retryable", error: "Operation is not a roster mutation." };
+  };
+}
+
 function validDetailedGameResult(value: unknown): value is {
   topicId: string;
   gameId: string;
@@ -713,6 +783,33 @@ export async function applyOfflineOperation(
       },
     };
     return createActivityOperationApplier(persistence)(teacherId, operation);
+  }
+  if (operation.type === "class.ensure" || operation.type === "class.addStudents" || operation.type === "class.removeStudent") {
+    const { adminClient } = await import("./client.ts");
+    const persistence: RosterOperationPersistence = {
+      async getTeacherClassroom(ownerId) {
+        const { data, error } = await adminClient.from("classes")
+          .select("id, teacher_id, name").eq("teacher_id", ownerId).order("created_at", { ascending: true }).limit(1).maybeSingle();
+        if (error) throw error;
+        return data ? { id: data.id, teacherId: data.teacher_id, name: data.name } : null;
+      },
+      async hasStudentWithNormalizedName(normalizedLastName, normalizedFirstName) {
+        const { data, error } = await adminClient.from("profiles").select("id")
+          .eq("role", "student").eq("normalized_last_name", normalizedLastName)
+          .eq("normalized_first_name", normalizedFirstName).limit(1);
+        if (error) throw error;
+        return Boolean(data?.length);
+      },
+      async provisionStudentForClass(input) {
+        return provisionHiddenStudentForClass(defaultHiddenStudentProvisionPersistence, input);
+      },
+      async removeMembership(input) {
+        const { error } = await adminClient.from("class_students").delete()
+          .eq("class_id", input.classId).eq("student_id", input.studentId);
+        if (error) throw error;
+      },
+    };
+    return createRosterOperationApplier(persistence)(teacherId, operation);
   }
   return {
     status: "retryable",
