@@ -6,7 +6,7 @@ import type { OfflineRepository } from './repository.ts';
 
 export type BootstrapInvoker = (
   name: string,
-  options?: { method?: 'GET' | 'POST' },
+  options?: { method?: 'GET' | 'POST'; body?: Record<string, unknown> },
 ) => Promise<unknown>;
 
 export async function downloadClassroomPack(
