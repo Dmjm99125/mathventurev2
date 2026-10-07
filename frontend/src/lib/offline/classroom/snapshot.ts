@@ -23,11 +23,7 @@ export function mergeOfflineSnapshot(
   localCollections: Record<string, SnapshotRow[]>,
   pendingOperations: PendingOperationReference[],
 ): MergedOfflineSnapshot {
-  const pendingEntityIds = new Set(
-    pendingOperations
-      .filter((operation) => operation.status !== 'syncing')
-      .map((operation) => operation.entityId),
-  );
+  const pendingEntityIds = new Set(pendingOperations.map((operation) => operation.entityId));
   const merged: Record<string, unknown> = {
     ...snapshot,
     lastSyncedAt: new Date().toISOString(),
@@ -37,11 +33,12 @@ export function mergeOfflineSnapshot(
     const serverRows = Array.isArray(snapshot[collectionName])
       ? snapshot[collectionName] as SnapshotRow[]
       : [];
-    const serverIds = new Set(serverRows.map((row) => row.id));
-    const preservedLocalRows = localRows.filter(
-      (row) => pendingEntityIds.has(row.id) && !serverIds.has(row.id),
-    );
-    merged[collectionName] = [...serverRows, ...preservedLocalRows];
+    const localPendingRows = localRows.filter((row) => pendingEntityIds.has(row.id));
+    const localPendingIds = new Set(localPendingRows.map((row) => row.id));
+    merged[collectionName] = [
+      ...serverRows.filter((row) => !localPendingIds.has(row.id)),
+      ...localPendingRows,
+    ];
   }
 
   return merged as MergedOfflineSnapshot;

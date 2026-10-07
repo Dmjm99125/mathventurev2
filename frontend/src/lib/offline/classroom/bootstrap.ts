@@ -2,6 +2,7 @@ import {
   isOfflineBootstrapResponse,
   type OfflineBootstrapResponse,
 } from './types.ts';
+import type { OfflineRepository } from './repository.ts';
 
 export type BootstrapInvoker = (
   name: string,
@@ -19,5 +20,17 @@ export async function downloadClassroomPack(
   if (!isOfflineBootstrapResponse(response)) {
     throw new Error('The offline classroom pack is invalid.');
   }
+  return response;
+}
+
+export async function bootstrapRepository(
+  repository: OfflineRepository,
+  fetchSnapshot: () => Promise<unknown>,
+): Promise<OfflineBootstrapResponse> {
+  const response = await fetchSnapshot();
+  if (!isOfflineBootstrapResponse(response)) {
+    throw new Error('The offline classroom pack is invalid.');
+  }
+  await repository.persistBootstrap(response);
   return response;
 }
