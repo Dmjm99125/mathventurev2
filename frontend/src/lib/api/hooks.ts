@@ -10,6 +10,25 @@ import {
 } from './client';
 import type { TeacherAddStudentDraft } from '../teacher/add-students';
 import type { TeacherReportsWindowKey } from '../teacher/reports';
+import { useOfflineClassroom } from '../offline/classroom/useOfflineClassroom';
+import {
+  addOfflineStudents,
+  createOfflineAssignment,
+  deleteOfflineAssignment,
+  removeOfflineStudent,
+  updateOfflineAssignment,
+} from '../offline/classroom/mutations';
+import {
+  checkpointOfflineAssignmentQuiz,
+  completeOfflineAssignmentQuiz,
+  readOfflineAssignmentQuiz,
+  startOfflineAssignmentQuiz,
+  submitOfflineAttempt,
+} from '../offline/classroom/quiz';
+
+function browserIsOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
 
 function toLegacyClassesResponse(input: {
   classroom: TeacherClassroomSummary | StudentClassroomSummary | null;
@@ -120,19 +139,28 @@ export function useAssignments(classId?: string) {
 
 export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['assignment-quiz', assignmentId, lessonId],
-    queryFn: () => api.assignmentQuiz.get(assignmentId!, lessonId!),
+    queryFn: async () => browserIsOffline() && user
+      ? { state: await readOfflineAssignmentQuiz(repository, user.id, assignmentId!, lessonId!) }
+      : api.assignmentQuiz.get(assignmentId!, lessonId!),
     enabled: Boolean(assignmentId && lessonId) && isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useStartAssignmentQuiz() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository } = useOfflineClassroom();
   return useMutation({
-    mutationFn: ({ assignmentId, lessonId }: { assignmentId: string; lessonId: string }) =>
-      api.assignmentQuiz.start(assignmentId, lessonId),
+    mutationFn: async ({ assignmentId, lessonId }: { assignmentId: string; lessonId: string }) => {
+      if (browserIsOffline() && user) {
+        return { state: (await startOfflineAssignmentQuiz(repository, user.id, assignmentId, lessonId)).state };
+      }
+      return api.assignmentQuiz.start(assignmentId, lessonId);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
@@ -142,8 +170,24 @@ export function useStartAssignmentQuiz() {
 
 export function useCheckpointAssignmentQuiz() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository } = useOfflineClassroom();
   return useMutation({
-    mutationFn: api.assignmentQuiz.checkpoint,
+    mutationFn: async (input: Parameters<typeof api.assignmentQuiz.checkpoint>[0]) => {
+      if (browserIsOffline() && user) {
+        const attempt = (await repository.readCollection('attempts')).find((row) => {
+          return row.assignment_id === input.assignmentId && row.student_id === user.id;
+        });
+        if (!attempt?.id) throw new Error('Start the assignment quiz before saving progress.');
+        return {
+          state: await checkpointOfflineAssignmentQuiz(repository, user.id, {
+            ...input,
+            attemptId: String(attempt.id),
+          }),
+        };
+      }
+      return api.assignmentQuiz.checkpoint(input);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
     },
@@ -152,8 +196,24 @@ export function useCheckpointAssignmentQuiz() {
 
 export function useCompleteAssignmentQuiz() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository } = useOfflineClassroom();
   return useMutation({
-    mutationFn: api.assignmentQuiz.complete,
+    mutationFn: async (input: Parameters<typeof api.assignmentQuiz.complete>[0]) => {
+      if (browserIsOffline() && user) {
+        const attempt = (await repository.readCollection('attempts')).find((row) => {
+          return row.assignment_id === input.assignmentId && row.student_id === user.id;
+        });
+        if (!attempt?.id) throw new Error('Start the assignment quiz before completing it.');
+        return {
+          state: await completeOfflineAssignmentQuiz(repository, user.id, {
+            ...input,
+            attemptId: String(attempt.id),
+          }),
+        };
+      }
+      return api.assignmentQuiz.complete(input);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
@@ -227,9 +287,17 @@ export function useJoinClass() {
 
 export function useCreateAssignment() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) =>
-      api.assignments.create(input),
+    mutationFn: async (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) => {
+      if (user && browserIsOffline()) {
+        const result = await createOfflineAssignment(repository, user.id, input);
+        void syncNow();
+        return { assignment: { id: result.id, ...input }, syncState: result.syncState };
+      }
+      return api.assignments.create(input);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['assignments', variables.classId] });
       queryClient.invalidateQueries({ queryKey: ['assignments', undefined] });
@@ -239,9 +307,17 @@ export function useCreateAssignment() {
 
 export function useUpdateAssignment() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: (input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null }) =>
-      api.assignments.update(input),
+    mutationFn: async (input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null }) => {
+      if (user && browserIsOffline()) {
+        const result = await updateOfflineAssignment(repository, user.id, input);
+        void syncNow();
+        return { assignment: { id: result.id, ...input }, syncState: result.syncState };
+      }
+      return api.assignments.update(input);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
       queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
@@ -252,8 +328,17 @@ export function useUpdateAssignment() {
 
 export function useDeleteAssignment() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: (assignmentId: string) => api.assignments.delete(assignmentId),
+    mutationFn: async (assignmentId: string) => {
+      if (user && browserIsOffline()) {
+        const result = await deleteOfflineAssignment(repository, user.id, assignmentId);
+        void syncNow();
+        return { deleted: true as const, syncState: result.syncState };
+      }
+      return api.assignments.delete(assignmentId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
       queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
@@ -264,9 +349,17 @@ export function useDeleteAssignment() {
 
 export function useRemoveStudentFromClass() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: ({ studentId }: { classId?: string; studentId: string }) =>
-      api.classes.removeStudent(studentId),
+    mutationFn: async ({ studentId }: { classId?: string; studentId: string }) => {
+      if (user && browserIsOffline()) {
+        const result = await removeOfflineStudent(repository, user.id, studentId);
+        void syncNow();
+        return { removed: true as const, syncState: result.syncState };
+      }
+      return api.classes.removeStudent(studentId);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
       if (variables.classId) {
@@ -280,13 +373,23 @@ export function useRemoveStudentFromClass() {
 
 export function useAddStudentsToClass() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: ({
       students,
     }: {
       classId?: string;
       students: TeacherAddStudentDraft[];
-    }) => api.classes.addStudents(students),
+    }) => {
+      if (user && browserIsOffline()) {
+        return addOfflineStudents(repository, user.id, students).then((result) => {
+          void syncNow();
+          return { createdCount: students.length, syncState: result.syncState };
+        });
+      }
+      return api.classes.addStudents(students);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ['classroom', 'roster'],
@@ -304,8 +407,10 @@ export function useAddStudentsToClass() {
 
 export function useSubmitAttempt() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: (input: {
+    mutationFn: async (input: {
       lessonId: string;
       assignmentId?: string;
       classId?: string;
@@ -313,8 +418,15 @@ export function useSubmitAttempt() {
       maxScore: number;
       durationSeconds?: number;
       gameResults?: import('./client').AttemptGameResultInput[];
-    }) =>
-      api.attempts.submit(input),
+    }) => {
+      if (user && browserIsOffline()) {
+        return submitOfflineAttempt(repository, user.id, input).then((result) => {
+          void syncNow();
+          return { attempt: { id: result.id }, syncState: result.syncState };
+        });
+      }
+      return api.attempts.submit(input);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'student'] });
       queryClient.invalidateQueries({ queryKey: ['assignments'] });

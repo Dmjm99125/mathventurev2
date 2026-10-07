@@ -66,6 +66,31 @@ export async function startOfflineAssignmentQuiz(
   return { attemptId, state: stateFromAttempt(assignmentId, lessonId, attempt) };
 }
 
+export async function readOfflineAssignmentQuiz(
+  repository: OfflineRepository,
+  studentId: string,
+  assignmentId: string,
+  lessonId: string,
+): Promise<AssignmentQuizState> {
+  const attempt = (await repository.readCollection('attempts')).find((candidate) => {
+    return candidate.assignment_id === assignmentId && candidate.student_id === studentId;
+  });
+  if (!attempt) {
+    return {
+      status: 'not_started',
+      assignmentId,
+      lessonId,
+      attemptId: null,
+      currentGameOrder: 0,
+      score: 0,
+      maxScore: 0,
+      gameResults: [],
+      completedAt: null,
+    };
+  }
+  return stateFromAttempt(assignmentId, lessonId, attempt);
+}
+
 export async function checkpointOfflineAssignmentQuiz(
   repository: OfflineRepository,
   studentId: string,
