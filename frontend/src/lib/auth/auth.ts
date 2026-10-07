@@ -76,7 +76,19 @@ export async function offlineSignIn(
   }
   const valid = await verifyPasswordVerifier(password, enrollment.verifier);
   if (!valid) throw new OfflineAuthError('Incorrect offline password.');
+  await store.put('meta', { key: 'offlineSession', value: enrollment.profile });
   return enrollment.profile;
+}
+
+export async function readOfflineSession(
+  store: OfflineStore = createIndexedDbStore(),
+): Promise<UserProfile | null> {
+  const value = (await store.get('meta', 'offlineSession'))?.value;
+  if (!value || typeof value !== 'object') return null;
+  const profile = value as Partial<UserProfile>;
+  return typeof profile.id === 'string' && profile.role === 'teacher' && typeof profile.full_name === 'string'
+    ? profile as UserProfile
+    : null;
 }
 
 export async function offlineSignOut(store: OfflineStore = createIndexedDbStore()): Promise<void> {
@@ -197,6 +209,7 @@ export async function signOut() {
     supabase.auth.signOut(),
   ]);
   resetActiveAuthClient();
+  await offlineSignOut().catch(() => {});
   if (studentResult.error) throw studentResult.error;
   if (teacherResult.error) throw teacherResult.error;
 }

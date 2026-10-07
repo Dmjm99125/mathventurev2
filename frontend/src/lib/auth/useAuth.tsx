@@ -5,6 +5,8 @@ import { supabase } from '../supabase/client';
 import { studentSupabase } from '../supabase/student-client';
 import {
   getProfile,
+  offlineSignIn as unlockOfflineTeacher,
+  readOfflineSession,
   returnToTeacherAccount as clearStudentAccount,
   viewStudentAccount as openStudentAccount,
 } from './auth';
@@ -20,6 +22,7 @@ export type AuthContextType = {
   refreshProfile: () => Promise<void>;
   viewStudentAccount: (studentId: string) => Promise<void>;
   returnToTeacherAccount: (password: string) => Promise<void>;
+  offlineSignIn: (password: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -31,6 +34,7 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
   viewStudentAccount: async () => {},
   returnToTeacherAccount: async () => {},
+  offlineSignIn: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -42,11 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
-      const [profile, studentSessionResult] = await Promise.all([
+      const [profile, studentSessionResult, offlineSession] = await Promise.all([
         getProfile(),
         studentSupabase.auth.getSession(),
+        readOfflineSession().catch(() => null),
       ]);
-      const teacherProfile = profile?.role === 'teacher' ? profile : null;
+      const teacherProfile = profile?.role === 'teacher' ? profile : offlineSession;
       const studentProfile = profileFromAuthSession(studentSessionResult.data.session);
       setTeacherUser(teacherProfile);
       const activeStudent = teacherProfile && studentProfile?.role === 'student'
@@ -78,6 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await clearStudentAccount(password);
     queryClient.clear();
     setViewingStudent(null);
+  };
+
+  const offlineSignIn = async (password: string) => {
+    const profile = await unlockOfflineTeacher(password);
+    setTeacherUser(profile);
+    setViewingStudent(null);
+    resetActiveAuthClient();
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -121,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshProfile: fetchProfile,
       viewStudentAccount,
       returnToTeacherAccount,
+      offlineSignIn,
     }}>
       {children}
     </AuthContext.Provider>

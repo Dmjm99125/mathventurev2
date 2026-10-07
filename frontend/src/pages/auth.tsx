@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useAuth } from '@/lib/auth/useAuth';
 import {
   PASSWORD_RESET_OTP_LENGTH,
   requestTeacherPasswordReset,
@@ -20,13 +21,24 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
+  const { offlineSignIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await teacherSignIn(email, password);
+      const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      if (isOffline) {
+        await offlineSignIn(password);
+      } else {
+        try {
+          await teacherSignIn(email, password);
+        } catch (onlineError) {
+          if (typeof navigator === 'undefined' || navigator.onLine) throw onlineError;
+          await offlineSignIn(password);
+        }
+      }
       setLocation('/'); // App.tsx will redirect based on role
     } catch (err: any) {
       setError(err.message || 'Login failed');
