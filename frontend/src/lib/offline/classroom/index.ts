@@ -1,7 +1,10 @@
-import type { BootstrapInvoker } from './bootstrap.ts';
-import { syncOutbox, type OfflineSyncResult, type SyncProgress } from './sync.ts';
-import type { OfflineRepository } from './repository.ts';
+import { bootstrapRepository, type BootstrapInvoker } from './bootstrap.ts';
+import { createOfflineAssignment } from './mutations.ts';
+import { syncOutbox, type OfflineSyncResult, type SyncBatchSender, type SyncProgress } from './sync.ts';
+import { createOfflineRepository, type OfflineRepository } from './repository.ts';
+import type { OfflineStore } from './store.ts';
 import type { OfflineOutboxOperation } from './types.ts';
+import type { OfflineBootstrapResponse } from './types.ts';
 
 export type ClassroomApiSurface = Record<string, Record<string, (...args: any[]) => Promise<any>>>;
 
@@ -62,4 +65,24 @@ export async function syncOfflineClassroom(
     }
     return (response as { results: OfflineSyncResult[] }).results;
   }, onProgress);
+}
+
+export function createTestOfflineClassroom(options: {
+  repository?: OfflineRepository;
+  store: OfflineStore;
+  snapshot: OfflineBootstrapResponse;
+}) {
+  const repository = options.repository ?? createOfflineRepository(options.store);
+  return {
+    repository,
+    bootstrapNow: () => bootstrapRepository(repository, async () => options.snapshot),
+    createAssignment: (
+      actorId: string,
+      input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string | null },
+      idFactory?: () => string,
+    ) => createOfflineAssignment(repository, actorId, input, idFactory),
+    syncNow: (sendBatch: SyncBatchSender, onProgress?: (progress: SyncProgress) => void) => {
+      return syncOutbox(repository, sendBatch, onProgress);
+    },
+  };
 }
