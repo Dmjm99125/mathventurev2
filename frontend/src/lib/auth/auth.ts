@@ -91,6 +91,18 @@ export async function readOfflineSession(
     : null;
 }
 
+export async function readOfflineStudentProfile(
+  studentId: string,
+  store: OfflineStore = createIndexedDbStore(),
+): Promise<UserProfile | null> {
+  const value = (await store.get('profiles', studentId))?.value;
+  if (!value || typeof value !== 'object') return null;
+  const profile = value as Partial<UserProfile>;
+  return profile.id === studentId && profile.role === 'student' && typeof profile.full_name === 'string'
+    ? profile as UserProfile
+    : null;
+}
+
 export async function offlineSignOut(store: OfflineStore = createIndexedDbStore()): Promise<void> {
   await store.delete('meta', 'offlineSession');
 }
