@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { precacheAndRoute } from 'workbox-precaching';
+import { matchPrecache, precacheAndRoute } from 'workbox-precaching';
 import {
   buildMediaDownloadStatus,
   canActivateMediaCache,
@@ -341,7 +341,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(async () => {
-        const cachedShell = await caches.match('/index.html');
+        const cachedShell = await matchPrecache('/index.html');
         return cachedShell ?? new Response('MathVenture is offline.', { status: 503 });
       }),
     );

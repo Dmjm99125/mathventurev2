@@ -47,6 +47,14 @@ Deno.test("PWA worker has an app-shell precache entry point", async () => {
   assertMatch(worker, /checkForMediaUpdate/);
 });
 
+Deno.test("PWA worker resolves the revisioned app shell for offline navigation", async () => {
+  const worker = await readProjectFile("src/pwa/sw.ts");
+
+  assertMatch(worker, /matchPrecache/);
+  assertMatch(worker, /matchPrecache\(['"]\/index\.html['"]\)/);
+  assertEquals(worker.includes("caches.match('/index.html')"), false);
+});
+
 Deno.test("app startup registers the PWA service worker and exposes install state", async () => {
   const main = await readProjectFile("src/main.tsx");
   const hook = await readProjectFile("src/hooks/usePwaInstall.ts");
