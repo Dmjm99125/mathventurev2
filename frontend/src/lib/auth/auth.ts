@@ -15,6 +15,7 @@ import { profileFromAuthSession, type UserProfile } from './profile';
 import {
   createPasswordVerifier,
   getOrCreateDeviceId,
+  verifyPasswordVerifier,
   type OfflineCredentialRecord,
 } from '../offline/classroom/crypto';
 import type { OfflineStore } from '../offline/classroom/store';
@@ -56,6 +57,30 @@ export async function readOfflineEnrollment(
   const candidate = record as Partial<OfflineEnrollmentRecord>;
   if (!candidate.deviceId || !candidate.verifier || !candidate.profile) return null;
   return candidate as OfflineEnrollmentRecord;
+}
+
+export class OfflineAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'OfflineAuthError';
+  }
+}
+
+export async function offlineSignIn(
+  password: string,
+  store: OfflineStore = createIndexedDbStore(),
+): Promise<UserProfile> {
+  const enrollment = await readOfflineEnrollment(store);
+  if (!enrollment) {
+    throw new OfflineAuthError('No offline account is enrolled on this device.');
+  }
+  const valid = await verifyPasswordVerifier(password, enrollment.verifier);
+  if (!valid) throw new OfflineAuthError('Incorrect offline password.');
+  return enrollment.profile;
+}
+
+export async function offlineSignOut(store: OfflineStore = createIndexedDbStore()): Promise<void> {
+  await store.delete('meta', 'offlineSession');
 }
 
 export type TeacherReturnAuthError = { message: string };
