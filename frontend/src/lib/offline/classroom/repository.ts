@@ -40,6 +40,9 @@ export type OfflineRepository = {
   getOutbox(): Promise<OfflineOutboxOperation[]>;
   updateOutbox(operationId: string, patch: Partial<OfflineOutboxOperation>): Promise<void>;
   deleteOutbox(operationId: string): Promise<void>;
+  listConflicts(): Promise<Record<string, unknown>[]>;
+  resolveConflict(key: string, choice: 'local' | 'server'): Promise<void>;
+  exportDiagnostics(): Promise<Record<string, unknown>>;
   getSyncSummary(): Promise<{ pendingCount: number; failedCount: number }>;
 };
 
@@ -188,6 +191,32 @@ export function createOfflineRepository(
     },
     async deleteOutbox(operationId) {
       await store.delete('outbox', operationId);
+    },
+    async listConflicts() {
+      return (await store.getAll('conflicts')).map((record) => record.value as Record<string, unknown>);
+    },
+    async resolveConflict(key, choice) {
+      await store.delete('conflicts', key);
+      await store.put('meta', { key: `conflict:${key}`, value: { choice, resolvedAt: clock() } });
+    },
+    async exportDiagnostics() {
+      const operations = await this.getOutbox();
+      return {
+        exportedAt: clock(),
+        syncSummary: await this.getSyncSummary(),
+        outbox: operations.map(({ operationId, deviceId, actorId, type, entityId, dependencies, createdAt, status, attemptCount, lastError }) => ({
+          operationId,
+          deviceId,
+          actorId,
+          type,
+          entityId,
+          dependencies,
+          createdAt,
+          status,
+          attemptCount,
+          lastError,
+        })),
+      };
     },
     async getSyncSummary() {
       const operations = await this.getOutbox();
