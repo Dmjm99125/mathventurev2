@@ -12,6 +12,51 @@ import {
   type StudentSessionPayload,
 } from './student-auth';
 import { profileFromAuthSession, type UserProfile } from './profile';
+import {
+  createPasswordVerifier,
+  getOrCreateDeviceId,
+  type OfflineCredentialRecord,
+} from '../offline/classroom/crypto';
+import type { OfflineStore } from '../offline/classroom/store';
+import { createIndexedDbStore } from '../offline/classroom/store';
+
+export type OfflineEnrollmentRecord = {
+  deviceId: string;
+  verifier: OfflineCredentialRecord;
+  profile: UserProfile;
+};
+
+const fallbackDeviceStorage = new Map<string, string>();
+
+function getDeviceStorage(): Map<string, string> | Storage {
+  return typeof window === 'undefined' ? fallbackDeviceStorage : window.localStorage;
+}
+
+export async function enrollOfflineDevice(
+  profile: UserProfile,
+  password: string,
+  store: OfflineStore = createIndexedDbStore(),
+): Promise<OfflineEnrollmentRecord> {
+  if (profile.role !== 'teacher') {
+    throw new Error('Only teacher accounts can enroll this classroom device.');
+  }
+  const verifier = await createPasswordVerifier(password);
+  const deviceId = getOrCreateDeviceId(getDeviceStorage());
+  const record: OfflineEnrollmentRecord = { deviceId, verifier, profile };
+  await store.put('meta', { key: 'offlineEnrollment', value: record });
+  await store.put('meta', { key: 'deviceId', value: deviceId });
+  return record;
+}
+
+export async function readOfflineEnrollment(
+  store: OfflineStore = createIndexedDbStore(),
+): Promise<OfflineEnrollmentRecord | null> {
+  const record = (await store.get('meta', 'offlineEnrollment'))?.value;
+  if (!record || typeof record !== 'object') return null;
+  const candidate = record as Partial<OfflineEnrollmentRecord>;
+  if (!candidate.deviceId || !candidate.verifier || !candidate.profile) return null;
+  return candidate as OfflineEnrollmentRecord;
+}
 
 export type TeacherReturnAuthError = { message: string };
 
