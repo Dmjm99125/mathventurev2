@@ -39,8 +39,8 @@ export type OfflineStore = {
 type IndexedDbRequest<T> = {
   result: T;
   error: Error | null;
-  onsuccess: (() => void) | null;
-  onerror: (() => void) | null;
+  onsuccess: ((event?: Event) => void) | null;
+  onerror: ((event?: Event) => void) | null;
 };
 
 type IndexedDbObjectStore = {
@@ -53,9 +53,9 @@ type IndexedDbObjectStore = {
 type IndexedDbTransaction = {
   objectStore(name: string): IndexedDbObjectStore;
   error: Error | null;
-  oncomplete: (() => void) | null;
-  onerror: (() => void) | null;
-  onabort: (() => void) | null;
+  oncomplete: ((event?: Event) => void) | null;
+  onerror: ((event?: Event) => void) | null;
+  onabort: ((event?: Event) => void) | null;
 };
 
 type IndexedDbDatabase = {
@@ -82,7 +82,7 @@ function requestResult<T>(request: IndexedDbRequest<T>): Promise<T> {
 }
 
 function openDatabase(databaseName: string): Promise<IndexedDbDatabase> {
-  const indexedDb = (globalThis as typeof globalThis & { indexedDB?: IndexedDbFactory }).indexedDB;
+  const indexedDb = (globalThis as unknown as { indexedDB?: IndexedDbFactory }).indexedDB;
   if (!indexedDb) {
     return Promise.reject(new OfflineStorageError('IndexedDB is unavailable in this browser.'));
   }
