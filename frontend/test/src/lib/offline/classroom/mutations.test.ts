@@ -1,7 +1,7 @@
 import { assertEquals } from 'jsr:@std/assert';
 import { createMemoryStore } from '../../../../../src/lib/offline/classroom/memoryStore.ts';
 import { createOfflineRepository } from '../../../../../src/lib/offline/classroom/repository.ts';
-import { createOfflineAssignment } from '../../../../../src/lib/offline/classroom/mutations.ts';
+import { createOfflineAssignment, createOfflinePost } from '../../../../../src/lib/offline/classroom/mutations.ts';
 
 Deno.test('offline assignment mutation returns a local ID and pending sync state', async () => {
   const repository = createOfflineRepository(createMemoryStore());
@@ -16,4 +16,20 @@ Deno.test('offline assignment mutation returns a local ID and pending sync state
     syncState: 'pending',
   });
   assertEquals((await repository.readCollection('assignments'))[0].name, 'Offline colors');
+});
+
+Deno.test('offline posts are saved locally for later sync', async () => {
+  const repository = createOfflineRepository(createMemoryStore());
+  const result = await createOfflinePost(repository, 'teacher-1', {
+    classId: 'class-1',
+    content: 'Remember to practice offline.',
+  }, () => 'post-local-1');
+
+  assertEquals(result, { id: 'post-local-1', syncState: 'pending' });
+  assertEquals((await repository.readCollection('posts'))[0], {
+    id: 'post-local-1',
+    classId: 'class-1',
+    content: 'Remember to practice offline.',
+    authorId: 'teacher-1',
+  });
 });

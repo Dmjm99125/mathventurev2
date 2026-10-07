@@ -4,7 +4,9 @@ import { createOfflineRepository } from '../../../../../src/lib/offline/classroo
 import {
   buildOfflinePage,
   isClassroomDataReady,
+  readOfflineClassroom,
   readOfflineAssignments,
+  readOfflineRoster,
 } from '../../../../../src/lib/offline/classroom/queries.ts';
 
 Deno.test('cached classroom queries stay enabled for an offline enrolled profile', async () => {
@@ -31,9 +33,48 @@ Deno.test('cached classroom queries stay enabled for an offline enrolled profile
     score: 0,
     maxScore: 0,
     completed: false,
+    className: null,
+    studentId: null,
   }]);
   assertEquals(buildOfflinePage([{ id: 'one' }]), {
     items: [{ id: 'one' }],
+    page: { nextCursor: null, hasMore: false },
+  });
+});
+
+Deno.test('offline classroom and roster queries expose the cached teacher view', async () => {
+  const repository = createOfflineRepository(createMemoryStore());
+  await repository.putSnapshot('classrooms', [{
+    id: 'class-1',
+    created_at: '2026-10-07T00:00:00.000Z',
+  }]);
+  await repository.putSnapshot('classStudents', [{
+    id: 'membership-1',
+    student_id: 'student-1',
+    joined_at: '2026-10-07T01:00:00.000Z',
+    profiles: { id: 'student-1', full_name: 'Ana Student', first_name: 'Ana', last_name: 'Student' },
+  }]);
+
+  assertEquals(await readOfflineClassroom(repository, 'teacher'), {
+    id: 'class-1',
+    createdAt: '2026-10-07T00:00:00.000Z',
+    studentCount: 1,
+  });
+  assertEquals(await readOfflineRoster(repository), {
+    students: [{
+      id: 'student-1',
+      fullName: 'Ana Student',
+      firstName: 'Ana',
+      lastName: 'Student',
+      joinedAt: '2026-10-07T01:00:00.000Z',
+      appCompletionPct: null,
+      lastPlayedPct: null,
+      overallScore: null,
+      overallMaxScore: null,
+      overallScorePct: null,
+      gameScores: [],
+      assignments: [],
+    }],
     page: { nextCursor: null, hasMore: false },
   });
 });

@@ -14,6 +14,7 @@ import { useOfflineClassroom } from '../offline/classroom/useOfflineClassroom';
 import {
   addOfflineStudents,
   createOfflineAssignment,
+  createOfflinePost,
   deleteOfflineAssignment,
   removeOfflineStudent,
   updateOfflineAssignment,
@@ -25,6 +26,13 @@ import {
   startOfflineAssignmentQuiz,
   submitOfflineAttempt,
 } from '../offline/classroom/quiz';
+import { readOfflineClassroom, readOfflineRoster, readOfflineAssignments } from '../offline/classroom/queries';
+import {
+  buildOfflineStudentDashboard,
+  buildOfflineTeacherClassReport,
+  buildOfflineTeacherDashboard,
+  readOfflinePosts,
+} from '../offline/classroom/reports';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -61,20 +69,25 @@ function toLegacyClassesResponse(input: {
 
 export function useClasses() {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['classes'],
-    queryFn: async () => toLegacyClassesResponse(await api.classes.list()),
+    queryFn: async () => browserIsOffline() && user
+      ? toLegacyClassesResponse({ classroom: await readOfflineClassroom(repository, user.role) })
+      : toLegacyClassesResponse(await api.classes.list()),
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherClassroom() {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['classroom', 'teacher'],
     queryFn: async () => {
+      if (browserIsOffline() && user) return { classroom: await readOfflineClassroom(repository, 'teacher') };
       const data = await api.classes.list();
       return {
         classroom: data.classroom && 'createdAt' in data.classroom
@@ -88,10 +101,12 @@ export function useTeacherClassroom() {
 
 export function useStudentClassroom() {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['classroom', 'student'],
     queryFn: async () => {
+      if (browserIsOffline() && user) return { classroom: await readOfflineClassroom(repository, 'student') };
       const data = await api.classes.list();
       return {
         classroom: data.classroom && 'teacherName' in data.classroom
@@ -105,10 +120,11 @@ export function useStudentClassroom() {
 
 export function useClassRoster(classId?: string) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useInfiniteQuery({
     queryKey: ['classroom', 'roster', classId ?? 'singleton'],
-    queryFn: ({ pageParam }) => api.classes.roster({ cursor: pageParam }),
+    queryFn: ({ pageParam }) => browserIsOffline() ? readOfflineRoster(repository) : api.classes.roster({ cursor: pageParam }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
@@ -117,20 +133,26 @@ export function useClassRoster(classId?: string) {
 
 export function useClassRosterStudent(studentId?: string | null) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['classroom', 'roster', 'student', studentId],
-    queryFn: () => api.classes.rosterStudent(studentId!),
+    queryFn: async () => browserIsOffline()
+      ? { students: (await readOfflineRoster(repository)).students.filter((student) => student.id === studentId), page: { nextCursor: null, hasMore: false } }
+      : api.classes.rosterStudent(studentId!),
     enabled: Boolean(studentId) && isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useAssignments(classId?: string) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useInfiniteQuery({
     queryKey: ['assignments', classId],
-    queryFn: ({ pageParam }) => api.assignments.list(classId, { cursor: pageParam }),
+    queryFn: async ({ pageParam }) => browserIsOffline()
+      ? { assignments: await readOfflineAssignments(repository, user?.role === 'student' ? user.id : undefined), page: { nextCursor: null, hasMore: false } }
+      : api.assignments.list(classId, { cursor: pageParam }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
@@ -224,40 +246,74 @@ export function useCompleteAssignmentQuiz() {
 
 export function useStudentDashboard() {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['dashboard', 'student'],
-    queryFn: () => api.dashboard.student(),
+    queryFn: async () => browserIsOffline()
+      ? buildOfflineStudentDashboard(await repository.readCollection('attempts'))
+      : api.dashboard.student(),
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherDashboard() {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['dashboard', 'teacher'],
-    queryFn: () => api.dashboard.teacher(),
+    queryFn: async () => browserIsOffline()
+      ? buildOfflineTeacherDashboard(await repository.readCollection('classrooms'), await repository.readCollection('classStudents'), await repository.readCollection('attempts'))
+      : api.dashboard.teacher(),
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherReportsOverview(window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['teacher-reports', 'overview', window, studentCursor ?? null],
-    queryFn: () => api.reports.overview(window, { studentCursor }),
+    queryFn: async () => {
+      if (browserIsOffline()) {
+        const [classrooms, students, gameResults] = await Promise.all([
+          repository.readCollection('classrooms'),
+          repository.readCollection('classStudents'),
+          repository.readCollection('attemptGameResults'),
+        ]);
+        return buildOfflineTeacherClassReport(
+          classrooms,
+          students,
+          gameResults,
+          String(classrooms[0]?.id ?? ''),
+          window,
+        );
+      }
+      return api.reports.overview(window, { studentCursor });
+    },
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['teacher-reports', 'class', classId, window, studentCursor ?? null],
-    queryFn: () => api.reports.classDetail(classId, window, { studentCursor }),
+    queryFn: async () => {
+      if (browserIsOffline()) {
+        const [classrooms, students, gameResults] = await Promise.all([
+          repository.readCollection('classrooms'),
+          repository.readCollection('classStudents'),
+          repository.readCollection('attemptGameResults'),
+        ]);
+        return buildOfflineTeacherClassReport(classrooms, students, gameResults, classId, window);
+      }
+      return api.reports.classDetail(classId, window, { studentCursor });
+    },
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
@@ -436,18 +492,30 @@ export function useSubmitAttempt() {
 
 export function useClassPosts(classId: string) {
   const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
 
   return useQuery({
     queryKey: ['posts', classId],
-    queryFn: () => api.posts.list(classId),
+    queryFn: async () => browserIsOffline()
+      ? { posts: await readOfflinePosts(repository, classId) }
+      : api.posts.list(classId),
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: ({ classId, content }: { classId: string, content: string }) => api.posts.create(classId, content),
+    mutationFn: async ({ classId, content }: { classId: string, content: string }) => {
+      if (user && browserIsOffline()) {
+        const result = await createOfflinePost(repository, user.id, { classId, content });
+        void syncNow();
+        return { post: { id: result.id, classId, content }, syncState: result.syncState };
+      }
+      return api.posts.create(classId, content);
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['posts', variables.classId] });
     },

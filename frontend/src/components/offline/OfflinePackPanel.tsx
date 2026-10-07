@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 
 export function OfflinePackPanel({ onRefresh }: { onRefresh?: () => Promise<void> }) {
-  const { status, pendingCount, failedCount, lastSyncedAt, syncNow } = useOfflineClassroom();
+  const { status, pendingCount, failedCount, lastSyncedAt, bootstrapNow, syncNow } = useOfflineClassroom();
   const [refreshing, setRefreshing] = useState(false);
   const isOnline = typeof navigator === 'undefined' || navigator.onLine;
   const refresh = async () => {
-    if (!onRefresh || !isOnline) return;
+    if (!isOnline) return;
     setRefreshing(true);
     try {
-      await onRefresh();
+      await (onRefresh ?? bootstrapNow)();
     } finally {
       setRefreshing(false);
     }

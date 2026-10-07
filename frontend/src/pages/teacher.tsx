@@ -36,6 +36,8 @@ import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
 import { useLanguage } from '@/lib/i18n/useLanguage';
+import { OfflineConflictPanel } from '@/components/offline/OfflineConflictPanel';
+import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
 
 function useTeacherStudentAccountActions() {
   const { viewStudentAccount, viewingStudent } = useAuth();
@@ -435,6 +437,11 @@ export function TeacherSettingsPage() {
           {t('common.logout')}
         </Button>
       </section>
+
+      <div className="mt-6 grid max-w-2xl gap-4">
+        <OfflinePackPanel />
+        <OfflineConflictPanel />
+      </div>
 
       <section className="teacher-section mt-6 max-w-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-6 sm:p-8" aria-labelledby="teacher-password-settings">
         <p className="teacher-eyebrow">Security</p>

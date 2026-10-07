@@ -1,4 +1,11 @@
 import type { OfflineRepository } from './repository.ts';
+import {
+  buildTeacherReportsOverview,
+  buildTeacherSingleClassroomReport,
+  type TeacherReportsOverviewPayload,
+  type TeacherReportsWindowKey,
+  type TeacherSingleClassroomReportPayload,
+} from '../../teacher/reports/index.ts';
 
 type OfflineRow = Record<string, unknown>;
 
@@ -9,6 +16,82 @@ function text(row: OfflineRow, snake: string, camel: string): string {
 function numberValue(row: OfflineRow, snake: string, camel: string): number {
   const value = row[snake] ?? row[camel];
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function toNameParts(row: OfflineRow): { fullName: string; firstName: string; lastName: string | null } {
+  const profile = row.profiles && typeof row.profiles === 'object' ? row.profiles as OfflineRow : row;
+  const fullName = text(profile, 'full_name', 'fullName') || 'Student';
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    fullName,
+    firstName: parts[0] ?? 'Student',
+    lastName: parts.length > 1 ? parts.slice(1).join(' ') : null,
+  };
+}
+
+function reportInputs(
+  classrooms: OfflineRow[],
+  students: OfflineRow[],
+  gameResults: OfflineRow[],
+) {
+  const fallbackClassId = text(classrooms[0] ?? {}, 'id', 'id');
+  return {
+    classes: classrooms.map((classroom) => ({
+      id: text(classroom, 'id', 'id'),
+      name: text(classroom, 'name', 'name') || 'Classroom',
+      joinCode: text(classroom, 'join_code', 'joinCode'),
+      studentCount: students.filter((student) => text(student, 'class_id', 'classId') === text(classroom, 'id', 'id')).length,
+    })),
+    students: students.map((student) => {
+      const name = toNameParts(student);
+      return {
+        id: text(student, 'student_id', 'studentId') || text(student, 'id', 'id'),
+        classId: text(student, 'class_id', 'classId') || fallbackClassId,
+        className: text(classrooms[0] ?? {}, 'name', 'name') || 'Classroom',
+        ...name,
+        joinedAt: text(student, 'joined_at', 'joinedAt'),
+      };
+    }),
+    results: gameResults.map((result) => ({
+      studentId: text(result, 'student_id', 'studentId'),
+      classId: text(result, 'class_id', 'classId') || fallbackClassId,
+      topicId: text(result, 'topic_id', 'topicId'),
+      gameId: text(result, 'game_id', 'gameId'),
+      gameOrder: numberValue(result, 'game_order', 'gameOrder'),
+      score: numberValue(result, 'score', 'score'),
+      maxScore: numberValue(result, 'max_score', 'maxScore'),
+      scorePct: numberValue(result, 'score_pct', 'scorePct'),
+      passed: result.passed === true,
+      completedAt: text(result, 'completed_at', 'completedAt'),
+    })),
+  };
+}
+
+export function buildOfflineTeacherReportsOverview(
+  classrooms: OfflineRow[],
+  students: OfflineRow[],
+  gameResults: OfflineRow[],
+  windowKey: TeacherReportsWindowKey,
+): TeacherReportsOverviewPayload {
+  return buildTeacherReportsOverview({ ...reportInputs(classrooms, students, gameResults), windowKey });
+}
+
+export function buildOfflineTeacherClassReport(
+  classrooms: OfflineRow[],
+  students: OfflineRow[],
+  gameResults: OfflineRow[],
+  classId: string,
+  windowKey: TeacherReportsWindowKey,
+): TeacherSingleClassroomReportPayload {
+  const inputs = reportInputs(classrooms, students, gameResults);
+  const classroom = inputs.classes.find((row) => row.id === classId) ?? inputs.classes[0];
+  if (!classroom) throw new Error('Classroom unavailable offline.');
+  return buildTeacherSingleClassroomReport({
+    classroom: { id: classroom.id, studentCount: classroom.studentCount },
+    students: inputs.students,
+    results: inputs.results,
+    windowKey,
+  });
 }
 
 export function buildOfflineStudentDashboard(attempts: OfflineRow[]) {

@@ -1,6 +1,7 @@
 import { createContext, createElement, useContext, useEffect, useMemo, useReducer, useCallback, type ReactNode } from 'react';
 import { createIndexedDbStore } from './store.ts';
 import { createOfflineRepository, type OfflineRepository } from './repository.ts';
+import { bootstrapRepository, downloadClassroomPack } from './bootstrap.ts';
 import { syncOfflineClassroom } from './index.ts';
 import { offlineStatusReducer, type OfflineLifecycleState } from './status.ts';
 import type { BootstrapInvoker } from './bootstrap.ts';
@@ -16,6 +17,7 @@ const initialState: OfflineLifecycleState = {
 
 type OfflineClassroomContextValue = OfflineLifecycleState & {
   repository: OfflineRepository;
+  bootstrapNow: () => Promise<void>;
   syncNow: () => Promise<void>;
 };
 
@@ -52,6 +54,18 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
       dispatch({ type: 'sync-error', pendingCount: summary.pendingCount, failedCount: summary.failedCount, error: error instanceof Error ? error.message : 'Sync failed.' });
     }
   }, [invoke, resolvedRepository]);
+  const bootstrapNow = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new Error('An internet connection is required to refresh the classroom pack.');
+    }
+    const request = invoke ?? (async (name, options) => {
+      const { invokeFunction } = await import('../../api/client.ts');
+      return invokeFunction<unknown>(name, options);
+    });
+    await bootstrapRepository(resolvedRepository, () => downloadClassroomPack(request));
+    const summary = await resolvedRepository.getSyncSummary();
+    dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
+  }, [invoke, resolvedRepository]);
   useEffect(() => {
     const onOnline = () => { dispatch({ type: 'network-online' }); void syncNow(); };
     const onOffline = () => dispatch({ type: 'network-offline' });
@@ -63,7 +77,7 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
       removeEventListener('offline', onOffline);
     };
   }, [resolvedRepository, syncNow]);
-  return createElement(OfflineClassroomContext.Provider, { value: { ...state, repository: resolvedRepository, syncNow } }, children);
+  return createElement(OfflineClassroomContext.Provider, { value: { ...state, repository: resolvedRepository, bootstrapNow, syncNow } }, children);
 }
 
 export function useOfflineClassroom(): OfflineClassroomContextValue {
