@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/shared/utils';
 import { InstallAppAction } from '@/components/pwa/InstallAppAction';
+import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 
 function getTeacherNavItems(t: (key: string) => string) {
   return TEACHER_NAV_ITEMS.map((item) => ({
@@ -173,6 +174,7 @@ export function TopNav() {
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <InstallAppAction compact className="hidden sm:inline-flex" />
+          <OfflineStatusIndicator />
           <Button variant="ghost" size="sm" onClick={toggleLang} className="gap-2 font-bold text-muted-foreground">
             <Globe className="h-4 w-4" />
             {lang === 'en' ? 'EN' : 'TL'}

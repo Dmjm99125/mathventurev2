@@ -2,6 +2,7 @@ import { Redirect, Route, Switch, Router as WouterRouter } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/lib/auth';
 import { LanguageProvider } from '@/lib/i18n/useLanguage';
+import { OfflineClassroomProvider } from '@/lib/offline/classroom/useOfflineClassroom';
 
 // Pages
 import { Landing } from '@/pages/landing';
@@ -90,15 +91,17 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LanguageProvider>
-          <WouterRouter base={((import.meta as ImportMeta & {
-            env?: Record<string, string | undefined>;
-          }).env?.BASE_URL ?? '').replace(/\/$/, '')}>
-            <AppRoutes />
-          </WouterRouter>
-        </LanguageProvider>
-      </AuthProvider>
+      <OfflineClassroomProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <WouterRouter base={((import.meta as ImportMeta & {
+              env?: Record<string, string | undefined>;
+            }).env?.BASE_URL ?? '').replace(/\/$/, '')}>
+              <AppRoutes />
+            </WouterRouter>
+          </LanguageProvider>
+        </AuthProvider>
+      </OfflineClassroomProvider>
     </QueryClientProvider>
   );
 }
