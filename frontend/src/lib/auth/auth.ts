@@ -27,10 +27,30 @@ import type { OfflineStore } from '../offline/classroom/store';
 import { createIndexedDbStore } from '../offline/classroom/store';
 import { createOfflineRepository } from '../offline/classroom/repository';
 import { bootstrapRepository, type BootstrapInvoker } from '../offline/classroom/bootstrap';
+import type { SqliteDatabase, SqliteRow } from '../offline/sqlite/adapter';
 
 export type OfflineEnrollmentRecord = OfflineLeaseEnrollmentRecord;
 
 const fallbackDeviceStorage = new Map<string, string>();
+
+export type OfflineStorage = OfflineStore | SqliteDatabase;
+
+function isSqliteStorage(storage: OfflineStorage): storage is SqliteDatabase {
+  return 'query' in storage && 'execute' in storage && 'transaction' in storage && 'health' in storage;
+}
+
+function parseJson(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
 
 function getDeviceStorage(): Map<string, string> | Storage {
   return typeof window === 'undefined' ? fallbackDeviceStorage : window.localStorage;
@@ -39,7 +59,7 @@ function getDeviceStorage(): Map<string, string> | Storage {
 export async function enrollOfflineDevice(
   profile: UserProfile,
   password: string,
-  store: OfflineStore = createIndexedDbStore(),
+  store: OfflineStorage = createIndexedDbStore(),
 ): Promise<OfflineEnrollmentRecord> {
   if (profile.role !== 'teacher') {
     throw new Error('Only teacher accounts can enroll this classroom device.');
@@ -55,15 +75,59 @@ export async function enrollOfflineDevice(
     lastOnlineValidatedAt: now,
     offlineAccessUntil: now,
   });
-  await store.put('meta', { key: 'offlineEnrollment', value: record });
-  await store.put('meta', { key: 'deviceId', value: deviceId });
+  if (isSqliteStorage(store)) {
+    await store.transaction(async (tx) => {
+      await tx.execute('delete from device_enrollment where device_id = ?', [deviceId]);
+      await tx.execute(`insert into device_enrollment (device_id, teacher_id, profile_json, verifier_json, last_online_validated_at, offline_access_until, created_at, updated_at)
+        values (?, ?, ?, ?, ?, ?, ?, ?)`, [
+        deviceId,
+        teacherProfile.id,
+        JSON.stringify(teacherProfile),
+        JSON.stringify(record.verifier),
+        record.lastOnlineValidatedAt,
+        record.offlineAccessUntil,
+        now,
+        now,
+      ]);
+      await tx.execute('delete from profiles where id = ?', [teacherProfile.id]);
+      await tx.execute(`insert into profiles (id, role, full_name, email, data_json, server_revision, is_deleted, updated_at)
+        values (?, ?, ?, ?, ?, ?, ?, ?)`, [teacherProfile.id, 'teacher', teacherProfile.full_name, null, JSON.stringify(teacherProfile), 0, 0, now]);
+      await tx.execute('delete from local_sessions where session_id = ?', ['active']);
+      await tx.execute(`insert into local_sessions (session_id, teacher_id, active_profile_json, viewing_student_json, updated_at)
+        values (?, ?, ?, ?, ?)`, ['active', teacherProfile.id, JSON.stringify(teacherProfile), null, now]);
+    });
+  } else {
+    await store.put('meta', { key: 'offlineEnrollment', value: record });
+    await store.put('meta', { key: 'deviceId', value: deviceId });
+    await store.put('meta', { key: 'offlineSession', value: teacherProfile });
+  }
   return record;
 }
 
 export async function readOfflineEnrollment(
-  store: OfflineStore = createIndexedDbStore(),
+  store: OfflineStorage = createIndexedDbStore(),
 ): Promise<OfflineEnrollmentRecord | null> {
-  const record = (await store.get('meta', 'offlineEnrollment'))?.value;
+  const record = isSqliteStorage(store)
+    ? (await store.query<SqliteRow>('select * from device_enrollment order by updated_at desc limit 1'))[0]
+    : (await store.get('meta', 'offlineEnrollment'))?.value;
+  if (isSqliteStorage(store) && record) {
+    const row = record as SqliteRow;
+    const parsedProfile = parseJson(row.profile_json);
+    const parsedVerifier = parseJson(row.verifier_json);
+    return typeof row.device_id === 'string'
+      && typeof row.last_online_validated_at === 'string'
+      && typeof row.offline_access_until === 'string'
+      && parsedProfile && typeof parsedProfile === 'object'
+      && parsedVerifier && typeof parsedVerifier === 'object'
+      ? {
+        deviceId: row.device_id,
+        verifier: parsedVerifier as OfflineEnrollmentRecord['verifier'],
+        profile: objectValue(parsedProfile) as OfflineEnrollmentRecord['profile'],
+        lastOnlineValidatedAt: row.last_online_validated_at,
+        offlineAccessUntil: row.offline_access_until,
+      }
+      : null;
+  }
   if (!record || typeof record !== 'object') return null;
   const candidate = record as Partial<OfflineEnrollmentRecord>;
   if (!candidate.deviceId || !candidate.verifier || !candidate.profile
@@ -81,7 +145,7 @@ export class OfflineAuthError extends Error {
 
 export async function offlineSignIn(
   password: string,
-  store: OfflineStore = createIndexedDbStore(),
+  store: OfflineStorage = createIndexedDbStore(),
 ): Promise<UserProfile> {
   const enrollment = await readOfflineEnrollment(store);
   if (!enrollment) {
@@ -92,35 +156,77 @@ export async function offlineSignIn(
   }
   const valid = await verifyPasswordVerifier(password, enrollment.verifier);
   if (!valid) throw new OfflineAuthError('Incorrect offline password.');
-  await store.put('meta', { key: 'offlineSession', value: enrollment.profile });
+  if (isSqliteStorage(store)) {
+    await store.transaction(async (tx) => {
+      await tx.execute('delete from local_sessions where session_id = ?', ['active']);
+      await tx.execute(`insert into local_sessions (session_id, teacher_id, active_profile_json, viewing_student_json, updated_at)
+        values (?, ?, ?, ?, ?)`, ['active', enrollment.profile.id, JSON.stringify(enrollment.profile), null, new Date().toISOString()]);
+    });
+  } else {
+    await store.put('meta', { key: 'offlineSession', value: enrollment.profile });
+  }
   return enrollment.profile;
 }
 
 export async function readOfflineSession(
-  store: OfflineStore = createIndexedDbStore(),
+  store: OfflineStorage = createIndexedDbStore(),
 ): Promise<UserProfile | null> {
-  const value = (await store.get('meta', 'offlineSession'))?.value;
-  if (!value || typeof value !== 'object') return null;
-  const profile = value as Partial<UserProfile>;
+  const value = isSqliteStorage(store)
+    ? (await store.query<SqliteRow>('select active_profile_json from local_sessions where session_id = ?', ['active']))[0]?.active_profile_json
+    : (await store.get('meta', 'offlineSession'))?.value;
+  const parsedValue = parseJson(value);
+  if (!parsedValue || typeof parsedValue !== 'object') return null;
+  const profile = parsedValue as Partial<UserProfile>;
   return typeof profile.id === 'string' && profile.role === 'teacher' && typeof profile.full_name === 'string'
     ? profile as UserProfile
     : null;
 }
 
+export type RestoreOfflineSessionOptions = {
+  now?: string;
+  online?: boolean;
+  storage?: OfflineStorage;
+};
+
+export async function restoreOfflineSession({
+  now = new Date().toISOString(),
+  online = typeof navigator === 'undefined' || (navigator as Navigator & { onLine?: boolean }).onLine !== false,
+  storage = createIndexedDbStore(),
+}: RestoreOfflineSessionOptions = {}): Promise<UserProfile | null> {
+  if (online) return readOfflineSession(storage);
+  const enrollment = await readOfflineEnrollment(storage);
+  if (!enrollment) throw new OfflineAuthError('No offline account is enrolled on this device.');
+  if (!isOfflineLeaseValid(now, enrollment)) {
+    throw new OfflineAuthError('Offline access has expired. Connect to the internet to sign in again.');
+  }
+  const session = await readOfflineSession(storage);
+  if (!session) throw new OfflineAuthError('No offline session is available on this device.');
+  return session;
+}
+
 export async function readOfflineStudentProfile(
   studentId: string,
-  store: OfflineStore = createIndexedDbStore(),
+  store: OfflineStorage = createIndexedDbStore(),
 ): Promise<UserProfile | null> {
-  const value = (await store.get('profiles', studentId))?.value;
-  if (!value || typeof value !== 'object') return null;
-  const profile = value as Partial<UserProfile>;
+  const value = isSqliteStorage(store)
+    ? (await store.query<SqliteRow>('select * from profiles where id = ?', [studentId]))[0]
+    : (await store.get('profiles', studentId))?.value;
+  const parsedValue = isSqliteStorage(store)
+    ? { ...objectValue(parseJson((value as SqliteRow | undefined)?.data_json)), ...(value ?? {}) }
+    : value;
+  if (!parsedValue || typeof parsedValue !== 'object') return null;
+  const profile = parsedValue as Partial<UserProfile>;
   return profile.id === studentId && profile.role === 'student' && typeof profile.full_name === 'string'
     ? profile as UserProfile
     : null;
 }
 
-export async function offlineSignOut(store: OfflineStore = createIndexedDbStore()): Promise<void> {
-  await store.delete('meta', 'offlineSession');
+export async function offlineSignOut(store: OfflineStorage = createIndexedDbStore()): Promise<void> {
+  if (isSqliteStorage(store)) {
+    await store.execute('delete from local_sessions where session_id = ?', ['active']);
+  } else {
+    await store.delete('meta', 'offlineSession');
+  }
 }
 
 export type TeacherReturnAuthError = { message: string };

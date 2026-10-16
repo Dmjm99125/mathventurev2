@@ -8,6 +8,7 @@ import {
   offlineSignIn as unlockOfflineTeacher,
   readOfflineSession,
   readOfflineStudentProfile,
+  restoreOfflineSession,
   returnToTeacherAccount as clearStudentAccount,
   viewStudentAccount as openStudentAccount,
 } from './auth';
@@ -47,6 +48,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        const offlineSession = await restoreOfflineSession({ online: false });
+        setTeacherUser(offlineSession);
+        setViewingStudent(null);
+        resetActiveAuthClient();
+        return;
+      }
       const [profile, studentSessionResult, offlineSession] = await Promise.all([
         getProfile(),
         studentSupabase.auth.getSession(),
