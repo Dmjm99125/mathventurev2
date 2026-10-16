@@ -5,6 +5,7 @@ import { createOfflineRepository, type OfflineRepository } from './repository.ts
 import type { OfflineStore } from './store.ts';
 import type { OfflineOutboxOperation } from './types.ts';
 import type { OfflineBootstrapResponse } from './types.ts';
+import type { SqliteDatabase } from '../sqlite/adapter.ts';
 
 export type ClassroomApiSurface = Record<string, Record<string, (...args: any[]) => Promise<any>>>;
 
@@ -73,7 +74,7 @@ export async function syncOfflineClassroom(
 
 export function createTestOfflineClassroom(options: {
   repository?: OfflineRepository;
-  store: OfflineStore;
+  store: OfflineStore | SqliteDatabase;
   snapshot: OfflineBootstrapResponse;
 }) {
   const repository = options.repository ?? createOfflineRepository(options.store);

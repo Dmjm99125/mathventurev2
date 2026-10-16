@@ -5,4 +5,8 @@ Deno.test('offline classroom documentation explains provisioning, sync, and onli
   assertStringIncludes(document, 'first online login');
   assertStringIncludes(document, 'Sync now');
   assertStringIncludes(document, 'password reset');
+  assertStringIncludes(document, 'SQLite');
+  assertStringIncludes(document, 'seven-day');
+  assertStringIncludes(document, 'force-reload');
+  assertStringIncludes(document, 'Cache Storage');
 });

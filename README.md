@@ -29,7 +29,7 @@ MathVenture is an interactive, gamified math learning platform designed for youn
 
 ### Offline classroom use
 
-After one successful online teacher login and classroom-pack download, the installed PWA can continue working without internet. Assignments, roster changes, posts, quiz checkpoints, attempts, dashboards, and cached student switching are saved locally and synchronized later with **Sync now**. The first online login, account creation, password reset/change, and first classroom provisioning still require internet. See [Offline classroom operation](docs/offline-classroom.md).
+After one successful online teacher login and classroom-pack download, the installed PWA can continue working without internet. Assignments, roster changes, posts, quiz checkpoints, attempts, dashboards, authenticated Free Play progress, and cached student switching are saved in SQLite locally and synchronized later with **Sync now**. The first online login starts a sliding seven-day lease; force-reloads do not extend it. The first online login, account creation, password reset/change, and first classroom provisioning still require internet. See [Offline classroom operation](docs/offline-classroom.md).
 
 ---
 
@@ -41,6 +41,7 @@ After one successful online teacher login and classroom-pack download, the insta
 *   **Routing:** Wouter (lightweight React router)
 *   **State Management & Data Fetching:** TanStack Query (React Query)
 *   **Backend & Auth:** Supabase (Database, Auth, and Edge Functions)
+*   **Offline application data:** SQLite WASM in OPFS for the PWA, with a native SQLite adapter boundary for the future Tauri desktop app
 *   **Visualizations:** Recharts (for student dashboard statistics)
 
 ---

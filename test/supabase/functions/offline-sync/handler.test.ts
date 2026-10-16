@@ -122,3 +122,28 @@ Deno.test('offline sync does not store retryable operations as acknowledged', as
   assertEquals(recorded, 0);
   assertEquals(body.results[0].status, 'retryable');
 });
+
+Deno.test('offline sync preserves a conflict result without hiding a later valid operation', async () => {
+  const recorded: string[] = [];
+  const handler = createOfflineSyncHandler({
+    getAuthedProfile: async () => ({ id: 'teacher-1', role: 'teacher', full_name: 'Teacher' }),
+    readStoredOperation: async () => null,
+    applyOperation: async (_teacherId, operation) => operation.operationId === 'conflict'
+      ? { status: 'conflict', error: 'Server changed this assignment.', result: { server: { id: operation.entityId } } }
+      : { status: 'accepted', result: { saved: true } },
+    recordOperation: async (_teacherId, operation, execution) => { recorded.push(`${operation.operationId}:${execution.status}`); },
+  });
+  const response = await handler(new Request('http://local/offline-sync', {
+    method: 'POST',
+    body: JSON.stringify({
+      deviceId: 'device-1',
+      operations: [
+        { operationId: 'conflict', deviceId: 'device-1', actorId: 'teacher-1', type: 'assignment.update', entityId: 'assignment-1', payload: {}, dependencies: [], createdAt: '2026-10-07T00:00:00.000Z' },
+        { operationId: 'accepted', deviceId: 'device-1', actorId: 'teacher-1', type: 'class.ensure', entityId: 'class-1', payload: {}, dependencies: [], createdAt: '2026-10-07T00:00:00.000Z' },
+      ],
+    }),
+  }));
+  const body = await response.json();
+  assertEquals(body.results.map((result: { status: string }) => result.status), ['conflict', 'accepted']);
+  assertEquals(recorded, ['conflict:conflict', 'accepted:accepted']);
+});
