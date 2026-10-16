@@ -34,3 +34,12 @@ alter table public.free_play_progress enable row level security;
 
 create index if not exists free_play_progress_profile_idx
   on public.free_play_progress (profile_id, updated_at desc);
+
+delete from public.attempt_game_results duplicate
+using public.attempt_game_results keeper
+where duplicate.attempt_id = keeper.attempt_id
+  and duplicate.game_id = keeper.game_id
+  and duplicate.ctid < keeper.ctid;
+
+create unique index if not exists attempt_game_results_attempt_game_idx
+  on public.attempt_game_results (attempt_id, game_id);

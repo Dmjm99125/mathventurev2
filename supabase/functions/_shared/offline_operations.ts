@@ -426,6 +426,7 @@ export type ActivityOperationPersistence = {
     requestedClassId: string | null;
   }): Promise<string | null>;
   insertAttempt(input: AttemptSubmitOperationInput): Promise<Record<string, unknown>>;
+  readAttempt?: (attemptId: string, studentId: string) => Promise<Record<string, unknown> | null>;
   insertAttemptGameResults(rows: AttemptGameResultOperationInput[]): Promise<void>;
   isTeacherForClass(classId: string, teacherId: string): Promise<boolean>;
   insertPost(input: {
@@ -544,6 +545,8 @@ export function createActivityOperationApplier(
         return { status: "rejected", error: "score and maxScore must be valid numbers." };
       }
       if (payload.assignmentId) return { status: "rejected", error: "Use the assignment quiz flow for assigned work." };
+      const duplicate = await persistence.readAttempt?.(operation.entityId, actorId);
+      if (duplicate) return { status: "accepted", result: { duplicate: true, attempt: duplicate } };
       const gameResults = Array.isArray(payload.gameResults) ? payload.gameResults : [];
       if (!gameResults.every(validDetailedGameResult)) {
         return { status: "rejected", error: "gameResults must contain valid detailed game rows." };
@@ -782,9 +785,16 @@ export async function applyOfflineOperation(
         if (error || !data) throw error ?? new Error("Failed to insert attempt");
         return data;
       },
+      async readAttempt(attemptId, studentId) {
+        const { data, error } = await adminClient.from("attempts")
+          .select("id, student_id, lesson_id, assignment_id, class_id, score, max_score, duration_seconds, completed_at")
+          .eq("id", attemptId).eq("student_id", studentId).maybeSingle();
+        if (error) throw error;
+        return data;
+      },
       async insertAttemptGameResults(rows) {
         if (!rows.length) return;
-        const { error } = await adminClient.from("attempt_game_results").insert(rows.map((row) => ({
+        const { error } = await adminClient.from("attempt_game_results").upsert(rows.map((row) => ({
           attempt_id: row.attemptId,
           student_id: row.studentId,
           topic_id: row.topicId,
@@ -795,7 +805,7 @@ export async function applyOfflineOperation(
           score_pct: row.scorePct,
           passed: row.passed,
           completed_at: row.completedAt,
-        })));
+        })), { onConflict: "attempt_id,game_id" });
         if (error) throw error;
       },
       async isTeacherForClass(classId, ownerId) {
