@@ -9,7 +9,7 @@ Deno.test('offline classroom round trip clears an acknowledged assignment', asyn
       revision: 1,
       teacher: { id: 'teacher-1', role: 'teacher', fullName: 'Teacher' },
       classroom: { id: 'class-1', name: 'Classroom' },
-      students: [], assignments: [], attempts: [], gameResults: [], posts: [],
+      students: [], assignments: [], attempts: [], gameResults: [], posts: [], freePlaySessions: [], freePlayProgress: [],
     },
     store: createMemoryStore(),
   });

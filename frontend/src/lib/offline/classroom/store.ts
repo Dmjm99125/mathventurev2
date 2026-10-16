@@ -11,12 +11,25 @@ export const OFFLINE_STORE_NAMES: OfflineEntityName[] = [
   'attempts',
   'attemptGameResults',
   'posts',
+  'freePlaySessions',
+  'freePlayProgress',
   'outbox',
   'conflicts',
   'meta',
 ];
 
-export const LEGACY_CLASSROOM_STORE_NAMES: readonly OfflineEntityName[] = [...OFFLINE_STORE_NAMES];
+export const LEGACY_CLASSROOM_STORE_NAMES: readonly OfflineEntityName[] = [
+  'profiles',
+  'classrooms',
+  'classStudents',
+  'assignments',
+  'attempts',
+  'attemptGameResults',
+  'posts',
+  'outbox',
+  'conflicts',
+  'meta',
+];
 
 export class OfflineStorageError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {

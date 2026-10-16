@@ -12,6 +12,8 @@ Deno.test('bootstrap contract requires a revision and classroom collections', ()
     attempts: [],
     gameResults: [],
     posts: [],
+    freePlaySessions: [],
+    freePlayProgress: [],
   }));
 });
 
@@ -25,6 +27,8 @@ Deno.test('downloadClassroomPack validates the server response', async () => {
     attempts: [],
     gameResults: [],
     posts: [],
+    freePlaySessions: [],
+    freePlayProgress: [],
   }));
   assertEquals(response.revision, 3);
 });

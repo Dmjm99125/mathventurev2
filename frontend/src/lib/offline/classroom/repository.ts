@@ -127,6 +127,8 @@ function createLegacyOfflineRepository(
         attempts: rowsWithIds(snapshot.attempts),
         attemptGameResults: rowsWithIds(snapshot.gameResults),
         posts: rowsWithIds(snapshot.posts),
+        freePlaySessions: rowsWithIds(snapshot.freePlaySessions),
+        freePlayProgress: rowsWithIds(snapshot.freePlayProgress),
       } satisfies Record<string, Record<string, unknown>[]>;
       const collectionNames = Object.keys(serverCollections) as OfflineEntityName[];
       const localCollections: Record<string, SnapshotRow[]> = {};
@@ -298,6 +300,8 @@ const sqliteTables: Record<OfflineEntityName, string> = {
   attempts: 'attempts',
   attemptGameResults: 'attempt_game_results',
   posts: 'posts',
+  freePlaySessions: 'free_play_sessions',
+  freePlayProgress: 'free_play_progress',
   outbox: 'sync_outbox',
   conflicts: 'sync_conflicts',
   meta: 'app_meta',
@@ -311,6 +315,8 @@ const sqliteKeys: Record<OfflineEntityName, string> = {
   attempts: 'id',
   attemptGameResults: 'id',
   posts: 'id',
+  freePlaySessions: 'id',
+  freePlayProgress: 'id',
   outbox: 'operation_id',
   conflicts: 'conflict_id',
   meta: 'key',
@@ -537,6 +543,38 @@ async function writeSqliteEntity(
     ]);
     return;
   }
+  if (collection === 'freePlaySessions') {
+    await tx.execute(`insert into free_play_sessions (id, profile_id, game_id, started_at, completed_at, data_json, server_revision, is_deleted, updated_at)
+      values (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+      id,
+      sqliteString(row, 'profile_id', 'profileId') ?? null,
+      sqliteString(row, 'game_id', 'gameId') ?? '',
+      sqliteString(row, 'started_at', 'startedAt') ?? sqliteUpdatedAt(row, clock),
+      sqliteString(row, 'completed_at', 'completedAt') ?? null,
+      sqliteJson(row),
+      sqliteNumber(row, 0, 'server_revision', 'serverRevision', 'revision'),
+      sqliteDeleted(row),
+      sqliteUpdatedAt(row, clock),
+    ]);
+    return;
+  }
+  if (collection === 'freePlayProgress') {
+    await tx.execute(`insert into free_play_progress (id, profile_id, game_id, best_score, best_max_score, play_count, last_played_at, data_json, server_revision, is_deleted, updated_at)
+      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+      id,
+      sqliteString(row, 'profile_id', 'profileId') ?? null,
+      sqliteString(row, 'game_id', 'gameId') ?? '',
+      sqliteNumber(row, 0, 'best_score', 'bestScore', 'score'),
+      sqliteNumber(row, 0, 'best_max_score', 'bestMaxScore', 'maxScore'),
+      sqliteNumber(row, 0, 'play_count', 'playCount'),
+      sqliteString(row, 'last_played_at', 'lastPlayedAt') ?? null,
+      sqliteJson(row),
+      sqliteNumber(row, 0, 'server_revision', 'serverRevision', 'revision'),
+      sqliteDeleted(row),
+      sqliteUpdatedAt(row, clock),
+    ]);
+    return;
+  }
   if (collection === 'meta') {
     await tx.execute(`insert into app_meta (key, value, updated_at) values (?, ?, ?)`, [id, sqliteJson(row.value), sqliteUpdatedAt(row, clock)]);
     return;
@@ -662,6 +700,8 @@ function createSqliteRepository(
         attempts: rowsWithIds(snapshot.attempts),
         attemptGameResults: rowsWithIds(snapshot.gameResults),
         posts: rowsWithIds(snapshot.posts),
+        freePlaySessions: rowsWithIds(snapshot.freePlaySessions),
+        freePlayProgress: rowsWithIds(snapshot.freePlayProgress),
       } satisfies Record<string, Record<string, unknown>[]>;
       const collectionNames = Object.keys(serverCollections) as OfflineEntityName[];
       const localCollections: Record<string, SnapshotRow[]> = {};

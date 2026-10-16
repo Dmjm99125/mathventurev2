@@ -8,6 +8,8 @@ export type OfflineEntityName =
   | 'attempts'
   | 'attemptGameResults'
   | 'posts'
+  | 'freePlaySessions'
+  | 'freePlayProgress'
   | 'outbox'
   | 'conflicts'
   | 'meta';
@@ -52,6 +54,8 @@ export type OfflineBootstrapResponse = {
   attempts: Record<string, unknown>[];
   gameResults: Record<string, unknown>[];
   posts: Record<string, unknown>[];
+  freePlaySessions: Record<string, unknown>[];
+  freePlayProgress: Record<string, unknown>[];
 };
 
 export function isOfflineSyncStatus(value: unknown): value is OfflineSyncStatus {
@@ -84,5 +88,7 @@ export function isOfflineBootstrapResponse(value: unknown): value is OfflineBoot
     && Array.isArray(response.assignments)
     && Array.isArray(response.attempts)
     && Array.isArray(response.gameResults)
-    && Array.isArray(response.posts);
+    && Array.isArray(response.posts)
+    && Array.isArray(response.freePlaySessions)
+    && Array.isArray(response.freePlayProgress);
 }

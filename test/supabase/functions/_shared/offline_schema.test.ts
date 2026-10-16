@@ -18,3 +18,12 @@ Deno.test('offline revision migration stores results, conflicts, and identity ma
   assert(sql.includes('unique (teacher_id, device_id, entity_type, local_id)'));
   assert(sql.includes('enable row level security'));
 });
+
+Deno.test('offline Free Play migration keeps progress separate from media metadata', async () => {
+  const sql = await Deno.readTextFile('supabase/migrations/0016_offline_free_play.sql');
+  for (const table of ['public.free_play_sessions', 'public.free_play_progress']) {
+    assert(sql.includes(table), table);
+  }
+  assert(sql.includes('unique (profile_id, game_id)'));
+  assert(sql.includes('enable row level security'));
+});

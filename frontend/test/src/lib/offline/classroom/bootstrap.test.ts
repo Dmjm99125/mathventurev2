@@ -26,6 +26,8 @@ Deno.test('bootstrap persists the pack while retaining pending local work', asyn
     attempts: [],
     gameResults: [],
     posts: [],
+    freePlaySessions: [],
+    freePlayProgress: [],
   }), () => '2026-10-16T00:00:00.000Z');
 
   assertEquals(await repository.readMeta('revision'), 8);

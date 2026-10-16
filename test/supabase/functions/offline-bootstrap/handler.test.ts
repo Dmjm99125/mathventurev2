@@ -16,6 +16,8 @@ Deno.test('offline bootstrap returns the complete teacher classroom pack', async
       attempts: [],
       gameResults: [],
       posts: [],
+      freePlaySessions: [],
+      freePlayProgress: [],
     }),
   });
 
@@ -25,6 +27,8 @@ Deno.test('offline bootstrap returns the complete teacher classroom pack', async
   assertEquals(response.status, 200);
   assertEquals(body.revision, 4);
   assertEquals(body.teacher, { id: 'teacher-1', role: 'teacher', fullName: 'Teacher' });
+  assertEquals(body.freePlaySessions, []);
+  assertEquals(body.freePlayProgress, []);
 });
 
 Deno.test('offline bootstrap rejects unauthenticated requests', async () => {

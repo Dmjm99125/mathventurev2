@@ -6,6 +6,8 @@ export type OfflineTeacherSnapshot = {
   attempts: Record<string, unknown>[];
   gameResults: Record<string, unknown>[];
   posts: Record<string, unknown>[];
+  freePlaySessions: Record<string, unknown>[];
+  freePlayProgress: Record<string, unknown>[];
 };
 
 type QueryResult<T> = { data: T | null; error: { message: string } | null };
@@ -56,6 +58,8 @@ export async function getOfflineTeacherSnapshot(
       attempts: [],
       gameResults: [],
       posts: [],
+      freePlaySessions: [],
+      freePlayProgress: [],
     };
   }
 
@@ -109,7 +113,25 @@ export async function getOfflineTeacherSnapshot(
     .order("created_at", { ascending: true });
   const posts = (assertQuery(postsResult, "class_posts") ?? []) as Record<string, unknown>[];
 
-  const allRows = [classroom, ...students, ...assignments, ...attempts, ...gameResults, ...posts];
+  const studentIds = students
+    .map((row) => row.student_id)
+    .filter((id): id is string => typeof id === "string");
+  const profileIds = [teacherId, ...studentIds];
+  const freePlaySessionsResult = await adminClient
+    .from("free_play_sessions")
+    .select("id, profile_id, game_id, started_at, completed_at, score, max_score, data, created_at, updated_at")
+    .in("profile_id", profileIds)
+    .order("updated_at", { ascending: true });
+  const freePlaySessions = (assertQuery(freePlaySessionsResult, "free_play_sessions") ?? []) as Record<string, unknown>[];
+
+  const freePlayProgressResult = await adminClient
+    .from("free_play_progress")
+    .select("id, profile_id, game_id, best_score, best_max_score, play_count, last_played_at, data, created_at, updated_at")
+    .in("profile_id", profileIds)
+    .order("updated_at", { ascending: true });
+  const freePlayProgress = (assertQuery(freePlayProgressResult, "free_play_progress") ?? []) as Record<string, unknown>[];
+
+  const allRows = [classroom, ...students, ...assignments, ...attempts, ...gameResults, ...posts, ...freePlaySessions, ...freePlayProgress];
   return {
     revision: snapshotRevision(allRows),
     classroom,
@@ -118,5 +140,7 @@ export async function getOfflineTeacherSnapshot(
     attempts,
     gameResults,
     posts,
+    freePlaySessions,
+    freePlayProgress,
   };
 }

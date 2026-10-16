@@ -9,6 +9,8 @@ const storeNames: OfflineEntityName[] = [
   'attempts',
   'attemptGameResults',
   'posts',
+  'freePlaySessions',
+  'freePlayProgress',
   'outbox',
   'conflicts',
   'meta',
