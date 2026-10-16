@@ -872,13 +872,18 @@ export async function applyOfflineOperation(
       .update({ score, max_score: maxScore, completed_at: completedAt, data: operation.payload, updated_at: completedAt })
       .eq("id", sessionId).eq("profile_id", profileId);
     if (sessionUpdate.error) throw sessionUpdate.error;
+    const existingProgressResult = await adminClient.from("free_play_progress")
+      .select("id, best_score, best_max_score, play_count")
+      .eq("profile_id", profileId).eq("game_id", gameId).maybeSingle();
+    if (existingProgressResult.error) throw existingProgressResult.error;
+    const existingProgress = existingProgressResult.data as Record<string, unknown> | null;
     const { data, error } = await adminClient.from("free_play_progress").upsert({
-      id: operation.entityId,
+      id: typeof existingProgress?.id === "string" ? existingProgress.id : operation.entityId,
       profile_id: profileId,
       game_id: gameId,
-      best_score: score,
-      best_max_score: maxScore,
-      play_count: 1,
+      best_score: Math.max(score, Number(existingProgress?.best_score ?? 0)),
+      best_max_score: Math.max(maxScore, Number(existingProgress?.best_max_score ?? 0)),
+      play_count: Number(existingProgress?.play_count ?? 0) + 1,
       last_played_at: completedAt,
       data: operation.payload,
       updated_at: completedAt,
