@@ -216,6 +216,8 @@ function createLegacyOfflineRepository(
         'attempts',
         'attemptGameResults',
         'posts',
+        'freePlaySessions',
+        'freePlayProgress',
       ];
       const recordsByCollection = new Map(
         await Promise.all(entityCollections.map(async (collection) => [collection, await store.getAll(collection)] as const)),
@@ -774,6 +776,8 @@ function createSqliteRepository(
         'attempts',
         'attemptGameResults',
         'posts',
+        'freePlaySessions',
+        'freePlayProgress',
       ];
       const rowsByCollection = new Map(
         await Promise.all(entityCollections.map(async (collection) => [collection, await readCollection(collection)] as const)),

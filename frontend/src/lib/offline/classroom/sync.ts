@@ -28,6 +28,21 @@ function actionableCount(operations: OfflineOutboxOperation[]): number {
   return operations.filter((operation) => operation.status !== 'failed').length;
 }
 
+function resultMappings(result: unknown): Array<{ entityType: string; localId: string; serverId: string }> {
+  if (!result || typeof result !== 'object') return [];
+  const mappings = (result as { mappings?: unknown }).mappings;
+  if (!Array.isArray(mappings)) return [];
+  return mappings.flatMap((value) => {
+    if (!value || typeof value !== 'object') return [];
+    const mapping = value as Record<string, unknown>;
+    return typeof mapping.entityType === 'string'
+      && typeof mapping.localId === 'string'
+      && typeof mapping.serverId === 'string'
+      ? [{ entityType: mapping.entityType, localId: mapping.localId, serverId: mapping.serverId }]
+      : [];
+  });
+}
+
 export async function syncOutbox(
   repository: OfflineRepository,
   sendBatch: SyncBatchSender,
@@ -105,6 +120,9 @@ export async function syncOutbox(
         continue;
       }
       if (result.status === 'accepted' || result.status === 'applied' || result.status === 'duplicate') {
+        for (const mapping of resultMappings(result.result)) {
+          await repository.remapEntityId(mapping);
+        }
         await repository.deleteOutbox(operation.operationId);
         completed += 1;
         completedThisBatch += 1;

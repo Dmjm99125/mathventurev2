@@ -139,6 +139,11 @@ async function teacherOwnsAssignment(
     && await persistence.isTeacherForClass(assignment.class_id, teacherId);
 }
 
+function revisionOf(row: Record<string, unknown>): number | null {
+  const value = row.server_revision ?? row.serverRevision ?? row.revision;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
 export function createAssignmentOperationApplier(
   persistence: AssignmentOperationPersistence,
 ): (teacherId: string, operation: OfflineOperation) => Promise<OfflineOperationExecution> {
@@ -179,12 +184,23 @@ export function createAssignmentOperationApplier(
       return { status: "rejected", error: "Assignment not found or forbidden." };
     }
     if (operation.type === "assignment.update") {
+      const expectedRevision = typeof operation.baseRevision === "number"
+        ? operation.baseRevision
+        : typeof payload.baseRevision === "number" ? payload.baseRevision : null;
+      const serverRevision = revisionOf(existing);
+      if (expectedRevision !== null && expectedRevision > 0 && serverRevision !== null && expectedRevision !== serverRevision) {
+        return {
+          status: "conflict",
+          error: "Assignment changed on the server.",
+          result: { conflict: true, local: payload, server: existing, serverRevision },
+        };
+      }
       const expectedCreatedAt = payload.createdAt;
       if (typeof expectedCreatedAt === "string" && expectedCreatedAt !== existing.created_at) {
         return {
-          status: "rejected",
+          status: "conflict",
           error: "Assignment changed on the server.",
-          result: { conflict: true, server: existing },
+          result: { conflict: true, local: payload, server: existing, serverRevision },
         };
       }
       const name = payloadString(payload, "name") || String(existing.name ?? existing.lesson_id ?? "Assignment");
@@ -466,12 +482,22 @@ export function createRosterOperationApplier(
           return { status: "rejected", error: `A student named ${identity.fullName} already exists.` };
         }
       }
-      const students = [];
+      const students: Array<Record<string, unknown>> = [];
       for (const identity of identities) {
         const created = await persistence.provisionStudentForClass({ classId: classroom.id, identity });
         students.push({ localStudentId: operation.entityId, studentId: created.studentId, email: created.email, fullName: identity.fullName });
       }
-      return { status: "accepted", result: { students } };
+      return {
+        status: "accepted",
+        result: {
+          students,
+          mappings: students.map((student) => ({
+            entityType: "student",
+            localId: student.localStudentId,
+            serverId: student.studentId,
+          })),
+        },
+      };
     }
     if (operation.type === "class.removeStudent") {
       const studentId = payloadString(operation.payload, "studentId") || operation.entityId;

@@ -33,3 +33,25 @@ Deno.test('class.addStudents rejects duplicate normalized names in one offline b
     error: 'Each student name can appear only once per batch.',
   });
 });
+
+Deno.test('class.addStudents returns canonical server mappings for provisional students', async () => {
+  const persistence: RosterOperationPersistence = {
+    getTeacherClassroom: async () => ({ id: 'class-1', teacherId: 'teacher-1', name: 'Classroom' }),
+    hasStudentWithNormalizedName: async () => false,
+    provisionStudentForClass: async ({ identity }) => ({ studentId: `server-${identity.normalizedFirstName}`, email: 'student@example.test' }),
+    removeMembership: async () => {},
+  };
+  const result = await createRosterOperationApplier(persistence)('teacher-1', {
+    operationId: 'operation-2',
+    deviceId: 'device-1',
+    actorId: 'teacher-1',
+    type: 'class.addStudents',
+    entityId: 'local-student-1',
+    payload: { students: [{ lastName: 'Santos', firstName: 'Ana' }] },
+    dependencies: [],
+    createdAt: '2026-10-07T00:00:00.000Z',
+  });
+  assertEquals((result.result as { mappings: Array<{ entityType: string; localId: string; serverId: string }> }).mappings, [
+    { entityType: 'student', localId: 'local-student-1', serverId: 'server-ANA' },
+  ]);
+});

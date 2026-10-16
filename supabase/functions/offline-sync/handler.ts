@@ -95,6 +95,32 @@ function defaultDependencies(): OfflineSyncDeps {
         error_message: execution.error ?? null,
       }, { onConflict: "device_id,operation_id" });
       if (error) throw new Error(error.message);
+      const result = execution.result && typeof execution.result === "object"
+        ? execution.result as { mappings?: unknown }
+        : {};
+      if (Array.isArray(result.mappings)) {
+        const mappings = result.mappings.flatMap((value) => {
+          if (!value || typeof value !== "object") return [];
+          const mapping = value as Record<string, unknown>;
+          return typeof mapping.entityType === "string"
+            && typeof mapping.localId === "string"
+            && typeof mapping.serverId === "string"
+            ? [{
+              teacher_id: teacherId,
+              device_id: operation.deviceId,
+              entity_type: mapping.entityType,
+              local_id: mapping.localId,
+              server_id: mapping.serverId,
+            }]
+            : [];
+        });
+        if (mappings.length) {
+          const { error: mappingError } = await adminClient
+            .from("offline_entity_id_mappings")
+            .upsert(mappings, { onConflict: "teacher_id,device_id,entity_type,local_id" });
+          if (mappingError) throw new Error(mappingError.message);
+        }
+      }
     },
   };
 }

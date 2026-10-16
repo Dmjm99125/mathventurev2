@@ -5,6 +5,17 @@ alter table public.offline_sync_operations
   add column if not exists server_revision bigint,
   add column if not exists server_entity_id text;
 
+alter table public.offline_sync_operations
+  drop constraint if exists offline_sync_operations_status_check;
+
+alter table public.offline_sync_operations
+  add constraint offline_sync_operations_status_check
+  check (status in ('applied', 'rejected', 'conflict'));
+
+alter table public.offline_sync_operations
+  add constraint offline_sync_operations_result_status_check
+  check (result_status in ('pending', 'applied', 'rejected', 'conflict', 'retryable'));
+
 create index if not exists offline_sync_operations_result_idx
   on public.offline_sync_operations (teacher_id, result_status, created_at desc);
 

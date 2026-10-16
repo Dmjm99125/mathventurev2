@@ -49,3 +49,29 @@ Deno.test('assignment.create preserves the client ID and validates classroom own
     error: 'The teacher does not own the target class.',
   });
 });
+
+Deno.test('stale mutable assignment edits return a conflict with both versions', async () => {
+  const persistence: AssignmentOperationPersistence = {
+    isTeacherForClass: async () => true,
+    lessonExists: async () => true,
+    insertAssignment: async (input) => input,
+    readAssignment: async () => ({
+      id: 'assignment-1',
+      assigned_by: 'teacher-1',
+      class_id: 'class-1',
+      created_at: '2026-10-07T00:00:00.000Z',
+      server_revision: 5,
+      name: 'Server version',
+    }),
+    updateAssignment: async () => null,
+    deleteAssignment: async () => false,
+  };
+  const result = await createAssignmentOperationApplier(persistence)('teacher-1', {
+    ...operation,
+    type: 'assignment.update',
+    payload: { assignmentId: 'assignment-1', name: 'Local version', dueAt: null },
+    baseRevision: 4,
+  });
+  assertEquals(result.status, 'conflict');
+  assertEquals((result.result as { serverRevision: number }).serverRevision, 5);
+});
