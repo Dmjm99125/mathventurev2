@@ -7,6 +7,7 @@ import type {
 import type { OfflineRecord, OfflineStore } from './store.ts';
 import { mergeOfflineSnapshot, type SnapshotRow } from './snapshot.ts';
 import { remapEntityId, type EntityIdMapping } from './idMapping.ts';
+import { OFFLINE_LEASE_DURATION_MS } from './lease.ts';
 import type { SqliteDatabase, SqliteRow, SqliteTransaction, SqliteValue } from '../sqlite/adapter.ts';
 
 const operationStores: Record<OfflineOperationType, OfflineEntityName> = {
@@ -36,6 +37,7 @@ export type OfflineRepository = {
   readByKey(store: OfflineEntityName, key: string): Promise<Record<string, unknown> | undefined>;
   readMeta(key: string): Promise<unknown>;
   writeMeta(key: string, value: unknown): Promise<void>;
+  renewOfflineLease(now: string): Promise<void>;
   putSnapshot(collection: OfflineEntityName, rows: Record<string, unknown>[]): Promise<void>;
   persistBootstrap(snapshot: OfflineBootstrapResponse): Promise<void>;
   applyMutation(input: OfflineMutationInput): Promise<OfflineOutboxOperation>;
@@ -82,6 +84,13 @@ function createLegacyOfflineRepository(
     },
     async writeMeta(key, value) {
       await store.put('meta', { key, value });
+    },
+    async renewOfflineLease(now) {
+      const expiresAt = leaseExpiry(now);
+      await store.transaction(['meta'], async () => {
+        await store.put('meta', { key: 'lastOnlineValidatedAt', value: now });
+        await store.put('meta', { key: 'offlineAccessUntil', value: expiresAt });
+      });
     },
     async putSnapshot(collection, rows) {
       await store.transaction([collection], async () => {
@@ -340,6 +349,12 @@ function sqliteDeleted(row: Record<string, unknown>): number {
   return value === true || value === 1 || value === '1' ? 1 : 0;
 }
 
+function leaseExpiry(now: string): string {
+  const timestamp = Date.parse(now);
+  if (!Number.isFinite(timestamp)) throw new Error(`Invalid offline lease timestamp: ${now}`);
+  return new Date(timestamp + OFFLINE_LEASE_DURATION_MS).toISOString();
+}
+
 function sqliteEntityId(collection: OfflineEntityName, row: Record<string, unknown>): string {
   const id = collection === 'classStudents'
     ? sqliteString(row, 'student_id', 'studentId', 'id')
@@ -582,6 +597,18 @@ function createSqliteRepository(
       await database.transaction(async (tx) => {
         await tx.execute('delete from app_meta where key = ?', [key]);
         await tx.execute('insert into app_meta (key, value, updated_at) values (?, ?, ?)', [key, sqliteJson(value), clock()]);
+      });
+    },
+    async renewOfflineLease(now) {
+      const expiresAt = leaseExpiry(now);
+      await database.transaction(async (tx) => {
+        await tx.execute(`update device_enrollment
+          set last_online_validated_at = ?, offline_access_until = ?, updated_at = ?
+          where device_id = ?`, [now, expiresAt, now, deviceId]);
+        await tx.execute('delete from app_meta where key = ?', ['lastOnlineValidatedAt']);
+        await tx.execute('insert into app_meta (key, value, updated_at) values (?, ?, ?)', ['lastOnlineValidatedAt', sqliteJson(now), now]);
+        await tx.execute('delete from app_meta where key = ?', ['offlineAccessUntil']);
+        await tx.execute('insert into app_meta (key, value, updated_at) values (?, ?, ?)', ['offlineAccessUntil', sqliteJson(expiresAt), now]);
       });
     },
     async putSnapshot(collection, rows) {

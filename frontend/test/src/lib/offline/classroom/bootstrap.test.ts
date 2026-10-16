@@ -26,10 +26,11 @@ Deno.test('bootstrap persists the pack while retaining pending local work', asyn
     attempts: [],
     gameResults: [],
     posts: [],
-  }));
+  }), () => '2026-10-16T00:00:00.000Z');
 
   assertEquals(await repository.readMeta('revision'), 8);
   assertMatch(String(await repository.readMeta('lastSyncedAt')), /^2026-10-07T12:00:00\.000Z$/);
+  assertEquals(await repository.readMeta('offlineAccessUntil'), '2026-10-23T00:00:00.000Z');
   assertEquals(
     (await repository.readCollection('assignments')).map((row) => row.id).sort(),
     ['local-assignment', 'server-assignment'],

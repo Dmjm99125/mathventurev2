@@ -26,11 +26,13 @@ export async function downloadClassroomPack(
 export async function bootstrapRepository(
   repository: OfflineRepository,
   fetchSnapshot: () => Promise<unknown>,
+  clock: () => string = () => new Date().toISOString(),
 ): Promise<OfflineBootstrapResponse> {
   const response = await fetchSnapshot();
   if (!isOfflineBootstrapResponse(response)) {
     throw new Error('The offline classroom pack is invalid.');
   }
   await repository.persistBootstrap(response);
+  await repository.renewOfflineLease(clock());
   return response;
 }
