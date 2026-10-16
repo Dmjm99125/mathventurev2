@@ -37,6 +37,10 @@ export type OfflineOutboxOperation = {
   status: 'pending' | 'syncing' | 'failed';
   attemptCount: number;
   lastError: string | null;
+  baseRevision?: number;
+  localEntityId?: string;
+  serverEntityId?: string;
+  nextAttemptAt?: string | null;
 };
 
 export type OfflineBootstrapResponse = {

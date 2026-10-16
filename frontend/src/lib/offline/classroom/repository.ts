@@ -6,6 +6,7 @@ import type {
 } from './types.ts';
 import type { OfflineRecord, OfflineStore } from './store.ts';
 import { mergeOfflineSnapshot, type SnapshotRow } from './snapshot.ts';
+import { remapEntityId, type EntityIdMapping } from './idMapping.ts';
 import type { SqliteDatabase, SqliteRow, SqliteTransaction, SqliteValue } from '../sqlite/adapter.ts';
 
 const operationStores: Record<OfflineOperationType, OfflineEntityName> = {
@@ -41,6 +42,7 @@ export type OfflineRepository = {
   getOutbox(): Promise<OfflineOutboxOperation[]>;
   updateOutbox(operationId: string, patch: Partial<OfflineOutboxOperation>): Promise<void>;
   deleteOutbox(operationId: string): Promise<void>;
+  remapEntityId(mapping: EntityIdMapping): Promise<void>;
   listConflicts(): Promise<Record<string, unknown>[]>;
   resolveConflict(key: string, choice: 'local' | 'server'): Promise<void>;
   exportDiagnostics(): Promise<Record<string, unknown>>;
@@ -192,6 +194,49 @@ function createLegacyOfflineRepository(
     },
     async deleteOutbox(operationId) {
       await store.delete('outbox', operationId);
+    },
+    async remapEntityId(mapping) {
+      const entityCollections: OfflineEntityName[] = [
+        'profiles',
+        'classrooms',
+        'classStudents',
+        'assignments',
+        'attempts',
+        'attemptGameResults',
+        'posts',
+      ];
+      const recordsByCollection = new Map(
+        await Promise.all(entityCollections.map(async (collection) => [collection, await store.getAll(collection)] as const)),
+      );
+      const outboxRecords = await store.getAll('outbox');
+      const operations = outboxRecords.map((record) => record.value as OfflineOutboxOperation);
+      const result = remapEntityId({
+        ...mapping,
+        rows: entityCollections.flatMap((collection) => (recordsByCollection.get(collection) ?? [])
+          .map((record) => record.value)
+          .filter((value): value is Record<string, unknown> => Boolean(value && typeof value === 'object'))),
+        operations,
+      });
+      let rowIndex = 0;
+      await store.transaction([...entityCollections, 'outbox', 'meta'], async () => {
+        for (const collection of entityCollections) {
+          for (const record of recordsByCollection.get(collection) ?? []) {
+            const value = result.rows[rowIndex++];
+            if (!value) continue;
+            const nextKey = record.key === mapping.localId ? mapping.serverId : record.key;
+            if (nextKey !== record.key) await store.delete(collection, record.key);
+            await store.put(collection, { key: nextKey, value });
+          }
+        }
+        for (const [index, record] of outboxRecords.entries()) {
+          const operation = result.operations[index];
+          if (operation) await store.put('outbox', { key: record.key, value: operation });
+        }
+        await store.put('meta', {
+          key: `mapping:${mapping.entityType}:${mapping.localId}`,
+          value: { ...mapping, mappedAt: clock() },
+        });
+      });
     },
     async listConflicts() {
       return (await store.getAll('conflicts')).map((record) => record.value as Record<string, unknown>);
@@ -625,6 +670,47 @@ function createSqliteRepository(
     },
     async deleteOutbox(operationId) {
       await database.execute('delete from sync_outbox where operation_id = ?', [operationId]);
+    },
+    async remapEntityId(mapping) {
+      const entityCollections: OfflineEntityName[] = [
+        'profiles',
+        'classrooms',
+        'classStudents',
+        'assignments',
+        'attempts',
+        'attemptGameResults',
+        'posts',
+      ];
+      const rowsByCollection = new Map(
+        await Promise.all(entityCollections.map(async (collection) => [collection, await readCollection(collection)] as const)),
+      );
+      const operations = await readOutbox();
+      const result = remapEntityId({
+        ...mapping,
+        rows: entityCollections.flatMap((collection) => rowsByCollection.get(collection) ?? []),
+        operations,
+      });
+      let rowIndex = 0;
+      await database.transaction(async (tx) => {
+        for (const collection of entityCollections) {
+          for (const row of rowsByCollection.get(collection) ?? []) {
+            const next = result.rows[rowIndex++];
+            if (!next) continue;
+            const oldKey = sqliteEntityId(collection, row);
+            const nextKey = sqliteEntityId(collection, next);
+            if (oldKey !== nextKey) await tx.execute(`delete from ${sqliteTables[collection]} where ${sqliteKeys[collection]} = ?`, [oldKey]);
+            await writeSqliteEntity(tx, collection, next, clock);
+          }
+        }
+        for (const operation of result.operations) await writeSqliteOutbox(tx, operation);
+        await tx.execute('delete from entity_id_mappings where entity_type = ? and local_id = ?', [mapping.entityType, mapping.localId]);
+        await tx.execute('insert into entity_id_mappings (entity_type, local_id, server_id, created_at) values (?, ?, ?, ?)', [
+          mapping.entityType,
+          mapping.localId,
+          mapping.serverId,
+          clock(),
+        ]);
+      });
     },
     async listConflicts() {
       return readCollection('conflicts');
