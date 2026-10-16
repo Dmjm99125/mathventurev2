@@ -45,6 +45,7 @@ export type OfflineRepository = {
   updateOutbox(operationId: string, patch: Partial<OfflineOutboxOperation>): Promise<void>;
   deleteOutbox(operationId: string): Promise<void>;
   remapEntityId(mapping: EntityIdMapping): Promise<void>;
+  recordConflict(conflict: Record<string, unknown>): Promise<void>;
   listConflicts(): Promise<Record<string, unknown>[]>;
   resolveConflict(key: string, choice: 'local' | 'server'): Promise<void>;
   exportDiagnostics(): Promise<Record<string, unknown>>;
@@ -246,6 +247,12 @@ function createLegacyOfflineRepository(
           value: { ...mapping, mappedAt: clock() },
         });
       });
+    },
+    async recordConflict(conflict) {
+      const key = typeof conflict.conflictId === 'string'
+        ? conflict.conflictId
+        : `${String(conflict.operationId ?? 'operation')}:${String(conflict.entityId ?? 'entity')}`;
+      await store.put('conflicts', { key, value: { ...conflict, conflictId: key } });
     },
     async listConflicts() {
       return (await store.getAll('conflicts')).map((record) => record.value as Record<string, unknown>);
@@ -558,6 +565,26 @@ async function writeSqliteOutbox(tx: SqliteTransaction, operation: OfflineOutbox
   ]);
 }
 
+async function writeSqliteConflict(tx: SqliteTransaction, conflict: Record<string, unknown>): Promise<void> {
+  const conflictId = typeof conflict.conflictId === 'string'
+    ? conflict.conflictId
+    : `${String(conflict.operationId ?? 'operation')}:${String(conflict.entityId ?? 'entity')}`;
+  await tx.execute('delete from sync_conflicts where conflict_id = ?', [conflictId]);
+  await tx.execute(`insert into sync_conflicts (conflict_id, operation_id, entity_type, entity_id, local_json, server_json, message, status, created_at, resolved_at)
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+    conflictId,
+    typeof conflict.operationId === 'string' ? conflict.operationId : '',
+    typeof conflict.entityType === 'string' ? conflict.entityType : 'unknown',
+    typeof conflict.entityId === 'string' ? conflict.entityId : '',
+    sqliteJson(conflict.local),
+    sqliteJson(conflict.server),
+    typeof conflict.message === 'string' ? conflict.message : 'Offline sync conflict',
+    conflict.status === 'resolved' ? 'resolved' : 'open',
+    typeof conflict.createdAt === 'string' ? conflict.createdAt : new Date().toISOString(),
+    typeof conflict.resolvedAt === 'string' ? conflict.resolvedAt : null,
+  ]);
+}
+
 function decodeOutboxRow(row: SqliteRow): OfflineOutboxOperation {
   return decodedEntity('outbox', row) as unknown as OfflineOutboxOperation;
 }
@@ -738,6 +765,9 @@ function createSqliteRepository(
           clock(),
         ]);
       });
+    },
+    async recordConflict(conflict) {
+      await database.transaction((tx) => writeSqliteConflict(tx, conflict));
     },
     async listConflicts() {
       return readCollection('conflicts');

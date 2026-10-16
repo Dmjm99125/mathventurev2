@@ -3,7 +3,7 @@ import type { OfflineRepository } from './repository.ts';
 
 export type OfflineSyncResult = {
   operationId: string;
-  status: 'accepted' | 'duplicate' | 'rejected' | 'retryable';
+  status: 'accepted' | 'applied' | 'duplicate' | 'rejected' | 'conflict' | 'retryable';
   error?: string;
   result?: unknown;
 };
@@ -18,9 +18,14 @@ export type SyncBatchSender = (operations: OfflineOutboxOperation[]) => Promise<
 
 function dependenciesAreAcknowledged(
   operation: OfflineOutboxOperation,
-  pendingIds: Set<string>,
+  activeIds: Set<string>,
+  failedIds: Set<string>,
 ): boolean {
-  return operation.dependencies.every((dependency) => !pendingIds.has(dependency));
+  return operation.dependencies.every((dependency) => !activeIds.has(dependency) && !failedIds.has(dependency));
+}
+
+function actionableCount(operations: OfflineOutboxOperation[]): number {
+  return operations.filter((operation) => operation.status !== 'failed').length;
 }
 
 export async function syncOutbox(
@@ -33,17 +38,33 @@ export async function syncOutbox(
   while (true) {
     const operations = await repository.getOutbox();
     const active = operations.filter((operation) => operation.status !== 'failed');
-    const pendingIds = new Set(active.map((operation) => operation.operationId));
+    if (active.length === 0) {
+      const finalProgress = { completed, remaining: 0, failed };
+      onProgress?.(finalProgress);
+      return finalProgress;
+    }
+    const activeIds = new Set(active.map((operation) => operation.operationId));
+    const failedIds = new Set(operations.filter((operation) => operation.status === 'failed').map((operation) => operation.operationId));
     const eligible = active
-      .filter((operation) => dependenciesAreAcknowledged(operation, pendingIds))
+      .filter((operation) => dependenciesAreAcknowledged(operation, activeIds, failedIds))
       .slice(0, 50);
     if (eligible.length === 0) {
-      const blocked = operations.filter((operation) => operation.status !== 'failed');
-      for (const operation of blocked) {
+      for (const operation of active) {
         await repository.updateOutbox(operation.operationId, {
           status: 'failed',
           attemptCount: operation.attemptCount + 1,
           lastError: 'The operation is blocked by an unresolved dependency.',
+        });
+        await repository.recordConflict({
+          conflictId: `dependency:${operation.operationId}`,
+          operationId: operation.operationId,
+          entityType: operation.type,
+          entityId: operation.entityId,
+          local: operation.payload,
+          server: null,
+          message: 'The operation is blocked by an unresolved dependency.',
+          status: 'open',
+          createdAt: operation.createdAt,
         });
         failed += 1;
       }
@@ -64,16 +85,16 @@ export async function syncOutbox(
     } catch {
       for (const operation of eligible) {
         await repository.updateOutbox(operation.operationId, {
-          status: 'failed',
+          status: 'pending',
           lastError: 'The sync request failed before the server acknowledged it.',
         });
-        failed += 1;
       }
-      const finalProgress = { completed, remaining: (await repository.getOutbox()).length, failed };
+      const finalProgress = { completed, remaining: actionableCount(await repository.getOutbox()), failed };
       onProgress?.(finalProgress);
       return finalProgress;
     }
     const byId = new Map(results.map((result) => [result.operationId, result]));
+    let completedThisBatch = 0;
     for (const operation of eligible) {
       const result = byId.get(operation.operationId);
       if (!result || result.status === 'retryable') {
@@ -83,19 +104,34 @@ export async function syncOutbox(
         });
         continue;
       }
-      if (result.status === 'accepted' || result.status === 'duplicate') {
+      if (result.status === 'accepted' || result.status === 'applied' || result.status === 'duplicate') {
         await repository.deleteOutbox(operation.operationId);
         completed += 1;
+        completedThisBatch += 1;
       } else {
         await repository.updateOutbox(operation.operationId, {
           status: 'failed',
           lastError: result.error ?? 'The server rejected this operation.',
         });
+        await repository.recordConflict({
+          conflictId: `${result.status}:${operation.operationId}`,
+          operationId: operation.operationId,
+          entityType: operation.type,
+          entityId: operation.entityId,
+          local: operation.payload,
+          server: result.result && typeof result.result === 'object'
+            ? (result.result as Record<string, unknown>).server ?? null
+            : null,
+          message: result.error ?? 'The server rejected this operation.',
+          status: 'open',
+          createdAt: operation.createdAt,
+        });
         failed += 1;
       }
     }
-    const progress = { completed, remaining: (await repository.getOutbox()).length, failed };
+    const progress = { completed, remaining: actionableCount(await repository.getOutbox()), failed };
     onProgress?.(progress);
     if (progress.remaining === 0) return progress;
+    if (completedThisBatch === 0) return progress;
   }
 }

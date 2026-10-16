@@ -53,7 +53,7 @@ export async function syncOfflineClassroom(
     onProgress?.(empty);
     return empty;
   }
-  return syncOutbox(repository, async (batch: OfflineOutboxOperation[]) => {
+  const progress = await syncOutbox(repository, async (batch: OfflineOutboxOperation[]) => {
     const deviceId = batch[0]?.deviceId;
     if (!deviceId) return [];
     const response = await invoke('offline-sync', {
@@ -65,6 +65,10 @@ export async function syncOfflineClassroom(
     }
     return (response as { results: OfflineSyncResult[] }).results;
   }, onProgress);
+  if (progress.failed === 0 && progress.remaining === 0) {
+    await repository.renewOfflineLease(new Date().toISOString());
+  }
+  return progress;
 }
 
 export function createTestOfflineClassroom(options: {
