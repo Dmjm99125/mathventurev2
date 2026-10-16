@@ -16,6 +16,8 @@ export const OFFLINE_STORE_NAMES: OfflineEntityName[] = [
   'meta',
 ];
 
+export const LEGACY_CLASSROOM_STORE_NAMES: readonly OfflineEntityName[] = [...OFFLINE_STORE_NAMES];
+
 export class OfflineStorageError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
@@ -35,6 +37,8 @@ export type OfflineStore = {
   getAll(store: OfflineEntityName): Promise<OfflineRecord[]>;
   transaction<T>(stores: OfflineEntityName[], work: () => Promise<T>): Promise<T>;
 };
+
+export type LegacyClassroomSource = Pick<OfflineStore, 'getAll'>;
 
 type IndexedDbRequest<T> = {
   result: T;
