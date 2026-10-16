@@ -42,6 +42,11 @@ Deno.test("PWA manifest icons exist in public assets", async () => {
   }
 });
 
+Deno.test("PWA config precaches the SQLite WASM runtime asset", async () => {
+  const config = await readProjectFile("vite.config.ts");
+  assertMatch(config, /globPatterns:[\s\S]*wasm/);
+});
+
 Deno.test("PWA worker has an app-shell precache entry point", async () => {
   const worker = await readProjectFile("src/pwa/sw.ts");
 

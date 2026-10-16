@@ -6,6 +6,8 @@ export type OfflineLifecycleState = {
   failedCount: number;
   lastSyncedAt: string | null;
   error: string | null;
+  leaseExpiresAt?: string | null;
+  storage?: 'healthy' | 'unavailable' | 'unknown';
 };
 
 export type OfflineLifecycleAction =
@@ -15,7 +17,9 @@ export type OfflineLifecycleAction =
   | { type: 'sync-success'; pendingCount: number; failedCount: number; lastSyncedAt: string | null }
   | { type: 'sync-error'; error: string; pendingCount: number; failedCount: number }
   | { type: 'needs-auth' }
-  | { type: 'counts'; pendingCount: number; failedCount: number };
+  | { type: 'counts'; pendingCount: number; failedCount: number }
+  | { type: 'lease-update'; leaseExpiresAt: string | null }
+  | { type: 'storage-health'; storage: 'healthy' | 'unavailable' | 'unknown' };
 
 export function offlineStatusReducer(
   state: OfflineLifecycleState,
@@ -36,5 +40,9 @@ export function offlineStatusReducer(
       return { ...state, status: 'needs-auth' };
     case 'counts':
       return { ...state, pendingCount: action.pendingCount, failedCount: action.failedCount };
+    case 'lease-update':
+      return { ...state, leaseExpiresAt: action.leaseExpiresAt };
+    case 'storage-health':
+      return { ...state, storage: action.storage };
   }
 }

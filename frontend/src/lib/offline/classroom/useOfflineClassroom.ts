@@ -14,6 +14,8 @@ const initialState: OfflineLifecycleState = {
   failedCount: 0,
   lastSyncedAt: null,
   error: null,
+  leaseExpiresAt: null,
+  storage: 'healthy',
 };
 
 type OfflineClassroomContextValue = OfflineLifecycleState & {
@@ -76,6 +78,8 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
       const progress = await syncOfflineClassroom(resolvedRepository, request);
       const summary = await resolvedRepository.getSyncSummary();
       dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
+      const leaseExpiresAt = await resolvedRepository.readMeta('offlineAccessUntil');
+      if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
       void progress;
     } catch (error) {
       const summary = await resolvedRepository.getSyncSummary();
@@ -93,6 +97,8 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     await bootstrapRepository(resolvedRepository, () => downloadClassroomPack(request));
     const summary = await resolvedRepository.getSyncSummary();
     dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
+    const leaseExpiresAt = await resolvedRepository.readMeta('offlineAccessUntil');
+    if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
   }, [invoke, resolvedRepository]);
   useEffect(() => {
     const onOnline = () => { dispatch({ type: 'network-online' }); void syncNow(); };
@@ -100,6 +106,9 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     addEventListener('online', onOnline);
     addEventListener('offline', onOffline);
     void resolvedRepository.getSyncSummary().then((summary) => dispatch({ type: 'counts', ...summary }));
+    void resolvedRepository.readMeta('offlineAccessUntil').then((value) => {
+      if (typeof value === 'string') dispatch({ type: 'lease-update', leaseExpiresAt: value });
+    });
     return () => {
       removeEventListener('online', onOnline);
       removeEventListener('offline', onOffline);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 
 export function OfflinePackPanel({ onRefresh }: { onRefresh?: () => Promise<void> }) {
-  const { status, pendingCount, failedCount, lastSyncedAt, bootstrapNow, syncNow } = useOfflineClassroom();
+  const { status, pendingCount, failedCount, lastSyncedAt, leaseExpiresAt, storage, bootstrapNow, syncNow } = useOfflineClassroom();
   const [refreshing, setRefreshing] = useState(false);
   const isOnline = typeof navigator === 'undefined' || navigator.onLine;
   const refresh = async () => {
@@ -24,6 +24,14 @@ export function OfflinePackPanel({ onRefresh }: { onRefresh?: () => Promise<void
           </p>
           {!isOnline && <p className="text-sm font-bold text-muted-foreground">Refreshing the pack requires an internet connection.</p>}
           <p className="text-sm text-muted-foreground">{pendingCount} pending, {failedCount} failed.</p>
+          <p className="text-sm font-semibold text-muted-foreground">
+            Storage: {storage === 'healthy' ? 'ready' : storage === 'unavailable' ? 'unavailable' : 'checking'}.
+          </p>
+          {leaseExpiresAt && (
+            <p className="text-sm font-semibold text-muted-foreground">
+              Offline access until {new Date(leaseExpiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}.
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => void refresh()} disabled={!isOnline || refreshing} className="rounded-lg border px-3 py-2 text-sm font-bold">

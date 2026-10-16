@@ -30,7 +30,7 @@ export function OfflineConflictPanel() {
       </div>
       <div className="space-y-3">
         {conflicts.map((conflict) => {
-          const key = String(conflict.id ?? conflict.key ?? 'conflict');
+          const key = String(conflict.conflictId ?? conflict.id ?? conflict.key ?? 'conflict');
           return (
             <div key={key} className="rounded-lg border border-border p-3">
               <p className="text-sm">{String(conflict.message ?? 'This item changed while offline.')}</p>

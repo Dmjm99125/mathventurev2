@@ -8,4 +8,6 @@ Deno.test('offline pack panel exposes refresh and sync controls', async () => {
   assertMatch(source, /Sync now/);
   assertMatch(source, /pending/);
   assertMatch(source, /requires an internet connection/);
+  assertMatch(source, /leaseExpiresAt/);
+  assertMatch(source, /Storage:/);
 });

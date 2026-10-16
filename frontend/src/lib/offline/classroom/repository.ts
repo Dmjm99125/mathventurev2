@@ -262,10 +262,20 @@ function createLegacyOfflineRepository(
       await store.put('conflicts', { key, value: { ...conflict, conflictId: key } });
     },
     async listConflicts() {
-      return (await store.getAll('conflicts')).map((record) => record.value as Record<string, unknown>);
+      return (await store.getAll('conflicts'))
+        .map((record) => record.value as Record<string, unknown>)
+        .filter((conflict) => conflict.status !== 'resolved');
     },
     async resolveConflict(key, choice) {
-      await store.delete('conflicts', key);
+      const record = await store.get('conflicts', key);
+      const conflict = record?.value as Record<string, unknown> | undefined;
+      const operationId = typeof conflict?.operationId === 'string' ? conflict.operationId : null;
+      if (operationId && choice === 'local') {
+        const operation = await store.get('outbox', operationId);
+        if (operation) await store.put('outbox', { key: operationId, value: { ...(operation.value as Record<string, unknown>), status: 'pending', lastError: null } });
+      }
+      if (operationId && choice === 'server') await store.delete('outbox', operationId);
+      await store.put('conflicts', { key, value: { ...(conflict ?? {}), conflictId: key, status: 'resolved', resolvedAt: clock(), resolution: choice } });
       await store.put('meta', { key: `conflict:${key}`, value: { choice, resolvedAt: clock() } });
     },
     async exportDiagnostics() {
@@ -817,11 +827,18 @@ function createSqliteRepository(
       await database.transaction((tx) => writeSqliteConflict(tx, conflict));
     },
     async listConflicts() {
-      return readCollection('conflicts');
+      return (await readCollection('conflicts')).filter((conflict) => conflict.status !== 'resolved');
     },
     async resolveConflict(key, choice) {
       await database.transaction(async (tx) => {
-        await tx.execute('delete from sync_conflicts where conflict_id = ?', [key]);
+        const conflicts = await tx.query<SqliteRow>('select * from sync_conflicts where conflict_id = ?', [key]);
+        const conflict = conflicts[0];
+        const operationId = typeof conflict?.operation_id === 'string' ? conflict.operation_id : null;
+        if (operationId && choice === 'local') {
+          await tx.execute("update sync_outbox set status = 'pending', last_error = null where operation_id = ?", [operationId]);
+        }
+        if (operationId && choice === 'server') await tx.execute('delete from sync_outbox where operation_id = ?', [operationId]);
+        await tx.execute('update sync_conflicts set status = \'resolved\', resolved_at = ? where conflict_id = ?', [clock(), key]);
         await tx.execute('delete from app_meta where key = ?', [`conflict:${key}`]);
         await tx.execute('insert into app_meta (key, value, updated_at) values (?, ?, ?)', [
           `conflict:${key}`,

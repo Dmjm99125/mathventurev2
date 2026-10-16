@@ -46,3 +46,21 @@ Deno.test('sqlite mutation is visible and queued in one transaction', async () =
   assertEquals((await repository.getOutbox()).map((operation) => operation.operationId), ['op-1']);
   assertEquals(await database.query('select operation_id from sync_outbox'), [{ operation_id: 'op-1' }]);
 });
+
+Deno.test('resolving a server conflict removes only its operation and keeps unrelated work', async () => {
+  const repository = createOfflineRepository(
+    createMemoryStore(),
+    () => '2026-10-16T00:00:00.000Z',
+    (() => {
+      let next = 0;
+      return () => `op-${++next}`;
+    })(),
+  );
+  await repository.applyMutation({ actorId: 'teacher-1', type: 'assignment.create', entityId: 'assignment-1', payload: {}, dependencies: [] });
+  await repository.applyMutation({ actorId: 'teacher-1', type: 'post.create', entityId: 'post-1', payload: {}, dependencies: [] });
+  await repository.recordConflict({ conflictId: 'conflict-1', operationId: 'op-1', entityType: 'assignment.create', entityId: 'assignment-1', local: {}, server: {}, message: 'changed', status: 'open' });
+  await repository.resolveConflict('conflict-1', 'server');
+  assertEquals((await repository.getOutbox()).map((operation) => operation.operationId), ['op-2']);
+  assertEquals(await repository.listConflicts(), []);
+  assertEquals(await repository.readMeta('conflict:conflict-1'), { choice: 'server', resolvedAt: '2026-10-16T00:00:00.000Z' });
+});
