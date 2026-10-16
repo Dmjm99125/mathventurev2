@@ -1,11 +1,12 @@
-import { createContext, createElement, useContext, useEffect, useMemo, useReducer, useCallback, type ReactNode } from 'react';
-import { createIndexedDbStore } from './store.ts';
+import { createContext, createElement, useContext, useEffect, useMemo, useReducer, useCallback, useState, type ReactNode } from 'react';
 import { createOfflineRepository, type OfflineRepository } from './repository.ts';
 import { bootstrapRepository, downloadClassroomPack } from './bootstrap.ts';
 import { syncOfflineClassroom } from './index.ts';
 import { offlineStatusReducer, type OfflineLifecycleState } from './status.ts';
 import type { BootstrapInvoker } from './bootstrap.ts';
 import { getOrCreateDeviceId } from './crypto.ts';
+import { getApplicationDatabase, resetApplicationDatabaseForTests } from '../sqlite/runtime.ts';
+import type { SqliteDatabase } from '../sqlite/adapter.ts';
 
 const initialState: OfflineLifecycleState = {
   status: typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false ? 'offline' : 'online',
@@ -29,15 +30,42 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
   invoke?: BootstrapInvoker;
 }) {
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
-  const resolvedRepository = useMemo(
-    () => {
-      if (repository) return repository;
-      const storage = typeof window === 'undefined' ? undefined : window.localStorage;
-      const deviceId = storage ? getOrCreateDeviceId(storage) : 'local-device';
-      return createOfflineRepository(createIndexedDbStore(), undefined, undefined, deviceId);
-    },
-    [repository],
-  );
+  const [database, setDatabase] = useState<SqliteDatabase | null>(null);
+  const [storageError, setStorageError] = useState<Error | null>(null);
+  const resolvedRepository = useMemo(() => {
+    if (repository) return repository;
+    if (!database) return null;
+    const storage = typeof window === 'undefined' ? undefined : window.localStorage;
+    const deviceId = storage ? getOrCreateDeviceId(storage) : 'local-device';
+    return createOfflineRepository(database, undefined, undefined, deviceId);
+  }, [database, repository]);
+  useEffect(() => {
+    if (repository) return;
+    let active = true;
+    void getApplicationDatabase()
+      .then((opened) => {
+        if (active) setDatabase(opened);
+      })
+      .catch((error: unknown) => {
+        if (active) setStorageError(error instanceof Error ? error : new Error('Durable offline storage is unavailable.'));
+      });
+    return () => { active = false; };
+  }, [repository]);
+  useEffect(() => {
+    if (repository || !database) return;
+    return () => {
+      void database.close().finally(() => resetApplicationDatabaseForTests());
+    };
+  }, [database, repository]);
+  if (!resolvedRepository) {
+    return createElement(
+      'div',
+      { role: 'alert', className: 'min-h-[100dvh] bg-background p-6 text-center text-foreground' },
+      storageError
+        ? `Offline storage could not be prepared. ${storageError.message}`
+        : 'Preparing durable offline storage…',
+    );
+  }
   const syncNow = useCallback(async () => {
     dispatch({ type: 'sync-start' });
     try {

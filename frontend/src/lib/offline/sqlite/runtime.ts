@@ -18,6 +18,8 @@ export type ApplicationDatabaseOptions = {
   databaseFactory?: () => Promise<SqliteDatabase>;
 };
 
+let sharedDatabasePromise: Promise<SqliteDatabase> | null = null;
+
 function defaultStorageManager(): DurableStorageManager | undefined {
   if (typeof navigator === 'undefined') return undefined;
   return (navigator as Navigator & { storage?: DurableStorageManager }).storage;
@@ -52,4 +54,13 @@ export async function openApplicationDatabase(options: ApplicationDatabaseOption
     if (error instanceof OfflineDurableStorageError) throw error;
     throw new OfflineDurableStorageError('The offline SQLite database could not be opened.', { cause: error });
   }
+}
+
+export function getApplicationDatabase(options: ApplicationDatabaseOptions = {}): Promise<SqliteDatabase> {
+  sharedDatabasePromise ??= openApplicationDatabase(options);
+  return sharedDatabasePromise;
+}
+
+export function resetApplicationDatabaseForTests(): void {
+  sharedDatabasePromise = null;
 }
