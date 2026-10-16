@@ -74,9 +74,13 @@ export function useClasses() {
 
   return useQuery({
     queryKey: ['classes'],
-    queryFn: async () => browserIsOffline() && user
-      ? toLegacyClassesResponse({ classroom: await readOfflineClassroom(repository, user.role) })
-      : toLegacyClassesResponse(await api.classes.list()),
+    queryFn: async () => {
+      if (user) {
+        const cached = await readOfflineClassroom(repository, user.role);
+        if (cached || browserIsOffline()) return toLegacyClassesResponse({ classroom: cached });
+      }
+      return toLegacyClassesResponse(await api.classes.list());
+    },
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
@@ -88,7 +92,10 @@ export function useTeacherClassroom() {
   return useQuery({
     queryKey: ['classroom', 'teacher'],
     queryFn: async () => {
-      if (browserIsOffline() && user) return { classroom: await readOfflineClassroom(repository, 'teacher') };
+      if (user) {
+        const cached = await readOfflineClassroom(repository, 'teacher');
+        if (cached || browserIsOffline()) return { classroom: cached };
+      }
       const data = await api.classes.list();
       return {
         classroom: data.classroom && 'createdAt' in data.classroom
@@ -107,7 +114,10 @@ export function useStudentClassroom() {
   return useQuery({
     queryKey: ['classroom', 'student'],
     queryFn: async () => {
-      if (browserIsOffline() && user) return { classroom: await readOfflineClassroom(repository, 'student') };
+      if (user) {
+        const cached = await readOfflineClassroom(repository, 'student');
+        if (cached || browserIsOffline()) return { classroom: cached };
+      }
       const data = await api.classes.list();
       return {
         classroom: data.classroom && 'teacherName' in data.classroom
@@ -125,7 +135,11 @@ export function useClassRoster(classId?: string) {
 
   return useInfiniteQuery({
     queryKey: ['classroom', 'roster', classId ?? 'singleton'],
-    queryFn: ({ pageParam }) => browserIsOffline() ? readOfflineRoster(repository) : api.classes.roster({ cursor: pageParam }),
+    queryFn: async ({ pageParam }) => {
+      const cached = await readOfflineRoster(repository);
+      if (cached.students.length || browserIsOffline()) return cached;
+      return api.classes.roster({ cursor: pageParam });
+    },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
@@ -138,9 +152,11 @@ export function useClassRosterStudent(studentId?: string | null) {
 
   return useQuery({
     queryKey: ['classroom', 'roster', 'student', studentId],
-    queryFn: async () => browserIsOffline()
-      ? { students: (await readOfflineRoster(repository)).students.filter((student) => student.id === studentId), page: { nextCursor: null, hasMore: false } }
-      : api.classes.rosterStudent(studentId!),
+    queryFn: async () => {
+      const cached = (await readOfflineRoster(repository)).students.filter((student) => student.id === studentId);
+      if (cached.length || browserIsOffline()) return { students: cached, page: { nextCursor: null, hasMore: false } };
+      return api.classes.rosterStudent(studentId!);
+    },
     enabled: Boolean(studentId) && isAuthReadyForData(isLoading, user),
   });
 }
@@ -151,9 +167,11 @@ export function useAssignments(classId?: string) {
 
   return useInfiniteQuery({
     queryKey: ['assignments', classId],
-    queryFn: async ({ pageParam }) => browserIsOffline()
-      ? { assignments: await readOfflineAssignments(repository, user?.role === 'student' ? user.id : undefined), page: { nextCursor: null, hasMore: false } }
-      : api.assignments.list(classId, { cursor: pageParam }),
+    queryFn: async ({ pageParam }) => {
+      const cached = await readOfflineAssignments(repository, user?.role === 'student' ? user.id : undefined);
+      if (cached.length || browserIsOffline()) return { assignments: cached, page: { nextCursor: null, hasMore: false } };
+      return api.assignments.list(classId, { cursor: pageParam });
+    },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
     enabled: isAuthReadyForData(isLoading, user),
@@ -166,9 +184,13 @@ export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
 
   return useQuery({
     queryKey: ['assignment-quiz', assignmentId, lessonId],
-    queryFn: async () => browserIsOffline() && user
-      ? { state: await readOfflineAssignmentQuiz(repository, user.id, assignmentId!, lessonId!) }
-      : api.assignmentQuiz.get(assignmentId!, lessonId!),
+    queryFn: async () => {
+      if (user) {
+        const state = await readOfflineAssignmentQuiz(repository, user.id, assignmentId!, lessonId!);
+        if (state.attemptId || browserIsOffline()) return { state };
+      }
+      return api.assignmentQuiz.get(assignmentId!, lessonId!);
+    },
     enabled: Boolean(assignmentId && lessonId) && isAuthReadyForData(isLoading, user),
   });
 }
@@ -257,9 +279,11 @@ export function useStudentDashboard() {
 
   return useQuery({
     queryKey: ['dashboard', 'student'],
-    queryFn: async () => browserIsOffline()
-      ? buildOfflineStudentDashboard(await repository.readCollection('attempts'))
-      : api.dashboard.student(),
+    queryFn: async () => {
+      const attempts = await repository.readCollection('attempts');
+      if (attempts.length || browserIsOffline()) return buildOfflineStudentDashboard(attempts);
+      return api.dashboard.student();
+    },
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
@@ -270,9 +294,15 @@ export function useTeacherDashboard() {
 
   return useQuery({
     queryKey: ['dashboard', 'teacher'],
-    queryFn: async () => browserIsOffline()
-      ? buildOfflineTeacherDashboard(await repository.readCollection('classrooms'), await repository.readCollection('classStudents'), await repository.readCollection('attempts'))
-      : api.dashboard.teacher(),
+    queryFn: async () => {
+      const [classrooms, students, attempts] = await Promise.all([
+        repository.readCollection('classrooms'),
+        repository.readCollection('classStudents'),
+        repository.readCollection('attempts'),
+      ]);
+      if (classrooms.length || browserIsOffline()) return buildOfflineTeacherDashboard(classrooms, students, attempts);
+      return api.dashboard.teacher();
+    },
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
@@ -284,12 +314,12 @@ export function useTeacherReportsOverview(window: TeacherReportsWindowKey, stude
   return useQuery({
     queryKey: ['teacher-reports', 'overview', window, studentCursor ?? null],
     queryFn: async () => {
-      if (browserIsOffline()) {
-        const [classrooms, students, gameResults] = await Promise.all([
+      const [classrooms, students, gameResults] = await Promise.all([
           repository.readCollection('classrooms'),
           repository.readCollection('classStudents'),
           repository.readCollection('attemptGameResults'),
-        ]);
+      ]);
+      if (classrooms.length || browserIsOffline()) {
         return buildOfflineTeacherClassReport(
           classrooms,
           students,
@@ -311,12 +341,12 @@ export function useTeacherClassReport(classId: string, window: TeacherReportsWin
   return useQuery({
     queryKey: ['teacher-reports', 'class', classId, window, studentCursor ?? null],
     queryFn: async () => {
-      if (browserIsOffline()) {
-        const [classrooms, students, gameResults] = await Promise.all([
+      const [classrooms, students, gameResults] = await Promise.all([
           repository.readCollection('classrooms'),
           repository.readCollection('classStudents'),
           repository.readCollection('attemptGameResults'),
-        ]);
+      ]);
+      if (classrooms.length || browserIsOffline()) {
         return buildOfflineTeacherClassReport(classrooms, students, gameResults, classId, window);
       }
       return api.reports.classDetail(classId, window, { studentCursor });
@@ -516,9 +546,11 @@ export function useClassPosts(classId: string) {
 
   return useQuery({
     queryKey: ['posts', classId],
-    queryFn: async () => browserIsOffline()
-      ? { posts: await readOfflinePosts(repository, classId) }
-      : api.posts.list(classId),
+    queryFn: async () => {
+      const posts = await readOfflinePosts(repository, classId);
+      if (posts.length || browserIsOffline()) return { posts };
+      return api.posts.list(classId);
+    },
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
