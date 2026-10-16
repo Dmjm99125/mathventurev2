@@ -175,11 +175,13 @@ export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
 export function useStartAssignmentQuiz() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { repository } = useOfflineClassroom();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async ({ assignmentId, lessonId }: { assignmentId: string; lessonId: string }) => {
-      if (browserIsOffline() && user) {
-        return { state: (await startOfflineAssignmentQuiz(repository, user.id, assignmentId, lessonId)).state };
+      if (user) {
+        const result = await startOfflineAssignmentQuiz(repository, user.id, assignmentId, lessonId);
+        if (!browserIsOffline()) void syncNow();
+        return { state: result.state };
       }
       return api.assignmentQuiz.start(assignmentId, lessonId);
     },
@@ -193,20 +195,22 @@ export function useStartAssignmentQuiz() {
 export function useCheckpointAssignmentQuiz() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { repository } = useOfflineClassroom();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async (input: Parameters<typeof api.assignmentQuiz.checkpoint>[0]) => {
-      if (browserIsOffline() && user) {
+      if (user) {
         const attempt = (await repository.readCollection('attempts')).find((row) => {
           return row.assignment_id === input.assignmentId && row.student_id === user.id;
         });
         if (!attempt?.id) throw new Error('Start the assignment quiz before saving progress.');
-        return {
+        const result = {
           state: await checkpointOfflineAssignmentQuiz(repository, user.id, {
             ...input,
             attemptId: String(attempt.id),
           }),
         };
+        if (!browserIsOffline()) void syncNow();
+        return result;
       }
       return api.assignmentQuiz.checkpoint(input);
     },
@@ -219,20 +223,22 @@ export function useCheckpointAssignmentQuiz() {
 export function useCompleteAssignmentQuiz() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { repository } = useOfflineClassroom();
+  const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async (input: Parameters<typeof api.assignmentQuiz.complete>[0]) => {
-      if (browserIsOffline() && user) {
+      if (user) {
         const attempt = (await repository.readCollection('attempts')).find((row) => {
           return row.assignment_id === input.assignmentId && row.student_id === user.id;
         });
         if (!attempt?.id) throw new Error('Start the assignment quiz before completing it.');
-        return {
+        const result = {
           state: await completeOfflineAssignmentQuiz(repository, user.id, {
             ...input,
             attemptId: String(attempt.id),
           }),
         };
+        if (!browserIsOffline()) void syncNow();
+        return result;
       }
       return api.assignmentQuiz.complete(input);
     },
@@ -347,9 +353,9 @@ export function useCreateAssignment() {
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         const result = await createOfflineAssignment(repository, user.id, input);
-        void syncNow();
+        if (!browserIsOffline()) void syncNow();
         return { assignment: { id: result.id, ...input }, syncState: result.syncState };
       }
       return api.assignments.create(input);
@@ -367,9 +373,9 @@ export function useUpdateAssignment() {
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async (input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null }) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         const result = await updateOfflineAssignment(repository, user.id, input);
-        void syncNow();
+        if (!browserIsOffline()) void syncNow();
         return { assignment: { id: result.id, ...input }, syncState: result.syncState };
       }
       return api.assignments.update(input);
@@ -388,9 +394,9 @@ export function useDeleteAssignment() {
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async (assignmentId: string) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         const result = await deleteOfflineAssignment(repository, user.id, assignmentId);
-        void syncNow();
+        if (!browserIsOffline()) void syncNow();
         return { deleted: true as const, syncState: result.syncState };
       }
       return api.assignments.delete(assignmentId);
@@ -409,9 +415,9 @@ export function useRemoveStudentFromClass() {
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async ({ studentId }: { classId?: string; studentId: string }) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         const result = await removeOfflineStudent(repository, user.id, studentId);
-        void syncNow();
+        if (!browserIsOffline()) void syncNow();
         return { removed: true as const, syncState: result.syncState };
       }
       return api.classes.removeStudent(studentId);
@@ -438,9 +444,9 @@ export function useAddStudentsToClass() {
       classId?: string;
       students: TeacherAddStudentDraft[];
     }) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         return addOfflineStudents(repository, user.id, students).then((result) => {
-          void syncNow();
+          if (!browserIsOffline()) void syncNow();
           return { createdCount: students.length, syncState: result.syncState };
         });
       }
@@ -475,9 +481,9 @@ export function useSubmitAttempt() {
       durationSeconds?: number;
       gameResults?: import('./client').AttemptGameResultInput[];
     }) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         return submitOfflineAttempt(repository, user.id, input).then((result) => {
-          void syncNow();
+          if (!browserIsOffline()) void syncNow();
           return { attempt: { id: result.id }, syncState: result.syncState };
         });
       }
@@ -509,9 +515,9 @@ export function useCreatePost() {
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: async ({ classId, content }: { classId: string, content: string }) => {
-      if (user && browserIsOffline()) {
+      if (user) {
         const result = await createOfflinePost(repository, user.id, { classId, content });
-        void syncNow();
+        if (!browserIsOffline()) void syncNow();
         return { post: { id: result.id, classId, content }, syncState: result.syncState };
       }
       return api.posts.create(classId, content);
