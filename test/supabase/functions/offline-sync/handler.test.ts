@@ -76,3 +76,49 @@ Deno.test('offline sync permits a cached classroom student actor after teacher a
   assertEquals(appliedActor, 'student-1');
   assertEquals(body.results[0].status, 'accepted');
 });
+
+Deno.test('offline sync returns independent results for malformed and valid batch members', async () => {
+  let applied = 0;
+  const handler = createOfflineSyncHandler({
+    getAuthedProfile: async () => ({ id: 'teacher-1', role: 'teacher', full_name: 'Teacher' }),
+    readStoredOperation: async () => null,
+    applyOperation: async () => {
+      applied += 1;
+      return { status: 'accepted', result: { saved: true } };
+    },
+    recordOperation: async () => {},
+  });
+  const response = await handler(new Request('http://local/offline-sync', {
+    method: 'POST',
+    body: JSON.stringify({
+      deviceId: 'device-1',
+      operations: [
+        { operationId: 'bad', deviceId: 'device-1', actorId: 'teacher-1', type: 'unknown', entityId: 'bad', payload: {}, dependencies: [], createdAt: '2026-10-07T00:00:00.000Z' },
+        { operationId: 'good', deviceId: 'device-1', actorId: 'teacher-1', type: 'class.ensure', entityId: 'class-1', payload: {}, dependencies: [], createdAt: '2026-10-07T00:00:00.000Z' },
+      ],
+    }),
+  }));
+  const body = await response.json();
+  assertEquals(applied, 1);
+  assertEquals(body.results.map((result: { status: string }) => result.status), ['rejected', 'accepted']);
+});
+
+Deno.test('offline sync does not store retryable operations as acknowledged', async () => {
+  let recorded = 0;
+  const handler = createOfflineSyncHandler({
+    getAuthedProfile: async () => ({ id: 'teacher-1', role: 'teacher', full_name: 'Teacher' }),
+    readStoredOperation: async () => null,
+    applyOperation: async () => ({ status: 'retryable', error: 'Try again later.' }),
+    recordOperation: async () => { recorded += 1; },
+  });
+  const response = await handler(new Request('http://local/offline-sync', {
+    method: 'POST',
+    body: JSON.stringify({
+      deviceId: 'device-1',
+      operations: [{ operationId: 'retry', deviceId: 'device-1', actorId: 'teacher-1', type: 'class.ensure', entityId: 'class-1', payload: {}, dependencies: [], createdAt: '2026-10-07T00:00:00.000Z' }],
+    }),
+  }));
+  const body = await response.json();
+  assertEquals(recorded, 0);
+  assertEquals(body.results[0].status, 'retryable');
+});

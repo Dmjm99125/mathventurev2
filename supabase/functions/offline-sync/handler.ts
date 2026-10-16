@@ -9,7 +9,7 @@ import {
 } from "../_shared/offline_operations.ts";
 
 export type StoredOfflineOperation = {
-  status: "applied" | "rejected";
+  status: "applied" | "rejected" | "conflict";
   result?: unknown;
   error?: string | null;
 };
@@ -28,7 +28,7 @@ export type OfflineSyncDeps = {
   recordOperation: (
     teacherId: string,
     operation: OfflineOperation,
-    execution: Extract<OfflineOperationExecution, { status: "accepted" | "rejected" }>,
+    execution: Extract<OfflineOperationExecution, { status: "accepted" | "rejected" | "conflict" }>,
   ) => Promise<void>;
 };
 
@@ -42,14 +42,14 @@ function defaultDependencies(): OfflineSyncDeps {
       const { adminClient } = await import("../_shared/client.ts");
       const { data, error } = await adminClient
         .from("offline_sync_operations")
-        .select("status, result, error_message")
+        .select("status, result, error_message, result_status")
         .eq("device_id", deviceId)
         .eq("operation_id", operationId)
         .maybeSingle();
       if (error) throw new Error(error.message);
       if (!data) return null;
       return {
-        status: data.status,
+        status: data.result_status === "conflict" ? "conflict" : data.status,
         result: data.result,
         error: data.error_message,
       } as StoredOfflineOperation;
@@ -77,7 +77,8 @@ function defaultDependencies(): OfflineSyncDeps {
     },
     recordOperation: async (teacherId, operation, execution) => {
       const { adminClient } = await import("../_shared/client.ts");
-      const { error } = await adminClient.from("offline_sync_operations").insert({
+      const status = execution.status === "accepted" ? "applied" : execution.status;
+      const { error } = await adminClient.from("offline_sync_operations").upsert({
         teacher_id: teacherId,
         device_id: operation.deviceId,
         operation_id: operation.operationId,
@@ -86,9 +87,13 @@ function defaultDependencies(): OfflineSyncDeps {
         entity_id: operation.entityId,
         payload: operation.payload,
         result: execution.result ?? null,
-        status: execution.status === "accepted" ? "applied" : "rejected",
+        status,
+        result_status: execution.status === "conflict" ? "conflict" : status,
+        base_revision: operation.baseRevision ?? 0,
+        server_entity_id: typeof operation.localEntityId === "string" ? operation.entityId : null,
+        conflict_payload: execution.status === "conflict" ? execution.result ?? null : null,
         error_message: execution.error ?? null,
-      });
+      }, { onConflict: "device_id,operation_id" });
       if (error) throw new Error(error.message);
     },
   };
@@ -170,7 +175,7 @@ export function createOfflineSyncHandler(
         await dependencies.recordOperation(profile.id, operation, execution);
         results.push({
           operationId: operation.operationId,
-          status: execution.status === "accepted" ? "accepted" : "rejected",
+          status: execution.status === "accepted" ? "accepted" : execution.status,
           result: execution.result ?? null,
           error: execution.error ?? undefined,
         });

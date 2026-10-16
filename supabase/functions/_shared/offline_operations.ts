@@ -32,6 +32,8 @@ export type OfflineOperation = {
   payload: Record<string, unknown>;
   dependencies: string[];
   createdAt: string;
+  baseRevision?: number;
+  localEntityId?: string;
 };
 
 export type OfflineOperationValidation =
@@ -82,6 +84,11 @@ export type OfflineOperationExecution =
   }
   | {
     status: "rejected";
+    result?: unknown;
+    error?: string;
+  }
+  | {
+    status: "conflict";
     result?: unknown;
     error?: string;
   }
