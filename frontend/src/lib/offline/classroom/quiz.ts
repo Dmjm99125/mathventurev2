@@ -11,18 +11,33 @@ function stateFromAttempt(
   assignmentId: string,
   lessonId: string,
   attempt: Record<string, unknown>,
+  gameResults?: AttemptGameResultInput[],
 ): AssignmentQuizState {
   return {
     status: attempt.status === 'completed' ? 'completed' : 'in_progress',
     assignmentId,
     lessonId,
     attemptId: String(attempt.id),
-    currentGameOrder: typeof attempt.currentGameOrder === 'number' ? attempt.currentGameOrder : 0,
+    currentGameOrder: typeof attempt.currentGameOrder === 'number' ? attempt.currentGameOrder : typeof attempt.current_game_order === 'number' ? attempt.current_game_order : 0,
     score: typeof attempt.score === 'number' ? attempt.score : 0,
-    maxScore: typeof attempt.maxScore === 'number' ? attempt.maxScore : 0,
-    gameResults: Array.isArray(attempt.gameResults) ? attempt.gameResults as AttemptGameResultInput[] : [],
-    completedAt: typeof attempt.completedAt === 'string' ? attempt.completedAt : null,
+    maxScore: typeof attempt.maxScore === 'number' ? attempt.maxScore : typeof attempt.max_score === 'number' ? attempt.max_score : 0,
+    gameResults: gameResults ?? (Array.isArray(attempt.gameResults) ? attempt.gameResults as AttemptGameResultInput[] : []),
+    completedAt: typeof attempt.completedAt === 'string' ? attempt.completedAt : typeof attempt.completed_at === 'string' ? attempt.completed_at : null,
   };
+}
+
+async function readGameResults(repository: OfflineRepository, attemptId: string): Promise<AttemptGameResultInput[]> {
+  const rows = await repository.readCollection('attemptGameResults');
+  return rows
+    .filter((row) => String(row.attempt_id ?? row.attemptId ?? '') === attemptId)
+    .map((row) => ({
+      topicId: String(row.topic_id ?? row.topicId ?? ''),
+      gameId: String(row.game_id ?? row.gameId ?? ''),
+      gameOrder: Number(row.game_order ?? row.gameOrder ?? 0),
+      score: Number(row.score ?? 0),
+      maxScore: Number(row.max_score ?? row.maxScore ?? 0),
+      completedAt: typeof (row.completed_at ?? row.completedAt) === 'string' ? String(row.completed_at ?? row.completedAt) : undefined,
+    }));
 }
 
 async function dependenciesForAttempt(repository: OfflineRepository, attemptId: string): Promise<string[]> {
@@ -40,7 +55,7 @@ export async function startOfflineAssignmentQuiz(
   const existing = (await repository.readCollection('attempts')).find((attempt) => {
     return attempt.assignment_id === assignmentId && attempt.student_id === studentId;
   });
-  if (existing) return { attemptId: String(existing.id), state: stateFromAttempt(assignmentId, lessonId, existing) };
+  if (existing) return { attemptId: String(existing.id), state: stateFromAttempt(assignmentId, lessonId, existing, await readGameResults(repository, String(existing.id))) };
   const attemptId = idFactory?.() ?? crypto.randomUUID();
   const attempt = {
     id: attemptId,
@@ -88,7 +103,7 @@ export async function readOfflineAssignmentQuiz(
       completedAt: null,
     };
   }
-  return stateFromAttempt(assignmentId, lessonId, attempt);
+  return stateFromAttempt(assignmentId, lessonId, attempt, await readGameResults(repository, String(attempt.id)));
 }
 
 export async function checkpointOfflineAssignmentQuiz(
@@ -104,10 +119,12 @@ export async function checkpointOfflineAssignmentQuiz(
 ): Promise<AssignmentQuizState> {
   const current = await repository.readByKey('attempts', input.attemptId);
   if (!current) throw new Error('Start the assignment quiz before saving progress.');
-  const currentOrder = typeof current.currentGameOrder === 'number' ? current.currentGameOrder : 0;
-  if (input.gameResult.gameOrder < currentOrder) return stateFromAttempt(input.assignmentId, input.lessonId, current);
+  const currentOrder = typeof current.currentGameOrder === 'number' ? current.currentGameOrder : typeof current.current_game_order === 'number' ? current.current_game_order : 0;
+  const savedResults = await readGameResults(repository, input.attemptId);
+  const currentResults = savedResults.length ? savedResults : Array.isArray(current.gameResults) ? current.gameResults as AttemptGameResultInput[] : [];
+  if (input.gameResult.gameOrder < currentOrder) return stateFromAttempt(input.assignmentId, input.lessonId, current, currentResults);
   if (input.gameResult.gameOrder !== currentOrder) throw new Error('Checkpoint is out of order.');
-  const gameResults = Array.isArray(current.gameResults) ? current.gameResults as AttemptGameResultInput[] : [];
+  const gameResults = currentResults;
   const attempt = {
     ...current,
     id: input.attemptId,
