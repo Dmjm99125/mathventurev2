@@ -97,6 +97,7 @@ import {
   useCompleteAssignmentQuiz,
   useStartAssignmentQuiz,
   useSubmitAttempt,
+  useRecordFreePlayCompletion,
 } from '@/lib/api/hooks';
 import {
   appendAttemptGameResult,
@@ -169,6 +170,7 @@ export function QuizPage() {
   const topic = params?.topic || 'colors';
   const [, setLocation] = useLocation();
   const submitAttempt = useSubmitAttempt();
+  const recordFreePlayCompletion = useRecordFreePlayCompletion();
   const assignmentQuiz = useAssignmentQuiz(assignmentId, topic);
   const startAssignmentQuiz = useStartAssignmentQuiz();
   const checkpointAssignmentQuiz = useCheckpointAssignmentQuiz();
@@ -340,6 +342,14 @@ export function QuizPage() {
         isPublicFreePlay,
         isTeacherContext: Boolean(teacherUser),
       })) {
+        if (!isPublicFreePlay && !teacherUser) {
+          await recordFreePlayCompletion.mutateAsync({
+            gameId: `${topic}:${currentIndex}`,
+            score: finalScore,
+            maxScore,
+            completedAt: new Date().toISOString(),
+          });
+        }
         await submitAttempt.mutateAsync({
           lessonId: topic,
           assignmentId,

@@ -19,6 +19,9 @@ export const OFFLINE_OPERATION_TYPES = [
   "assignmentQuiz.complete",
   "attempt.submit",
   "post.create",
+  "freePlay.start",
+  "freePlay.checkpoint",
+  "freePlay.complete",
 ] as const;
 
 export type OfflineOperationType = (typeof OFFLINE_OPERATION_TYPES)[number];
@@ -753,7 +756,7 @@ export async function applyOfflineOperation(
         if (error) throw error;
       },
     };
-    return createAssignmentQuizOperationApplier(persistence)(teacherId, operation);
+    return createAssignmentQuizOperationApplier(persistence)(operation.actorId, operation);
   }
   if (operation.type === "attempt.submit" || operation.type === "post.create") {
     const { adminClient } = await import("./client.ts");
@@ -825,7 +828,61 @@ export async function applyOfflineOperation(
         return data;
       },
     };
-    return createActivityOperationApplier(persistence)(teacherId, operation);
+    return createActivityOperationApplier(persistence)(operation.actorId, operation);
+  }
+  if (operation.type === "freePlay.start" || operation.type === "freePlay.checkpoint" || operation.type === "freePlay.complete") {
+    const { adminClient } = await import("./client.ts");
+    const gameId = payloadString(operation.payload, "gameId");
+    if (!gameId) return { status: "rejected", error: "gameId is required." };
+    const profileId = operation.actorId;
+    if (operation.type === "freePlay.start") {
+      const startedAt = typeof operation.payload.startedAt === "string" ? operation.payload.startedAt : operation.createdAt;
+      const { data, error } = await adminClient.from("free_play_sessions").upsert({
+        id: operation.entityId,
+        profile_id: profileId,
+        game_id: gameId,
+        started_at: startedAt,
+        data: operation.payload,
+        updated_at: startedAt,
+      }, { onConflict: "id" }).select("id, profile_id, game_id, started_at, completed_at, score, max_score, data, created_at, updated_at").single();
+      if (error || !data) throw error ?? new Error("Failed to start Free Play session");
+      return { status: "accepted", result: { session: data } };
+    }
+    const sessionId = payloadString(operation.payload, "sessionId") || operation.entityId;
+    const score = Number(operation.payload.score);
+    const maxScore = Number(operation.payload.maxScore);
+    if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || score < 0 || score > maxScore) {
+      return { status: "rejected", error: "score and maxScore must be valid numbers." };
+    }
+    if (operation.type === "freePlay.checkpoint") {
+      const { data, error } = await adminClient.from("free_play_sessions")
+        .update({ score, max_score: maxScore, data: operation.payload, updated_at: operation.createdAt })
+        .eq("id", sessionId).eq("profile_id", profileId)
+        .select("id, profile_id, game_id, started_at, completed_at, score, max_score, data, created_at, updated_at").maybeSingle();
+      if (error) throw error;
+      if (!data) return { status: "rejected", error: "Free Play session was not found." };
+      return { status: "accepted", result: { session: data } };
+    }
+    const completedAt = typeof operation.payload.completedAt === "string" ? operation.payload.completedAt : operation.createdAt;
+    const sessionUpdate = await adminClient.from("free_play_sessions")
+      .update({ score, max_score: maxScore, completed_at: completedAt, data: operation.payload, updated_at: completedAt })
+      .eq("id", sessionId).eq("profile_id", profileId);
+    if (sessionUpdate.error) throw sessionUpdate.error;
+    const { data, error } = await adminClient.from("free_play_progress").upsert({
+      id: operation.entityId,
+      profile_id: profileId,
+      game_id: gameId,
+      best_score: score,
+      best_max_score: maxScore,
+      play_count: 1,
+      last_played_at: completedAt,
+      data: operation.payload,
+      updated_at: completedAt,
+    }, { onConflict: "profile_id,game_id" })
+      .select("id, profile_id, game_id, best_score, best_max_score, play_count, last_played_at, data, created_at, updated_at")
+      .single();
+    if (error || !data) throw error ?? new Error("Failed to save Free Play progress");
+    return { status: "accepted", result: { progress: data } };
   }
   if (operation.type === "class.ensure" || operation.type === "class.addStudents" || operation.type === "class.removeStudent") {
     const { adminClient } = await import("./client.ts");

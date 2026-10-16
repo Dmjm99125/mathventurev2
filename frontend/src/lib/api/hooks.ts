@@ -33,6 +33,7 @@ import {
   buildOfflineTeacherDashboard,
   readOfflinePosts,
 } from '../offline/classroom/reports';
+import { recordFreePlayCompletion } from '../offline/classroom/freePlay';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -492,6 +493,19 @@ export function useSubmitAttempt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'student'] });
       queryClient.invalidateQueries({ queryKey: ['assignments'] });
+    },
+  });
+}
+
+export function useRecordFreePlayCompletion() {
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
+  return useMutation({
+    mutationFn: async (input: { gameId: string; score: number; maxScore: number; completedAt?: string }) => {
+      if (!user || user.role !== 'student') throw new Error('Free Play progress requires a student session.');
+      const result = await recordFreePlayCompletion(repository, user.id, input);
+      if (!browserIsOffline()) void syncNow();
+      return result;
     },
   });
 }

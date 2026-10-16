@@ -22,6 +22,9 @@ const operationStores: Record<OfflineOperationType, OfflineEntityName> = {
   'assignmentQuiz.complete': 'attempts',
   'attempt.submit': 'attempts',
   'post.create': 'posts',
+  'freePlay.start': 'freePlaySessions',
+  'freePlay.checkpoint': 'freePlaySessions',
+  'freePlay.complete': 'freePlayProgress',
 };
 
 export type OfflineMutationInput = {

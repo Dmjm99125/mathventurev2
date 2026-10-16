@@ -25,7 +25,10 @@ export type OfflineOperationType =
   | 'assignmentQuiz.checkpoint'
   | 'assignmentQuiz.complete'
   | 'attempt.submit'
-  | 'post.create';
+  | 'post.create'
+  | 'freePlay.start'
+  | 'freePlay.checkpoint'
+  | 'freePlay.complete';
 
 export type OfflineOutboxOperation = {
   operationId: string;
