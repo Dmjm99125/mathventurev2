@@ -18,16 +18,17 @@ import {
   verifyPasswordVerifier,
   type OfflineCredentialRecord,
 } from '../offline/classroom/crypto';
+import {
+  isOfflineLeaseValid,
+  renewOfflineLease,
+  type OfflineEnrollmentRecord as OfflineLeaseEnrollmentRecord,
+} from '../offline/classroom/lease';
 import type { OfflineStore } from '../offline/classroom/store';
 import { createIndexedDbStore } from '../offline/classroom/store';
 import { createOfflineRepository } from '../offline/classroom/repository';
 import { bootstrapRepository, type BootstrapInvoker } from '../offline/classroom/bootstrap';
 
-export type OfflineEnrollmentRecord = {
-  deviceId: string;
-  verifier: OfflineCredentialRecord;
-  profile: UserProfile;
-};
+export type OfflineEnrollmentRecord = OfflineLeaseEnrollmentRecord;
 
 const fallbackDeviceStorage = new Map<string, string>();
 
@@ -45,7 +46,15 @@ export async function enrollOfflineDevice(
   }
   const verifier = await createPasswordVerifier(password);
   const deviceId = getOrCreateDeviceId(getDeviceStorage());
-  const record: OfflineEnrollmentRecord = { deviceId, verifier, profile };
+  const now = new Date().toISOString();
+  const teacherProfile = { ...profile, role: 'teacher' as const };
+  const record = renewOfflineLease(now, {
+    deviceId,
+    verifier,
+    profile: teacherProfile,
+    lastOnlineValidatedAt: now,
+    offlineAccessUntil: now,
+  });
   await store.put('meta', { key: 'offlineEnrollment', value: record });
   await store.put('meta', { key: 'deviceId', value: deviceId });
   return record;
@@ -57,7 +66,9 @@ export async function readOfflineEnrollment(
   const record = (await store.get('meta', 'offlineEnrollment'))?.value;
   if (!record || typeof record !== 'object') return null;
   const candidate = record as Partial<OfflineEnrollmentRecord>;
-  if (!candidate.deviceId || !candidate.verifier || !candidate.profile) return null;
+  if (!candidate.deviceId || !candidate.verifier || !candidate.profile
+    || typeof candidate.lastOnlineValidatedAt !== 'string'
+    || typeof candidate.offlineAccessUntil !== 'string') return null;
   return candidate as OfflineEnrollmentRecord;
 }
 
@@ -75,6 +86,9 @@ export async function offlineSignIn(
   const enrollment = await readOfflineEnrollment(store);
   if (!enrollment) {
     throw new OfflineAuthError('No offline account is enrolled on this device.');
+  }
+  if (!isOfflineLeaseValid(new Date().toISOString(), enrollment)) {
+    throw new OfflineAuthError('Offline access has expired. Connect to the internet to sign in again.');
   }
   const valid = await verifyPasswordVerifier(password, enrollment.verifier);
   if (!valid) throw new OfflineAuthError('Incorrect offline password.');
