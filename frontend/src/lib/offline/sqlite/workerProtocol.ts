@@ -6,12 +6,14 @@ export type SqliteWorkerStatement = {
   params: SqliteParams;
 };
 
-export type SqliteWorkerRequest =
-  | { requestId: string; type: 'query'; sql: string; params: SqliteParams }
-  | { requestId: string; type: 'execute'; sql: string; params: SqliteParams }
-  | { requestId: string; type: 'transaction'; statements: readonly SqliteWorkerStatement[] }
-  | { requestId: string; type: 'health' }
-  | { requestId: string; type: 'close' };
+export type SqliteWorkerMessage =
+  | { type: 'query'; sql: string; params: SqliteParams; transactionId?: string }
+  | { type: 'execute'; sql: string; params: SqliteParams; transactionId?: string }
+  | { type: 'begin' | 'commit' | 'rollback'; transactionId: string }
+  | { type: 'health' }
+  | { type: 'close' };
+
+export type SqliteWorkerRequest = SqliteWorkerMessage & { requestId: string };
 
 export type SqliteWorkerResponse =
   | { requestId: string; type: 'result'; rows: SqliteRow[]; health?: { schemaVersion: number; durable: boolean } }
@@ -41,10 +43,12 @@ export function isSqliteWorkerRequest(value: unknown): value is SqliteWorkerRequ
   const request = value as Partial<SqliteWorkerRequest>;
   if (typeof request.requestId !== 'string') return false;
   if (request.type === 'query' || request.type === 'execute') {
-    return typeof request.sql === 'string' && isParams(request.params);
+    return typeof request.sql === 'string'
+      && isParams(request.params)
+      && (request.transactionId === undefined || typeof request.transactionId === 'string');
   }
-  if (request.type === 'transaction') {
-    return Array.isArray(request.statements) && request.statements.every(isStatement);
+  if (request.type === 'begin' || request.type === 'commit' || request.type === 'rollback') {
+    return typeof request.transactionId === 'string';
   }
   return request.type === 'health' || request.type === 'close';
 }
