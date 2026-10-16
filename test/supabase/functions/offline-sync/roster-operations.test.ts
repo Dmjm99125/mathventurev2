@@ -47,7 +47,7 @@ Deno.test('class.addStudents returns canonical server mappings for provisional s
     actorId: 'teacher-1',
     type: 'class.addStudents',
     entityId: 'local-student-1',
-    payload: { students: [{ lastName: 'Santos', firstName: 'Ana' }] },
+    payload: { students: [{ localId: 'local-student-1', lastName: 'Santos', firstName: 'Ana' }] },
     dependencies: [],
     createdAt: '2026-10-07T00:00:00.000Z',
   });
