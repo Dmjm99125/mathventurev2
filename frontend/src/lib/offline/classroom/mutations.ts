@@ -64,13 +64,24 @@ export async function addOfflineStudents(
   idFactory?: () => string,
 ): Promise<PendingMutationResult> {
   const id = makeId(idFactory);
+  const localStudents = students.map((student, index) => ({ ...student, localId: `${id}:${index}` }));
   await repository.applyMutation({
     actorId,
     type: 'class.addStudents',
     entityId: id,
-    payload: { students },
+    payload: { students: localStudents },
     dependencies: [],
   });
+  const classroom = (await repository.readCollection('classrooms'))[0];
+  await repository.putSnapshot('classStudents', localStudents.map((student) => ({
+    id: student.localId,
+    student_id: student.localId,
+    class_id: classroom?.id ?? '',
+    full_name: `${student.firstName} ${student.lastName}`.trim(),
+    first_name: student.firstName,
+    last_name: student.lastName,
+    joined_at: new Date().toISOString(),
+  })));
   return { id, syncState: 'pending' };
 }
 

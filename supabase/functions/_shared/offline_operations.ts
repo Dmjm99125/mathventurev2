@@ -487,9 +487,13 @@ export function createRosterOperationApplier(
         }
       }
       const students: Array<Record<string, unknown>> = [];
-      for (const identity of identities) {
+      for (const [index, identity] of identities.entries()) {
         const created = await persistence.provisionStudentForClass({ classId: classroom.id, identity });
-        students.push({ localStudentId: operation.entityId, studentId: created.studentId, email: created.email, fullName: identity.fullName });
+        const requested = operation.payload.students[index];
+        const localStudentId = requested && typeof requested === "object" && typeof (requested as Record<string, unknown>).localId === "string"
+          ? (requested as Record<string, unknown>).localId as string
+          : `${operation.entityId}:${index}`;
+        students.push({ localStudentId, studentId: created.studentId, email: created.email, fullName: identity.fullName });
       }
       return {
         status: "accepted",

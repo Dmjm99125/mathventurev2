@@ -143,6 +143,9 @@ function createLegacyOfflineRepository(
       const pendingOperations = (await this.getOutbox()).map((operation) => ({
         entityId: operation.entityId,
         status: operation.status,
+        localEntityIds: Array.isArray(operation.payload.students)
+          ? operation.payload.students.flatMap((student) => student && typeof student === 'object' && typeof (student as Record<string, unknown>).localId === 'string' ? [(student as Record<string, unknown>).localId as string] : [])
+          : [],
       }));
       const merged = mergeOfflineSnapshot(
         { revision: snapshot.revision, ...serverCollections },
@@ -725,7 +728,13 @@ function createSqliteRepository(
           (row): row is SnapshotRow => typeof row.id === 'string',
         );
       }
-      const pendingOperations = (await readOutbox()).map((operation) => ({ entityId: operation.entityId, status: operation.status }));
+      const pendingOperations = (await readOutbox()).map((operation) => ({
+        entityId: operation.entityId,
+        status: operation.status,
+        localEntityIds: Array.isArray(operation.payload.students)
+          ? operation.payload.students.flatMap((student) => student && typeof student === 'object' && typeof (student as Record<string, unknown>).localId === 'string' ? [(student as Record<string, unknown>).localId as string] : [])
+          : [],
+      }));
       const merged = mergeOfflineSnapshot(
         { revision: snapshot.revision, ...serverCollections },
         localCollections,

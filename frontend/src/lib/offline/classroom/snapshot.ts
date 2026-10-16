@@ -12,6 +12,7 @@ export type OfflineSnapshot = {
 export type PendingOperationReference = {
   entityId: string;
   status: 'pending' | 'syncing' | 'failed';
+  localEntityIds?: string[];
 };
 
 export type MergedOfflineSnapshot = OfflineSnapshot & {
@@ -23,7 +24,7 @@ export function mergeOfflineSnapshot(
   localCollections: Record<string, SnapshotRow[]>,
   pendingOperations: PendingOperationReference[],
 ): MergedOfflineSnapshot {
-  const pendingEntityIds = new Set(pendingOperations.map((operation) => operation.entityId));
+  const pendingEntityIds = new Set(pendingOperations.flatMap((operation) => [operation.entityId, ...(operation.localEntityIds ?? [])]));
   const merged: Record<string, unknown> = {
     ...snapshot,
     lastSyncedAt: new Date().toISOString(),
