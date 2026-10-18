@@ -38,3 +38,26 @@ Deno.test('bootstrap persists the pack while retaining pending local work', asyn
     ['local-assignment', 'server-assignment'],
   );
 });
+
+Deno.test('an IndexedDB-compatible classroom store survives repository recreation', async () => {
+  const store = createMemoryStore();
+  const firstRepository = createOfflineRepository(store, () => '2026-10-18T00:00:00.000Z', () => 'operation-1');
+
+  await bootstrapRepository(firstRepository, async () => ({
+    revision: 4,
+    teacher: { id: 'teacher-1', role: 'teacher', fullName: 'Teacher' },
+    classroom: { id: 'class-1', name: 'Math' },
+    students: [],
+    assignments: [{ id: 'assignment-1', name: 'Practice' }],
+    attempts: [],
+    gameResults: [],
+    posts: [],
+    freePlaySessions: [],
+    freePlayProgress: [],
+  }));
+
+  const reloadedRepository = createOfflineRepository(store);
+  assertEquals(await reloadedRepository.readMeta('revision'), 4);
+  assertEquals(await reloadedRepository.readByKey('classrooms', 'class-1'), { id: 'class-1', name: 'Math' });
+  assertEquals(await reloadedRepository.readByKey('assignments', 'assignment-1'), { id: 'assignment-1', name: 'Practice' });
+});

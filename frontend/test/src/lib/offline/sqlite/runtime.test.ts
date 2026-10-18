@@ -93,6 +93,19 @@ Deno.test('runtime falls back to durable IndexedDB storage when browser OPFS is 
   assertEquals(storage, fallbackStore);
 });
 
+Deno.test('runtime does not hide an unrelated browser SQLite failure behind IndexedDB', async () => {
+  await assertRejects(
+    () => openApplicationStorage({
+      storage: { persist: async () => false },
+      databaseFactory: async () => {
+        throw new Error('SQLite schema migration failed.');
+      },
+      fallbackStoreFactory: createMemoryStore,
+    }),
+    OfflineDurableStorageError,
+  );
+});
+
 Deno.test('Tauri runtime bypasses browser persistence checks', async () => {
   const memory = await createMemorySqlite();
   const database = await openApplicationDatabase({
