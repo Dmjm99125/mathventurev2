@@ -5,21 +5,22 @@ import {
   openApplicationDatabase,
 } from '../../../../../src/lib/offline/sqlite/runtime.ts';
 
-Deno.test('runtime rejects an environment that denies persistent storage', async () => {
-  let factoryCalled = false;
+Deno.test('runtime opens durable SQLite when the browser declines persistent-storage protection', async () => {
+  let receivedQuality: string | undefined;
+  const memory = await createMemorySqlite();
+  const database = await openApplicationDatabase({
+    storage: { persist: async () => false },
+    databaseFactory: async ({ quality }) => {
+      receivedQuality = quality;
+      return {
+        ...memory,
+        health: async () => ({ schemaVersion: 1, durable: true, quality }),
+      };
+    },
+  });
 
-  await assertRejects(
-    () => openApplicationDatabase({
-      storage: { persist: async () => false },
-      databaseFactory: async () => {
-        factoryCalled = true;
-        return createMemorySqlite();
-      },
-    }),
-    OfflineDurableStorageError,
-  );
-
-  assertEquals(factoryCalled, false);
+  assertEquals(receivedQuality, 'best-effort');
+  assertEquals((await database.health()).durable, true);
 });
 
 Deno.test('runtime opens the injected durable database after persistence is granted', async () => {
@@ -32,9 +33,29 @@ Deno.test('runtime opens the injected durable database after persistence is gran
       health: async () => ({
         schemaVersion: 1,
         durable: true,
+        quality: 'persistent' as const,
       }),
     }),
   });
 
   assertEquals((await database.health()).schemaVersion, 1);
+});
+
+Deno.test('runtime closes a database that fails its durable-health check', async () => {
+  const memory = await createMemorySqlite();
+  let closed = false;
+
+  await assertRejects(
+    () => openApplicationDatabase({
+      storage: { persist: async () => false },
+      databaseFactory: async () => ({
+        ...memory,
+        health: async () => ({ schemaVersion: 1, durable: false, quality: 'best-effort' as const }),
+        close: async () => { closed = true; },
+      }),
+    }),
+    OfflineDurableStorageError,
+  );
+
+  assertEquals(closed, true);
 });

@@ -15,7 +15,7 @@ const initialState: OfflineLifecycleState = {
   lastSyncedAt: null,
   error: null,
   leaseExpiresAt: null,
-  storage: 'healthy',
+  storage: 'unknown',
 };
 
 type OfflineClassroomContextValue = OfflineLifecycleState & {
@@ -45,8 +45,12 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     if (repository) return;
     let active = true;
     void getApplicationDatabase()
-      .then((opened) => {
-        if (active) setDatabase(opened);
+      .then(async (opened) => {
+        const health = await opened.health();
+        if (active) {
+          dispatch({ type: 'storage-health', storage: health.quality === 'best-effort' ? 'best-effort' : 'healthy' });
+          setDatabase(opened);
+        }
       })
       .catch((error: unknown) => {
         if (active) setStorageError(error instanceof Error ? error : new Error('Durable offline storage is unavailable.'));
@@ -87,7 +91,7 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     }
   }, [invoke, resolvedRepository]);
   const bootstrapNow = useCallback(async () => {
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    if (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false) {
       throw new Error('An internet connection is required to refresh the classroom pack.');
     }
     const request = invoke ?? (async (name, options) => {

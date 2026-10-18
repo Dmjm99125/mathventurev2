@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 
+export function offlineStorageLabel(storage: 'healthy' | 'best-effort' | 'unavailable' | 'unknown' | undefined): string {
+  if (storage === 'healthy') return 'ready';
+  if (storage === 'best-effort') return 'ready; browser-managed retention';
+  if (storage === 'unavailable') return 'unavailable';
+  return 'checking';
+}
+
 export function OfflinePackPanel({ onRefresh }: { onRefresh?: () => Promise<void> }) {
   const { status, pendingCount, failedCount, lastSyncedAt, leaseExpiresAt, storage, bootstrapNow, syncNow } = useOfflineClassroom();
   const [refreshing, setRefreshing] = useState(false);
-  const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+  const isOnline = typeof navigator === 'undefined' || (navigator as Navigator & { onLine?: boolean }).onLine !== false;
   const refresh = async () => {
     if (!isOnline) return;
     setRefreshing(true);
@@ -25,7 +32,7 @@ export function OfflinePackPanel({ onRefresh }: { onRefresh?: () => Promise<void
           {!isOnline && <p className="text-sm font-bold text-muted-foreground">Refreshing the pack requires an internet connection.</p>}
           <p className="text-sm text-muted-foreground">{pendingCount} pending, {failedCount} failed.</p>
           <p className="text-sm font-semibold text-muted-foreground">
-            Storage: {storage === 'healthy' ? 'ready' : storage === 'unavailable' ? 'unavailable' : 'checking'}.
+            Storage: {offlineStorageLabel(storage)}.
           </p>
           {leaseExpiresAt && (
             <p className="text-sm font-semibold text-muted-foreground">

@@ -1,4 +1,4 @@
-import { SqliteStorageError, type SqliteDatabase } from './adapter.ts';
+import { SqliteStorageError, type SqliteDatabase, type SqliteStorageQuality } from './adapter.ts';
 import { createPwaSqliteDatabase } from './pwaAdapter.ts';
 
 export class OfflineDurableStorageError extends SqliteStorageError {
@@ -13,9 +13,12 @@ export type DurableStorageManager = {
   persisted?: () => Promise<boolean>;
 };
 
+export type ApplicationDatabaseFactoryContext = { quality: SqliteStorageQuality };
+
 export type ApplicationDatabaseOptions = {
   storage?: DurableStorageManager;
-  databaseFactory?: () => Promise<SqliteDatabase>;
+  databaseFactory?: (context: ApplicationDatabaseFactoryContext) => Promise<SqliteDatabase>;
+  runtime?: 'browser' | 'tauri';
 };
 
 let sharedDatabasePromise: Promise<SqliteDatabase> | null = null;
@@ -37,13 +40,10 @@ export async function openApplicationDatabase(options: ApplicationDatabaseOption
   } catch (error) {
     throw new OfflineDurableStorageError('The browser could not prepare durable storage.', { cause: error });
   }
-  if (!persisted) {
-    throw new OfflineDurableStorageError('Durable storage permission was not granted. Offline writes are disabled to protect local work.');
-  }
-
-  const databaseFactory = options.databaseFactory ?? (() => createPwaSqliteDatabase());
+  const quality: SqliteStorageQuality = persisted ? 'persistent' : 'best-effort';
+  const databaseFactory = options.databaseFactory ?? ((context: ApplicationDatabaseFactoryContext) => createPwaSqliteDatabase({ quality: context.quality }));
   try {
-    const database = await databaseFactory();
+    const database = await databaseFactory({ quality });
     const health = await database.health();
     if (!health.durable) {
       await database.close();

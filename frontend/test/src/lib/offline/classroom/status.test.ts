@@ -26,3 +26,16 @@ Deno.test('offline lifecycle moves from offline to syncing to online', () => {
     error: null,
   });
 });
+
+Deno.test('offline lifecycle reports browser-managed retention as best effort', () => {
+  const state: OfflineLifecycleState = {
+    status: 'online',
+    pendingCount: 0,
+    failedCount: 0,
+    lastSyncedAt: null,
+    error: null,
+    storage: 'unknown',
+  };
+
+  assertEquals(offlineStatusReducer(state, { type: 'storage-health', storage: 'best-effort' }).storage, 'best-effort');
+});

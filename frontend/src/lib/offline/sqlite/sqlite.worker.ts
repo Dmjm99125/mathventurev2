@@ -98,7 +98,7 @@ async function handleRequest(request: SqliteWorkerRequest): Promise<SqliteWorker
       requestId: request.requestId,
       type: 'result',
       rows: [],
-      health: { schemaVersion: SQLITE_SCHEMA_VERSION, durable: true },
+      health: { schemaVersion: SQLITE_SCHEMA_VERSION, durable: true, quality: 'persistent' },
     };
   }
   handle.close();

@@ -1,4 +1,4 @@
-import { SqliteStorageError, type SqliteDatabase, type SqliteParams, type SqliteRow, type SqliteTransaction } from './adapter.ts';
+import { SqliteStorageError, type SqliteDatabase, type SqliteParams, type SqliteRow, type SqliteStorageQuality, type SqliteTransaction } from './adapter.ts';
 import {
   isSqliteWorkerResponse,
   type SqliteWorkerMessage,
@@ -8,6 +8,7 @@ import {
 
 export type PwaSqliteAdapterOptions = {
   workerFactory?: () => Worker;
+  quality?: SqliteStorageQuality;
 };
 
 type PendingRequest = {
@@ -82,7 +83,7 @@ export async function createPwaSqliteDatabase(options: PwaSqliteAdapterOptions =
     health: async () => {
       const response = await request({ type: 'health' });
       if (!response.health) throw new SqliteStorageError('SQLite worker returned no health status.');
-      return response.health;
+      return { ...response.health, quality: options.quality ?? response.health.quality };
     },
     close: async () => {
       if (closed) return;

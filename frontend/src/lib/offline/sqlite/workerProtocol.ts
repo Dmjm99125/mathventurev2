@@ -1,4 +1,4 @@
-import type { SqliteParams, SqliteRow, SqliteValue } from './adapter.ts';
+import type { SqliteParams, SqliteRow, SqliteStorageQuality, SqliteValue } from './adapter.ts';
 
 export type SqliteWorkerStatement = {
   kind: 'query' | 'execute';
@@ -16,7 +16,7 @@ export type SqliteWorkerMessage =
 export type SqliteWorkerRequest = SqliteWorkerMessage & { requestId: string };
 
 export type SqliteWorkerResponse =
-  | { requestId: string; type: 'result'; rows: SqliteRow[]; health?: { schemaVersion: number; durable: boolean } }
+  | { requestId: string; type: 'result'; rows: SqliteRow[]; health?: { schemaVersion: number; durable: boolean; quality: SqliteStorageQuality } }
   | { requestId: string; type: 'error'; error: { code: string; message: string } };
 
 function isSqliteValue(value: unknown): value is SqliteValue {

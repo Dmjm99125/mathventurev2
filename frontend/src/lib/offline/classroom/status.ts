@@ -7,7 +7,7 @@ export type OfflineLifecycleState = {
   lastSyncedAt: string | null;
   error: string | null;
   leaseExpiresAt?: string | null;
-  storage?: 'healthy' | 'unavailable' | 'unknown';
+  storage?: 'healthy' | 'best-effort' | 'unavailable' | 'unknown';
 };
 
 export type OfflineLifecycleAction =
@@ -19,7 +19,7 @@ export type OfflineLifecycleAction =
   | { type: 'needs-auth' }
   | { type: 'counts'; pendingCount: number; failedCount: number }
   | { type: 'lease-update'; leaseExpiresAt: string | null }
-  | { type: 'storage-health'; storage: 'healthy' | 'unavailable' | 'unknown' };
+  | { type: 'storage-health'; storage: 'healthy' | 'best-effort' | 'unavailable' | 'unknown' };
 
 export function offlineStatusReducer(
   state: OfflineLifecycleState,
