@@ -5,3 +5,4 @@ supabase/.temp
 .worktrees/
 revisions.md
 revisions/
+src-tauri/target/
