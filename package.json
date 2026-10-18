@@ -8,10 +8,16 @@
     "serve": "npm --prefix frontend run serve",
     "test": "npm --prefix frontend run test",
     "typecheck": "npm --prefix frontend run typecheck",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:info": "tauri info",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
     "supabase:functions": "supabase functions serve",
     "supabase:migrations": "supabase db reset"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.9.6"
   }
 }

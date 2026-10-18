@@ -145,7 +145,7 @@ export async function createMemorySqlite(): Promise<SqliteDatabase> {
         throw error;
       }
     },
-    health: async () => ({ schemaVersion: SQLITE_SCHEMA_VERSION, durable: false }),
+    health: async () => ({ schemaVersion: SQLITE_SCHEMA_VERSION, durable: false, quality: 'unknown' as const }),
     close: async () => {},
   };
 
