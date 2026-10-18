@@ -1,6 +1,7 @@
 export type OfflineTeacherSnapshot = {
   revision: number;
-  classroom: Record<string, unknown> | null;
+  classrooms: Record<string, unknown>[];
+  classroom?: Record<string, unknown> | null;
   students: Record<string, unknown>[];
   assignments: Record<string, unknown>[];
   attempts: Record<string, unknown>[];
@@ -42,17 +43,15 @@ export async function getOfflineTeacherSnapshot(
 
   const classroomResult = await adminClient
     .from("classes")
-    .select("id, teacher_id, name, join_code, created_at")
+    .select("id, teacher_id, name, join_code, created_at, archived_at")
     .eq("teacher_id", teacherId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const classroom = assertQuery(classroomResult, "classes") as Record<string, unknown> | null;
+    .order("created_at", { ascending: true });
+  const classrooms = (assertQuery(classroomResult, "classes") ?? []) as Record<string, unknown>[];
 
-  if (!classroom) {
+  if (!classrooms.length) {
     return {
       revision: 0,
-      classroom: null,
+      classrooms: [],
       students: [],
       assignments: [],
       attempts: [],
@@ -63,13 +62,15 @@ export async function getOfflineTeacherSnapshot(
     };
   }
 
-  const classId = String(classroom.id);
+  const classIds = classrooms
+    .map((classroom) => classroom.id)
+    .filter((id): id is string => typeof id === "string");
   const studentsResult = await adminClient
     .from("class_students")
     .select(
       "class_id, student_id, joined_at, profiles!class_students_student_id_fkey(id, role, full_name)",
     )
-    .eq("class_id", classId)
+    .in("class_id", classIds)
     .order("joined_at", { ascending: true });
   const students = (assertQuery(studentsResult, "class_students") ?? []) as Record<string, unknown>[];
 
@@ -78,7 +79,7 @@ export async function getOfflineTeacherSnapshot(
     .select(
       "id, name, lesson_id, class_id, student_id, assigned_by, due_at, created_at",
     )
-    .eq("class_id", classId)
+    .in("class_id", classIds)
     .order("created_at", { ascending: true });
   const assignments = (assertQuery(assignmentsResult, "assignments") ?? []) as Record<string, unknown>[];
 
@@ -87,7 +88,7 @@ export async function getOfflineTeacherSnapshot(
     .select(
       "id, student_id, lesson_id, assignment_id, class_id, score, max_score, duration_seconds, status, quiz_mode, current_game_order, started_at, updated_at, completed_at",
     )
-    .eq("class_id", classId)
+    .in("class_id", classIds)
     .order("updated_at", { ascending: true });
   const attempts = (assertQuery(attemptsResult, "attempts") ?? []) as Record<string, unknown>[];
 
@@ -103,20 +104,31 @@ export async function getOfflineTeacherSnapshot(
       )
       .in("attempt_id", attemptIds)
       .order("completed_at", { ascending: true });
-    gameResults = (assertQuery(gameResultsResult, "attempt_game_results") ?? []) as Record<string, unknown>[];
+    const rawResults = (assertQuery(gameResultsResult, "attempt_game_results") ?? []) as Record<string, unknown>[];
+    const classIdByAttemptId = new Map(
+      attempts.flatMap((attempt) => typeof attempt.id === "string" && typeof attempt.class_id === "string"
+        ? [[attempt.id, attempt.class_id] as const]
+        : []),
+    );
+    gameResults = rawResults.map((result) => ({
+      ...result,
+      class_id: typeof result.class_id === "string"
+        ? result.class_id
+        : classIdByAttemptId.get(String(result.attempt_id)) ?? null,
+    }));
   }
 
   const postsResult = await adminClient
     .from("class_posts")
     .select("id, class_id, author_id, content, created_at")
-    .eq("class_id", classId)
+    .in("class_id", classIds)
     .order("created_at", { ascending: true });
   const posts = (assertQuery(postsResult, "class_posts") ?? []) as Record<string, unknown>[];
 
   const studentIds = students
     .map((row) => row.student_id)
     .filter((id): id is string => typeof id === "string");
-  const profileIds = [teacherId, ...studentIds];
+  const profileIds = Array.from(new Set([teacherId, ...studentIds]));
   const freePlaySessionsResult = await adminClient
     .from("free_play_sessions")
     .select("id, profile_id, game_id, started_at, completed_at, score, max_score, data, created_at, updated_at")
@@ -131,10 +143,10 @@ export async function getOfflineTeacherSnapshot(
     .order("updated_at", { ascending: true });
   const freePlayProgress = (assertQuery(freePlayProgressResult, "free_play_progress") ?? []) as Record<string, unknown>[];
 
-  const allRows = [classroom, ...students, ...assignments, ...attempts, ...gameResults, ...posts, ...freePlaySessions, ...freePlayProgress];
+  const allRows = [...classrooms, ...students, ...assignments, ...attempts, ...gameResults, ...posts, ...freePlaySessions, ...freePlayProgress];
   return {
     revision: snapshotRevision(allRows),
-    classroom,
+    classrooms,
     students,
     assignments,
     attempts,

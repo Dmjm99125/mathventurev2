@@ -3,22 +3,25 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui';
 import { useAuth, signOut } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/useLanguage';
-import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
+import { TEACHER_NAV_ITEMS, getTeacherWorkspaceNavItems, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { cn } from '@/lib/shared/utils';
 import { Menu, X } from 'lucide-react';
 
 function TeacherNavLinks({
   location,
+  classId,
   onNavigate,
 }: {
   location: string;
+  classId?: string;
   onNavigate?(): void;
 }) {
   const { t } = useLanguage();
+  const items = classId ? getTeacherWorkspaceNavItems(classId) : TEACHER_NAV_ITEMS;
 
   return (
     <>
-      {TEACHER_NAV_ITEMS.map((item) => (
+      {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
@@ -41,7 +44,7 @@ function TeacherNavLinks({
   );
 }
 
-export function TeacherSidebar() {
+export function TeacherSidebar({ classId }: { classId?: string }) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
@@ -75,7 +78,7 @@ export function TeacherSidebar() {
       <aside className="fixed bottom-0 left-0 top-16 z-30 hidden w-[280px] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-6 lg:flex">
         {identity}
         <nav aria-label="Teacher navigation" className="mt-10 grid gap-2">
-          <TeacherNavLinks location={location} />
+          <TeacherNavLinks location={location} classId={classId} />
         </nav>
         <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-5">
           <Button
@@ -126,7 +129,7 @@ export function TeacherSidebar() {
               </Button>
             </div>
             <nav aria-label="Teacher navigation" className="mt-8 grid gap-2">
-              <TeacherNavLinks location={location} onNavigate={() => setMobileOpen(false)} />
+              <TeacherNavLinks location={location} classId={classId} onNavigate={() => setMobileOpen(false)} />
             </nav>
             <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-5">
               <Button

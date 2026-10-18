@@ -42,10 +42,12 @@ export function TeacherAssignedQuizzes({
   assignments,
   error,
   onRetry,
+  readOnly = false,
 }: {
   assignments: TeacherAssignedQuiz[];
   error?: Error | null;
   onRetry?: () => void;
+  readOnly?: boolean;
 }) {
   const [expandedAssignmentId, setExpandedAssignmentId] = useState<string | null>(null);
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
@@ -79,6 +81,7 @@ export function TeacherAssignedQuizzes({
       await updateAssignment.mutateAsync({
         assignmentId: editingQuiz.assignment.id,
         lessonId: editingQuiz.assignment.lessonId,
+        classId: editingQuiz.assignment.classId ?? undefined,
         name: editName,
         dueAt: editDueAt ? `${editDueAt}T23:59:59.999Z` : null,
       });
@@ -93,7 +96,7 @@ export function TeacherAssignedQuizzes({
 
     setManagementError(null);
     try {
-      await deleteAssignment.mutateAsync(deletingQuiz.assignment.id);
+      await deleteAssignment.mutateAsync({ assignmentId: deletingQuiz.assignment.id, classId: deletingQuiz.assignment.classId ?? undefined });
       if (expandedAssignmentId === deletingQuiz.assignment.id) {
         setExpandedAssignmentId(null);
         setExpandedStudentId(null);
@@ -164,15 +167,15 @@ export function TeacherAssignedQuizzes({
               </button>
               <div className="flex shrink-0 items-center gap-2">
                 <TeacherAssignedQuizPdfButton quiz={{ assignment, students }} />
-                <button
+                {!readOnly && <button
                   type="button"
                   aria-label={`Edit ${assignmentName}`}
                   className="rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
                   onClick={() => openEditDialog({ assignment, students })}
                 >
                   <Pencil className="h-4 w-4" />
-                </button>
-                <button
+                </button>}
+                {!readOnly && <button
                   type="button"
                   aria-label={`Delete ${assignmentName}`}
                   className="rounded-xl p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
@@ -182,7 +185,7 @@ export function TeacherAssignedQuizzes({
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
-                </button>
+                </button>}
                 <button
                   type="button"
                   aria-label={`${isAssignmentExpanded ? 'Collapse' : 'Expand'} ${assignmentName}`}

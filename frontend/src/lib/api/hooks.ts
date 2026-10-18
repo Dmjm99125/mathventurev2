@@ -6,6 +6,7 @@ import {
   type StudentClassroomSummary,
   type TeacherClassSummary,
   type TeacherClassroomSummary,
+  type TeacherClassesListResponse,
   api,
 } from './client';
 import type { TeacherAddStudentDraft } from '../teacher/add-students';
@@ -26,7 +27,7 @@ import {
   startOfflineAssignmentQuiz,
   submitOfflineAttempt,
 } from '../offline/classroom/quiz';
-import { readOfflineClassroom, readOfflineRoster, readOfflineAssignments } from '../offline/classroom/queries';
+import { readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster, readOfflineAssignments } from '../offline/classroom/queries';
 import {
   buildOfflineStudentDashboard,
   buildOfflineTeacherClassReport,
@@ -40,7 +41,7 @@ function browserIsOffline(): boolean {
 }
 
 function toLegacyClassesResponse(input: {
-  classroom: TeacherClassroomSummary | StudentClassroomSummary | null;
+  classroom: { id: string; createdAt: string; studentCount: number } | StudentClassroomSummary | null;
 }): { classes: (TeacherClassSummary | StudentClassSummary)[] } {
   if (!input.classroom) {
     return { classes: [] };
@@ -61,8 +62,8 @@ function toLegacyClassesResponse(input: {
     classes: [{
       id: input.classroom.id,
       name: 'Classroom',
-      joinCode: '',
       createdAt: input.classroom.createdAt,
+      archivedAt: null,
       studentCount: input.classroom.studentCount,
     }],
   };
@@ -76,34 +77,45 @@ export function useClasses() {
     queryKey: ['classes'],
     queryFn: async () => {
       if (user) {
+        if (user.role === 'teacher') {
+          const cachedClasses = await readOfflineTeacherClasses(repository);
+          if (browserIsOffline()) return { classes: cachedClasses.filter((classroom) => classroom.archivedAt === null), archivedClasses: cachedClasses.filter((classroom) => classroom.archivedAt !== null) } satisfies TeacherClassesListResponse;
+        }
         const cached = await readOfflineClassroom(repository, user.role);
-        if (cached || browserIsOffline()) return toLegacyClassesResponse({ classroom: cached });
+        if (browserIsOffline()) return toLegacyClassesResponse({ classroom: cached });
       }
-      return toLegacyClassesResponse(await api.classes.list());
+      const data = await api.classes.list();
+      if (user?.role === 'teacher' && data.classes) {
+        return {
+          classes: data.classes,
+          archivedClasses: data.archivedClasses ?? [],
+        } satisfies TeacherClassesListResponse;
+      }
+      return toLegacyClassesResponse({ classroom: data.classroom ?? null });
     },
     enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
-export function useTeacherClassroom() {
+export function useTeacherClassroom(classId?: string) {
   const { user, isLoading } = useAuth();
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['classroom', 'teacher'],
+    queryKey: ['classroom', 'teacher', classId ?? null],
     queryFn: async () => {
+      if (!classId) return { classroom: null };
       if (user) {
-        const cached = await readOfflineClassroom(repository, 'teacher');
-        if (cached || browserIsOffline()) return { classroom: cached };
+        const cached = await readOfflineClassroom(repository, 'teacher', classId);
+        if (browserIsOffline()) return { classroom: cached && cached.id === classId ? cached : null };
       }
       const data = await api.classes.list();
+      const classrooms = [...(data.classes ?? []), ...(data.archivedClasses ?? [])];
       return {
-        classroom: data.classroom && 'createdAt' in data.classroom
-          ? data.classroom
-          : null,
+        classroom: classrooms.find((classroom) => classroom.id === classId) ?? null,
       };
     },
-    enabled: isAuthReadyForData(isLoading, user),
+    enabled: Boolean(classId) && isAuthReadyForData(isLoading, user),
   });
 }
 
@@ -134,30 +146,30 @@ export function useClassRoster(classId?: string) {
   const { repository } = useOfflineClassroom();
 
   return useInfiniteQuery({
-    queryKey: ['classroom', 'roster', classId ?? 'singleton'],
+    queryKey: ['classroom', 'roster', classId ?? null],
     queryFn: async ({ pageParam }) => {
-      const cached = await readOfflineRoster(repository);
+      const cached = await readOfflineRoster(repository, classId);
       if (cached.students.length || browserIsOffline()) return cached;
-      return api.classes.roster({ cursor: pageParam });
+      return api.classes.roster(classId!, { cursor: pageParam });
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
-    enabled: isAuthReadyForData(isLoading, user),
+    enabled: Boolean(classId) && isAuthReadyForData(isLoading, user),
   });
 }
 
-export function useClassRosterStudent(studentId?: string | null) {
+export function useClassRosterStudent(classId?: string, studentId?: string | null) {
   const { user, isLoading } = useAuth();
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['classroom', 'roster', 'student', studentId],
+    queryKey: ['classroom', 'roster', classId ?? null, 'student', studentId],
     queryFn: async () => {
-      const cached = (await readOfflineRoster(repository)).students.filter((student) => student.id === studentId);
+      const cached = (await readOfflineRoster(repository, classId)).students.filter((student) => student.id === studentId);
       if (cached.length || browserIsOffline()) return { students: cached, page: { nextCursor: null, hasMore: false } };
-      return api.classes.rosterStudent(studentId!);
+      return api.classes.rosterStudent(classId!, studentId!);
     },
-    enabled: Boolean(studentId) && isAuthReadyForData(isLoading, user),
+    enabled: Boolean(classId && studentId) && isAuthReadyForData(isLoading, user),
   });
 }
 
@@ -168,7 +180,7 @@ export function useAssignments(classId?: string) {
   return useInfiniteQuery({
     queryKey: ['assignments', classId],
     queryFn: async ({ pageParam }) => {
-      const cached = await readOfflineAssignments(repository, user?.role === 'student' ? user.id : undefined);
+      const cached = await readOfflineAssignments(repository, classId, user?.role === 'student' ? user.id : null);
       if (cached.length || browserIsOffline()) return { assignments: cached, page: { nextCursor: null, hasMore: false } };
       return api.assignments.list(classId, { cursor: pageParam });
     },
@@ -307,12 +319,12 @@ export function useTeacherDashboard() {
   });
 }
 
-export function useTeacherReportsOverview(window: TeacherReportsWindowKey, studentCursor?: string | null) {
+export function useTeacherReportsOverview(classId: string, window: TeacherReportsWindowKey, studentCursor?: string | null) {
   const { user, isLoading } = useAuth();
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'overview', window, studentCursor ?? null],
+    queryKey: ['teacher-reports', 'overview', classId, window, studentCursor ?? null],
     queryFn: async () => {
       const [classrooms, students, gameResults] = await Promise.all([
           repository.readCollection('classrooms'),
@@ -324,13 +336,13 @@ export function useTeacherReportsOverview(window: TeacherReportsWindowKey, stude
           classrooms,
           students,
           gameResults,
-          String(classrooms[0]?.id ?? ''),
+          classId,
           window,
         );
       }
-      return api.reports.overview(window, { studentCursor });
+      return api.reports.overview(classId, window, { studentCursor });
     },
-    enabled: isAuthReadyForData(isLoading, user),
+    enabled: Boolean(classId) && isAuthReadyForData(isLoading, user),
   });
 }
 
@@ -358,10 +370,28 @@ export function useTeacherClassReport(classId: string, window: TeacherReportsWin
 export function useCreateClass() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => api.classes.create(name),
+    mutationFn: (name: string) => {
+      if (browserIsOffline()) throw new Error('Creating classes requires an internet connection.');
+      return api.classes.create(name);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher'] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+    },
+  });
+}
+
+export function useUpdateClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { classId: string; action: 'rename' | 'archive' | 'unarchive'; name?: string }) => {
+      if (browserIsOffline()) throw new Error('Class changes require an internet connection.');
+      return api.classes.update(input);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher', variables.classId] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
     },
   });
@@ -403,7 +433,7 @@ export function useUpdateAssignment() {
   const { user } = useAuth();
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: async (input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null }) => {
+    mutationFn: async (input: { assignmentId: string; lessonId: string; name?: string; classId?: string; dueAt?: string | null }) => {
       if (user) {
         const result = await updateOfflineAssignment(repository, user.id, input);
         if (!browserIsOffline()) void syncNow();
@@ -424,7 +454,7 @@ export function useDeleteAssignment() {
   const { user } = useAuth();
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: async (assignmentId: string) => {
+    mutationFn: async ({ assignmentId, classId }: { assignmentId: string; classId?: string }) => {
       if (user) {
         const result = await deleteOfflineAssignment(repository, user.id, assignmentId);
         if (!browserIsOffline()) void syncNow();
@@ -445,13 +475,13 @@ export function useRemoveStudentFromClass() {
   const { user } = useAuth();
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
-    mutationFn: async ({ studentId }: { classId?: string; studentId: string }) => {
+    mutationFn: async ({ classId, studentId }: { classId: string; studentId: string }) => {
       if (user) {
-        const result = await removeOfflineStudent(repository, user.id, studentId);
+        const result = await removeOfflineStudent(repository, user.id, classId, studentId);
         if (!browserIsOffline()) void syncNow();
         return { removed: true as const, syncState: result.syncState };
       }
-      return api.classes.removeStudent(studentId);
+      return api.classes.removeStudent(classId, studentId);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
@@ -470,18 +500,19 @@ export function useAddStudentsToClass() {
   const { repository, syncNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: ({
+      classId,
       students,
     }: {
-      classId?: string;
+      classId: string;
       students: TeacherAddStudentDraft[];
     }) => {
       if (user) {
-        return addOfflineStudents(repository, user.id, students).then((result) => {
+        return addOfflineStudents(repository, user.id, classId, students).then((result) => {
           if (!browserIsOffline()) void syncNow();
           return { createdCount: students.length, syncState: result.syncState };
         });
       }
-      return api.classes.addStudents(students);
+      return api.classes.addStudents(classId, students);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

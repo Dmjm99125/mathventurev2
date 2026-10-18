@@ -35,9 +35,12 @@ import {
 import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
+import { isArchivedClass, teacherClassPath } from '@/lib/teacher/classes';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { OfflineConflictPanel } from '@/components/offline/OfflineConflictPanel';
 import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
+import { TeacherClassList } from '@/components/teacher/TeacherClassList';
+import type { TeacherClassSection } from '@/lib/teacher/classes';
 
 function useTeacherStudentAccountActions() {
   const { viewStudentAccount, viewingStudent } = useAuth();
@@ -80,8 +83,8 @@ function teacherPageHeading(title: string, description: string) {
   );
 }
 
-export function TeacherTodayPage() {
-  const classroomQuery = useTeacherClassroom();
+export function TeacherTodayPage({ classId }: { classId: string }) {
+  const classroomQuery = useTeacherClassroom(classId);
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
   const studentActions = useTeacherStudentAccountActions();
@@ -90,12 +93,14 @@ export function TeacherTodayPage() {
   return (
     <>
       <TeacherToday
+        classId={classId}
+        readOnly={Boolean(classroom && isArchivedClass(classroom))}
         onAddStudents={() => setIsAddStudentsOpen(true)}
         onAssignQuiz={() => setIsAssignQuizOpen(true)}
         onViewStudent={studentActions.viewStudent}
         viewError={studentActions.viewError}
       />
-      <TeacherAddStudentsDialog open={isAddStudentsOpen} onOpenChange={setIsAddStudentsOpen} />
+      <TeacherAddStudentsDialog open={isAddStudentsOpen} onOpenChange={setIsAddStudentsOpen} classId={classId} />
       {classroom && (
         <TeacherAssignQuizDialog
           open={isAssignQuizOpen}
@@ -107,21 +112,22 @@ export function TeacherTodayPage() {
   );
 }
 
-export function TeacherStudentsPage() {
-  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
+export function TeacherStudentsPage({ classId }: { classId: string }) {
+  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom(classId);
   const {
     data: rosterData,
     isLoading: rosterLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useClassRoster();
+  } = useClassRoster(classId);
   const removeStudent = useRemoveStudentFromClass();
   const [isAddStudentsOpen, setIsAddStudentsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'students' | 'progress'>('students');
   const [pendingRemoval, setPendingRemoval] = useState<TeacherClassStudent | null>(null);
   const studentActions = useTeacherStudentAccountActions();
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
+  const readOnly = Boolean(classroom && isArchivedClass(classroom));
   const students = rosterData?.pages.flatMap((page) => page.students) ?? [];
 
   if (classroomLoading || rosterLoading) {
@@ -135,13 +141,15 @@ export function TeacherStudentsPage() {
   return (
     <TeacherWorkspaceBoard
       heading={teacherPageHeading('Students', 'Manage your roster, review progress, and open a student account when you need a closer look.')}
-      action={(
+      classId={classId}
+      readOnly={readOnly}
+      action={!readOnly ? (
         <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 md:w-auto" onClick={() => setIsAddStudentsOpen(true)}>
           Add students
         </Button>
-      )}
+      ) : undefined}
     >
-      <TeacherAddStudentsDialog open={isAddStudentsOpen} onOpenChange={setIsAddStudentsOpen} />
+      <TeacherAddStudentsDialog open={isAddStudentsOpen} onOpenChange={setIsAddStudentsOpen} classId={classId} />
 
       {studentActions.viewError && (
         <Card className="teacher-section mb-6 border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">
@@ -171,7 +179,7 @@ export function TeacherStudentsPage() {
         <>
           <TeacherStudentListTable
             students={students}
-            onRemove={setPendingRemoval}
+            onRemove={readOnly ? undefined : setPendingRemoval}
             onView={(student) => {
               void studentActions.viewStudent(student.id);
             }}
@@ -193,7 +201,7 @@ export function TeacherStudentsPage() {
         </>
       ) : (
         <>
-          <TeacherStudentProgressTable students={students} />
+        <TeacherStudentProgressTable students={students} classId={classId} />
           {hasNextPage && (
             <div className="mt-4 flex justify-center">
               <Button
@@ -232,7 +240,7 @@ export function TeacherStudentsPage() {
               disabled={removeStudent.isPending}
               onClick={async () => {
                 if (!pendingRemoval) return;
-                await removeStudent.mutateAsync({ studentId: pendingRemoval.id });
+                await removeStudent.mutateAsync({ classId, studentId: pendingRemoval.id });
                 setPendingRemoval(null);
               }}
             >
@@ -245,9 +253,9 @@ export function TeacherStudentsPage() {
   );
 }
 
-export function TeacherAssignmentsPage() {
-  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom();
-  const { data: rosterData, isLoading: rosterLoading } = useClassRoster();
+export function TeacherAssignmentsPage({ classId }: { classId: string }) {
+  const { data: classroomData, isLoading: classroomLoading } = useTeacherClassroom(classId);
+  const { data: rosterData, isLoading: rosterLoading } = useClassRoster(classId);
   const classroom = classroomData?.classroom as TeacherClassroomSummary | null | undefined;
   const {
     data: assignmentsData,
@@ -257,7 +265,8 @@ export function TeacherAssignmentsPage() {
     fetchNextPage: fetchNextAssignmentPage,
     hasNextPage: hasNextAssignmentPage,
     isFetchingNextPage: isFetchingNextAssignmentPage,
-  } = useAssignments(classroom?.id);
+  } = useAssignments(classId);
+  const readOnly = Boolean(classroom && isArchivedClass(classroom));
   const [isAssignQuizOpen, setIsAssignQuizOpen] = useState(false);
 
   if (classroomLoading || rosterLoading || assignmentsLoading) {
@@ -275,17 +284,20 @@ export function TeacherAssignmentsPage() {
 
   return (
     <TeacherWorkspaceBoard
+      classId={classId}
+      readOnly={readOnly}
       heading={teacherPageHeading('Assignments', 'Create clear practice for your class and review what students have been assigned.')}
-      action={(
+      action={!readOnly ? (
         <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 md:w-auto" onClick={() => setIsAssignQuizOpen(true)}>
           Assign quiz
         </Button>
-      )}
+      ) : undefined}
     >
       <TeacherAssignQuizDialog open={isAssignQuizOpen} onOpenChange={setIsAssignQuizOpen} classId={classroom.id} />
       <TeacherAssignedQuizzes
         assignments={buildTeacherAssignedQuizzes(teacherAssignments, students)}
         error={assignmentsError as Error | null}
+        readOnly={readOnly}
         onRetry={() => {
           void refetch();
         }}
@@ -307,7 +319,7 @@ export function TeacherAssignmentsPage() {
   );
 }
 
-export function TeacherReportsPage() {
+export function TeacherReportsPage({ classId }: { classId: string }) {
   const [location, setLocation] = useLocation();
   const [studentCursor, setStudentCursor] = useState<string | null>(null);
   const windowKey = React.useMemo(
@@ -317,7 +329,7 @@ export function TeacherReportsPage() {
   React.useEffect(() => {
     setStudentCursor(null);
   }, [windowKey]);
-  const { data, isLoading, error } = useTeacherReportsOverview(windowKey, studentCursor);
+  const { data, isLoading, error } = useTeacherReportsOverview(classId, windowKey, studentCursor);
 
   if (isLoading) {
     return <div className="teacher-shell min-h-[calc(100dvh-4rem)] p-8 text-center font-semibold">Loading reports...</div>;
@@ -325,6 +337,7 @@ export function TeacherReportsPage() {
 
   return (
     <TeacherWorkspaceBoard
+      classId={classId}
       heading={teacherPageHeading('Reports', 'Review classroom performance, student activity, and topic mastery in one place.')}
       action={data ? (
         <div className="w-full md:w-auto [&_button]:w-full md:[&_button]:w-auto">
@@ -334,7 +347,7 @@ export function TeacherReportsPage() {
     >
       <TeacherReportsWindowPicker
         value={windowKey}
-        onChange={(nextWindow) => setLocation(`/teacher/reports?window=${nextWindow}`)}
+        onChange={(nextWindow) => setLocation(`${teacherClassPath(classId, 'reports')}?window=${nextWindow}`)}
       />
 
       {error && (
@@ -492,11 +505,24 @@ export function TeacherSettingsPage() {
   );
 }
 
-export const TeacherWorkspacePage = TeacherTodayPage;
-export const TeacherClassesHome = TeacherStudentsPage;
-export function TeacherClassWorkspace(_: { classId: string }) {
-  return <TeacherStudentsPage />;
+export function TeacherClassesPage() {
+  return <TeacherClassList />;
 }
+
+export function TeacherClassWorkspacePage({
+  classId,
+  section = 'today',
+}: {
+  classId: string;
+  section?: TeacherClassSection;
+}) {
+  if (section === 'students') return <TeacherStudentsPage classId={classId} />;
+  if (section === 'assignments') return <TeacherAssignmentsPage classId={classId} />;
+  if (section === 'reports') return <TeacherReportsPage classId={classId} />;
+  return <TeacherTodayPage classId={classId} />;
+}
+export const TeacherWorkspacePage = TeacherClassesPage;
+export const TeacherClassesHome = TeacherClassesPage;
 export const TeacherReportsOverviewPage = TeacherReportsPage;
 export const TeacherReportsPlaceholder = TeacherReportsPage;
 export const TeacherSettingsPlaceholder = TeacherSettingsPage;

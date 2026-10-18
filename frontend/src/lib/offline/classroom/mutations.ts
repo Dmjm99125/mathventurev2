@@ -29,7 +29,7 @@ export async function createOfflineAssignment(
 export async function updateOfflineAssignment(
   repository: OfflineRepository,
   actorId: string,
-  input: { assignmentId: string; lessonId: string; name?: string; dueAt?: string | null },
+  input: { assignmentId: string; lessonId: string; name?: string; classId?: string; dueAt?: string | null },
   dependencies: string[] = [],
 ): Promise<PendingMutationResult> {
   await repository.applyMutation({
@@ -60,19 +60,31 @@ export async function deleteOfflineAssignment(
 export async function addOfflineStudents(
   repository: OfflineRepository,
   actorId: string,
-  students: Array<{ firstName: string; lastName: string }>,
+  classIdOrStudents: string | Array<{ firstName: string; lastName: string }>,
+  studentsOrIdFactory?: Array<{ firstName: string; lastName: string }> | (() => string),
   idFactory?: () => string,
 ): Promise<PendingMutationResult> {
-  const id = makeId(idFactory);
+  const classId = typeof classIdOrStudents === 'string' ? classIdOrStudents : undefined;
+  const students = typeof classIdOrStudents === 'string'
+    ? (studentsOrIdFactory as Array<{ firstName: string; lastName: string }> ?? [])
+    : classIdOrStudents;
+  const resolvedIdFactory = typeof classIdOrStudents === 'string'
+    ? idFactory
+    : studentsOrIdFactory as (() => string) | undefined;
+  const id = makeId(resolvedIdFactory);
   const localStudents = students.map((student, index) => ({ ...student, localId: `${id}:${index}` }));
   await repository.applyMutation({
     actorId,
     type: 'class.addStudents',
     entityId: id,
-    payload: { students: localStudents },
+    payload: { ...(classId ? { classId } : {}), students: localStudents },
     dependencies: [],
   });
-  const classroom = (await repository.readCollection('classrooms'))[0];
+  const classroom = classId
+    ? (await repository.readCollection('classrooms')).find((row) => String(row.id) === classId)
+    : (await repository.readCollection('classrooms')).length === 1
+      ? (await repository.readCollection('classrooms'))[0]
+      : undefined;
   await repository.putSnapshot('classStudents', localStudents.map((student) => ({
     id: student.localId,
     student_id: student.localId,
@@ -88,13 +100,16 @@ export async function addOfflineStudents(
 export async function removeOfflineStudent(
   repository: OfflineRepository,
   actorId: string,
-  studentId: string,
+  classIdOrStudentId: string,
+  selectedStudentId?: string,
 ): Promise<PendingMutationResult> {
+  const classId = selectedStudentId ? classIdOrStudentId : undefined;
+  const studentId = selectedStudentId ?? classIdOrStudentId;
   await repository.applyMutation({
     actorId,
     type: 'class.removeStudent',
     entityId: studentId,
-    payload: { studentId },
+    payload: { ...(classId ? { classId } : {}), studentId },
     dependencies: [],
   });
   return { id: studentId, syncState: 'pending' };

@@ -26,7 +26,7 @@ Deno.test("App routes canonical teacher destinations and legacy redirects", () =
     'path="/teacher/settings"',
     'path="/teacher/classes"',
     'path="/teacher/classes/:classId"',
-    'path="/teacher/reports/classes/:classId"',
+    'path="/teacher/classes/:classId/:section"',
   ]) {
     assertStringIncludes(app, required);
   }

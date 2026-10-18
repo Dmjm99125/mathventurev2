@@ -1,5 +1,6 @@
 import {
   isOfflineBootstrapResponse,
+  normalizeOfflineBootstrapResponse,
   type OfflineBootstrapResponse,
 } from './types.ts';
 import type { OfflineRepository } from './repository.ts';
@@ -20,7 +21,7 @@ export async function downloadClassroomPack(
   if (!isOfflineBootstrapResponse(response)) {
     throw new Error('The offline classroom pack is invalid.');
   }
-  return response;
+  return normalizeOfflineBootstrapResponse(response);
 }
 
 export async function bootstrapRepository(
@@ -32,7 +33,8 @@ export async function bootstrapRepository(
   if (!isOfflineBootstrapResponse(response)) {
     throw new Error('The offline classroom pack is invalid.');
   }
-  await repository.persistBootstrap(response);
+  const normalized = normalizeOfflineBootstrapResponse(response);
+  await repository.persistBootstrap(normalized);
   await repository.renewOfflineLease(clock());
-  return response;
+  return normalized;
 }

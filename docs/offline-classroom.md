@@ -5,14 +5,14 @@ MathVenture classroom work is offline-first after the device has been provisione
 ## One-time online setup
 
 1. Complete the first online login with the teacher account.
-2. Open the classroom and wait for the offline classroom pack to finish downloading.
-3. Confirm that the classroom, roster, assignments, lesson catalog, and recent progress are visible before leaving coverage.
+2. Open the teacher class list and wait for the offline classroom pack to finish downloading.
+3. Confirm that each downloaded class, its roster, assignments, lesson catalog, and recent progress are visible before leaving coverage.
 
 The device stores a salted password verifier, never the raw password. The first online login, account creation, first classroom provisioning, password reset, and password change require a network connection. A successful online validation starts a sliding seven-day offline lease. The lease renews after a successful bootstrap or sync; a reload or force-reload never renews it.
 
 ## Working without internet
 
-After setup, reload the installed PWA and use the cached teacher login. Teachers can view the cached roster, switch to a cached student account, assign quizzes, edit or remove assignments, add or remove roster entries, publish classroom posts, and view cached dashboards/reports. Students can open assigned lessons, start quizzes, save every checkpoint, complete quizzes, and submit standalone attempts.
+After setup, reload the installed PWA and use the cached teacher login. Teachers can view and switch among downloaded classes, switch to a cached student account within the selected class, assign quizzes, edit or remove assignments, add or remove roster entries, publish classroom posts, and view cached dashboards/reports. Class creation, renaming, archiving, and unarchiving remain online-only. Students retain the single-class flow: they do not select, rename, archive, or switch classes. Students can open assigned lessons, start quizzes, save every checkpoint, complete quizzes, and submit standalone attempts.
 
 Every local write is saved to SQLite immediately and placed in a durable outbox. In the web app, SQLite WASM uses OPFS behind a worker boundary; in the Windows Tauri app, the same repository uses native SQLite in the app configuration directory. The status indicator distinguishes Offline, Syncing, Online, Needs sign-in, and Sync error. Pending work is not described as reaching Supabase until it is acknowledged.
 

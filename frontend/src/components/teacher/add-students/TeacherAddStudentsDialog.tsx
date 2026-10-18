@@ -28,9 +28,11 @@ import { TeacherAddStudentsSourcePicker } from './TeacherAddStudentsSourcePicker
 export function TeacherAddStudentsDialog({
   open,
   onOpenChange,
+  classId,
 }: {
   open: boolean;
   onOpenChange(open: boolean): void;
+  classId: string;
 }) {
   const isMobile = useIsMobile();
   const addStudents = useAddStudentsToClass();
@@ -53,6 +55,7 @@ export function TeacherAddStudentsDialog({
     try {
       setError(null);
       const result = await addStudents.mutateAsync({
+        classId,
         students: state.rows,
       });
       dispatch({ type: 'submission.succeeded', result });

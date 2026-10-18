@@ -18,11 +18,13 @@ function formatScore(score: number | null, maxScore: number | null, scorePct: nu
 
 export function TeacherStudentProgressTable({
   students,
+  classId,
 }: {
   students: TeacherClassStudent[];
+  classId: string;
 }) {
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
-  const detailQuery = useClassRosterStudent(expandedStudentId);
+  const detailQuery = useClassRosterStudent(classId, expandedStudentId);
 
   return (
     <div className="teacher-table min-w-0 overflow-x-auto rounded-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/45">

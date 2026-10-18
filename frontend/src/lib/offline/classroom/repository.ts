@@ -4,6 +4,7 @@ import type {
   OfflineOperationType,
   OfflineOutboxOperation,
 } from './types.ts';
+import { normalizeOfflineBootstrapResponse } from './types.ts';
 import type { OfflineRecord, OfflineStore } from './store.ts';
 import { mergeOfflineSnapshot, type SnapshotRow } from './snapshot.ts';
 import { remapEntityId, type EntityIdMapping } from './idMapping.ts';
@@ -105,6 +106,7 @@ function createLegacyOfflineRepository(
       });
     },
     async persistBootstrap(snapshot) {
+      snapshot = normalizeOfflineBootstrapResponse(snapshot);
       const studentRows = rowsWithIds(snapshot.students, (row) => {
         return typeof row.student_id === 'string' ? row.student_id : undefined;
       });
@@ -121,7 +123,7 @@ function createLegacyOfflineRepository(
           return typeof value.id === 'string' ? [value] : [];
         }),
       ];
-      const classroomRows = snapshot.classroom ? [snapshot.classroom] : [];
+      const classroomRows = snapshot.classrooms ?? [];
       const serverCollections = {
         profiles: profileRows,
         classrooms: rowsWithIds(classroomRows),
@@ -700,6 +702,7 @@ function createSqliteRepository(
       });
     },
     async persistBootstrap(snapshot) {
+      snapshot = normalizeOfflineBootstrapResponse(snapshot);
       const studentRows = rowsWithIds(snapshot.students, (row) => typeof row.student_id === 'string' ? row.student_id : undefined);
       const profileRows = [
         { id: snapshot.teacher.id, role: snapshot.teacher.role, full_name: snapshot.teacher.fullName },
@@ -712,7 +715,7 @@ function createSqliteRepository(
       ];
       const serverCollections = {
         profiles: profileRows,
-        classrooms: snapshot.classroom ? [snapshot.classroom] : [],
+        classrooms: snapshot.classrooms ?? [],
         classStudents: studentRows,
         assignments: rowsWithIds(snapshot.assignments),
         attempts: rowsWithIds(snapshot.attempts),

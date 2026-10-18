@@ -8,7 +8,7 @@ export function TeacherStudentListTable({
   viewingStudentId = null,
 }: {
   students: TeacherClassStudent[];
-  onRemove(student: TeacherClassStudent): void;
+  onRemove?: (student: TeacherClassStudent) => void;
   onView(student: TeacherClassStudent): void;
   viewingStudentId?: string | null;
 }) {
@@ -49,9 +49,9 @@ export function TeacherStudentListTable({
                   >
                     {viewingStudentId === student.id ? 'Viewing' : 'View Account'}
                   </Button>
-                  <Button variant="danger" size="sm" onClick={() => onRemove(student)}>
+                  {onRemove && <Button variant="danger" size="sm" onClick={() => onRemove(student)}>
                     Remove
-                  </Button>
+                  </Button>}
                 </div>
               </td>
             </tr>

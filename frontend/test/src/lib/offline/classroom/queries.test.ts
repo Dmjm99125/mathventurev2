@@ -57,7 +57,9 @@ Deno.test('offline classroom and roster queries expose the cached teacher view',
 
   assertEquals(await readOfflineClassroom(repository, 'teacher'), {
     id: 'class-1',
+    name: 'Classroom',
     createdAt: '2026-10-07T00:00:00.000Z',
+    archivedAt: null,
     studentCount: 1,
   });
   assertEquals(await readOfflineRoster(repository), {

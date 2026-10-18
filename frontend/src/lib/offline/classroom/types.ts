@@ -51,7 +51,9 @@ export type OfflineOutboxOperation = {
 export type OfflineBootstrapResponse = {
   revision: number;
   teacher: { id: string; role: 'teacher'; fullName: string };
-  classroom: Record<string, unknown> | null;
+  classrooms?: Record<string, unknown>[];
+  /** Legacy single-class field accepted during migration of existing packs. */
+  classroom?: Record<string, unknown> | null;
   students: Record<string, unknown>[];
   assignments: Record<string, unknown>[];
   attempts: Record<string, unknown>[];
@@ -87,6 +89,7 @@ export function isOfflineBootstrapResponse(value: unknown): value is OfflineBoot
   return Number.isInteger(response.revision)
     && typeof response.teacher === 'object'
     && response.teacher !== null
+    && (Array.isArray(response.classrooms) || 'classroom' in response)
     && Array.isArray(response.students)
     && Array.isArray(response.assignments)
     && Array.isArray(response.attempts)
@@ -94,4 +97,18 @@ export function isOfflineBootstrapResponse(value: unknown): value is OfflineBoot
     && Array.isArray(response.posts)
     && Array.isArray(response.freePlaySessions)
     && Array.isArray(response.freePlayProgress);
+}
+
+export type NormalizedOfflineBootstrapResponse = OfflineBootstrapResponse & {
+  classrooms: Record<string, unknown>[];
+  classroom: Record<string, unknown> | null;
+};
+
+export function normalizeOfflineBootstrapResponse(input: OfflineBootstrapResponse): NormalizedOfflineBootstrapResponse {
+  const classrooms = Array.isArray(input.classrooms)
+    ? input.classrooms
+    : input.classroom
+      ? [input.classroom]
+      : [];
+  return { ...input, classrooms, classroom: input.classroom ?? classrooms[0] ?? null };
 }

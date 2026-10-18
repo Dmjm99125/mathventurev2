@@ -17,15 +17,7 @@ function getTeacherNavItems(t: (key: string) => string) {
   return TEACHER_NAV_ITEMS.map((item) => ({
     href: item.href,
     label: t(item.labelKey),
-    icon: item.href === '/teacher'
-      ? LayoutDashboard
-      : item.href === '/teacher/students'
-        ? Users
-        : item.href === '/teacher/assignments'
-          ? ClipboardList
-          : item.href === '/teacher/reports'
-            ? BarChart3
-            : Settings,
+    icon: item.href === '/teacher' ? LayoutDashboard : Settings,
   }));
 }
 

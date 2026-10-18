@@ -15,6 +15,8 @@ import {
   TeacherAssignmentsPage,
   TeacherReportsPage,
   TeacherSettingsPage,
+  TeacherClassesPage,
+  TeacherClassWorkspacePage,
 } from '@/pages/teacher';
 import { StudentDashboard, StudentClassroomPage } from '@/pages/student';
 import { QuizPage } from '@/pages/QuizPage';
@@ -59,25 +61,25 @@ function AppRoutes() {
       </Route>
       
       <Route path="/teacher">
-        {() => <AppLayout sidebarMode="hidden"><TeacherTodayPage /></AppLayout>}
+        {() => <AppLayout sidebarMode="hidden"><TeacherClassesPage /></AppLayout>}
       </Route>
       <Route path="/teacher/students">
-        {() => <AppLayout sidebarMode="hidden"><TeacherStudentsPage /></AppLayout>}
+        {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/assignments">
-        {() => <AppLayout sidebarMode="hidden"><TeacherAssignmentsPage /></AppLayout>}
+        {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/classes">
-        {() => <Redirect to="/teacher/students" replace />}
+        {() => <Redirect to="/teacher" replace />}
+      </Route>
+      <Route path="/teacher/classes/:classId/:section">
+        {({ classId, section }) => <AppLayout sidebarMode="hidden"><TeacherClassWorkspacePage classId={classId} section={section as 'today' | 'students' | 'assignments' | 'reports'} /></AppLayout>}
       </Route>
       <Route path="/teacher/classes/:classId">
-        {() => <Redirect to="/teacher/students" replace />}
-      </Route>
-      <Route path="/teacher/reports/classes/:classId">
-        {() => <Redirect to="/teacher/reports" replace />}
+        {({ classId }) => <AppLayout sidebarMode="hidden"><TeacherClassWorkspacePage classId={classId} /></AppLayout>}
       </Route>
       <Route path="/teacher/reports">
-        {() => <AppLayout sidebarMode="hidden"><TeacherReportsPage /></AppLayout>}
+        {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/settings">
         {() => <AppLayout sidebarMode="hidden"><TeacherSettingsPage /></AppLayout>}

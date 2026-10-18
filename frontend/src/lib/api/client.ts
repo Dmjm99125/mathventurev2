@@ -35,11 +35,20 @@ export interface PageInfo {
   hasMore: boolean;
 }
 
-export interface TeacherClassroomSummary {
+export interface TeacherClassSummary {
   id: string;
+  name: string;
   createdAt: string;
+  archivedAt: string | null;
   studentCount: number;
 }
+
+export interface TeacherClassesListResponse {
+  classes: TeacherClassSummary[];
+  archivedClasses: TeacherClassSummary[];
+}
+
+export type TeacherClassroomSummary = TeacherClassSummary;
 
 export interface AttemptGameResultInput {
   topicId: string;
@@ -54,11 +63,6 @@ export interface StudentClassroomSummary {
   id: string;
   teacherName: string;
   joinedAt: string;
-}
-
-export interface TeacherClassSummary extends TeacherClassroomSummary {
-  name: string;
-  joinCode: string;
 }
 
 export interface StudentClassSummary extends StudentClassroomSummary {
@@ -207,38 +211,46 @@ export const api = {
   classes: {
     list: () =>
       invokeFunction<{
-        classroom: TeacherClassroomSummary | StudentClassroomSummary | null;
+        classes?: TeacherClassSummary[];
+        archivedClasses?: TeacherClassSummary[];
+        classroom?: TeacherClassroomSummary | StudentClassroomSummary | null;
       }>('classes-list'),
-    create: (name?: string) =>
-      invokeFunction<{ classroom: TeacherClassroomSummary }>('classes-create', {
+    create: (name: string) =>
+      invokeFunction<{ classroom: TeacherClassSummary }>('classes-create', {
         method: 'POST',
-        body: name ? { name } : undefined,
+        body: { name },
+      }),
+    update: (input: { classId: string; action: 'rename' | 'archive' | 'unarchive'; name?: string }) =>
+      invokeFunction<{ classroom: TeacherClassSummary }>('classes-update', {
+        method: 'POST',
+        body: input,
       }),
     join: (joinCode?: string) =>
       invokeFunction<unknown>('classes-join', {
         method: 'POST',
         body: joinCode ? { joinCode } : undefined,
       }),
-    roster: (options?: { cursor?: string | null; pageSize?: number }) =>
+    roster: (classId: string, options?: { cursor?: string | null; pageSize?: number }) =>
       invokeFunction<{ students: TeacherClassStudent[]; page: PageInfo }>('classes-roster', {
         searchParams: {
+          classId,
           ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
           ...(options?.cursor ? { cursor: options.cursor } : {}),
         },
       }),
-    rosterStudent: (studentId: string) =>
+    rosterStudent: (classId: string, studentId: string) =>
       invokeFunction<{ students: TeacherClassStudent[]; page: PageInfo }>('classes-roster', {
-        searchParams: { studentId },
+        searchParams: { classId, studentId },
       }),
-    addStudents: (students: TeacherAddStudentDraft[]) =>
+    addStudents: (classId: string, students: TeacherAddStudentDraft[]) =>
       invokeFunction<TeacherAddStudentsResult>('classes-add-students', {
         method: 'POST',
-        body: { students },
+        body: { classId, students },
       }),
-    removeStudent: (studentId: string) =>
+    removeStudent: (classId: string, studentId: string) =>
       invokeFunction<{ removed: true }>('classes-remove-student', {
         method: 'POST',
-        body: { studentId },
+        body: { classId, studentId },
       }),
   },
   assignments: {
@@ -316,9 +328,10 @@ export const api = {
     create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
   },
   reports: {
-    overview: (window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
+    overview: (classId: string, window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
       invokeFunction<TeacherSingleClassroomReportPayload>('reports-overview', {
         searchParams: {
+          classId,
           window,
           ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
           ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),

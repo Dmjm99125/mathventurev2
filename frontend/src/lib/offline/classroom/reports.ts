@@ -34,7 +34,8 @@ function reportInputs(
   students: OfflineRow[],
   gameResults: OfflineRow[],
 ) {
-  const fallbackClassId = text(classrooms[0] ?? {}, 'id', 'id');
+  const fallbackClassId = classrooms.length === 1 ? text(classrooms[0] ?? {}, 'id', 'id') : '';
+  const classById = new Map(classrooms.map((classroom) => [text(classroom, 'id', 'id'), classroom] as const));
   return {
     classes: classrooms.map((classroom) => ({
       id: text(classroom, 'id', 'id'),
@@ -47,7 +48,7 @@ function reportInputs(
       return {
         id: text(student, 'student_id', 'studentId') || text(student, 'id', 'id'),
         classId: text(student, 'class_id', 'classId') || fallbackClassId,
-        className: text(classrooms[0] ?? {}, 'name', 'name') || 'Classroom',
+        className: text(classById.get(text(student, 'class_id', 'classId')) ?? {}, 'name', 'name') || 'Classroom',
         ...name,
         joinedAt: text(student, 'joined_at', 'joinedAt'),
       };
@@ -84,12 +85,14 @@ export function buildOfflineTeacherClassReport(
   windowKey: TeacherReportsWindowKey,
 ): TeacherSingleClassroomReportPayload {
   const inputs = reportInputs(classrooms, students, gameResults);
-  const classroom = inputs.classes.find((row) => row.id === classId) ?? inputs.classes[0];
+  const classroom = inputs.classes.find((row) => row.id === classId);
   if (!classroom) throw new Error('Classroom unavailable offline.');
+  const scopedStudents = inputs.students.filter((student) => student.classId === classId);
+  const results = inputs.results.filter((result) => result.classId === classId);
   return buildTeacherSingleClassroomReport({
     classroom: { id: classroom.id, studentCount: classroom.studentCount },
-    students: inputs.students,
-    results: inputs.results,
+    students: scopedStudents,
+    results,
     windowKey,
   });
 }

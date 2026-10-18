@@ -12,21 +12,25 @@ import { TeacherClassroomSnapshot } from './TeacherClassroomSnapshot';
 import { TeacherRecentActivity } from './TeacherRecentActivity';
 
 export function TeacherToday({
+  classId,
+  readOnly = false,
   onAddStudents,
   onAssignQuiz,
   onViewStudent,
   viewError = null,
 }: {
+  classId: string;
+  readOnly?: boolean;
   onAddStudents(): void;
   onAssignQuiz(): void;
   onViewStudent(studentId: string): Promise<void>;
   viewError?: string | null;
 }) {
-  const classroomQuery = useTeacherClassroom();
-  const rosterQuery = useClassRoster();
+  const classroomQuery = useTeacherClassroom(classId);
+  const rosterQuery = useClassRoster(classId);
   const classroom = classroomQuery.data?.classroom as TeacherClassroomSummary | null | undefined;
-  const assignmentsQuery = useAssignments(classroom?.id);
-  const reportsQuery = useTeacherReportsOverview('30d');
+  const assignmentsQuery = useAssignments(classId);
+  const reportsQuery = useTeacherReportsOverview(classId, '30d');
   const students = rosterQuery.data?.pages.flatMap((page) => page.students) ?? [];
   const assignments = (assignmentsQuery.data?.pages.flatMap((page) => page.assignments) ?? []).filter(
     (assignment): assignment is AssignmentForTeacher => 'className' in assignment,
@@ -55,18 +59,18 @@ export function TeacherToday({
 
   const actions = (
     <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
-      <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 sm:w-auto" onClick={onAssignQuiz}>
+      {!readOnly && <Button type="button" className="w-full bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90 sm:w-auto" onClick={onAssignQuiz}>
         Assign quiz
-      </Button>
-      <Button type="button" variant="outline" className="w-full border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)] sm:w-auto" onClick={onAddStudents}>
+      </Button>}
+      {!readOnly && <Button type="button" variant="outline" className="w-full border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)] sm:w-auto" onClick={onAddStudents}>
         Add students
-      </Button>
+      </Button>}
     </div>
   );
 
   if (isLoading) {
     return (
-      <TeacherWorkspaceBoard heading={heading} action={actions}>
+      <TeacherWorkspaceBoard heading={heading} action={actions} classId={classId} readOnly={readOnly}>
         <Card className="teacher-section border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8">
           <p className="font-semibold text-[var(--teacher-ink)]/70">Loading your classroom...</p>
         </Card>
@@ -76,7 +80,7 @@ export function TeacherToday({
 
   if (!classroom) {
     return (
-      <TeacherWorkspaceBoard heading={heading} action={actions}>
+      <TeacherWorkspaceBoard heading={heading} action={actions} classId={classId} readOnly={readOnly}>
         <Card className="teacher-section border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8">
           <h2 className="font-display text-2xl font-bold text-[var(--teacher-ink)]">Classroom unavailable</h2>
           <p className="mt-2 font-semibold text-[var(--teacher-ink)]/70">We could not load your classroom right now.</p>
@@ -88,7 +92,7 @@ export function TeacherToday({
 
   if (error || !reportsQuery.data) {
     return (
-      <TeacherWorkspaceBoard heading={heading} action={actions}>
+      <TeacherWorkspaceBoard heading={heading} action={actions} classId={classId} readOnly={readOnly}>
         <Card className="teacher-section border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-8">
           <h2 className="font-display text-2xl font-bold text-[var(--teacher-ink)]">Today is unavailable</h2>
           <p className="mt-2 font-semibold text-[var(--teacher-ink)]/70">{error instanceof Error ? error.message : 'We could not load your classroom activity right now.'}</p>
@@ -99,7 +103,7 @@ export function TeacherToday({
   }
 
   return (
-    <TeacherWorkspaceBoard heading={heading} action={actions}>
+    <TeacherWorkspaceBoard heading={heading} action={actions} classId={classId} readOnly={readOnly}>
       <div className="grid gap-10">
         {viewError && (
           <Card className="teacher-section border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">
