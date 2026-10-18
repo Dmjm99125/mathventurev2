@@ -46,7 +46,7 @@ export function createMemoryStore(): OfflineStore {
       return Array.from(getStore(name).values(), clone);
     },
     async transaction(_stores, work) {
-      return work();
+      return work(this);
     },
   };
 }

@@ -13,3 +13,13 @@ Deno.test('memory offline store isolates records by store and key', async () => 
     { key: 'teacher-1', value: { role: 'teacher' } },
   ]);
 });
+
+Deno.test('offline store transactions expose a scoped store facade', async () => {
+  const store = createMemoryStore();
+
+  await store.transaction(['meta'], async (transactionStore) => {
+    await transactionStore.put('meta', { key: 'transaction', value: true });
+  });
+
+  assertEquals(await store.get('meta', 'transaction'), { key: 'transaction', value: true });
+});

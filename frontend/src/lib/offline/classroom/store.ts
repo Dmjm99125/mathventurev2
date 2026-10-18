@@ -48,7 +48,7 @@ export type OfflineStore = {
   put(store: OfflineEntityName, record: OfflineRecord): Promise<void>;
   delete(store: OfflineEntityName, key: string): Promise<void>;
   getAll(store: OfflineEntityName): Promise<OfflineRecord[]>;
-  transaction<T>(stores: OfflineEntityName[], work: () => Promise<T>): Promise<T>;
+  transaction<T>(stores: OfflineEntityName[], work: (store: OfflineStore) => Promise<T>): Promise<T>;
 };
 
 export type LegacyClassroomSource = Pick<OfflineStore, 'getAll'>;
@@ -141,7 +141,7 @@ export function createIndexedDbStore(databaseName = OFFLINE_DB_NAME): OfflineSto
     }
   };
 
-  return {
+  const store: OfflineStore = {
     get: async (storeName, key) => {
       const result = await withStore(storeName, 'readonly', (store) => store.get(key));
       return result as OfflineRecord | undefined;
@@ -156,6 +156,8 @@ export function createIndexedDbStore(databaseName = OFFLINE_DB_NAME): OfflineSto
       const result = await withStore(storeName, 'readonly', (store) => store.getAll());
       return result as OfflineRecord[];
     },
-    transaction: async (_stores, work) => work(),
+    transaction: async (_stores, work) => work(store),
   };
+
+  return store;
 }
