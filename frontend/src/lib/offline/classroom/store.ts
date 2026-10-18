@@ -73,12 +73,13 @@ type IndexedDbTransaction = {
   oncomplete: ((event?: Event) => void) | null;
   onerror: ((event?: Event) => void) | null;
   onabort: ((event?: Event) => void) | null;
+  abort(): void;
 };
 
 type IndexedDbDatabase = {
   objectStoreNames: { contains(name: string): boolean };
   createObjectStore(name: string, options: { keyPath: string }): void;
-  transaction(name: string, mode: 'readonly' | 'readwrite'): IndexedDbTransaction;
+  transaction(name: string | string[], mode: 'readonly' | 'readwrite'): IndexedDbTransaction;
   close(): void;
 };
 
@@ -95,6 +96,14 @@ function requestResult<T>(request: IndexedDbRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new OfflineStorageError('IndexedDB request failed.'));
+  });
+}
+
+function transactionResult(transaction: IndexedDbTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error ?? new OfflineStorageError('IndexedDB transaction failed.'));
+    transaction.onabort = () => reject(transaction.error ?? new OfflineStorageError('IndexedDB transaction aborted.'));
   });
 }
 
@@ -156,7 +165,32 @@ export function createIndexedDbStore(databaseName = OFFLINE_DB_NAME): OfflineSto
       const result = await withStore(storeName, 'readonly', (store) => store.getAll());
       return result as OfflineRecord[];
     },
-    transaction: async (_stores, work) => work(store),
+    transaction: async (storeNames, work) => {
+      const database = await openDatabase(databaseName);
+      const transaction = database.transaction(storeNames, 'readwrite');
+      const completion = transactionResult(transaction);
+      const transactionStore: OfflineStore = {
+        get: async (storeName, key) => (await requestResult(transaction.objectStore(storeName).get(key))) as OfflineRecord | undefined,
+        put: async (storeName, record) => { await requestResult(transaction.objectStore(storeName).put(record)); },
+        delete: async (storeName, key) => { await requestResult(transaction.objectStore(storeName).delete(key)); },
+        getAll: async (storeName) => (await requestResult(transaction.objectStore(storeName).getAll())) as OfflineRecord[],
+        transaction: async () => {
+          throw new OfflineStorageError('Nested IndexedDB transactions are not supported.');
+        },
+      };
+
+      try {
+        const result = await work(transactionStore);
+        await completion;
+        return result;
+      } catch (error) {
+        try { transaction.abort(); } catch { /* The transaction may already be finished. */ }
+        await completion.catch(() => undefined);
+        throw error;
+      } finally {
+        database.close();
+      }
+    },
   };
 
   return store;
