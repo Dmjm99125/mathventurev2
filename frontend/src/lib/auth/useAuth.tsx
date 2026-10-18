@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      if (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false) {
         const offlineSession = await restoreOfflineSession({ online: false });
         setTeacherUser(offlineSession);
         setViewingStudent(null);
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const viewStudentAccount = async (studentId: string) => {
-    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    const isOffline = typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false;
     let studentProfile: UserProfile | null = null;
     if (isOffline) {
       studentProfile = await readOfflineStudentProfile(studentId);

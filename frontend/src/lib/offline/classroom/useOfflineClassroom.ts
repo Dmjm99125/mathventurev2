@@ -25,10 +25,11 @@ type OfflineClassroomContextValue = OfflineLifecycleState & {
 
 const OfflineClassroomContext = createContext<OfflineClassroomContextValue | null>(null);
 
-export function OfflineClassroomProvider({ children, repository, invoke }: {
+export function OfflineClassroomProvider({ children, repository, invoke, teacherId = null }: {
   children: ReactNode;
   repository?: OfflineRepository;
   invoke?: BootstrapInvoker;
+  teacherId?: string | null;
 }) {
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
   const [applicationStorage, setApplicationStorage] = useState<ApplicationStorage | null>(null);
@@ -68,8 +69,8 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     dispatch({ type: 'sync-start' });
     try {
       const request = invoke ?? (async (name, options) => {
-        const { invokeFunction } = await import('../../api/client.ts');
-        return invokeFunction<unknown>(name, options);
+        const { invokeTeacherFunction } = await import('../../api/client.ts');
+        return invokeTeacherFunction<unknown>(name, options);
       });
       const progress = await syncOfflineClassroom(activeRepository, request);
       const summary = await activeRepository.getSyncSummary();
@@ -89,8 +90,8 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
       throw new Error('An internet connection is required to refresh the classroom pack.');
     }
     const request = invoke ?? (async (name, options) => {
-      const { invokeFunction } = await import('../../api/client.ts');
-      return invokeFunction<unknown>(name, options);
+      const { invokeTeacherFunction } = await import('../../api/client.ts');
+      return invokeTeacherFunction<unknown>(name, options);
     });
     await bootstrapRepository(activeRepository, () => downloadClassroomPack(request));
     const summary = await activeRepository.getSyncSummary();
@@ -99,9 +100,20 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
   }, [invoke, resolvedRepository]);
   useEffect(() => {
+    if (!resolvedRepository || !teacherId || (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false)) return;
+    void bootstrapNow().catch((error: unknown) => {
+      console.warn('Automatic offline classroom refresh skipped', error);
+    });
+  }, [bootstrapNow, resolvedRepository, teacherId]);
+  useEffect(() => {
     if (!resolvedRepository) return;
     const activeRepository = resolvedRepository;
-    const onOnline = () => { dispatch({ type: 'network-online' }); void syncNow(); };
+    const onOnline = () => {
+      dispatch({ type: 'network-online' });
+      void bootstrapNow()
+        .catch((error: unknown) => console.warn('Automatic offline classroom refresh skipped', error))
+        .finally(() => { void syncNow(); });
+    };
     const onOffline = () => dispatch({ type: 'network-offline' });
     addEventListener('online', onOnline);
     addEventListener('offline', onOffline);
@@ -113,7 +125,7 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
       removeEventListener('online', onOnline);
       removeEventListener('offline', onOffline);
     };
-  }, [resolvedRepository, syncNow]);
+  }, [bootstrapNow, resolvedRepository, syncNow]);
   if (!resolvedRepository) {
     return createElement(
       'div',

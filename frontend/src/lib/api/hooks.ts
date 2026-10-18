@@ -369,6 +369,7 @@ export function useTeacherClassReport(classId: string, window: TeacherReportsWin
 
 export function useCreateClass() {
   const queryClient = useQueryClient();
+  const { bootstrapNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: (name: string) => {
       if (browserIsOffline()) throw new Error('Creating classes requires an internet connection.');
@@ -378,12 +379,14 @@ export function useCreateClass() {
       queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher'] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      void bootstrapNow().catch(() => {});
     },
   });
 }
 
 export function useUpdateClass() {
   const queryClient = useQueryClient();
+  const { bootstrapNow } = useOfflineClassroom();
   return useMutation({
     mutationFn: (input: { classId: string; action: 'rename' | 'archive' | 'unarchive'; name?: string }) => {
       if (browserIsOffline()) throw new Error('Class changes require an internet connection.');
@@ -393,6 +396,7 @@ export function useUpdateClass() {
       queryClient.invalidateQueries({ queryKey: ['classes'] });
       queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher', variables.classId] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      void bootstrapNow().catch(() => {});
     },
   });
 }

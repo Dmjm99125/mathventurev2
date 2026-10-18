@@ -1,6 +1,6 @@
 import { Redirect, Route, Switch, Router as WouterRouter } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/lib/auth';
+import { AuthProvider, useAuth } from '@/lib/auth';
 import { LanguageProvider } from '@/lib/i18n/useLanguage';
 import { OfflineClassroomProvider } from '@/lib/offline/classroom/useOfflineClassroom';
 
@@ -90,20 +90,28 @@ function AppRoutes() {
   );
 }
 
+function AuthenticatedApp() {
+  const { teacherUser } = useAuth();
+
+  return (
+    <OfflineClassroomProvider teacherId={teacherUser?.id ?? null}>
+      <LanguageProvider>
+        <WouterRouter base={((import.meta as ImportMeta & {
+          env?: Record<string, string | undefined>;
+        }).env?.BASE_URL ?? '').replace(/\/$/, '')}>
+          <AppRoutes />
+        </WouterRouter>
+      </LanguageProvider>
+    </OfflineClassroomProvider>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <OfflineClassroomProvider>
-        <AuthProvider>
-          <LanguageProvider>
-            <WouterRouter base={((import.meta as ImportMeta & {
-              env?: Record<string, string | undefined>;
-            }).env?.BASE_URL ?? '').replace(/\/$/, '')}>
-              <AppRoutes />
-            </WouterRouter>
-          </LanguageProvider>
-        </AuthProvider>
-      </OfflineClassroomProvider>
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

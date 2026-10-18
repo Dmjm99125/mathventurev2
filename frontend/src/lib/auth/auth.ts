@@ -24,8 +24,6 @@ import {
   type OfflineEnrollmentRecord as OfflineLeaseEnrollmentRecord,
 } from '../offline/classroom/lease';
 import type { OfflineStore } from '../offline/classroom/store';
-import { createOfflineRepository } from '../offline/classroom/repository';
-import { bootstrapRepository, type BootstrapInvoker } from '../offline/classroom/bootstrap';
 import type { SqliteDatabase, SqliteRow } from '../offline/sqlite/adapter';
 import { getApplicationStorage } from '../offline/sqlite/runtime';
 
@@ -291,12 +289,9 @@ export async function teacherSignIn(email: string, password: string) {
     };
     try {
       const store = await getApplicationStorage();
-      const enrollment = await enrollOfflineDevice(profile, password, store);
-      const repository = createOfflineRepository(store, undefined, undefined, enrollment.deviceId);
-      const invoke: BootstrapInvoker = (name, options) => invokeTeacherFunction(name, options);
-      await bootstrapRepository(repository, () => invoke('offline-bootstrap', { method: 'GET' }));
-    } catch (bootstrapError) {
-      console.warn('Offline classroom provisioning skipped', bootstrapError);
+      await enrollOfflineDevice(profile, password, store);
+    } catch (enrollmentError) {
+      console.warn('Offline classroom enrollment skipped', enrollmentError);
     }
   }
   return data;

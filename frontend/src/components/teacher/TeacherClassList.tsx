@@ -5,6 +5,7 @@ import { TeacherClassCard } from './TeacherClassCard';
 import { TeacherClassManagementDialog } from './TeacherClassManagementDialog';
 import { useClasses, useCreateClass, useUpdateClass } from '@/lib/api/hooks';
 import type { TeacherClassSummary } from '@/lib/api';
+import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
 
 export function TeacherClassList() {
   const classesQuery = useClasses();
@@ -61,6 +62,9 @@ export function TeacherClassList() {
         </Button>
       )}
     >
+      <div className="mb-6">
+        <OfflinePackPanel />
+      </div>
       {!online && <Card className="mb-6 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-5 font-semibold text-[var(--teacher-ink)]">You are offline. Class creation, renaming, archiving, and unarchiving require an internet connection.</Card>}
       {classesQuery.isLoading && <Card className="border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]/70">Loading classes...</Card>}
       {classesQuery.error && <Card role="alert" className="border-[var(--teacher-terracotta)]/35 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]">{(classesQuery.error as Error).message}</Card>}

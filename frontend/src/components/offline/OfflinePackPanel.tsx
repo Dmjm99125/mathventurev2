@@ -27,7 +27,7 @@ export function OfflinePackPanel({ onRefresh }: { onRefresh?: () => Promise<void
         <div>
           <h2 className="font-bold">Offline classroom pack</h2>
           <p className="text-sm text-muted-foreground">
-            {lastSyncedAt ? `Last saved ${lastSyncedAt}` : 'Download your classroom before going offline.'}
+            {lastSyncedAt ? `Last saved ${lastSyncedAt}` : 'Your teacher classes download automatically when you sign in.'}
           </p>
           {!isOnline && <p className="text-sm font-bold text-muted-foreground">Refreshing the pack requires an internet connection.</p>}
           <p className="text-sm text-muted-foreground">{pendingCount} pending, {failedCount} failed.</p>
