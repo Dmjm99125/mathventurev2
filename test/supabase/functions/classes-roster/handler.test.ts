@@ -6,22 +6,27 @@ Deno.test("classes-roster summary returns bounded rows without loading details",
   const handler = createClassesRosterHandler({
     getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher One" }),
     getTeacherClass: async () => ({ id: "classroom-1", teacherId: "teacher-1", name: "Classroom", createdAt: "2026-07-01T00:00:00.000Z", archivedAt: null }),
-    listRosterPage: async () => ({
-      students: [{
-        id: "student-1",
-        fullName: "Student One",
-        firstName: "Student",
-        lastName: "One",
-        joinedAt: "2026-07-20T00:00:00.000Z",
-        appCompletionPct: 12,
-        lastPlayedPct: 80,
-        overallScore: 8,
-        overallMaxScore: 10,
-        overallScorePct: 80,
-      }],
-      nextCursor: "next-cursor",
-      hasMore: true,
-    }),
+    listRosterPage: async (...args: unknown[]) => {
+      assertEquals(args[0], "teacher-1");
+      assertEquals(args[1], "classroom-1");
+      assertEquals(args[2], 50);
+      return {
+        students: [{
+          id: "student-1",
+          fullName: "Student One",
+          firstName: "Student",
+          lastName: "One",
+          joinedAt: "2026-07-20T00:00:00.000Z",
+          appCompletionPct: 12,
+          lastPlayedPct: 80,
+          overallScore: 8,
+          overallMaxScore: 10,
+          overallScorePct: 80,
+        }],
+        nextCursor: "next-cursor",
+        hasMore: true,
+      };
+    },
     listStudentDetail: async () => {
       detailCalls += 1;
       return null;

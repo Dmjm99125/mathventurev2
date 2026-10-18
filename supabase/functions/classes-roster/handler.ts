@@ -91,6 +91,7 @@ type ClassesRosterDeps = {
     classId: string,
   ): Promise<TeacherOwnedClass | null>;
   listRosterPage?: (
+    teacherId: string,
     classId: string,
     pageSize: number,
     cursor: string | null,
@@ -391,10 +392,11 @@ const defaultDeps: ClassesRosterDeps = {
       archivedAt: (data.archived_at as string | null) ?? null,
     };
   },
-  async listRosterPage(classId, pageSize, cursor) {
+  async listRosterPage(teacherId, classId, pageSize, cursor) {
     const { adminClient } = await import("../_shared/client.ts");
     const decoded = cursor ? decodeCursor<RosterCursor>(cursor) : null;
     const { data, error } = await adminClient.rpc("get_teacher_roster_page", {
+      p_teacher_id: teacherId,
       p_class_id: classId,
       p_page_size: pageSize,
       p_cursor_joined_at: decoded?.joinedAt ?? null,
@@ -470,7 +472,7 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
 
       const { pageSize, cursor } = parsePageRequest(url);
       if (deps.listRosterPage) {
-        const page = await deps.listRosterPage(classId, pageSize, cursor);
+        const page = await deps.listRosterPage(profile.id, classId, pageSize, cursor);
         return jsonResponse({
           students: page.students.map((student) => ({
             ...student,
