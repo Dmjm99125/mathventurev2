@@ -13,9 +13,19 @@ Deno.test("PWA manifest opens Free Play as an installable MathVenture app", asyn
   assertEquals(manifest.display, "standalone");
   assertEquals(manifest.start_url, "/free-play");
   assertEquals(manifest.icons, [
-    { src: "/icons/mathventure-192.svg", sizes: "192x192", type: "image/svg+xml" },
-    { src: "/icons/mathventure-512.svg", sizes: "512x512", type: "image/svg+xml" },
+    { src: "/favicon.svg", sizes: "192x192", type: "image/svg+xml" },
+    { src: "/favicon.svg", sizes: "512x512", type: "image/svg+xml" },
   ]);
+});
+
+Deno.test("favicon is the canonical app icon source", async () => {
+  const html = await readProjectFile("index.html");
+  const manifest = JSON.parse(await readProjectFile("public/manifest.webmanifest"));
+  const tauri = JSON.parse(await readProjectFile("../src-tauri/tauri.conf.json"));
+
+  assertMatch(html, /rel="icon"[^>]+href="\/favicon\.svg"/);
+  assertEquals(manifest.icons.every((icon: { src: string }) => icon.src === "/favicon.svg"), true);
+  assertEquals(tauri.bundle.icon.includes("icons/icon.ico"), true);
 });
 
 Deno.test("PWA config precaches the app shell without silently precaching the media library", async () => {
@@ -36,7 +46,7 @@ Deno.test("PWA config precaches the app shell without silently precaching the me
 });
 
 Deno.test("PWA manifest icons exist in public assets", async () => {
-  for (const path of ["public/icons/mathventure-192.svg", "public/icons/mathventure-512.svg"]) {
+  for (const path of ["public/favicon.svg", "public/icons/mathventure-192.svg", "public/icons/mathventure-512.svg"]) {
     const stat = await Deno.stat(new URL(`../../../${path}`, import.meta.url));
     assertEquals(stat.isFile, true);
   }
