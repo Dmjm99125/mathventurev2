@@ -17,7 +17,7 @@ import type { TeacherReportAggregate } from "../_shared/aggregate_contract.ts";
 type ReportsClassDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
   getAggregate?(input: TeacherReportAggregateRequest): Promise<TeacherReportAggregate>;
-  loadTeacherReportsDataset?(input: { teacherId: string }): Promise<TeacherReportsDataset>;
+  loadTeacherReportsDataset?(input: { teacherId: string; classId: string }): Promise<TeacherReportsDataset>;
   now(): Date;
 };
 
@@ -51,6 +51,7 @@ export function createReportsClassHandler(deps: ReportsClassDeps = defaultDeps) 
       if (deps.getAggregate) {
         const aggregate = await deps.getAggregate({
           teacherId: profile.id,
+          classId,
           startAt: window.startAt,
           endAt: window.endAt,
           studentLimit: pageSize,
@@ -65,7 +66,7 @@ export function createReportsClassHandler(deps: ReportsClassDeps = defaultDeps) 
       }
 
       if (!deps.loadTeacherReportsDataset) throw new Error("Report dependencies are incomplete");
-      const dataset = await deps.loadTeacherReportsDataset({ teacherId: profile.id });
+      const dataset = await deps.loadTeacherReportsDataset({ teacherId: profile.id, classId });
       if (dataset.classroom.id !== classId) return errorResponse("Classroom not found", 404);
       return jsonResponse(buildTeacherSingleClassroomReport({
         ...dataset,

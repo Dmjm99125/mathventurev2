@@ -1,12 +1,16 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
-import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
+import {
+  assertWritableTeacherClass,
+  type TeacherOwnedClass,
+} from "../_shared/teacher_class_access.ts";
 
 type ClassesRemoveStudentDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  getTeacherClassroom(
+  getTeacherClass(
     teacherId: string,
-  ): Promise<{ id: string; teacherId: string; name: string } | null>;
+    classId: string,
+  ): Promise<TeacherOwnedClass | null>;
   removeMembership(input: { classId: string; studentId: string }): Promise<void>;
 };
 
@@ -15,31 +19,26 @@ const defaultDeps: ClassesRemoveStudentDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async getTeacherClassroom(teacherId) {
+  async getTeacherClass(teacherId, classId) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
-      .select("id, teacher_id, name, created_at")
+      .select("id, teacher_id, name, created_at, archived_at")
+      .eq("id", classId)
       .eq("teacher_id", teacherId);
 
     if (error) {
       throw error;
     }
-    const classrooms = (data ?? []).map((row) => ({
-      id: row.id as string,
-      teacherId: row.teacher_id as string,
-      name: row.name as string,
-      createdAt: row.created_at as string,
-    }));
-    if (!classrooms.length) {
-      return null;
-    }
-
-    const classroom = await getTeacherSingletonClass(
-      { listTeacherClasses: async () => classrooms },
-      teacherId,
-    );
-    return { id: classroom.id, teacherId: classroom.teacherId, name: classroom.name };
+    if (!data?.length) return null;
+    const classroom = data[0];
+    return {
+      id: classroom.id as string,
+      teacherId: classroom.teacher_id as string,
+      name: classroom.name as string,
+      createdAt: classroom.created_at as string,
+      archivedAt: (classroom.archived_at as string | null) ?? null,
+    };
   },
   async removeMembership({ classId, studentId }) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -76,18 +75,30 @@ export function createClassesRemoveStudentHandler(
       }
 
       const body = await req.json().catch(() => null);
+      const classId = typeof body?.classId === "string" ? body.classId.trim() : "";
       const studentId = typeof body?.studentId === "string" ? body.studentId : "";
 
+      if (!classId) {
+        return errorResponse("classId is required", 422);
+      }
       if (!studentId) {
         return errorResponse("studentId is required", 422);
       }
 
-      const classroom = await deps.getTeacherClassroom(profile.id);
+      const classroom = await deps.getTeacherClass(profile.id, classId);
       if (!classroom) {
         return errorResponse("Classroom not found", 404);
       }
+      try {
+        assertWritableTeacherClass(classroom);
+      } catch (error) {
+        if (error instanceof Error && error.message === "This classroom is archived and read-only.") {
+          return errorResponse("Archived classrooms are read-only", 409);
+        }
+        throw error;
+      }
 
-      await deps.removeMembership({ classId: classroom.id, studentId });
+      await deps.removeMembership({ classId, studentId });
       return jsonResponse({ removed: true });
     } catch (error) {
       console.error("classes-remove-student failed", error);

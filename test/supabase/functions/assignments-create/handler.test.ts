@@ -25,3 +25,29 @@ Deno.test("assignments-create stores a supplied name and allows the same lesson 
   assertEquals((await handler(request("Sequencing Retake"))).status, 201);
   assertEquals(inserted.map((row) => row.name), ["Sequencing Review", "Sequencing Retake"]);
 });
+
+Deno.test("assignments-create rejects archived classes before inserting", async () => {
+  let inserted = false;
+  const deps: AssignmentsCreateDeps = {
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher" }),
+    getTeacherClass: async () => ({
+      id: "class-1",
+      teacherId: "teacher-1",
+      name: "Archived",
+      createdAt: "2026-07-01T00:00:00.000Z",
+      archivedAt: "2026-09-01T00:00:00.000Z",
+    }),
+    insertAssignment: async () => {
+      inserted = true;
+      return {};
+    },
+  };
+
+  const response = await createAssignmentsCreateHandler(deps)(new Request("http://local/assignments-create", {
+    method: "POST",
+    body: JSON.stringify({ lessonId: "sequencing", classId: "class-1" }),
+  }));
+
+  assertEquals(response.status, 409);
+  assertEquals(inserted, false);
+});

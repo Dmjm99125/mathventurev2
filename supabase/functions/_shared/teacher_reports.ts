@@ -15,7 +15,6 @@ import {
   parseTeacherReportAggregate,
   type TeacherReportAggregate,
 } from "./aggregate_contract.ts";
-import { getTeacherSingletonClass } from "./teacher_singleton_class.ts";
 
 type ClassroomRow = {
   id: string;
@@ -72,7 +71,7 @@ type AttemptRow = {
 };
 
 type TeacherReportsDatasetDeps = {
-  getClassroom(teacherId: string): Promise<ClassroomRow>;
+  getClassroom(teacherId: string, classId: string): Promise<ClassroomRow>;
   listEnrollments(classId: string): Promise<EnrollmentRow[]>;
   listAttempts(studentIds: string[], classId: string): Promise<AttemptRow[]>;
   listResultRows(attemptIds: string[]): Promise<ResultRow[]>;
@@ -88,30 +87,16 @@ export type TeacherReportsDataset = {
 };
 
 const defaultDeps: TeacherReportsDatasetDeps = {
-  async getClassroom(teacherId) {
+  async getClassroom(teacherId, classId) {
     const { adminClient } = await import("./client.ts");
-    const classroom = await getTeacherSingletonClass(
-      {
-        async listTeacherClasses(nextTeacherId) {
-          const { data, error } = await adminClient
-            .from("classes")
-            .select("id, teacher_id, name, created_at")
-            .eq("teacher_id", nextTeacherId);
-
-          if (error) {
-            throw error;
-          }
-
-          return (data ?? []).map((row) => ({
-            id: row.id,
-            teacherId: row.teacher_id,
-            name: row.name,
-            createdAt: row.created_at,
-          }));
-        },
-      },
-      teacherId,
-    );
+    const { data: classroom, error } = await adminClient
+      .from("classes")
+      .select("id, name")
+      .eq("id", classId)
+      .eq("teacher_id", teacherId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!classroom) throw new Error("Classroom not found.");
 
     return {
       id: classroom.id,
@@ -177,9 +162,9 @@ export function createLoadTeacherReportsDataset(
   deps: TeacherReportsDatasetDeps = defaultDeps,
 ) {
   return async (
-    input: { teacherId: string },
+    input: { teacherId: string; classId: string },
   ): Promise<TeacherReportsDataset> => {
-    const classroom = await deps.getClassroom(input.teacherId);
+    const classroom = await deps.getClassroom(input.teacherId, input.classId);
     const enrollmentRows = await deps.listEnrollments(classroom.id);
 
     const students = enrollmentRows.flatMap((row) => {
@@ -259,6 +244,7 @@ export const loadTeacherReportsDataset = createLoadTeacherReportsDataset();
 
 export type TeacherReportAggregateRequest = {
   teacherId: string;
+  classId: string;
   startAt: string | null;
   endAt: string;
   studentLimit: number;
@@ -274,6 +260,7 @@ export async function loadBoundedTeacherReportAggregate(
     : null;
   const { data, error } = await adminClient.rpc("get_teacher_report_summary", {
     p_teacher_id: input.teacherId,
+    p_class_id: input.classId,
     p_start_at: input.startAt,
     p_end_at: input.endAt,
     p_student_limit: input.studentLimit,

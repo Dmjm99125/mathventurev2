@@ -6,7 +6,7 @@ import {
   calculateDetailedLastPlayedPct,
 } from "../../../frontend/src/lib/teacher/progress.ts";
 import { decodeCursor, encodeCursor, PaginationInputError, parsePageRequest } from "../_shared/pagination.ts";
-import { getTeacherSingletonClass } from "../_shared/teacher_singleton_class.ts";
+import type { TeacherOwnedClass } from "../_shared/teacher_class_access.ts";
 
 type RosterSummaryStudent = {
   id: string;
@@ -86,11 +86,12 @@ type AttemptRow = {
 
 type ClassesRosterDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  getTeacherClassroom(
+  getTeacherClass(
     teacherId: string,
-  ): Promise<{ id: string; teacherId: string; name: string } | null>;
+    classId: string,
+  ): Promise<TeacherOwnedClass | null>;
   listRosterPage?: (
-    teacherId: string,
+    classId: string,
     pageSize: number,
     cursor: string | null,
   ) => Promise<RosterPage>;
@@ -372,33 +373,29 @@ const defaultDeps: ClassesRosterDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async getTeacherClassroom(teacherId) {
+  async getTeacherClass(teacherId, classId) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
-      .select("id, teacher_id, name, created_at")
-      .eq("teacher_id", teacherId);
+      .select("id, teacher_id, name, created_at, archived_at")
+      .eq("id", classId)
+      .eq("teacher_id", teacherId)
+      .maybeSingle();
     if (error) throw error;
-
-    const classrooms = (data ?? []).map((row) => ({
-      id: row.id as string,
-      teacherId: row.teacher_id as string,
-      name: row.name as string,
-      createdAt: row.created_at as string,
-    }));
-    if (!classrooms.length) return null;
-
-    const classroom = await getTeacherSingletonClass(
-      { listTeacherClasses: async () => classrooms },
-      teacherId,
-    );
-    return { id: classroom.id, teacherId: classroom.teacherId, name: classroom.name };
+    if (!data) return null;
+    return {
+      id: data.id as string,
+      teacherId: data.teacher_id as string,
+      name: data.name as string,
+      createdAt: data.created_at as string,
+      archivedAt: (data.archived_at as string | null) ?? null,
+    };
   },
-  async listRosterPage(teacherId, pageSize, cursor) {
+  async listRosterPage(classId, pageSize, cursor) {
     const { adminClient } = await import("../_shared/client.ts");
     const decoded = cursor ? decodeCursor<RosterCursor>(cursor) : null;
     const { data, error } = await adminClient.rpc("get_teacher_roster_page", {
-      p_teacher_id: teacherId,
+      p_class_id: classId,
       p_page_size: pageSize,
       p_cursor_joined_at: decoded?.joinedAt ?? null,
       p_cursor_student_id: decoded?.studentId ?? null,
@@ -454,15 +451,18 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
       if (!profile) return errorResponse("Unauthorized", 401);
       if (profile.role !== "teacher") return errorResponse("Only teachers can view rosters", 403);
 
-      const classroom = await deps.getTeacherClassroom(profile.id);
+      const url = new URL(req.url);
+      const classId = url.searchParams.get("classId");
+      if (!classId) return errorResponse("classId is required", 422);
+
+      const classroom = await deps.getTeacherClass(profile.id, classId);
       if (!classroom) return errorResponse("Classroom not found", 404);
 
-      const url = new URL(req.url);
       const requestedStudentId = url.searchParams.get("studentId");
       if (requestedStudentId) {
         const student = deps.listStudentDetail
-          ? await deps.listStudentDetail(classroom.id, requestedStudentId)
-          : await loadLegacyDetail(deps, classroom.id, requestedStudentId);
+          ? await deps.listStudentDetail(classId, requestedStudentId)
+          : await loadLegacyDetail(deps, classId, requestedStudentId);
         return student
           ? jsonResponse({ students: [student], page: { nextCursor: null, hasMore: false } })
           : errorResponse("Student not found in this classroom", 404);
@@ -470,7 +470,7 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
 
       const { pageSize, cursor } = parsePageRequest(url);
       if (deps.listRosterPage) {
-        const page = await deps.listRosterPage(profile.id, pageSize, cursor);
+        const page = await deps.listRosterPage(classId, pageSize, cursor);
         return jsonResponse({
           students: page.students.map((student) => ({
             ...student,
@@ -485,7 +485,7 @@ export function createClassesRosterHandler(deps: ClassesRosterDeps = defaultDeps
       }
 
       if (!deps.listRosterStudents) throw new Error("Roster page dependencies are incomplete");
-      const students = await deps.listRosterStudents(classroom.id);
+      const students = await deps.listRosterStudents(classId);
       return jsonResponse({
         students: students.slice(0, pageSize).map((student) => ({
           ...student,

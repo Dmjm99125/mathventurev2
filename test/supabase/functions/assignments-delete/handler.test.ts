@@ -59,3 +59,29 @@ Deno.test("assignments-delete allows the teacher who owns the target class", asy
   assertEquals(response.status, 200);
   assertEquals(deleted, true);
 });
+
+Deno.test("assignments-delete rejects archived classes before deleting", async () => {
+  let deleted = false;
+  const deps: AssignmentsDeleteDeps = {
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher" }),
+    getAssignmentAccess: async () => ({
+      allowed: true,
+      classroom: {
+        id: "class-1",
+        teacherId: "teacher-1",
+        name: "Archived",
+        createdAt: "2026-07-01T00:00:00.000Z",
+        archivedAt: "2026-09-01T00:00:00.000Z",
+      },
+    }),
+    deleteAssignment: async () => {
+      deleted = true;
+      return true;
+    },
+  };
+
+  const response = await createAssignmentsDeleteHandler(deps)(request({ assignmentId: "assignment-1" }));
+
+  assertEquals(response.status, 409);
+  assertEquals(deleted, false);
+});

@@ -1,9 +1,14 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
 import { canTeacherManageAssignment } from "../_shared/assignment-access.ts";
+import type { TeacherOwnedClass } from "../_shared/teacher_class_access.ts";
 
 export type AssignmentsDeleteDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
+  getAssignmentAccess?(assignmentId: string, teacherId: string): Promise<{
+    allowed: boolean;
+    classroom: TeacherOwnedClass | null;
+  }>;
   canManageAssignment?(assignmentId: string, teacherId: string): Promise<boolean>;
   deleteAssignment(assignmentId: string, teacherId: string): Promise<boolean>;
 };
@@ -12,6 +17,40 @@ const defaultDeps: AssignmentsDeleteDeps = {
   async getAuthedProfile(req) {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
+  },
+  async getAssignmentAccess(assignmentId, teacherId) {
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data: assignment, error: assignmentError } = await adminClient
+      .from("assignments")
+      .select("assigned_by, class_id")
+      .eq("id", assignmentId)
+      .maybeSingle();
+    if (assignmentError) throw assignmentError;
+    if (!assignment) return { allowed: false, classroom: null };
+
+    if (assignment.class_id) {
+      const { data: classroom, error: classroomError } = await adminClient
+        .from("classes")
+        .select("id, teacher_id, name, created_at, archived_at")
+        .eq("id", assignment.class_id)
+        .eq("teacher_id", teacherId)
+        .maybeSingle();
+      if (classroomError) throw classroomError;
+      return {
+        allowed: Boolean(classroom),
+        classroom: classroom
+          ? {
+              id: classroom.id as string,
+              teacherId: classroom.teacher_id as string,
+              name: classroom.name as string,
+              createdAt: classroom.created_at as string,
+              archivedAt: (classroom.archived_at as string | null) ?? null,
+            }
+          : null,
+      };
+    }
+
+    return { allowed: assignment.assigned_by === teacherId, classroom: null };
   },
   async canManageAssignment(assignmentId, teacherId) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -63,7 +102,13 @@ export function createAssignmentsDeleteHandler(
       const assignmentId = typeof body?.assignmentId === "string" ? body.assignmentId.trim() : "";
       if (!assignmentId) return errorResponse("assignmentId is required", 422);
 
-      if (deps.canManageAssignment && !(await deps.canManageAssignment(assignmentId, profile.id))) {
+      if (deps.getAssignmentAccess) {
+        const access = await deps.getAssignmentAccess(assignmentId, profile.id);
+        if (!access.allowed) return errorResponse("Assignment not found or forbidden", 404);
+        if (access.classroom && access.classroom.archivedAt !== null) {
+          return errorResponse("Archived classrooms are read-only", 409);
+        }
+      } else if (deps.canManageAssignment && !(await deps.canManageAssignment(assignmentId, profile.id))) {
         return errorResponse("Assignment not found or forbidden", 404);
       }
 

@@ -3,7 +3,7 @@ import { createLoadTeacherReportsDataset } from "../../../../supabase/functions/
 
 Deno.test("loadTeacherReportsDataset keeps results on their recorded class and ignores pre-join activity", async () => {
   const loadTeacherReportsDataset = createLoadTeacherReportsDataset({
-    getClassroom: async () => ({ id: "class-a", name: "Classroom" }),
+    getClassroom: async (_teacherId, classId) => ({ id: classId, name: "Classroom" }),
     listEnrollments: async () => [
       {
         class_id: "class-a",
@@ -75,7 +75,7 @@ Deno.test("loadTeacherReportsDataset keeps results on their recorded class and i
     ],
   });
 
-  const dataset = await loadTeacherReportsDataset({ teacherId: "teacher-1" });
+  const dataset = await loadTeacherReportsDataset({ teacherId: "teacher-1", classId: "class-a" });
 
   assertEquals(dataset.classroom, { id: "class-a", studentCount: 1 });
   assertEquals(

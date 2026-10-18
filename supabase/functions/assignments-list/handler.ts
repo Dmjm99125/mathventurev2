@@ -6,6 +6,7 @@ import {
   PaginationInputError,
   parsePageRequest,
 } from "../_shared/pagination.ts";
+import type { TeacherOwnedClass } from "../_shared/teacher_class_access.ts";
 
 export type AssignmentListRecord = {
   id: string;
@@ -36,9 +37,10 @@ type AssignmentSource = AssignmentListRecord[] | AssignmentListPage;
 
 export type AssignmentsListDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
+  getTeacherClass?(teacherId: string, classId: string): Promise<TeacherOwnedClass | null>;
   listTeacherAssignments(
     teacherId: string,
-    classId: string | null,
+    classId: string,
     pageSize?: number,
     cursor?: string | null,
   ): Promise<AssignmentSource>;
@@ -102,27 +104,34 @@ const defaultDeps: AssignmentsListDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
+  async getTeacherClass(teacherId, classId) {
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data, error } = await adminClient
+      .from("classes")
+      .select("id, teacher_id, name, created_at, archived_at")
+      .eq("id", classId)
+      .eq("teacher_id", teacherId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      id: data.id as string,
+      teacherId: data.teacher_id as string,
+      name: data.name as string,
+      createdAt: data.created_at as string,
+      archivedAt: (data.archived_at as string | null) ?? null,
+    };
+  },
   async listTeacherAssignments(teacherId, classId, pageSize = 50, cursor = null) {
     const { adminClient } = await import("../_shared/client.ts");
-    const { data: teacherClasses, error: teacherClassesError } = await adminClient
-      .from("classes")
-      .select("id")
-      .eq("teacher_id", teacherId)
-      .limit(100);
-    if (teacherClassesError) throw teacherClassesError;
-
-    const teacherClassIds = (teacherClasses ?? []).map((row: { id: string }) => row.id);
-    const ownershipFilter = teacherClassIds.length
-      ? `assigned_by.eq.${teacherId},class_id.in.(${teacherClassIds.join(",")})`
-      : `assigned_by.eq.${teacherId}`;
     let query = adminClient
       .from("assignments")
       .select("id, name, due_at, created_at, class_id, student_id, lesson_id, classes(name)")
-      .or(ownershipFilter)
+      .eq("class_id", classId)
+      .eq("assigned_by", teacherId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(pageSize + 1);
-    if (classId) query = query.eq("class_id", classId);
     if (cursor) {
       const decoded = decodeCursor<AssignmentCursor>(cursor);
       query = query.or(
@@ -204,6 +213,10 @@ export function createAssignmentsListHandler(deps: AssignmentsListDeps = default
       const { pageSize, cursor } = parsePageRequest(new URL(req.url));
       if (profile.role === "teacher") {
         const classId = new URL(req.url).searchParams.get("classId");
+        if (!classId) return errorResponse("classId is required", 422);
+        if (deps.getTeacherClass && !(await deps.getTeacherClass(profile.id, classId))) {
+          return errorResponse("Classroom not found", 404);
+        }
         const source = await deps.listTeacherAssignments(profile.id, classId, pageSize, cursor);
         const page = normalizePage(source, pageSize);
         return jsonResponse({ assignments: page.assignments, page: { nextCursor: page.nextCursor, hasMore: page.hasMore } });

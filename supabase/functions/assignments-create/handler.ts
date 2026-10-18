@@ -1,5 +1,9 @@
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
 import type { AuthedProfile } from "../_shared/client.ts";
+import {
+  assertWritableTeacherClass,
+  type TeacherOwnedClass,
+} from "../_shared/teacher_class_access.ts";
 
 type AssignmentInsert = {
   lessonId: string;
@@ -12,7 +16,8 @@ type AssignmentInsert = {
 
 export type AssignmentsCreateDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  isTeacherForClass(classId: string, teacherId: string): Promise<boolean>;
+  getTeacherClass?(teacherId: string, classId: string): Promise<TeacherOwnedClass | null>;
+  isTeacherForClass?(classId: string, teacherId: string): Promise<boolean>;
   insertAssignment(input: AssignmentInsert): Promise<Record<string, unknown>>;
 };
 
@@ -21,15 +26,23 @@ const defaultDeps: AssignmentsCreateDeps = {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async isTeacherForClass(classId, teacherId) {
+  async getTeacherClass(teacherId, classId) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
-      .select("teacher_id")
+      .select("id, teacher_id, name, created_at, archived_at")
       .eq("id", classId)
+      .eq("teacher_id", teacherId)
       .maybeSingle();
     if (error) throw error;
-    return data?.teacher_id === teacherId;
+    if (!data) return null;
+    return {
+      id: data.id as string,
+      teacherId: data.teacher_id as string,
+      name: data.name as string,
+      createdAt: data.created_at as string,
+      archivedAt: (data.archived_at as string | null) ?? null,
+    };
   },
   async insertAssignment(input) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -73,8 +86,27 @@ export function createAssignmentsCreateHandler(deps: AssignmentsCreateDeps = def
       if (classId && studentId) return errorResponse("Provide only a classId or studentId", 422);
       if (name.length > 120) return errorResponse("Assignment name must be 120 characters or fewer", 422);
 
-      if (classId && !(await deps.isTeacherForClass(classId, profile.id))) {
-        return errorResponse("Forbidden", 403);
+      if (classId) {
+        const classroom = deps.getTeacherClass
+          ? await deps.getTeacherClass(profile.id, classId)
+          : null;
+        if (deps.getTeacherClass && !classroom) {
+          return errorResponse("Forbidden", 403);
+        }
+        if (classroom) {
+          try {
+            assertWritableTeacherClass(classroom);
+          } catch (error) {
+            if (error instanceof Error && error.message === "This classroom is archived and read-only.") {
+              return errorResponse("Archived classrooms are read-only", 409);
+            }
+            throw error;
+          }
+        } else if (deps.isTeacherForClass && !(await deps.isTeacherForClass(classId, profile.id))) {
+          return errorResponse("Forbidden", 403);
+        } else if (!deps.getTeacherClass && !deps.isTeacherForClass) {
+          return errorResponse("Forbidden", 403);
+        }
       }
 
       const assignment = await deps.insertAssignment({

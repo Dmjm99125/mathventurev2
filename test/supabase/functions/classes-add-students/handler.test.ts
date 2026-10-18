@@ -8,10 +8,12 @@ Deno.test("classes-add-students rejects non-teacher callers", async () => {
       role: "student",
       full_name: "Student One",
     }),
-    getTeacherClassroom: async () => ({
+    getTeacherClass: async () => ({
       id: "classroom-1",
       teacherId: "teacher-1",
       name: "Classroom",
+      createdAt: "2026-07-01T00:00:00.000Z",
+      archivedAt: null,
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => {
@@ -43,10 +45,12 @@ Deno.test("classes-add-students creates every student and returns a summary", as
       role: "teacher",
       full_name: "Teacher One",
     }),
-    getTeacherClassroom: async () => ({
+    getTeacherClass: async () => ({
       id: "classroom-1",
       teacherId: "teacher-1",
       name: "Classroom",
+      createdAt: "2026-07-01T00:00:00.000Z",
+      archivedAt: null,
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async ({ identity }) => {
@@ -65,6 +69,7 @@ Deno.test("classes-add-students creates every student and returns a summary", as
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
+        classId: "classroom-1",
         students: [
           { lastName: "Santos", firstName: "Maria" },
           { lastName: "Cruz", firstName: "Paolo" },
@@ -89,10 +94,12 @@ Deno.test("classes-add-students rolls back already-created students when a later
       role: "teacher",
       full_name: "Teacher One",
     }),
-    getTeacherClassroom: async () => ({
+    getTeacherClass: async () => ({
       id: "classroom-1",
       teacherId: "teacher-1",
       name: "Classroom",
+      createdAt: "2026-07-01T00:00:00.000Z",
+      archivedAt: null,
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => {
@@ -114,6 +121,7 @@ Deno.test("classes-add-students rolls back already-created students when a later
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
+        classId: "classroom-1",
         students: [
           { lastName: "Santos", firstName: "Maria" },
           { lastName: "Cruz", firstName: "Paolo" },
@@ -133,10 +141,12 @@ Deno.test("classes-add-students rejects duplicate normalized names inside the sa
       role: "teacher",
       full_name: "Teacher One",
     }),
-    getTeacherClassroom: async () => ({
+    getTeacherClass: async () => ({
       id: "classroom-1",
       teacherId: "teacher-1",
       name: "Classroom",
+      createdAt: "2026-07-01T00:00:00.000Z",
+      archivedAt: null,
     }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => {
@@ -149,6 +159,7 @@ Deno.test("classes-add-students rejects duplicate normalized names inside the sa
     new Request("http://local/classes-add-students", {
       method: "POST",
       body: JSON.stringify({
+        classId: "classroom-1",
         students: [
           { lastName: " Santos ", firstName: "Maria" },
           { lastName: "Santos", firstName: " Maria " },
@@ -163,10 +174,10 @@ Deno.test("classes-add-students rejects duplicate normalized names inside the sa
   });
 });
 
-Deno.test("classes-add-students creates students without requiring classId", async () => {
+Deno.test("classes-add-students creates students in the selected class", async () => {
   const handler = createClassesAddStudentsHandler({
     getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Ana Cruz" }),
-    getTeacherClassroom: async () => ({ id: "classroom-1", teacherId: "teacher-1", name: "Classroom" }),
+    getTeacherClass: async () => ({ id: "classroom-1", teacherId: "teacher-1", name: "Classroom", createdAt: "2026-07-01T00:00:00.000Z", archivedAt: null }),
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => ({
       studentId: "student-1",
@@ -178,6 +189,7 @@ Deno.test("classes-add-students creates students without requiring classId", asy
   const response = await handler(new Request("http://local/classes-add-students", {
     method: "POST",
     body: JSON.stringify({
+      classId: "classroom-1",
       students: [{ lastName: "Santos", firstName: "Maria" }],
     }),
   }));
@@ -186,4 +198,32 @@ Deno.test("classes-add-students creates students without requiring classId", asy
   assertEquals(await response.json(), {
     createdCount: 1,
   });
+});
+
+Deno.test("classes-add-students rejects archived classes before provisioning", async () => {
+  let provisioned = false;
+  const handler = createClassesAddStudentsHandler({
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Ana Cruz" }),
+    getTeacherClass: async () => ({
+      id: "classroom-1",
+      teacherId: "teacher-1",
+      name: "Classroom",
+      createdAt: "2026-07-01T00:00:00.000Z",
+      archivedAt: "2026-09-01T00:00:00.000Z",
+    }),
+    hasStudentWithNormalizedName: async () => false,
+    provisionStudentForClass: async () => {
+      provisioned = true;
+      return { studentId: "student-1", email: "student@invalid" };
+    },
+    deleteHiddenStudent: async () => {},
+  });
+
+  const response = await handler(new Request("http://local/classes-add-students", {
+    method: "POST",
+    body: JSON.stringify({ classId: "classroom-1", students: [{ lastName: "Santos", firstName: "Maria" }] }),
+  }));
+
+  assertEquals(response.status, 409);
+  assertEquals(provisioned, false);
 });

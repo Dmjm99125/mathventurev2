@@ -95,3 +95,34 @@ Deno.test("assignments-update allows the teacher who owns the target class", asy
   assertEquals(response.status, 200);
   assertEquals(updated, true);
 });
+
+Deno.test("assignments-update rejects archived classes before updating", async () => {
+  let updated = false;
+  const deps: AssignmentsUpdateDeps = {
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher" }),
+    getAssignmentAccess: async () => ({
+      allowed: true,
+      classroom: {
+        id: "class-1",
+        teacherId: "teacher-1",
+        name: "Archived",
+        createdAt: "2026-07-01T00:00:00.000Z",
+        archivedAt: "2026-09-01T00:00:00.000Z",
+      },
+    }),
+    updateAssignment: async () => {
+      updated = true;
+      return { id: "assignment-1" };
+    },
+  };
+
+  const response = await createAssignmentsUpdateHandler(deps)(request({
+    assignmentId: "assignment-1",
+    lessonId: "addition",
+    name: "Updated",
+    dueAt: null,
+  }));
+
+  assertEquals(response.status, 409);
+  assertEquals(updated, false);
+});
