@@ -27,6 +27,8 @@
         "npm:@tailwindcss/typography@~0.5.15",
         "npm:@tailwindcss/vite@4",
         "npm:@tanstack/react-query@^5.64.0",
+        "npm:@tauri-apps/api@2.9.1",
+        "npm:@tauri-apps/plugin-sql@2.3.1",
         "npm:@types/canvas-confetti@^1.9.0",
         "npm:@types/node@^20.17.14",
         "npm:@types/react-dom@^19.0.3",

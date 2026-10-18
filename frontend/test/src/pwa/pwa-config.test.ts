@@ -72,3 +72,15 @@ Deno.test("app startup registers the PWA service worker and exposes install stat
   assertMatch(main, /registerSW\(\{[\s\S]*immediate:\s*true/);
   assertMatch(hook, /usePwaInstall/);
 });
+
+Deno.test("Windows Tauri configuration points at the static frontend and SQL capability", async () => {
+  const config = JSON.parse(await readProjectFile("../src-tauri/tauri.conf.json"));
+  const capabilities = JSON.parse(await readProjectFile("../src-tauri/capabilities/default.json"));
+
+  assertEquals(config.build.frontendDist, "../frontend/dist");
+  assertEquals(config.build.devUrl, "http://localhost:5173");
+  assertMatch(config.build.beforeDevCommand, /npm run dev/);
+  assertMatch(config.build.beforeBuildCommand, /npm run build/);
+  assertEquals(config.bundle.targets, ["nsis"]);
+  assertEquals(capabilities.permissions.includes("sql:default"), true);
+});

@@ -14,7 +14,7 @@ The device stores a salted password verifier, never the raw password. The first 
 
 After setup, reload the installed PWA and use the cached teacher login. Teachers can view the cached roster, switch to a cached student account, assign quizzes, edit or remove assignments, add or remove roster entries, publish classroom posts, and view cached dashboards/reports. Students can open assigned lessons, start quizzes, save every checkpoint, complete quizzes, and submit standalone attempts.
 
-Every local write is saved to SQLite WASM in OPFS immediately and placed in a durable outbox. The PWA keeps the database behind a worker boundary so the same repository can use native SQLite when the app moves to Tauri. The status indicator distinguishes Offline, Syncing, Online, Needs sign-in, and Sync error. Pending work is not described as reaching Supabase until it is acknowledged.
+Every local write is saved to SQLite immediately and placed in a durable outbox. In the web app, SQLite WASM uses OPFS behind a worker boundary; in the Windows Tauri app, the same repository uses native SQLite in the app configuration directory. The status indicator distinguishes Offline, Syncing, Online, Needs sign-in, and Sync error. Pending work is not described as reaching Supabase until it is acknowledged.
 
 ## Returning online
 
@@ -22,7 +22,16 @@ When coverage returns, MathVenture syncs dependency-ordered operations automatic
 
 ## Storage and recovery
 
-Classroom application data uses the `mathventure-app` SQLite database in OPFS. Free Play media metadata remains in its separate IndexedDB database and media bytes remain in Cache Storage; that media cache is not the classroom database. Authenticated Free Play progress and sessions are application data and sync through SQLite, while public guest Free Play remains local. Clearing browser storage removes the local classroom copy and pending work, so export diagnostics or sync before clearing storage. Diagnostics exclude passwords and password verifiers.
+On the web, classroom application data uses the `mathventure-app` SQLite database in OPFS. If the browser declines persistent-storage protection, SQLite can still be durable; the UI labels this as **ready; browser-managed retention**. Free Play media metadata remains in its separate IndexedDB database and media bytes remain in Cache Storage; that media cache is not the classroom database. On Windows Tauri, classroom SQLite and the packaged Free Play media are native/app-bundle resources, so the service worker and browser media cache are not used for that path. Authenticated Free Play progress and sessions are application data and sync through SQLite, while public guest Free Play remains local. Clearing browser storage removes the local classroom copy and pending work, so export diagnostics or sync before clearing storage. Diagnostics exclude passwords and password verifiers.
+
+## Windows Tauri runtime
+
+The supported desktop target for this phase is Windows. Run `npm run tauri:dev`
+for development or `npm run tauri:build -- --debug` for a debug bundle after
+installing Node.js, Rust/MSVC build tools, and WebView2. Tauri applies the
+canonical TypeScript SQLite migrations through a Rust-managed transaction
+bridge. An interrupted native transaction is rolled back before the next
+startup; entity writes and their outbox rows therefore remain atomic.
 
 Student accounts in this app are teacher-provisioned classroom profiles. Creating accounts, changing or resetting a teacher password, and the first device provisioning remain online-only.
 
@@ -35,4 +44,8 @@ npm run typecheck --prefix frontend
 npm test --prefix frontend
 npm run build --prefix frontend
 deno test --allow-env --allow-read --config frontend/deno.json --lock=frontend/deno.lock --frozen test/supabase
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+cargo test --manifest-path src-tauri/Cargo.toml
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+npm run tauri:build -- --debug
 ```

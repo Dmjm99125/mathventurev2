@@ -81,3 +81,72 @@ jobs:
           --lock=frontend/deno.lock
           --frozen
           test/supabase
+
+  windows-tauri:
+    name: Windows Tauri checks
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: 2.x
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Typecheck frontend
+        run: npm run typecheck --prefix frontend
+
+      - name: Test frontend with a bounded lane
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath "npm.cmd" -ArgumentList @("test", "--prefix", "frontend") -NoNewWindow -PassThru
+          if (-not $process.WaitForExit(110000)) {
+            $process.Kill()
+            throw "Frontend tests exceeded the 110 second lane limit."
+          }
+          if ($process.ExitCode -ne 0) { exit $process.ExitCode }
+
+      - name: Build frontend
+        run: npm run build --prefix frontend
+
+      - name: Check Rust formatting
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+
+      - name: Test Rust transaction bridge
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Lint Rust transaction bridge
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      - name: Build Windows Tauri bundle
+        run: npm run tauri:build -- --debug
+
+      - name: Upload Tauri diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-tauri-diagnostics
+          path: |
+            src-tauri/target/debug/bundle
+            src-tauri/target/release/bundle
+          if-no-files-found: ignore

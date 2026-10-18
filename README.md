@@ -109,6 +109,32 @@ The frontend does not contain a transport encryption key and does not wrap app-d
 The root scripts delegate to the self-contained `frontend/` project. You can
 also run frontend commands directly with `npm --prefix frontend run <script>`.
 
+### Windows Tauri desktop build
+
+The current desktop target is Windows only. Install Node.js 22+, Rust with the
+MSVC toolchain, Microsoft C++ Build Tools, and WebView2. Then run from the
+repository root:
+
+```powershell
+npm install
+npm install --prefix frontend
+npm run tauri:dev
+```
+
+Create a debug Windows bundle with:
+
+```powershell
+npm run tauri:build -- --debug
+```
+
+The Tauri app stores native classroom SQLite data in its Windows application
+configuration directory as `mathventure-app.sqlite3`. It packages the Free
+Play media library with the frontend, while the web build continues to use
+the PWA service worker and browser media cache. Browser storage permission is
+best effort: if SQLite/OPFS is durable but the browser declines
+`navigator.storage.persist()`, the app reports browser-managed retention and
+continues to protect local writes.
+
 Backend commands run from the repository root and use the root-level `supabase/` directory:
 
 ```bash
