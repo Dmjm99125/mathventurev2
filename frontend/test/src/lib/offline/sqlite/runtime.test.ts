@@ -1,7 +1,9 @@
-import { assertEquals, assertRejects } from 'jsr:@std/assert';
+import { assertEquals, assertRejects, assertStringIncludes } from 'jsr:@std/assert';
+import { createMemoryStore } from '../../../../../src/lib/offline/classroom/memoryStore.ts';
 import { createMemorySqlite } from '../../../../../src/lib/offline/sqlite/memoryAdapter.ts';
 import {
   OfflineDurableStorageError,
+  openApplicationStorage,
   openApplicationDatabase,
 } from '../../../../../src/lib/offline/sqlite/runtime.ts';
 
@@ -58,6 +60,37 @@ Deno.test('runtime closes a database that fails its durable-health check', async
   );
 
   assertEquals(closed, true);
+});
+
+Deno.test('runtime preserves the underlying browser SQLite error for diagnostics', async () => {
+  let caught: unknown;
+  try {
+    await openApplicationDatabase({
+      storage: { persist: async () => false },
+      databaseFactory: async () => {
+        throw new Error('SQLite OPFS is unavailable. Enable cross-origin isolation.');
+      },
+    });
+  } catch (error) {
+    caught = error;
+  }
+
+  if (!(caught instanceof Error)) throw new Error('Expected SQLite startup to reject with an Error.');
+  assertStringIncludes(caught.message, 'The offline SQLite database could not be opened.');
+  assertStringIncludes(caught.message, 'SQLite OPFS is unavailable. Enable cross-origin isolation.');
+});
+
+Deno.test('runtime falls back to durable IndexedDB storage when browser OPFS is unavailable', async () => {
+  const fallbackStore = createMemoryStore();
+  const storage = await openApplicationStorage({
+    storage: { persist: async () => false },
+    databaseFactory: async () => {
+      throw new Error('SQLite OPFS is unavailable. Enable a supported browser and cross-origin isolation.');
+    },
+    fallbackStoreFactory: () => fallbackStore,
+  });
+
+  assertEquals(storage, fallbackStore);
 });
 
 Deno.test('Tauri runtime bypasses browser persistence checks', async () => {

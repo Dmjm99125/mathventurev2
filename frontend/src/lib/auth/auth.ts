@@ -27,7 +27,7 @@ import type { OfflineStore } from '../offline/classroom/store';
 import { createOfflineRepository } from '../offline/classroom/repository';
 import { bootstrapRepository, type BootstrapInvoker } from '../offline/classroom/bootstrap';
 import type { SqliteDatabase, SqliteRow } from '../offline/sqlite/adapter';
-import { getApplicationDatabase } from '../offline/sqlite/runtime';
+import { getApplicationStorage } from '../offline/sqlite/runtime';
 
 export type OfflineEnrollmentRecord = OfflineLeaseEnrollmentRecord;
 
@@ -61,7 +61,7 @@ export async function enrollOfflineDevice(
   password: string,
   store?: OfflineStorage,
 ): Promise<OfflineEnrollmentRecord> {
-  const storage = store ?? await getApplicationDatabase();
+  const storage = store ?? await getApplicationStorage();
   if (profile.role !== 'teacher') {
     throw new Error('Only teacher accounts can enroll this classroom device.');
   }
@@ -108,7 +108,7 @@ export async function enrollOfflineDevice(
 export async function readOfflineEnrollment(
   store?: OfflineStorage,
 ): Promise<OfflineEnrollmentRecord | null> {
-  const storage = store ?? await getApplicationDatabase();
+  const storage = store ?? await getApplicationStorage();
   const record = isSqliteStorage(storage)
     ? (await storage.query<SqliteRow>('select * from device_enrollment order by updated_at desc limit 1'))[0]
     : (await storage.get('meta', 'offlineEnrollment'))?.value;
@@ -149,7 +149,7 @@ export async function offlineSignIn(
   password: string,
   store?: OfflineStorage,
 ): Promise<UserProfile> {
-  const storage = store ?? await getApplicationDatabase();
+  const storage = store ?? await getApplicationStorage();
   const enrollment = await readOfflineEnrollment(storage);
   if (!enrollment) {
     throw new OfflineAuthError('No offline account is enrolled on this device.');
@@ -174,7 +174,7 @@ export async function offlineSignIn(
 export async function readOfflineSession(
   store?: OfflineStorage,
 ): Promise<UserProfile | null> {
-  const storage = store ?? await getApplicationDatabase();
+  const storage = store ?? await getApplicationStorage();
   const value = isSqliteStorage(storage)
     ? (await storage.query<SqliteRow>('select active_profile_json from local_sessions where session_id = ?', ['active']))[0]?.active_profile_json
     : (await storage.get('meta', 'offlineSession'))?.value;
@@ -197,7 +197,7 @@ export async function restoreOfflineSession({
   online = typeof navigator === 'undefined' || (navigator as Navigator & { onLine?: boolean }).onLine !== false,
   storage,
 }: RestoreOfflineSessionOptions = {}): Promise<UserProfile | null> {
-  const resolvedStorage = storage ?? await getApplicationDatabase();
+  const resolvedStorage = storage ?? await getApplicationStorage();
   if (online) return readOfflineSession(resolvedStorage);
   const enrollment = await readOfflineEnrollment(resolvedStorage);
   if (!enrollment) throw new OfflineAuthError('No offline account is enrolled on this device.');
@@ -213,7 +213,7 @@ export async function readOfflineStudentProfile(
   studentId: string,
   store?: OfflineStorage,
 ): Promise<UserProfile | null> {
-  const storage = store ?? await getApplicationDatabase();
+  const storage = store ?? await getApplicationStorage();
   const value = isSqliteStorage(storage)
     ? (await storage.query<SqliteRow>('select * from profiles where id = ?', [studentId]))[0]
     : (await storage.get('profiles', studentId))?.value;
@@ -228,7 +228,7 @@ export async function readOfflineStudentProfile(
 }
 
 export async function offlineSignOut(store?: OfflineStorage): Promise<void> {
-  const storage = store ?? await getApplicationDatabase();
+  const storage = store ?? await getApplicationStorage();
   if (isSqliteStorage(storage)) {
     await storage.execute('delete from local_sessions where session_id = ?', ['active']);
   } else {
@@ -290,7 +290,7 @@ export async function teacherSignIn(email: string, password: string) {
       full_name: typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '',
     };
     try {
-      const store = await getApplicationDatabase();
+      const store = await getApplicationStorage();
       const enrollment = await enrollOfflineDevice(profile, password, store);
       const repository = createOfflineRepository(store, undefined, undefined, enrollment.deviceId);
       const invoke: BootstrapInvoker = (name, options) => invokeTeacherFunction(name, options);

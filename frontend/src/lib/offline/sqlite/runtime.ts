@@ -3,6 +3,7 @@ import { SQLITE_MIGRATIONS } from './migrations.ts';
 import { isTauriRuntime } from './platform.ts';
 import { createPwaSqliteDatabase } from './pwaAdapter.ts';
 import { createTauriSqliteDatabase } from './tauriAdapter.ts';
+import { createIndexedDbStore, type OfflineStore } from '../classroom/store.ts';
 
 export class OfflineDurableStorageError extends SqliteStorageError {
   constructor(message: string, options?: { cause?: unknown }) {
@@ -24,7 +25,14 @@ export type ApplicationDatabaseOptions = {
   runtime?: 'browser' | 'tauri';
 };
 
+export type ApplicationStorage = SqliteDatabase | OfflineStore;
+
+export type ApplicationStorageOptions = ApplicationDatabaseOptions & {
+  fallbackStoreFactory?: () => OfflineStore;
+};
+
 let sharedDatabasePromise: Promise<SqliteDatabase> | null = null;
+let sharedStoragePromise: Promise<ApplicationStorage> | null = null;
 
 function defaultStorageManager(): DurableStorageManager | undefined {
   if (typeof navigator === 'undefined') return undefined;
@@ -33,6 +41,31 @@ function defaultStorageManager(): DurableStorageManager | undefined {
 
 async function closeQuietly(database: SqliteDatabase): Promise<void> {
   await database.close().catch(() => undefined);
+}
+
+function errorDetail(error: unknown): string | null {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'string' && error) return error;
+  return null;
+}
+
+function storageError(message: string, cause: unknown): OfflineDurableStorageError {
+  const detail = errorDetail(cause);
+  return new OfflineDurableStorageError(detail ? `${message} ${detail}` : message, { cause });
+}
+
+function errorText(error: unknown, seen = new Set<unknown>()): string {
+  if (seen.has(error)) return '';
+  seen.add(error);
+  if (error instanceof Error) {
+    const cause = 'cause' in error ? (error as Error & { cause?: unknown }).cause : undefined;
+    return [error.message, cause ? errorText(cause, seen) : ''].filter(Boolean).join(' ');
+  }
+  return typeof error === 'string' ? error : '';
+}
+
+function shouldUseIndexedDbFallback(error: unknown): boolean {
+  return /SQLite OPFS is unavailable|SQLite opened without durable storage|cross-origin isolation|durable browser storage is unavailable/i.test(errorText(error));
 }
 
 async function validateOpenedDatabase(database: SqliteDatabase): Promise<SqliteDatabase> {
@@ -57,7 +90,7 @@ async function validateOpenedDatabase(database: SqliteDatabase): Promise<SqliteD
   } catch (error) {
     await closeQuietly(database);
     if (error instanceof OfflineDurableStorageError) throw error;
-    throw new OfflineDurableStorageError('The offline SQLite database could not be opened.', { cause: error });
+    throw storageError('The offline SQLite database could not be opened.', error);
   }
 }
 
@@ -82,7 +115,7 @@ export async function openApplicationDatabase(options: ApplicationDatabaseOption
   try {
     persisted = storage.persist ? await storage.persist() : storage.persisted ? await storage.persisted() : false;
   } catch (error) {
-    throw new OfflineDurableStorageError('The browser could not prepare durable storage.', { cause: error });
+    throw storageError('The browser could not prepare durable storage.', error);
   }
   const quality: SqliteStorageQuality = persisted ? 'persistent' : 'best-effort';
   const databaseFactory = options.databaseFactory ?? ((context: ApplicationDatabaseFactoryContext) => createPwaSqliteDatabase({ quality: context.quality }));
@@ -91,8 +124,26 @@ export async function openApplicationDatabase(options: ApplicationDatabaseOption
     return await validateOpenedDatabase(database);
   } catch (error) {
     if (error instanceof OfflineDurableStorageError) throw error;
-    throw new OfflineDurableStorageError('The offline SQLite database could not be opened.', { cause: error });
+    throw storageError('The offline SQLite database could not be opened.', error);
   }
+}
+
+export async function openApplicationStorage(options: ApplicationStorageOptions = {}): Promise<ApplicationStorage> {
+  if (options.runtime === 'tauri' || isTauriRuntime()) return openApplicationDatabase(options);
+
+  try {
+    return await openApplicationDatabase(options);
+  } catch (error) {
+    if (!shouldUseIndexedDbFallback(error)) throw error;
+    const store = (options.fallbackStoreFactory ?? (() => createIndexedDbStore()))();
+    await store.getAll('meta');
+    return store;
+  }
+}
+
+export function getApplicationStorage(options: ApplicationStorageOptions = {}): Promise<ApplicationStorage> {
+  sharedStoragePromise ??= openApplicationStorage(options);
+  return sharedStoragePromise;
 }
 
 export function getApplicationDatabase(options: ApplicationDatabaseOptions = {}): Promise<SqliteDatabase> {
@@ -102,4 +153,5 @@ export function getApplicationDatabase(options: ApplicationDatabaseOptions = {})
 
 export function resetApplicationDatabaseForTests(): void {
   sharedDatabasePromise = null;
+  sharedStoragePromise = null;
 }

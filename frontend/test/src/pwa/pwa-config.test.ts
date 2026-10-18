@@ -86,6 +86,9 @@ Deno.test("app startup registers the PWA service worker and exposes install stat
 
   assertMatch(main, /virtual:pwa-register/);
   assertMatch(main, /registerSW\(\{[\s\S]*immediate:\s*true/);
+  assertMatch(main, /import\.meta\.env\.DEV/);
+  assertMatch(main, /getRegistrations/);
+  assertMatch(main, /unregister/);
   assertMatch(hook, /usePwaInstall/);
 });
 

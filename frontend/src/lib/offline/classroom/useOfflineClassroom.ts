@@ -5,8 +5,7 @@ import { syncOfflineClassroom } from './index.ts';
 import { offlineStatusReducer, type OfflineLifecycleState } from './status.ts';
 import type { BootstrapInvoker } from './bootstrap.ts';
 import { getOrCreateDeviceId } from './crypto.ts';
-import { getApplicationDatabase, resetApplicationDatabaseForTests } from '../sqlite/runtime.ts';
-import type { SqliteDatabase } from '../sqlite/adapter.ts';
+import { getApplicationStorage, resetApplicationDatabaseForTests, type ApplicationStorage } from '../sqlite/runtime.ts';
 
 const initialState: OfflineLifecycleState = {
   status: typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false ? 'offline' : 'online',
@@ -32,24 +31,24 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
   invoke?: BootstrapInvoker;
 }) {
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
-  const [database, setDatabase] = useState<SqliteDatabase | null>(null);
+  const [applicationStorage, setApplicationStorage] = useState<ApplicationStorage | null>(null);
   const [storageError, setStorageError] = useState<Error | null>(null);
   const resolvedRepository = useMemo(() => {
     if (repository) return repository;
-    if (!database) return null;
+    if (!applicationStorage) return null;
     const storage = typeof window === 'undefined' ? undefined : window.localStorage;
     const deviceId = storage ? getOrCreateDeviceId(storage) : 'local-device';
-    return createOfflineRepository(database, undefined, undefined, deviceId);
-  }, [database, repository]);
+    return createOfflineRepository(applicationStorage, undefined, undefined, deviceId);
+  }, [applicationStorage, repository]);
   useEffect(() => {
     if (repository) return;
     let active = true;
-    void getApplicationDatabase()
+    void getApplicationStorage()
       .then(async (opened) => {
-        const health = await opened.health();
+        const health = 'health' in opened ? await opened.health() : null;
         if (active) {
-          dispatch({ type: 'storage-health', storage: health.quality === 'best-effort' ? 'best-effort' : 'healthy' });
-          setDatabase(opened);
+          dispatch({ type: 'storage-health', storage: health?.quality === 'best-effort' || !health ? 'best-effort' : 'healthy' });
+          setApplicationStorage(opened);
         }
       })
       .catch((error: unknown) => {
@@ -58,11 +57,63 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
     return () => { active = false; };
   }, [repository]);
   useEffect(() => {
-    if (repository || !database) return;
+    if (repository || !applicationStorage || !('close' in applicationStorage)) return;
     return () => {
-      void database.close().finally(() => resetApplicationDatabaseForTests());
+      void applicationStorage.close().finally(() => resetApplicationDatabaseForTests());
     };
-  }, [database, repository]);
+  }, [applicationStorage, repository]);
+  const syncNow = useCallback(async () => {
+    if (!resolvedRepository) return;
+    const activeRepository = resolvedRepository;
+    dispatch({ type: 'sync-start' });
+    try {
+      const request = invoke ?? (async (name, options) => {
+        const { invokeFunction } = await import('../../api/client.ts');
+        return invokeFunction<unknown>(name, options);
+      });
+      const progress = await syncOfflineClassroom(activeRepository, request);
+      const summary = await activeRepository.getSyncSummary();
+      dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
+      const leaseExpiresAt = await activeRepository.readMeta('offlineAccessUntil');
+      if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
+      void progress;
+    } catch (error) {
+      const summary = await activeRepository.getSyncSummary();
+      dispatch({ type: 'sync-error', pendingCount: summary.pendingCount, failedCount: summary.failedCount, error: error instanceof Error ? error.message : 'Sync failed.' });
+    }
+  }, [invoke, resolvedRepository]);
+  const bootstrapNow = useCallback(async () => {
+    if (!resolvedRepository) return;
+    const activeRepository = resolvedRepository;
+    if (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false) {
+      throw new Error('An internet connection is required to refresh the classroom pack.');
+    }
+    const request = invoke ?? (async (name, options) => {
+      const { invokeFunction } = await import('../../api/client.ts');
+      return invokeFunction<unknown>(name, options);
+    });
+    await bootstrapRepository(activeRepository, () => downloadClassroomPack(request));
+    const summary = await activeRepository.getSyncSummary();
+    dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
+    const leaseExpiresAt = await activeRepository.readMeta('offlineAccessUntil');
+    if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
+  }, [invoke, resolvedRepository]);
+  useEffect(() => {
+    if (!resolvedRepository) return;
+    const activeRepository = resolvedRepository;
+    const onOnline = () => { dispatch({ type: 'network-online' }); void syncNow(); };
+    const onOffline = () => dispatch({ type: 'network-offline' });
+    addEventListener('online', onOnline);
+    addEventListener('offline', onOffline);
+    void activeRepository.getSyncSummary().then((summary) => dispatch({ type: 'counts', ...summary }));
+    void activeRepository.readMeta('offlineAccessUntil').then((value) => {
+      if (typeof value === 'string') dispatch({ type: 'lease-update', leaseExpiresAt: value });
+    });
+    return () => {
+      removeEventListener('online', onOnline);
+      removeEventListener('offline', onOffline);
+    };
+  }, [resolvedRepository, syncNow]);
   if (!resolvedRepository) {
     return createElement(
       'div',
@@ -72,52 +123,6 @@ export function OfflineClassroomProvider({ children, repository, invoke }: {
         : 'Preparing durable offline storage…',
     );
   }
-  const syncNow = useCallback(async () => {
-    dispatch({ type: 'sync-start' });
-    try {
-      const request = invoke ?? (async (name, options) => {
-        const { invokeFunction } = await import('../../api/client.ts');
-        return invokeFunction<unknown>(name, options);
-      });
-      const progress = await syncOfflineClassroom(resolvedRepository, request);
-      const summary = await resolvedRepository.getSyncSummary();
-      dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
-      const leaseExpiresAt = await resolvedRepository.readMeta('offlineAccessUntil');
-      if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
-      void progress;
-    } catch (error) {
-      const summary = await resolvedRepository.getSyncSummary();
-      dispatch({ type: 'sync-error', pendingCount: summary.pendingCount, failedCount: summary.failedCount, error: error instanceof Error ? error.message : 'Sync failed.' });
-    }
-  }, [invoke, resolvedRepository]);
-  const bootstrapNow = useCallback(async () => {
-    if (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false) {
-      throw new Error('An internet connection is required to refresh the classroom pack.');
-    }
-    const request = invoke ?? (async (name, options) => {
-      const { invokeFunction } = await import('../../api/client.ts');
-      return invokeFunction<unknown>(name, options);
-    });
-    await bootstrapRepository(resolvedRepository, () => downloadClassroomPack(request));
-    const summary = await resolvedRepository.getSyncSummary();
-    dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
-    const leaseExpiresAt = await resolvedRepository.readMeta('offlineAccessUntil');
-    if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
-  }, [invoke, resolvedRepository]);
-  useEffect(() => {
-    const onOnline = () => { dispatch({ type: 'network-online' }); void syncNow(); };
-    const onOffline = () => dispatch({ type: 'network-offline' });
-    addEventListener('online', onOnline);
-    addEventListener('offline', onOffline);
-    void resolvedRepository.getSyncSummary().then((summary) => dispatch({ type: 'counts', ...summary }));
-    void resolvedRepository.readMeta('offlineAccessUntil').then((value) => {
-      if (typeof value === 'string') dispatch({ type: 'lease-update', leaseExpiresAt: value });
-    });
-    return () => {
-      removeEventListener('online', onOnline);
-      removeEventListener('offline', onOffline);
-    };
-  }, [resolvedRepository, syncNow]);
   return createElement(OfflineClassroomContext.Provider, { value: { ...state, repository: resolvedRepository, bootstrapNow, syncNow } }, children);
 }
 
