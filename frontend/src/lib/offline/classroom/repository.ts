@@ -91,16 +91,16 @@ function createLegacyOfflineRepository(
     },
     async renewOfflineLease(now) {
       const expiresAt = leaseExpiry(now);
-      await store.transaction(['meta'], async () => {
-        await store.put('meta', { key: 'lastOnlineValidatedAt', value: now });
-        await store.put('meta', { key: 'offlineAccessUntil', value: expiresAt });
+      await store.transaction(['meta'], async (transactionStore) => {
+        await transactionStore.put('meta', { key: 'lastOnlineValidatedAt', value: now });
+        await transactionStore.put('meta', { key: 'offlineAccessUntil', value: expiresAt });
       });
     },
     async putSnapshot(collection, rows) {
-      await store.transaction([collection], async () => {
+      await store.transaction([collection], async (transactionStore) => {
         for (const row of rows) {
           if (typeof row.id !== 'string') continue;
-          await store.put(collection, { key: row.id, value: row });
+          await transactionStore.put(collection, { key: row.id, value: row });
         }
       });
     },
@@ -154,19 +154,19 @@ function createLegacyOfflineRepository(
       );
       const syncedAt = clock();
 
-      await store.transaction([...collectionNames, 'meta'], async () => {
+      await store.transaction([...collectionNames, 'meta'], async (transactionStore) => {
         for (const collection of collectionNames) {
           const rows = (merged[collection] ?? []) as Record<string, unknown>[];
           const desiredKeys = new Set(rows.flatMap((row) => typeof row.id === 'string' ? [row.id] : []));
-          for (const record of await store.getAll(collection)) {
-            if (!desiredKeys.has(record.key)) await store.delete(collection, record.key);
+          for (const record of await transactionStore.getAll(collection)) {
+            if (!desiredKeys.has(record.key)) await transactionStore.delete(collection, record.key);
           }
           for (const row of rows) {
-            if (typeof row.id === 'string') await store.put(collection, { key: row.id, value: row });
+            if (typeof row.id === 'string') await transactionStore.put(collection, { key: row.id, value: row });
           }
         }
-        await store.put('meta', { key: 'revision', value: snapshot.revision });
-        await store.put('meta', { key: 'lastSyncedAt', value: syncedAt });
+        await transactionStore.put('meta', { key: 'revision', value: snapshot.revision });
+        await transactionStore.put('meta', { key: 'lastSyncedAt', value: syncedAt });
       });
     },
     async applyMutation(input) {
@@ -190,9 +190,9 @@ function createLegacyOfflineRepository(
         lastError: null,
       };
 
-      await store.transaction([entityStore, 'outbox'], async () => {
-        await store.put(entityStore, { key: input.entityId, value: entity });
-        await store.put('outbox', { key: operationId, value: operation });
+      await store.transaction([entityStore, 'outbox'], async (transactionStore) => {
+        await transactionStore.put(entityStore, { key: input.entityId, value: entity });
+        await transactionStore.put('outbox', { key: operationId, value: operation });
       });
       return operation;
     },
@@ -238,21 +238,21 @@ function createLegacyOfflineRepository(
         operations,
       });
       let rowIndex = 0;
-      await store.transaction([...entityCollections, 'outbox', 'meta'], async () => {
+      await store.transaction([...entityCollections, 'outbox', 'meta'], async (transactionStore) => {
         for (const collection of entityCollections) {
           for (const record of recordsByCollection.get(collection) ?? []) {
             const value = result.rows[rowIndex++];
             if (!value) continue;
             const nextKey = record.key === mapping.localId ? mapping.serverId : record.key;
-            if (nextKey !== record.key) await store.delete(collection, record.key);
-            await store.put(collection, { key: nextKey, value });
+            if (nextKey !== record.key) await transactionStore.delete(collection, record.key);
+            await transactionStore.put(collection, { key: nextKey, value });
           }
         }
         for (const [index, record] of outboxRecords.entries()) {
           const operation = result.operations[index];
-          if (operation) await store.put('outbox', { key: record.key, value: operation });
+          if (operation) await transactionStore.put('outbox', { key: record.key, value: operation });
         }
-        await store.put('meta', {
+        await transactionStore.put('meta', {
           key: `mapping:${mapping.entityType}:${mapping.localId}`,
           value: { ...mapping, mappedAt: clock() },
         });

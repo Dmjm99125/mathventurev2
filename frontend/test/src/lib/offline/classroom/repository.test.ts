@@ -2,6 +2,7 @@ import { assertEquals } from 'jsr:@std/assert';
 import { createMemoryStore } from '../../../../../src/lib/offline/classroom/memoryStore.ts';
 import { createOfflineRepository } from '../../../../../src/lib/offline/classroom/repository.ts';
 import { createMemorySqlite } from '../../../../../src/lib/offline/sqlite/memoryAdapter.ts';
+import type { OfflineStore } from '../../../../../src/lib/offline/classroom/store.ts';
 
 Deno.test('local mutation is visible immediately and creates one pending outbox entry', async () => {
   const repository = createOfflineRepository(
@@ -23,6 +24,35 @@ Deno.test('local mutation is visible immediately and creates one pending outbox 
     name: 'Colors',
   });
   assertEquals((await repository.getOutbox()).map((operation) => operation.operationId), ['id-1']);
+});
+
+Deno.test('legacy repository applies a mutation through the scoped transaction store', async () => {
+  const base = createMemoryStore();
+  let scopedWrites = 0;
+  const store: OfflineStore = {
+    ...base,
+    async transaction(stores, work) {
+      const scoped: OfflineStore = {
+        ...base,
+        async put(storeName, record) {
+          scopedWrites += 1;
+          await base.put(storeName, record);
+        },
+      };
+      return work(scoped);
+    },
+  };
+  const repository = createOfflineRepository(store, () => '2026-10-18T00:00:00.000Z', () => 'op-1');
+
+  await repository.applyMutation({
+    actorId: 'teacher-1',
+    type: 'assignment.create',
+    entityId: 'assignment-1',
+    payload: { name: 'Practice' },
+    dependencies: [],
+  });
+
+  assertEquals(scopedWrites, 2);
 });
 
 Deno.test('sqlite mutation is visible and queued in one transaction', async () => {
