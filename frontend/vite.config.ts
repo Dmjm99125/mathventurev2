@@ -42,6 +42,10 @@ export default defineConfig(({ mode }) => {
   const isTauriBuild = Boolean(process.env.TAURI_ENV_PLATFORM || env.TAURI_ENV_PLATFORM);
   const port = Number(env.PORT || '5173');
   const basePath = isTauriBuild ? './' : env.BASE_PATH || '/';
+  const sqliteIsolationHeaders = {
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Embedder-Policy': 'require-corp',
+  };
   
   return {
     base: basePath,
@@ -72,6 +76,9 @@ export default defineConfig(({ mode }) => {
       },
       dedupe: ['react', 'react-dom'],
     },
+    optimizeDeps: {
+      exclude: ['@sqlite.org/sqlite-wasm'],
+    },
     root: path.resolve(import.meta.dirname),
     build: {
       outDir: path.resolve(import.meta.dirname, 'dist'),
@@ -90,11 +97,13 @@ export default defineConfig(({ mode }) => {
       watch: {
         ignored: ['**/src-tauri/**'],
       },
+      headers: sqliteIsolationHeaders,
     },
     preview: {
       port,
       host: '0.0.0.0',
       allowedHosts: true,
+      headers: sqliteIsolationHeaders,
     },
   };
 });

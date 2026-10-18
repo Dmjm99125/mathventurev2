@@ -47,6 +47,22 @@ Deno.test("PWA config precaches the SQLite WASM runtime asset", async () => {
   assertMatch(config, /globPatterns:[\s\S]*wasm/);
 });
 
+Deno.test("Vite does not prebundle the SQLite WASM package during development", async () => {
+  const config = await readProjectFile("vite.config.ts");
+
+  assertMatch(config, /optimizeDeps:\s*\{[\s\S]*exclude:\s*\[[\s\S]*['"]@sqlite\.org\/sqlite-wasm['"]/);
+});
+
+Deno.test("browser SQLite receives cross-origin isolation headers in Vite and Netlify", async () => {
+  const viteConfig = await readProjectFile("vite.config.ts");
+  const netlifyConfig = await readProjectFile("../netlify.toml");
+
+  assertMatch(viteConfig, /Cross-Origin-Opener-Policy['"]?\s*:\s*['"]same-origin['"]/);
+  assertMatch(viteConfig, /Cross-Origin-Embedder-Policy['"]?\s*:\s*['"]require-corp['"]/);
+  assertMatch(netlifyConfig, /Cross-Origin-Opener-Policy\s*=\s*['"]same-origin['"]/);
+  assertMatch(netlifyConfig, /Cross-Origin-Embedder-Policy\s*=\s*['"]require-corp['"]/);
+});
+
 Deno.test("PWA worker has an app-shell precache entry point", async () => {
   const worker = await readProjectFile("src/pwa/sw.ts");
 
