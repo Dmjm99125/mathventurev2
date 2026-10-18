@@ -1,26 +1,29 @@
 import { assertEquals } from "jsr:@std/assert";
 import { createClassesCreateHandler } from "./handler.ts";
 
-Deno.test("classes-create returns the teacher singleton classroom", async () => {
+Deno.test("classes-create creates a named active class", async () => {
+  let receivedName = "";
   const handler = createClassesCreateHandler({
     getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Ana Cruz" }),
-    ensureTeacherClassroom: async () => ({
-      id: "classroom-1",
-      createdAt: "2026-07-31T00:00:00.000Z",
-      studentCount: 4,
-    }),
+    createTeacherClass: async (_teacherId, name) => {
+      receivedName = name;
+      return {
+        id: "class-2",
+        teacherId: "teacher-1",
+        name,
+        createdAt: "2026-08-01T00:00:00.000Z",
+        archivedAt: null,
+        studentCount: 0,
+      };
+    },
   });
 
   const response = await handler(new Request("http://local/classes-create", {
     method: "POST",
+    body: JSON.stringify({ name: "  Grade 2  " }),
   }));
 
-  assertEquals(response.status, 200);
-  assertEquals(await response.json(), {
-    classroom: {
-      id: "classroom-1",
-      createdAt: "2026-07-31T00:00:00.000Z",
-      studentCount: 4,
-    },
-  });
+  assertEquals(response.status, 201);
+  assertEquals(receivedName, "Grade 2");
+  assertEquals((await response.json()).classroom.name, "Grade 2");
 });

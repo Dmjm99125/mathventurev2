@@ -1,16 +1,21 @@
 import type { AuthedProfile } from "../_shared/client.ts";
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
-import {
-  HIDDEN_CLASSROOM_NAME,
-  ensureTeacherSingletonClass,
-  type TeacherSingletonClassPersistence,
-} from "../_shared/teacher_singleton_class.ts";
+
+export type TeacherClassSummary = {
+  id: string;
+  teacherId: string;
+  name: string;
+  createdAt: string;
+  archivedAt: string | null;
+  studentCount: number;
+};
 
 type TeacherClassroomRow = {
   id: string;
   teacher_id: string;
   name: string;
   created_at: string;
+  archived_at: string | null;
 };
 
 type StudentClassroomQueryRow = {
@@ -41,15 +46,9 @@ type StudentClassroomQueryRow = {
     | null;
 };
 
-type ClassesListDeps = {
+export type ClassesListDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  getTeacherClassroom(teacherId: string): Promise<{
-    id: string;
-    teacherId: string;
-    name: string;
-    createdAt: string;
-    studentCount: number;
-  } | null>;
+  listTeacherClasses?: (teacherId: string) => Promise<TeacherClassSummary[]>;
   getStudentClassroom(studentId: string): Promise<{
     id: string;
     teacherName: string;
@@ -57,75 +56,46 @@ type ClassesListDeps = {
   } | null>;
 };
 
-const defaultTeacherClassPersistence: TeacherSingletonClassPersistence = {
-  async listTeacherClasses(teacherId) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("classes")
-      .select("id, teacher_id, name, created_at")
-      .eq("teacher_id", teacherId);
-
-    if (error) {
-      throw error;
-    }
-
-    return ((data ?? []) as TeacherClassroomRow[]).map((row) => ({
-      id: row.id,
-      teacherId: row.teacher_id,
-      name: row.name,
-      createdAt: row.created_at,
-    }));
-  },
-  async insertTeacherClass(teacherId) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("classes")
-      .insert({
-        teacher_id: teacherId,
-        name: HIDDEN_CLASSROOM_NAME,
-        join_code: null,
-      })
-      .select("id, teacher_id, name, created_at")
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return {
-      id: data.id as string,
-      teacherId: data.teacher_id as string,
-      name: data.name as string,
-      createdAt: data.created_at as string,
-    };
-  },
-};
-
 const defaultDeps: ClassesListDeps = {
   async getAuthedProfile(req) {
     const { getAuthedProfile } = await import("../_shared/client.ts");
     return getAuthedProfile(req);
   },
-  async getTeacherClassroom(teacherId) {
-    const classroom = await ensureTeacherSingletonClass(
-      defaultTeacherClassPersistence,
-      teacherId,
-    );
-
+  async listTeacherClasses(teacherId) {
     const { adminClient } = await import("../_shared/client.ts");
-    const { count, error } = await adminClient
-      .from("class_students")
-      .select("*", { count: "exact", head: true })
-      .eq("class_id", classroom.id);
+    const { data, error } = await adminClient
+      .from("classes")
+      .select("id, teacher_id, name, created_at, archived_at")
+      .eq("teacher_id", teacherId)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
 
     if (error) {
       throw error;
     }
 
-    return {
-      ...classroom,
-      studentCount: count ?? 0,
-    };
+    const classrooms: TeacherClassSummary[] = [];
+    for (const row of (data ?? []) as TeacherClassroomRow[]) {
+      const { count, error: countError } = await adminClient
+        .from("class_students")
+        .select("student_id", { count: "exact", head: true })
+        .eq("class_id", row.id);
+
+      if (countError) {
+        throw countError;
+      }
+
+      classrooms.push({
+        id: row.id,
+        teacherId: row.teacher_id,
+        name: row.name,
+        createdAt: row.created_at,
+        archivedAt: row.archived_at ?? null,
+        studentCount: count ?? 0,
+      });
+    }
+
+    return classrooms;
   },
   async getStudentClassroom(studentId) {
     const { adminClient } = await import("../_shared/client.ts");
@@ -164,6 +134,16 @@ const defaultDeps: ClassesListDeps = {
   },
 };
 
+function toPublicClassroom(classroom: TeacherClassSummary) {
+  return {
+    id: classroom.id,
+    name: classroom.name,
+    createdAt: classroom.createdAt,
+    archivedAt: classroom.archivedAt,
+    studentCount: classroom.studentCount,
+  };
+}
+
 export function createClassesListHandler(deps: ClassesListDeps = defaultDeps) {
   return async (req: Request): Promise<Response> => {
     if (req.method === "OPTIONS") {
@@ -180,15 +160,14 @@ export function createClassesListHandler(deps: ClassesListDeps = defaultDeps) {
       }
 
       if (profile.role === "teacher") {
-        const classroom = await deps.getTeacherClassroom(profile.id);
+        const classrooms = await deps.listTeacherClasses!(profile.id);
         return jsonResponse({
-          classroom: classroom
-            ? {
-                id: classroom.id,
-                createdAt: classroom.createdAt,
-                studentCount: classroom.studentCount,
-              }
-            : null,
+          classes: classrooms
+            .filter((classroom) => classroom.archivedAt === null)
+            .map(toPublicClassroom),
+          archivedClasses: classrooms
+            .filter((classroom) => classroom.archivedAt !== null)
+            .map(toPublicClassroom),
         });
       }
 

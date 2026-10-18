@@ -1,56 +1,31 @@
 import type { AuthedProfile } from "../_shared/client.ts";
 import { corsHeaders, errorResponse, jsonResponse } from "../_shared/cors.ts";
-import {
-  HIDDEN_CLASSROOM_NAME,
-  ensureTeacherSingletonClass,
-  type TeacherSingletonClassPersistence,
-} from "../_shared/teacher_singleton_class.ts";
+import type { TeacherClassSummary } from "../classes-list/handler.ts";
 
-type TeacherClassroomRow = {
-  id: string;
-  teacher_id: string;
-  name: string;
-  created_at: string;
-};
-
-type ClassesCreateDeps = {
+export type ClassesCreateDeps = {
   getAuthedProfile(req: Request): Promise<AuthedProfile | null>;
-  ensureTeacherClassroom(teacherId: string): Promise<{
-    id: string;
-    createdAt: string;
-    studentCount: number;
-  }>;
+  createTeacherClass(
+    teacherId: string,
+    name: string,
+  ): Promise<TeacherClassSummary>;
 };
 
-const defaultTeacherClassPersistence: TeacherSingletonClassPersistence = {
-  async listTeacherClasses(teacherId) {
-    const { adminClient } = await import("../_shared/client.ts");
-    const { data, error } = await adminClient
-      .from("classes")
-      .select("id, teacher_id, name, created_at")
-      .eq("teacher_id", teacherId);
-
-    if (error) {
-      throw error;
-    }
-
-    return ((data ?? []) as TeacherClassroomRow[]).map((row) => ({
-      id: row.id,
-      teacherId: row.teacher_id,
-      name: row.name,
-      createdAt: row.created_at,
-    }));
+const defaultDeps: ClassesCreateDeps = {
+  async getAuthedProfile(req) {
+    const { getAuthedProfile } = await import("../_shared/client.ts");
+    return getAuthedProfile(req);
   },
-  async insertTeacherClass(teacherId) {
+  async createTeacherClass(teacherId, name) {
     const { adminClient } = await import("../_shared/client.ts");
     const { data, error } = await adminClient
       .from("classes")
       .insert({
         teacher_id: teacherId,
-        name: HIDDEN_CLASSROOM_NAME,
+        name,
         join_code: null,
+        archived_at: null,
       })
-      .select("id, teacher_id, name, created_at")
+      .select("id, teacher_id, name, created_at, archived_at")
       .single();
 
     if (error) {
@@ -62,35 +37,8 @@ const defaultTeacherClassPersistence: TeacherSingletonClassPersistence = {
       teacherId: data.teacher_id as string,
       name: data.name as string,
       createdAt: data.created_at as string,
-    };
-  },
-};
-
-const defaultDeps: ClassesCreateDeps = {
-  async getAuthedProfile(req) {
-    const { getAuthedProfile } = await import("../_shared/client.ts");
-    return getAuthedProfile(req);
-  },
-  async ensureTeacherClassroom(teacherId) {
-    const classroom = await ensureTeacherSingletonClass(
-      defaultTeacherClassPersistence,
-      teacherId,
-    );
-
-    const { adminClient } = await import("../_shared/client.ts");
-    const { count, error } = await adminClient
-      .from("class_students")
-      .select("*", { count: "exact", head: true })
-      .eq("class_id", classroom.id);
-
-    if (error) {
-      throw error;
-    }
-
-    return {
-      id: classroom.id,
-      createdAt: classroom.createdAt,
-      studentCount: count ?? 0,
+      archivedAt: (data.archived_at as string | null) ?? null,
+      studentCount: 0,
     };
   },
 };
@@ -113,11 +61,20 @@ export function createClassesCreateHandler(deps: ClassesCreateDeps = defaultDeps
         return errorResponse("Only teachers can access classrooms", 403);
       }
 
-      const classroom = await deps.ensureTeacherClassroom(profile.id);
-      return jsonResponse({ classroom }, 200);
+      const body = await req.json().catch(() => null) as { name?: unknown } | null;
+      const name = typeof body?.name === "string" ? body.name.trim() : "";
+      if (!name) {
+        return errorResponse("Class name is required", 422);
+      }
+      if (name.length > 120) {
+        return errorResponse("Class name is too long", 422);
+      }
+
+      const classroom = await deps.createTeacherClass(profile.id, name);
+      return jsonResponse({ classroom }, 201);
     } catch (error) {
       console.error("classes-create failed", error);
-      return errorResponse("We couldn't load that classroom right now.", 500);
+      return errorResponse("We couldn't create that classroom right now.", 500);
     }
   };
 }
