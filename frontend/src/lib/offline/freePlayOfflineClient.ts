@@ -3,6 +3,8 @@ import {
   type FreePlayWorkerResponse,
 } from '@/pwa/cacheProtocol';
 import type { MediaDownloadStatus } from '@/pwa/mediaCache';
+import { isTauriRuntime } from './sqlite/platform';
+import { createTauriFreePlayOfflineClient } from './tauriFreePlayOfflineClient';
 
 export type OfflineStatusListener = (status: MediaDownloadStatus) => void;
 
@@ -67,6 +69,8 @@ export function createFreePlayOfflineClient(
   container: OfflineServiceWorkerContainer | undefined = defaultServiceWorkerContainer(),
   options: FreePlayOfflineClientOptions = {},
 ): FreePlayOfflineClient {
+  if (isTauriRuntime()) return createTauriFreePlayOfflineClient();
+
   const requestTimeoutMs = options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
   const listeners = new Set<OfflineStatusListener>();
   const pending = new Map<string, PendingRequest>();

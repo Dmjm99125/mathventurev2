@@ -59,3 +59,17 @@ Deno.test('runtime closes a database that fails its durable-health check', async
 
   assertEquals(closed, true);
 });
+
+Deno.test('Tauri runtime bypasses browser persistence checks', async () => {
+  const memory = await createMemorySqlite();
+  const database = await openApplicationDatabase({
+    runtime: 'tauri',
+    storage: { persist: async () => { throw new Error('must not be called'); } },
+    databaseFactory: async ({ quality }) => ({
+      ...memory,
+      health: async () => ({ schemaVersion: 1, durable: true, quality }),
+    }),
+  });
+
+  assertEquals((await database.health()).quality, 'native');
+});

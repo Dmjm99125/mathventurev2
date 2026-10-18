@@ -39,9 +39,9 @@ function freePlayMediaManifestPlugin() {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  
+  const isTauriBuild = Boolean(process.env.TAURI_ENV_PLATFORM || env.TAURI_ENV_PLATFORM);
   const port = Number(env.PORT || '5173');
-  const basePath = env.BASE_PATH || '/';
+  const basePath = isTauriBuild ? './' : env.BASE_PATH || '/';
   
   return {
     base: basePath,
@@ -50,6 +50,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       freePlayMediaManifestPlugin(),
       VitePWA({
+        disable: isTauriBuild,
         strategies: 'injectManifest',
         srcDir: 'src/pwa',
         filename: 'sw.ts',
@@ -75,7 +76,9 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: path.resolve(import.meta.dirname, 'dist'),
       emptyOutDir: true,
+      target: 'chrome105',
     },
+    clearScreen: false,
     server: {
       port,
       strictPort: true,
@@ -83,6 +86,9 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       fs: {
         strict: true,
+      },
+      watch: {
+        ignored: ['**/src-tauri/**'],
       },
     },
     preview: {
