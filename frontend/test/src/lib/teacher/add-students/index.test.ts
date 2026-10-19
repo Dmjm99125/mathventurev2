@@ -1,9 +1,15 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert";
 import {
+  formatTeacherAddStudentsCount,
   normalizeTeacherAddStudentRows,
   parseTeacherStudentsJson,
   parseTeacherStudentsWorksheet,
 } from "../../../../../src/lib/teacher/add-students/index.ts";
+
+Deno.test("formatTeacherAddStudentsCount describes one and larger manual batches", () => {
+  assertEquals(formatTeacherAddStudentsCount(1), "1 student");
+  assertEquals(formatTeacherAddStudentsCount(9), "9 students");
+});
 
 Deno.test("normalizeTeacherAddStudentRows trims names and rejects incomplete rows", () => {
   assertEquals(

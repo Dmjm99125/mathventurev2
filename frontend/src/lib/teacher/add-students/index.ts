@@ -9,6 +9,10 @@ export type TeacherAddStudentsResult = {
   className?: string;
 };
 
+export function formatTeacherAddStudentsCount(count: number): string {
+  return `${count} student${count === 1 ? '' : 's'}`;
+}
+
 function cleanStudentCell(value: unknown): string {
   return String(value ?? '').trim().replace(/\s+/g, ' ');
 }
