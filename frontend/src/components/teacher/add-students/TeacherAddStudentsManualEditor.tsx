@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Card, Input, Label } from '@/components/ui';
 import {
+  formatTeacherAddStudentsCount,
   normalizeTeacherAddStudentRows,
   type TeacherAddStudentDraft,
 } from '@/lib/teacher/add-students';
@@ -32,8 +33,8 @@ export function TeacherAddStudentsManualEditor({
   const [error, setError] = React.useState<string | null>(null);
 
   return (
-    <Card className="flex flex-1 flex-col rounded-[24px] p-5">
-      <div className="space-y-4">
+    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] p-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
         {rows.map((row) => (
           <div
             key={row.id}
@@ -90,18 +91,23 @@ export function TeacherAddStudentsManualEditor({
 
       {error && <p className="mt-4 text-sm font-bold text-destructive">{error}</p>}
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-between">
-        <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
-        <div className="flex gap-2">
+      <div className="mt-5 flex flex-col gap-3 border-t border-border/70 pt-5">
+        <div className="flex items-center justify-between gap-3">
+          <Button variant="ghost" onClick={onBack}>
+            Back
+          </Button>
+          <p aria-live="polite" className="text-sm font-bold text-muted-foreground">
+            {formatTeacherAddStudentsCount(rows.length)}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button
             variant="outline"
             onClick={() =>
               setRows((current) => [...current, createEditableRow()])
             }
           >
-            + Add Row
+            Add another student
           </Button>
           <Button
             onClick={() => {
@@ -117,7 +123,7 @@ export function TeacherAddStudentsManualEditor({
               }
             }}
           >
-            Review Students
+            Review students
           </Button>
         </div>
       </div>
