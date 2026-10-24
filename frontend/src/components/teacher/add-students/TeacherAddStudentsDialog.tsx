@@ -152,7 +152,7 @@ export function TeacherAddStudentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-hidden p-0">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto p-0">
         <div className="flex h-full min-h-0 flex-col p-6">
           <DialogHeader>
             <DialogTitle>Add Students</DialogTitle>
