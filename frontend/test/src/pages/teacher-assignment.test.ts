@@ -1,8 +1,9 @@
-import { assertStringIncludes } from "jsr:@std/assert";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
 
 const teacherPage = await Deno.readTextFile(new URL("../../../src/pages/teacher.tsx", import.meta.url));
 const assignmentDialog = await Deno.readTextFile(new URL("../../../src/components/teacher/TeacherAssignQuizDialog.tsx", import.meta.url));
 const assignedQuizzes = await Deno.readTextFile(new URL("../../../src/components/teacher/TeacherAssignedQuizzes.tsx", import.meta.url));
+const teacherStyles = await Deno.readTextFile(new URL("../../../src/styles/teacher.css", import.meta.url));
 
 Deno.test("teacher classroom exposes the assign quiz flow", () => {
   assertStringIncludes(teacherPage, "TeacherAssignQuizDialog");
@@ -13,6 +14,13 @@ Deno.test("teacher classroom exposes the assign quiz flow", () => {
   assertStringIncludes(assignmentDialog, "assignment-name");
   assertStringIncludes(assignmentDialog, "Assign another");
   assertStringIncludes(assignmentDialog, "name");
+});
+
+Deno.test("portaled assign quiz dialog can resolve teacher theme tokens", () => {
+  const rootTheme = teacherStyles.match(/:root\s*{([\s\S]*?)}/)?.[1] ?? "";
+
+  assertEquals(rootTheme.includes("--teacher-sand: #E8DCC7;"), true);
+  assertEquals(rootTheme.includes("--teacher-moss: #606C38;"), true);
 });
 
 Deno.test("teacher assignments page owns the assigned quizzes flow", () => {

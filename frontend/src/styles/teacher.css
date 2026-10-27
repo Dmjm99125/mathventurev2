@@ -1,13 +1,16 @@
+:root {
+  --teacher-sand: #E8DCC7;
+  --teacher-oat: #D4B895;
+  --teacher-sage: #8B9D83;
+  --teacher-clay: #B08B6E;
+  --teacher-terracotta: #C66B3D;
+  --teacher-ochre: #C08E3A;
+  --teacher-moss: #606C38;
+  --teacher-ink: #2F3A2A;
+}
+
 @layer components {
   .teacher-shell {
-    --teacher-sand: #E8DCC7;
-    --teacher-oat: #D4B895;
-    --teacher-sage: #8B9D83;
-    --teacher-clay: #B08B6E;
-    --teacher-terracotta: #C66B3D;
-    --teacher-ochre: #C08E3A;
-    --teacher-moss: #606C38;
-    --teacher-ink: #2F3A2A;
     position: relative;
     isolation: isolate;
     color: var(--teacher-ink);
