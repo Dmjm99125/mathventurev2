@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -7,12 +7,10 @@ function source(relativePath: string): string {
 }
 
 describe('frontend architecture boundaries', () => {
-  it('keeps the legacy API hook import surface as a compatibility barrel', () => {
-    const hooks = source('lib/api/hooks.ts');
-
-    expect(hooks).toContain("export * from '@features/classroom/api/hooks';");
-    expect(hooks).toContain("export * from '@features/assignments/api/hooks';");
-    expect(hooks).not.toContain("queryKey: [");
+  it('keeps query policy in feature hook modules after facade removal', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/lib/api/hooks.ts'))).toBe(false);
+    expect(source('features/classroom/api/hooks.ts')).not.toContain('queryKey: [');
+    expect(source('features/assignments/api/hooks.ts')).not.toContain('queryKey: [');
   });
 
   it('keeps game internals outside the feature hook boundaries', () => {
