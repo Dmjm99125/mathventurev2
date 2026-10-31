@@ -114,4 +114,9 @@ describe('frontend architecture boundaries', () => {
     expect(source('app/providers.tsx')).toContain("from '@features/auth/provider'");
     expect(source('features/auth/provider.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
   });
+
+  it('keeps language provider ownership in the i18n feature', () => {
+    expect(source('app/providers.tsx')).toContain("from '@features/i18n/provider'");
+    expect(source('features/i18n/provider.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
+  });
 });
