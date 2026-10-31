@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
 import type { PortalTopicEntry, PortalTopicId } from "@/lib/student/portal";
-import { cn } from "@/lib/shared/utils";
+import { cn } from '@shared/utils';
 import { useLanguage } from "@/lib/i18n/useLanguage";
 
 const headerAssets = [

@@ -9,7 +9,7 @@ import { Button, Input } from './ui';
 import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User, ClipboardList, BarChart3 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { cn } from '@/lib/shared/utils';
+import { cn } from '@shared/utils';
 import { InstallAppAction } from '@/components/pwa/InstallAppAction';
 import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 

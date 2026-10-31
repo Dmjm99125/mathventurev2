@@ -4,7 +4,7 @@ import { Button } from '@/components/ui';
 import { useAuth, signOut } from '@/lib/auth';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { TEACHER_NAV_ITEMS, getTeacherWorkspaceNavItems, isTeacherNavActive } from '@/lib/teacher/navigation';
-import { cn } from '@/lib/shared/utils';
+import { cn } from '@shared/utils';
 import { Menu, X } from 'lucide-react';
 
 function TeacherNavLinks({

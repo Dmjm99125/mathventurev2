@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cn } from './utils';
+import { cn } from '@shared/utils';
 
 describe('cn', () => {
   it('merges conditional and conflicting Tailwind classes', () => {

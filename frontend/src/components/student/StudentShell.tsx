@@ -4,7 +4,7 @@ import { Link } from "wouter";
 
 import { useLanguage } from "@/lib/i18n/useLanguage";
 import { STUDENT_NAV_ITEMS } from "@/lib/student/navigation";
-import { cn } from "@/lib/shared/utils";
+import { cn } from '@shared/utils';
 
 type StudentShellProps = {
   children: ReactNode;
