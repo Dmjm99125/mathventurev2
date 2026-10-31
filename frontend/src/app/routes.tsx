@@ -20,7 +20,7 @@ import {
   TeacherSettingsPage,
   TeacherStudentsPage,
   TeacherTodayPage,
-} from '@/pages/teacher';
+} from '@features/teacher/pages';
 import { AppLayout } from '@/components/layout';
 
 export function AppRoutes() {
