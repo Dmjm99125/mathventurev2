@@ -1,10 +1,15 @@
 import { Redirect, Route, Switch } from 'wouter';
 
-import { About } from '@/pages/about';
-import { ForgotPassword, Login, PasswordReset, Signup } from '@/pages/auth';
+import {
+  About,
+  ForgotPassword,
+  Landing,
+  Login,
+  NotFound,
+  PasswordReset,
+  Signup,
+} from '@features/public-site/pages';
 import { FreePlay } from '@/pages/free-play';
-import { Landing } from '@/pages/landing';
-import NotFound from '@/pages/not-found';
 import { QuizPage } from '@/pages/QuizPage';
 import { StudentClassroomPage, StudentDashboard } from '@/pages/student';
 import {

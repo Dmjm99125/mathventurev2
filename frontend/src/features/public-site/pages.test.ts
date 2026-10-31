@@ -1,4 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/pages/about', () => ({ About: () => null }));
+vi.mock('@/pages/auth', () => ({
+  ForgotPassword: () => null,
+  Login: () => null,
+  PasswordReset: () => null,
+  Signup: () => null,
+}));
+vi.mock('@/pages/landing', () => ({ Landing: () => null }));
+vi.mock('@/pages/not-found', () => ({ default: () => null }));
+
 import {
   About,
   ForgotPassword,
