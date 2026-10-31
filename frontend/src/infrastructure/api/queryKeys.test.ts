@@ -10,6 +10,7 @@ import {
 describe('server-state query key contracts', () => {
   it('preserves classroom key identities', () => {
     expect(classroomKeys.all()).toEqual(['classes']);
+    expect(classroomKeys.classesRoster('class-1')).toEqual(['classes', 'class-1', 'roster']);
     expect(classroomKeys.teacher()).toEqual(['classroom', 'teacher']);
     expect(classroomKeys.teacher(null)).toEqual(['classroom', 'teacher', null]);
     expect(classroomKeys.student()).toEqual(['classroom', 'student']);
@@ -22,6 +23,7 @@ describe('server-state query key contracts', () => {
   });
 
   it('preserves assignment and dashboard key identities', () => {
+    expect(assignmentKeys.all()).toEqual(['assignments']);
     expect(assignmentKeys.list()).toEqual(['assignments', undefined]);
     expect(assignmentKeys.list('class-1')).toEqual(['assignments', 'class-1']);
     expect(assignmentKeys.quiz('assignment-1', 'colors')).toEqual(['assignment-quiz', 'assignment-1', 'colors']);
