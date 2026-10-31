@@ -22,7 +22,12 @@
 
     "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@app/*": ["./src/app/*"],
+      "@content/*": ["./src/content/*"],
+      "@features/*": ["./src/features/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@shared/*": ["./src/shared/*"]
     }
   },
   "include": ["src/**/*"],
