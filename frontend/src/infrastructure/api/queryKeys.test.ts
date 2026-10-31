@@ -9,11 +9,16 @@ import {
 
 describe('server-state query key contracts', () => {
   it('preserves classroom key identities', () => {
-    expect(classroomKeys.all()).toEqual(['classroom']);
+    expect(classroomKeys.all()).toEqual(['classes']);
     expect(classroomKeys.teacher()).toEqual(['classroom', 'teacher']);
+    expect(classroomKeys.teacher(null)).toEqual(['classroom', 'teacher', null]);
     expect(classroomKeys.student()).toEqual(['classroom', 'student']);
-    expect(classroomKeys.roster()).toEqual(['classroom', 'roster', 'singleton']);
+    expect(classroomKeys.roster()).toEqual(['classroom', 'roster']);
+    expect(classroomKeys.roster(null)).toEqual(['classroom', 'roster', null]);
     expect(classroomKeys.roster('class-1')).toEqual(['classroom', 'roster', 'class-1']);
+    expect(classroomKeys.rosterStudent('class-1', 'student-1')).toEqual([
+      'classroom', 'roster', 'class-1', 'student', 'student-1',
+    ]);
   });
 
   it('preserves assignment and dashboard key identities', () => {
@@ -25,8 +30,12 @@ describe('server-state query key contracts', () => {
   });
 
   it('preserves report and post key identities', () => {
-    expect(reportKeys.overview('30d')).toEqual(['teacher-reports', 'overview', '30d']);
-    expect(reportKeys.class('class-1', '7d')).toEqual(['teacher-reports', 'class', 'class-1', '7d']);
+    expect(reportKeys.overview('class-1', '30d', null)).toEqual([
+      'teacher-reports', 'overview', 'class-1', '30d', null,
+    ]);
+    expect(reportKeys.class('class-1', '7d', 'next')).toEqual([
+      'teacher-reports', 'class', 'class-1', '7d', 'next',
+    ]);
     expect(postKeys.list('class-1')).toEqual(['posts', 'class-1']);
   });
 });
