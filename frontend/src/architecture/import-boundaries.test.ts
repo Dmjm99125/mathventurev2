@@ -30,4 +30,13 @@ describe('frontend architecture boundaries', () => {
     expect(source('pages/QuizPage.tsx')).toContain("from '@content/depedThemes'");
     expect(source('components/LessonSlideCard.tsx')).toContain("from '@content/lessonContent'");
   });
+
+  it('keeps teacher view models behind the teacher feature boundary', () => {
+    expect(source('pages/teacher.tsx')).toContain("from '@features/teacher/model/assignments'");
+    expect(source('pages/teacher.tsx')).toContain("from '@features/teacher/model/classes'");
+    expect(source('components/teacher/TeacherAssignedQuizzes.tsx'))
+      .toContain("from '@features/teacher/model/assignments'");
+    expect(source('components/teacher/TeacherClassCard.tsx'))
+      .toContain("from '@features/teacher/model/classes'");
+  });
 });
