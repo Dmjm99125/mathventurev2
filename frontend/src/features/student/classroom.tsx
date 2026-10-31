@@ -57,7 +57,6 @@ export function StudentClassroomPage() {
           <h2 className="student-section-title flex items-center gap-2 text-2xl font-display font-bold">
             <MessageSquare className="h-6 w-6" /> Announcements
           </h2>
-          
           {posts.length > 0 ? (
             <div className="space-y-4">
               {posts.map((post: any) => (
