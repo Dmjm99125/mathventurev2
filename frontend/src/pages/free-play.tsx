@@ -4,7 +4,7 @@ import { TopNav } from '@/components/layout';
 import { FreePlayOfflinePanel } from '@/components/offline/FreePlayOfflinePanel';
 import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { Button, Card } from '@/components/ui';
-import { LEGACY_TOPIC_META, type PortalTopicEntry } from '@/lib/student/portal';
+import { LEGACY_TOPIC_META, type PortalTopicEntry } from '@features/student/model/portal';
 
 const FREE_PLAY_TOPICS: PortalTopicEntry[] = LEGACY_TOPIC_META.map((topic) => ({
   ...topic,

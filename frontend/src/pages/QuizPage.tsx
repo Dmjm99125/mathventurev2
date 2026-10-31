@@ -104,7 +104,7 @@ import {
   buildAttemptGameResult,
   type AttemptGameResultInput,
 } from '@/lib/games/attempt-results';
-import { buildStudentLessonExitHref } from '@/lib/student/portal';
+import { buildStudentLessonExitHref } from '@features/student/model/portal';
 import { getFreePlayGameCount, isDrawingBoardAvailable } from '@/lib/games/free-play';
 import { useAuth } from '@/lib/auth';
 import { shouldRecordStandaloneAttempt } from '@/lib/quiz/recording';
