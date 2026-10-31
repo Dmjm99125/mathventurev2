@@ -36,7 +36,7 @@ import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
 import { isArchivedClass, teacherClassPath } from '@/lib/teacher/classes';
-import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useLanguage } from '@features/i18n/context';
 import { OfflineConflictPanel } from '@/components/offline/OfflineConflictPanel';
 import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
 import { TeacherClassList } from '@/components/teacher/TeacherClassList';

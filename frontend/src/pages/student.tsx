@@ -9,7 +9,7 @@ import { StudentPortalLoading } from '@/components/student/StudentPortalLoading'
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
 import { StudentShell } from '@/components/student/StudentShell';
 import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@features/student/model/portal';
-import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useLanguage } from '@features/i18n/context';
 import { useAuth } from '@/lib/auth';
 
 export function StudentDashboard() {

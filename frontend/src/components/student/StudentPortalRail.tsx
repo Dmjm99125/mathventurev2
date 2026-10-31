@@ -2,7 +2,7 @@
 import { Button, Card } from "@/components/ui";
 import type { StudentClassroomSummary } from "@/lib/api";
 import type { PortalRailSummary } from "@features/student/model/portal";
-import { useLanguage } from "@/lib/i18n/useLanguage";
+import { useLanguage } from "@features/i18n/context";
 
 export function StudentPortalRail({
   summary,

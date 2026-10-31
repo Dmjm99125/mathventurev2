@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
-import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useLanguage } from '@features/i18n/context';
 import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student/navigation';
 import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
 import { signOut } from '@/lib/auth';

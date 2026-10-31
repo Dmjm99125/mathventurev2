@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { BookOpen, Users } from "lucide-react";
 import { Link } from "wouter";
 
-import { useLanguage } from "@/lib/i18n/useLanguage";
+import { useLanguage } from "@features/i18n/context";
 import { STUDENT_NAV_ITEMS } from "@/lib/student/navigation";
 import { cn } from '@shared/utils';
 

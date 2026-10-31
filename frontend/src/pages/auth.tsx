@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useLanguage } from '@/lib/i18n/useLanguage';
+import { useLanguage } from '@features/i18n/context';
 import { useAuth } from '@/lib/auth/useAuth';
 import {
   PASSWORD_RESET_OTP_LENGTH,

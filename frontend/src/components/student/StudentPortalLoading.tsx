@@ -1,4 +1,4 @@
-import { useLanguage } from "@/lib/i18n/useLanguage";
+import { useLanguage } from "@features/i18n/context";
 import { BookOpen, CheckCircle2, Compass, Users } from "lucide-react";
 
 export function StudentPortalLoading() {

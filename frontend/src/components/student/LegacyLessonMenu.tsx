@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui";
 import type { PortalTopicEntry, PortalTopicId } from "@features/student/model/portal";
 import { cn } from '@shared/utils';
-import { useLanguage } from "@/lib/i18n/useLanguage";
+import { useLanguage } from "@features/i18n/context";
 
 const headerAssets = [
   { key: "let", src: "/assets/images/1let.png", fallback: "Let's Learn!" },
