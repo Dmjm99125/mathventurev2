@@ -7,6 +7,7 @@
     "build": "npm --prefix frontend run build",
     "serve": "npm --prefix frontend run serve",
     "test": "npm --prefix frontend run test",
+    "test:frontend:matrix": "npm --prefix frontend run test:frontend && npm run typecheck && npm run build",
     "typecheck": "npm --prefix frontend run typecheck",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",

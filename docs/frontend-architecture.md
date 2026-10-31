@@ -10,7 +10,8 @@ The frontend remains a feature-oriented modular monolith. This refactor changes 
 - `src/content/` owns lesson and curriculum data access.
 - `src/shared/` owns reusable UI-neutral utilities.
 - `src/lib/api/client.ts` remains the typed public API surface while domain operations are implemented under `src/infrastructure/api/`.
-- Legacy teacher model paths currently re-export feature-owned models until all external test/import consumers migrate.
+- `src/lib/auth/useAuth.tsx` and `src/lib/i18n/useLanguage.tsx` remain compatibility exports; their provider implementations are feature-owned.
+- Report/export utilities that intentionally consume the game catalog remain outside the non-game feature move.
 - `src/components/games/` and game-specific internals are out of scope for this refactor.
 
 ## State rules
@@ -31,3 +32,7 @@ The frontend remains a feature-oriented modular monolith. This refactor changes 
 6. Run the frontend tests, typecheck, and production build before merging a refactor step.
 
 Compatibility bridges can be removed only after all consumers migrate and an explicit regression proves the public import surface is no longer needed.
+
+## Verification matrix
+
+Run `npm run test:frontend:matrix` before merging architecture-only changes. It runs the frontend Vitest suite, TypeScript validation, and the production/PWA build together. The route, provider-order, API contract, offline media, content-boundary, and import-boundary tests are included in the frontend suite; game internals remain excluded from the architecture scope.
