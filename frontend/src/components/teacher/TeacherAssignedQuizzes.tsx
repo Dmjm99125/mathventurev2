@@ -13,7 +13,7 @@ import {
 import { TeacherAssignedQuizPdfButton } from '@/components/teacher/TeacherAssignedQuizPdfButton';
 import type { AssignmentQuizStatus } from '@/lib/api/client';
 import { GAME_CATALOG } from '@/lib/games/catalog';
-import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
+import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@features/teacher/model/assignments';
 import { useDeleteAssignment, useUpdateAssignment } from '@features/assignments/api/hooks';
 
 function formatScore(score: number | null, maxScore: number | null, scorePct: number | null) {

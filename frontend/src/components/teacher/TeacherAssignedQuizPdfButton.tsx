@@ -2,7 +2,7 @@ import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { downloadTeacherAssignedQuizPdf } from '@/lib/teacher/assigned-quizzes-pdf';
-import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
+import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@features/teacher/model/assignments';
 
 export function TeacherAssignedQuizPdfButton({ quiz }: { quiz: TeacherAssignedQuiz }) {
   const [isExporting, setIsExporting] = useState(false);

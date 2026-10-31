@@ -34,7 +34,7 @@ import {
 import { useTeacherReportsOverview } from '@features/reports/api/hooks';
 import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
-import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';
+import { buildTeacherAssignedQuizzes } from '@features/teacher/model/assignments';
 import { isArchivedClass, teacherClassPath } from '@/lib/teacher/classes';
 import { useLanguage } from '@features/i18n/context';
 import { OfflineConflictPanel } from '@/components/offline/OfflineConflictPanel';
