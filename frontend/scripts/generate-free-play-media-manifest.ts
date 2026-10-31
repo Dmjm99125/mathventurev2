@@ -4,8 +4,8 @@ import { join, relative } from 'node:path';
 import type {
   FreePlayMediaManifest,
   FreePlayMediaManifestEntry,
-} from '../src/lib/offline/mediaManifest.ts';
-import { FREE_PLAY_MEDIA_EXTENSIONS } from '../src/lib/offline/mediaManifest.ts';
+} from '../src/infrastructure/offline/mediaManifest.ts';
+import { FREE_PLAY_MEDIA_EXTENSIONS } from '../src/infrastructure/offline/mediaManifest.ts';
 
 export const SUPPORTED_MEDIA_EXTENSIONS = FREE_PLAY_MEDIA_EXTENSIONS;
 

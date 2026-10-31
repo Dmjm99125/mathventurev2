@@ -5,7 +5,7 @@ import {
   buildPortalTopicEntries,
   buildStudentLessonHref,
   summarizePortalRail,
-} from "../../../../src/lib/student/portal.ts";
+} from "../../../../src/features/student/model/portal.ts";
 
 Deno.test("legacy topic metadata preserves the original menu order and asset paths", () => {
   assertEquals(

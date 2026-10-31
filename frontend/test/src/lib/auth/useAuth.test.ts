@@ -8,7 +8,7 @@ import {
   buildAuthViewState,
   isAuthReadyForData,
   type AuthViewState,
-} from "../../../../src/lib/auth/session-state.ts";
+} from "../../../../src/features/auth/model/session-state.ts";
 
 Deno.env.set("VITE_SUPABASE_URL", "https://example.supabase.co");
 Deno.env.set("VITE_SUPABASE_ANON_KEY", "test-anon-key");
