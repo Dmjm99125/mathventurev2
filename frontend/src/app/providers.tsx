@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router as WouterRouter } from 'wouter';
 
-import { AuthProvider, useAuth } from '@/lib/auth';
+import { AuthProvider, useAuth } from '@features/auth/provider';
 import { LanguageProvider } from '@/lib/i18n/useLanguage';
 import { OfflineClassroomProvider } from '@/lib/offline/classroom/useOfflineClassroom';
 import { AppRoutes } from '@app/routes';

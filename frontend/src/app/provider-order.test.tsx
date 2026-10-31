@@ -30,6 +30,14 @@ vi.mock('@/lib/auth', () => ({
   useAuth: () => ({ teacherUser: null }),
 }));
 
+vi.mock('@features/auth/provider', () => ({
+  AuthProvider: ({ children }: { children: unknown }) => {
+    renderOrder.push('auth');
+    return children;
+  },
+  useAuth: () => ({ teacherUser: null }),
+}));
+
 vi.mock('@/lib/offline/classroom/useOfflineClassroom', () => ({
   OfflineClassroomProvider: ({ children }: { children: unknown }) => {
     renderOrder.push('offline');

@@ -65,6 +65,11 @@ vi.mock('@/lib/auth/useAuth', () => ({
   useAuth: () => mockAuthState,
 }));
 
+vi.mock('@features/auth/provider', () => ({
+  AuthProvider: ({ children }: { children: unknown }) => children,
+  useAuth: () => mockAuthState,
+}));
+
 vi.mock('@/lib/offline/classroom/useOfflineClassroom', () => ({
   OfflineClassroomProvider: ({ children }: { children: unknown }) => children,
   useOfflineClassroom: () => ({
