@@ -109,4 +109,9 @@ describe('frontend architecture boundaries', () => {
     expect(source('components/layout.tsx')).toContain("from '@features/student/model/navigation'");
     expect(source('components/student/StudentShell.tsx')).toContain("from \"@features/student/model/navigation\"");
   });
+
+  it('keeps auth provider ownership in the auth feature', () => {
+    expect(source('app/providers.tsx')).toContain("from '@features/auth/provider'");
+    expect(source('features/auth/provider.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
+  });
 });
