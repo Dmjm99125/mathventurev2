@@ -23,9 +23,10 @@ describe('assignment API contract', () => {
 
   it('preserves assignment mutation payloads', async () => {
     const input = { lessonId: 'lesson-1', name: 'Fractions', classId: 'class-1', dueAt: '2026-11-01' };
+    const updateInput = { assignmentId: 'assignment-1', lessonId: 'lesson-1', name: 'Fractions', dueAt: '2026-11-01' };
 
     await assignmentApi.create(input);
-    await assignmentApi.update({ assignmentId: 'assignment-1', ...input });
+    await assignmentApi.update(updateInput);
     await assignmentApi.delete('assignment-1');
 
     expect(invokeFunction).toHaveBeenNthCalledWith(1, 'assignments-create', {
@@ -34,7 +35,7 @@ describe('assignment API contract', () => {
     });
     expect(invokeFunction).toHaveBeenNthCalledWith(2, 'assignments-update', {
       method: 'POST',
-      body: { assignmentId: 'assignment-1', ...input },
+      body: updateInput,
     });
     expect(invokeFunction).toHaveBeenNthCalledWith(3, 'assignments-delete', {
       method: 'POST',
