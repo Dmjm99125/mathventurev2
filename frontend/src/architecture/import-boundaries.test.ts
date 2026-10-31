@@ -69,4 +69,9 @@ describe('frontend architecture boundaries', () => {
     expect(source('features/teacher/pages.ts')).not.toContain('TeacherAssignmentsPage } from \'@/pages/teacher\'');
     expect(source('features/teacher/assignments.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
   });
+
+  it('keeps teacher reports composition in the teacher feature', () => {
+    expect(source('features/teacher/pages.ts')).not.toContain('TeacherReportsPage } from \'@/pages/teacher\'');
+    expect(source('features/teacher/reports.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
+  });
 });
