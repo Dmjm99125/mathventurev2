@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { resetActiveAuthClient, setActiveAuthClient } from '../api';
 import { supabase } from '../supabase/client';
@@ -15,30 +15,9 @@ import {
 import { profileFromAuthSession, type UserProfile } from './profile';
 import { buildAuthViewState } from './session-state';
 import { loadAuthSession } from '@features/auth/session/service';
-
-export type AuthContextType = {
-  user: UserProfile | null;
-  teacherUser: UserProfile | null;
-  viewingStudent: UserProfile | null;
-  isViewingStudent: boolean;
-  isLoading: boolean;
-  refreshProfile: () => Promise<void>;
-  viewStudentAccount: (studentId: string) => Promise<void>;
-  returnToTeacherAccount: (password: string) => Promise<void>;
-  offlineSignIn: (password: string) => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  teacherUser: null,
-  viewingStudent: null,
-  isViewingStudent: false,
-  isLoading: true,
-  refreshProfile: async () => {},
-  viewStudentAccount: async () => {},
-  returnToTeacherAccount: async () => {},
-  offlineSignIn: async () => {},
-});
+import { AuthContext } from '@features/auth/context';
+export type { AuthContextType } from '@features/auth/context';
+export { useAuth } from '@features/auth/context';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
@@ -155,6 +134,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
