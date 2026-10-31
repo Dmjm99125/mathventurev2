@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import { isAuthReadyForData } from '@/lib/auth/session-state';
+import { isAuthReadyForData } from '@features/auth/model/session-state';
 import { api } from '@/lib/api/client';
 import type { TeacherReportsWindowKey } from '@/lib/teacher/reports';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';

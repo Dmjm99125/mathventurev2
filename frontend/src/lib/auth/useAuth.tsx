@@ -13,7 +13,7 @@ import {
   viewStudentAccount as openStudentAccount,
 } from './auth';
 import { profileFromAuthSession, type UserProfile } from './profile';
-import { buildAuthViewState } from './session-state';
+import { buildAuthViewState } from '@features/auth/model/session-state';
 import { loadAuthSession } from '@features/auth/session/service';
 import { AuthContext } from '@features/auth/context';
 export type { AuthContextType } from '@features/auth/context';

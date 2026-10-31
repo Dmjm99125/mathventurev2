@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import { isAuthReadyForData } from '@/lib/auth/session-state';
+import { isAuthReadyForData } from '@features/auth/model/session-state';
 import { api } from '@/lib/api/client';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 import { createOfflinePost } from '@/lib/offline/classroom/mutations';
