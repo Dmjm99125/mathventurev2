@@ -35,6 +35,13 @@ import {
   readOfflinePosts,
 } from '../offline/classroom/reports';
 import { recordFreePlayCompletion } from '../offline/classroom/freePlay';
+import {
+  assignmentKeys,
+  classroomKeys,
+  dashboardKeys,
+  postKeys,
+  reportKeys,
+} from '@infrastructure/api/queryKeys';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -74,7 +81,7 @@ export function useClasses() {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['classes'],
+    queryKey: classroomKeys.all(),
     queryFn: async () => {
       if (user) {
         if (user.role === 'teacher') {
@@ -102,7 +109,7 @@ export function useTeacherClassroom(classId?: string) {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['classroom', 'teacher', classId ?? null],
+    queryKey: classroomKeys.teacher(classId ?? null),
     queryFn: async () => {
       if (!classId) return { classroom: null };
       if (user) {
@@ -124,7 +131,7 @@ export function useStudentClassroom() {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['classroom', 'student'],
+    queryKey: classroomKeys.student(),
     queryFn: async () => {
       if (user) {
         const cached = await readOfflineClassroom(repository, 'student');
@@ -146,7 +153,7 @@ export function useClassRoster(classId?: string) {
   const { repository } = useOfflineClassroom();
 
   return useInfiniteQuery({
-    queryKey: ['classroom', 'roster', classId ?? null],
+    queryKey: classroomKeys.roster(classId ?? null),
     queryFn: async ({ pageParam }) => {
       const cached = await readOfflineRoster(repository, classId);
       if (cached.students.length || browserIsOffline()) return cached;
@@ -163,7 +170,7 @@ export function useClassRosterStudent(classId?: string, studentId?: string | nul
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['classroom', 'roster', classId ?? null, 'student', studentId],
+    queryKey: classroomKeys.rosterStudent(classId ?? null, studentId),
     queryFn: async () => {
       const cached = (await readOfflineRoster(repository, classId)).students.filter((student) => student.id === studentId);
       if (cached.length || browserIsOffline()) return { students: cached, page: { nextCursor: null, hasMore: false } };
@@ -178,7 +185,7 @@ export function useAssignments(classId?: string) {
   const { repository } = useOfflineClassroom();
 
   return useInfiniteQuery({
-    queryKey: ['assignments', classId],
+    queryKey: assignmentKeys.list(classId),
     queryFn: async ({ pageParam }) => {
       const cached = await readOfflineAssignments(repository, classId, user?.role === 'student' ? user.id : null);
       if (cached.length || browserIsOffline()) return { assignments: cached, page: { nextCursor: null, hasMore: false } };
@@ -195,7 +202,7 @@ export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['assignment-quiz', assignmentId, lessonId],
+    queryKey: assignmentKeys.quiz(assignmentId, lessonId),
     queryFn: async () => {
       if (user) {
         const state = await readOfflineAssignmentQuiz(repository, user.id, assignmentId!, lessonId!);
@@ -221,8 +228,8 @@ export function useStartAssignmentQuiz() {
       return api.assignmentQuiz.start(assignmentId, lessonId);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
-      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.quiz(variables.assignmentId, variables.lessonId) });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
     },
   });
 }
@@ -250,7 +257,7 @@ export function useCheckpointAssignmentQuiz() {
       return api.assignmentQuiz.checkpoint(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.quiz(variables.assignmentId, variables.lessonId) });
     },
   });
 }
@@ -278,9 +285,9 @@ export function useCompleteAssignmentQuiz() {
       return api.assignmentQuiz.complete(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assignment-quiz', variables.assignmentId, variables.lessonId] });
-      queryClient.invalidateQueries({ queryKey: ['assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'student'] });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.quiz(variables.assignmentId, variables.lessonId) });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.student() });
     },
   });
 }
@@ -290,7 +297,7 @@ export function useStudentDashboard() {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['dashboard', 'student'],
+    queryKey: dashboardKeys.student(),
     queryFn: async () => {
       const attempts = await repository.readCollection('attempts');
       if (attempts.length || browserIsOffline()) return buildOfflineStudentDashboard(attempts);
@@ -305,7 +312,7 @@ export function useTeacherDashboard() {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['dashboard', 'teacher'],
+    queryKey: dashboardKeys.teacher(),
     queryFn: async () => {
       const [classrooms, students, attempts] = await Promise.all([
         repository.readCollection('classrooms'),
@@ -324,7 +331,7 @@ export function useTeacherReportsOverview(classId: string, window: TeacherReport
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'overview', classId, window, studentCursor ?? null],
+    queryKey: reportKeys.overview(classId, window, studentCursor ?? null),
     queryFn: async () => {
       const [classrooms, students, gameResults] = await Promise.all([
           repository.readCollection('classrooms'),
@@ -351,7 +358,7 @@ export function useTeacherClassReport(classId: string, window: TeacherReportsWin
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['teacher-reports', 'class', classId, window, studentCursor ?? null],
+    queryKey: reportKeys.class(classId, window, studentCursor ?? null),
     queryFn: async () => {
       const [classrooms, students, gameResults] = await Promise.all([
           repository.readCollection('classrooms'),
@@ -376,9 +383,9 @@ export function useCreateClass() {
       return api.classes.create(name);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher'] });
-      queryClient.invalidateQueries({ queryKey: ['classes'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.teacher() });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
       void bootstrapNow().catch(() => {});
     },
   });
@@ -393,9 +400,9 @@ export function useUpdateClass() {
       return api.classes.update(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['classes'] });
-      queryClient.invalidateQueries({ queryKey: ['classroom', 'teacher', variables.classId] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.teacher(variables.classId) });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
       void bootstrapNow().catch(() => {});
     },
   });
@@ -406,8 +413,8 @@ export function useJoinClass() {
   return useMutation({
     mutationFn: (joinCode: string) => api.classes.join(joinCode),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classroom', 'student'] });
-      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.student() });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
     },
   });
 }
@@ -426,8 +433,8 @@ export function useCreateAssignment() {
       return api.assignments.create(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assignments', variables.classId] });
-      queryClient.invalidateQueries({ queryKey: ['assignments', undefined] });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.list(variables.classId) });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.list() });
     },
   });
 }
@@ -446,9 +453,9 @@ export function useUpdateAssignment() {
       return api.assignments.update(input);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
     },
   });
 }
@@ -467,9 +474,9 @@ export function useDeleteAssignment() {
       return api.assignments.delete(assignmentId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
     },
   });
 }
@@ -488,12 +495,12 @@ export function useRemoveStudentFromClass() {
       return api.classes.removeStudent(classId, studentId);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['classroom', 'roster'] });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
       if (variables.classId) {
-        queryClient.invalidateQueries({ queryKey: ['classes', variables.classId, 'roster'] });
+        queryClient.invalidateQueries({ queryKey: classroomKeys.classesRoster(variables.classId) });
       }
-      queryClient.invalidateQueries({ queryKey: ['classes'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
     },
   });
 }
@@ -520,15 +527,15 @@ export function useAddStudentsToClass() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['classroom', 'roster'],
+        queryKey: classroomKeys.roster(),
       });
       if (variables.classId) {
         queryClient.invalidateQueries({
-          queryKey: ['classes', variables.classId, 'roster'],
+          queryKey: classroomKeys.classesRoster(variables.classId),
         });
       }
-      queryClient.invalidateQueries({ queryKey: ['classes'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'teacher'] });
+      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
     },
   });
 }
@@ -556,8 +563,8 @@ export function useSubmitAttempt() {
       return api.attempts.submit(input);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'student'] });
-      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.student() });
+      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
     },
   });
 }
@@ -580,7 +587,7 @@ export function useClassPosts(classId: string) {
   const { repository } = useOfflineClassroom();
 
   return useQuery({
-    queryKey: ['posts', classId],
+    queryKey: postKeys.list(classId),
     queryFn: async () => {
       const posts = await readOfflinePosts(repository, classId);
       if (posts.length || browserIsOffline()) return { posts };
@@ -604,7 +611,7 @@ export function useCreatePost() {
       return api.posts.create(classId, content);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['posts', variables.classId] });
+      queryClient.invalidateQueries({ queryKey: postKeys.list(variables.classId) });
     },
   });
 }

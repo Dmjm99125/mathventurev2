@@ -1,5 +1,6 @@
 export const classroomKeys = {
   all: () => ['classes'] as const,
+  classesRoster: (classId: string) => ['classes', classId, 'roster'] as const,
   teacher: (classId?: string | null) =>
     classId === undefined ? (['classroom', 'teacher'] as const) : (['classroom', 'teacher', classId] as const),
   student: () => ['classroom', 'student'] as const,
@@ -10,8 +11,9 @@ export const classroomKeys = {
 };
 
 export const assignmentKeys = {
+  all: () => ['assignments'] as const,
   list: (classId?: string) => ['assignments', classId] as const,
-  quiz: (assignmentId: string, lessonId: string) =>
+  quiz: (assignmentId?: string, lessonId?: string) =>
     ['assignment-quiz', assignmentId, lessonId] as const,
 };
 
