@@ -1,0 +1,46 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/auth';
+import { isAuthReadyForData } from '@/lib/auth/session-state';
+import { api } from '@/lib/api/client';
+import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
+import { createOfflinePost } from '@/lib/offline/classroom/mutations';
+import { readOfflinePosts } from '@/lib/offline/classroom/reports';
+import { postKeys } from '@infrastructure/api/queryKeys';
+
+function browserIsOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
+
+export function useClassPosts(classId: string) {
+  const { user, isLoading } = useAuth();
+  const { repository } = useOfflineClassroom();
+
+  return useQuery({
+    queryKey: postKeys.list(classId),
+    queryFn: async () => {
+      const posts = await readOfflinePosts(repository, classId);
+      if (posts.length || browserIsOffline()) return { posts };
+      return api.posts.list(classId);
+    },
+    enabled: !!classId && isAuthReadyForData(isLoading, user),
+  });
+}
+
+export function useCreatePost() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { repository, syncNow } = useOfflineClassroom();
+  return useMutation({
+    mutationFn: async ({ classId, content }: { classId: string, content: string }) => {
+      if (user) {
+        const result = await createOfflinePost(repository, user.id, { classId, content });
+        if (!browserIsOffline()) void syncNow();
+        return { post: { id: result.id, classId, content }, syncState: result.syncState };
+      }
+      return api.posts.create(classId, content);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: postKeys.list(variables.classId) });
+    },
+  });
+}
