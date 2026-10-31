@@ -13,6 +13,7 @@ vi.mock('./settings', () => ({ TeacherSettingsPage: () => null }));
 vi.mock('./classes', () => ({ TeacherClassesPage: () => null }));
 vi.mock('./assignments', () => ({ TeacherAssignmentsPage: () => null }));
 vi.mock('./reports', () => ({ TeacherReportsPage: () => null }));
+vi.mock('./today', () => ({ TeacherTodayPage: () => null }));
 
 import {
   TeacherAssignmentsPage,
