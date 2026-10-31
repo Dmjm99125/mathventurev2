@@ -39,4 +39,12 @@ describe('frontend architecture boundaries', () => {
     expect(source('components/teacher/TeacherClassCard.tsx'))
       .toContain("from '@features/teacher/model/classes'");
   });
+
+  it('keeps migrated public pages out of the legacy page facade', () => {
+    const publicPages = source('features/public-site/pages.ts');
+
+    expect(publicPages).not.toContain("from '@/pages/about'");
+    expect(publicPages).not.toContain("from '@/pages/landing'");
+    expect(publicPages).not.toContain("from '@/pages/not-found'");
+  });
 });
