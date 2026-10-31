@@ -45,10 +45,11 @@ vi.mock('@/components/layout', () => ({
   AppLayout: ({ children }: { children: unknown }) => <>{children}</>,
 }));
 
-vi.mock('@/pages/landing', () => ({ Landing: () => <Marker name="landing" /> }));
 vi.mock('@/pages/free-play', () => ({ FreePlay: () => <Marker name="free-play" /> }));
-vi.mock('@/pages/about', () => ({ About: () => <Marker name="about" /> }));
-vi.mock('@/pages/auth', () => ({
+vi.mock('@features/public-site/pages', () => ({
+  About: () => <Marker name="about" />,
+  Landing: () => <Marker name="landing" />,
+  NotFound: () => <Marker name="not-found" />,
   ForgotPassword: () => <Marker name="forgot-password" />,
   Login: () => <Marker name="login" />,
   PasswordReset: () => <Marker name="reset-password" />,
@@ -68,7 +69,6 @@ vi.mock('@/pages/teacher', () => ({
   TeacherClassWorkspacePage: () => <Marker name="teacher-class-workspace" />,
 }));
 vi.mock('@/pages/QuizPage', () => ({ QuizPage: () => <Marker name="quiz" /> }));
-vi.mock('@/pages/not-found', () => ({ default: () => <Marker name="not-found" /> }));
 
 describe('application route contracts', () => {
   let App: ComponentType;

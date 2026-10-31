@@ -44,6 +44,7 @@ describe('frontend architecture boundaries', () => {
     const publicPages = source('features/public-site/pages.ts');
 
     expect(publicPages).not.toContain("from '@/pages/about'");
+    expect(publicPages).not.toContain("from '@/pages/auth'");
     expect(publicPages).not.toContain("from '@/pages/landing'");
     expect(publicPages).not.toContain("from '@/pages/not-found'");
   });
