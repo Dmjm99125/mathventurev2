@@ -8,7 +8,7 @@ import { LegacyLessonMenu } from '@/components/student/LegacyLessonMenu';
 import { StudentPortalLoading } from '@/components/student/StudentPortalLoading';
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
 import { StudentShell } from '@/components/student/StudentShell';
-import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@/lib/student/portal';
+import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@features/student/model/portal';
 import { useLanguage } from '@/lib/i18n/useLanguage';
 import { useAuth } from '@/lib/auth';
 
@@ -148,7 +148,7 @@ export function StudentLessons() {
               <Card 
                 key={topic} 
                 className={`relative p-5 cursor-pointer transition-all hover:-translate-y-2 border-2 ${theme.border} ${isCompleted ? 'bg-muted/10' : 'bg-card'}`}
-                onClick={() => setLocation(buildStudentLessonHref({ lessonId: topic as import('@/lib/student/portal').PortalTopicId, classId: singleClassId }))}
+                onClick={() => setLocation(buildStudentLessonHref({ lessonId: topic as import('@features/student/model/portal').PortalTopicId, classId: singleClassId }))}
               >
                 {isCompleted && (
                   <div className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-jungle-yellow text-white flex items-center justify-center shadow-sm">
@@ -273,7 +273,7 @@ export function StudentClassroomPage() {
                       onClick={() =>
                         setLocation(
                           buildStudentLessonHref({
-                            lessonId: a.lessonId as import('@/lib/student/portal').PortalTopicId,
+                            lessonId: a.lessonId as import('@features/student/model/portal').PortalTopicId,
                             assignmentId: a.id,
                             classId: classroom.id,
                             returnTo: 'class',
