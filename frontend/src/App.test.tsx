@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const mockSupabase = vi.hoisted(() => {
   const subscription = { unsubscribe: vi.fn() };
@@ -81,9 +81,15 @@ vi.mock('@/lib/offline/classroom/useOfflineClassroom', () => ({
 }));
 
 describe('application bootstrap', () => {
+  afterEach(() => {
+    cleanup();
+    window.history.pushState({}, '', '/');
+  });
+
   it('renders the public landing route when no session exists', async () => {
     const { default: App } = await import('./App');
 
+    window.history.pushState({}, '', '/');
     render(<App />);
 
     await waitFor(() => {
