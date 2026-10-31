@@ -12,6 +12,7 @@ import {
 import { classroomApi } from '@infrastructure/api/classroom';
 import { assignmentApi } from '@infrastructure/api/assignment';
 import { dashboardApi, reportApi } from '@infrastructure/api/dashboard-report';
+import { attemptApi, postApi } from '@infrastructure/api/attempt-post';
 export {
   invokeFunction,
   invokeTeacherFunction,
@@ -175,22 +176,9 @@ export const api = {
   classes: classroomApi,
   assignments: assignmentApi,
   assignmentQuiz: assignmentApi.quiz,
-  attempts: {
-    submit: (input: {
-      lessonId: string;
-      assignmentId?: string;
-      classId?: string;
-      score: number;
-      maxScore: number;
-      durationSeconds?: number;
-      gameResults?: AttemptGameResultInput[];
-    }) => invokeFunction<{ attempt: unknown }>('attempts-submit', { method: 'POST', body: input }),
-  },
+  attempts: attemptApi,
   dashboard: dashboardApi,
-  posts: {
-    list: (classId: string) => invokeFunction<{ posts: ClassPost[] }>('posts-list', { searchParams: { classId } }),
-    create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
-  },
+  posts: postApi,
   reports: reportApi,
 };
 
