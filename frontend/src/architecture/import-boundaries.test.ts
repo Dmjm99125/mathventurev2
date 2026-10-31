@@ -85,4 +85,9 @@ describe('frontend architecture boundaries', () => {
     expect(source('features/teacher/pages.ts')).not.toContain('TeacherStudentsPage } from \'@/pages/teacher\'');
     expect(source('features/teacher/students.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
   });
+
+  it('keeps the teacher route composition out of the legacy page facade', () => {
+    expect(source('features/teacher/pages.ts')).not.toContain("from '@/pages/teacher'");
+    expect(source('features/teacher/workspace.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
+  });
 });
