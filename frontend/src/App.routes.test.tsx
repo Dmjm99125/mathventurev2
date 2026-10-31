@@ -59,7 +59,7 @@ vi.mock('@features/student/pages', () => ({
   StudentDashboard: () => <Marker name="student-dashboard" />,
   StudentClassroomPage: () => <Marker name="student-classroom" />,
 }));
-vi.mock('@/pages/teacher', () => ({
+vi.mock('@features/teacher/pages', () => ({
   TeacherTodayPage: () => <Marker name="teacher-today" />,
   TeacherStudentsPage: () => <Marker name="teacher-students" />,
   TeacherAssignmentsPage: () => <Marker name="teacher-assignments" />,

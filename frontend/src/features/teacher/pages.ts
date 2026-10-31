@@ -3,7 +3,7 @@ export {
   TeacherClassesPage,
   TeacherClassWorkspacePage,
   TeacherReportsPage,
-  TeacherSettingsPage,
   TeacherStudentsPage,
   TeacherTodayPage,
 } from '@/pages/teacher';
+export { TeacherSettingsPage } from './settings';

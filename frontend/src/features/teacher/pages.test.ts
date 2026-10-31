@@ -9,6 +9,7 @@ vi.mock('@/pages/teacher', () => ({
   TeacherStudentsPage: () => null,
   TeacherTodayPage: () => null,
 }));
+vi.mock('./settings', () => ({ TeacherSettingsPage: () => null }));
 
 import {
   TeacherAssignmentsPage,
