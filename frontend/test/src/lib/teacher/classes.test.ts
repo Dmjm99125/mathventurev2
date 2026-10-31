@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert';
-import { isArchivedClass, splitTeacherClasses, teacherClassPath } from '../../../../src/lib/teacher/classes.ts';
+import { isArchivedClass, splitTeacherClasses, teacherClassPath } from '../../../../src/features/teacher/model/classes.ts';
 
 Deno.test('teacher class paths keep the selected class in every workspace route', () => {
   assertEquals(teacherClassPath('class/one'), '/teacher/classes/class%2Fone');

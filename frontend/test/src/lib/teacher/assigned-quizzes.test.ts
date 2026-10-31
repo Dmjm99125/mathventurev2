@@ -3,7 +3,7 @@ import type { AssignmentForTeacher, TeacherClassStudent } from "../../../../src/
 import {
   buildTeacherAssignedQuizzes,
   getTeacherAssignedQuizName,
-} from "../../../../src/lib/teacher/assigned-quizzes.ts";
+} from "../../../../src/features/teacher/model/assignments.ts";
 
 const students: TeacherClassStudent[] = [
   {

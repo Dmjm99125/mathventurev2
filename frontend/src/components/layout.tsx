@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@features/i18n/context';
 import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student/navigation';
-import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@/lib/teacher/navigation';
+import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@features/teacher/model/navigation';
 import { signOut } from '@/lib/auth';
 import { Button, Input } from './ui';
 import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, User, ClipboardList, BarChart3 } from 'lucide-react';

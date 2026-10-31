@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import type { AssignmentForTeacher, TeacherClassStudent } from "../../../../src/lib/api/client.ts";
-import { buildTeacherAssignedQuizzes } from "../../../../src/lib/teacher/assigned-quizzes.ts";
+import { buildTeacherAssignedQuizzes } from "../../../../src/features/teacher/model/assignments.ts";
 import { buildTeacherAssignedQuizPdfModel } from "../../../../src/lib/teacher/assigned-quizzes-pdf.ts";
 
 const assignment: AssignmentForTeacher = {

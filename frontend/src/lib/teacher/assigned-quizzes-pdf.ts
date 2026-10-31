@@ -1,5 +1,5 @@
 import { GAME_CATALOG } from '@/lib/games/catalog';
-import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
+import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@features/teacher/model/assignments';
 
 export type TeacherAssignedQuizPdfStudentSection = {
   studentName: string;

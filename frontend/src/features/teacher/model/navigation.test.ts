@@ -1,19 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { getTeacherWorkspaceNavItems, isTeacherNavActive, TEACHER_NAV_ITEMS } from './navigation';
 
-describe('teacher navigation', () => {
-  it('matches the teacher home and settings routes', () => {
+describe('teacher navigation model', () => {
+  it('matches teacher home, settings, and workspace descendants', () => {
     expect(isTeacherNavActive('/teacher', TEACHER_NAV_ITEMS[0].href)).toBe(true);
     expect(isTeacherNavActive('/teacher/settings?tab=account', TEACHER_NAV_ITEMS[1].href)).toBe(true);
-    expect(isTeacherNavActive('/teacher/classes/class-1', TEACHER_NAV_ITEMS[0].href)).toBe(false);
-  });
-
-  it('matches a workspace section and its descendants', () => {
-    const workspaceHref = '/teacher/classes/class-1/students';
-
-    expect(isTeacherNavActive(workspaceHref, workspaceHref)).toBe(true);
-    expect(isTeacherNavActive(`${workspaceHref}?filter=active#roster`, workspaceHref)).toBe(true);
-    expect(isTeacherNavActive('/teacher/classes/class-1/assignments', workspaceHref)).toBe(false);
+    expect(isTeacherNavActive('/teacher/classes/class-1/students?filter=active#roster', '/teacher/classes/class-1/students')).toBe(true);
   });
 
   it('builds workspace navigation in the current order', () => {

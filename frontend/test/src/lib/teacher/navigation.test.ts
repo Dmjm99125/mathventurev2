@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { getTeacherWorkspaceNavItems, TEACHER_NAV_ITEMS, isTeacherNavActive } from "../../../../src/lib/teacher/navigation.ts";
+import { getTeacherWorkspaceNavItems, TEACHER_NAV_ITEMS, isTeacherNavActive } from "../../../../src/features/teacher/model/navigation.ts";
 
 Deno.test("teacher nav exposes one canonical route per feature", () => {
   assertEquals(TEACHER_NAV_ITEMS, [

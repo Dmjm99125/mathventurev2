@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui';
 import { useAuth, signOut } from '@/lib/auth';
 import { useLanguage } from '@features/i18n/context';
-import { TEACHER_NAV_ITEMS, getTeacherWorkspaceNavItems, isTeacherNavActive } from '@/lib/teacher/navigation';
+import { TEACHER_NAV_ITEMS, getTeacherWorkspaceNavItems, isTeacherNavActive } from '@features/teacher/model/navigation';
 import { cn } from '@shared/utils';
 import { Menu, X } from 'lucide-react';
 
