@@ -3,7 +3,7 @@ import { Button, Card } from '@/components/ui';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
 import { TeacherClassCard } from './TeacherClassCard';
 import { TeacherClassManagementDialog } from './TeacherClassManagementDialog';
-import { useClasses, useCreateClass, useUpdateClass } from '@/lib/api/hooks';
+import { useClasses, useCreateClass, useUpdateClass } from '@features/classroom/api/hooks';
 import type { TeacherClassSummary } from '@/lib/api';
 import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
 

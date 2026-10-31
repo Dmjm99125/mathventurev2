@@ -97,8 +97,8 @@ import {
   useCompleteAssignmentQuiz,
   useStartAssignmentQuiz,
   useSubmitAttempt,
-  useRecordFreePlayCompletion,
-} from '@/lib/api/hooks';
+} from '@features/assignments/api/hooks';
+import { useRecordFreePlayCompletion } from '@features/progress/api/hooks';
 import {
   appendAttemptGameResult,
   buildAttemptGameResult,

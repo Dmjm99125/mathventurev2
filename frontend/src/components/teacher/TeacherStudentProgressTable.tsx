@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { TeacherClassStudent } from '@/lib/api';
-import { useClassRosterStudent } from '@/lib/api/hooks';
+import { useClassRosterStudent } from '@features/classroom/api/hooks';
 import { GAME_CATALOG } from '@/lib/games/catalog';
 
 function formatPct(value: number | null) {

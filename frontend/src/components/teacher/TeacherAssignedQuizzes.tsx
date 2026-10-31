@@ -14,7 +14,7 @@ import { TeacherAssignedQuizPdfButton } from '@/components/teacher/TeacherAssign
 import type { AssignmentQuizStatus } from '@/lib/api/client';
 import { GAME_CATALOG } from '@/lib/games/catalog';
 import { getTeacherAssignedQuizName, type TeacherAssignedQuiz } from '@/lib/teacher/assigned-quizzes';
-import { useDeleteAssignment, useUpdateAssignment } from '@/lib/api/hooks';
+import { useDeleteAssignment, useUpdateAssignment } from '@features/assignments/api/hooks';
 
 function formatScore(score: number | null, maxScore: number | null, scorePct: number | null) {
   return score == null || maxScore == null || scorePct == null

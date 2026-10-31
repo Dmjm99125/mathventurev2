@@ -1,11 +1,8 @@
 import { Button, Card } from '@/components/ui';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
-import {
-  useAssignments,
-  useClassRoster,
-  useTeacherClassroom,
-  useTeacherReportsOverview,
-} from '@/lib/api/hooks';
+import { useAssignments } from '@features/assignments/api/hooks';
+import { useClassRoster, useTeacherClassroom } from '@features/classroom/api/hooks';
+import { useTeacherReportsOverview } from '@features/reports/api/hooks';
 import type { AssignmentForTeacher, TeacherClassroomSummary } from '@/lib/api';
 import { TeacherAttentionRail } from './TeacherAttentionRail';
 import { TeacherClassroomSnapshot } from './TeacherClassroomSnapshot';

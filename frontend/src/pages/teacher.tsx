@@ -25,13 +25,13 @@ import { TeacherAssignedQuizzes } from '@/components/teacher/TeacherAssignedQuiz
 import { TeacherAssignQuizDialog } from '@/components/teacher/TeacherAssignQuizDialog';
 import { TeacherToday } from '@/components/teacher/TeacherToday';
 import { changeTeacherPassword, useAuth, signOut } from '@/lib/auth';
+import { useAssignments } from '@features/assignments/api/hooks';
 import {
-  useAssignments,
   useClassRoster,
   useRemoveStudentFromClass,
   useTeacherClassroom,
-  useTeacherReportsOverview,
-} from '@/lib/api/hooks';
+} from '@features/classroom/api/hooks';
+import { useTeacherReportsOverview } from '@features/reports/api/hooks';
 import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 import { buildTeacherAssignedQuizzes } from '@/lib/teacher/assigned-quizzes';

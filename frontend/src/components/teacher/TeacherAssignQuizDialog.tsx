@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { LEGACY_TOPIC_META } from '@features/student/model/portal';
-import { useCreateAssignment } from '@/lib/api/hooks';
+import { useCreateAssignment } from '@features/assignments/api/hooks';
 
 export function TeacherAssignQuizDialog({
   open,

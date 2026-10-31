@@ -1,5 +1,8 @@
 import { useLocation } from 'wouter';
-import { useStudentDashboard, useAssignments, useClasses, useStudentClassroom, useClassPosts } from '@/lib/api/hooks';
+import { useStudentDashboard } from '@features/dashboard/api/hooks';
+import { useAssignments } from '@features/assignments/api/hooks';
+import { useClasses, useStudentClassroom } from '@features/classroom/api/hooks';
+import { useClassPosts } from '@features/posts/api/hooks';
 import { Card, Button, Badge } from '@/components/ui';
 import { Play, CheckCircle2, MessageSquare, BookOpen, ArrowLeft } from 'lucide-react';
 import type { AssignmentForStudent, StudentClassSummary, StudentClassroomSummary } from '@/lib/api';

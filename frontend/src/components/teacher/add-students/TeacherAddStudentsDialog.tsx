@@ -14,7 +14,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useAddStudentsToClass } from '@/lib/api/hooks';
+import { useAddStudentsToClass } from '@features/classroom/api/hooks';
 import {
   createInitialTeacherAddStudentsFlowState,
   teacherAddStudentsFlowReducer,
