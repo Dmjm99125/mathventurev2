@@ -11,6 +11,7 @@ import {
 } from '@infrastructure/api/transport';
 import { classroomApi } from '@infrastructure/api/classroom';
 import { assignmentApi } from '@infrastructure/api/assignment';
+import { dashboardApi, reportApi } from '@infrastructure/api/dashboard-report';
 export {
   invokeFunction,
   invokeTeacherFunction,
@@ -185,33 +186,11 @@ export const api = {
       gameResults?: AttemptGameResultInput[];
     }) => invokeFunction<{ attempt: unknown }>('attempts-submit', { method: 'POST', body: input }),
   },
-  dashboard: {
-    student: () => invokeFunction<StudentDashboard>('dashboard-student'),
-    teacher: () => invokeFunction<TeacherDashboard>('dashboard-teacher'),
-  },
+  dashboard: dashboardApi,
   posts: {
     list: (classId: string) => invokeFunction<{ posts: ClassPost[] }>('posts-list', { searchParams: { classId } }),
     create: (classId: string, content: string) => invokeFunction<{ post: ClassPost }>('posts-create', { method: 'POST', body: { classId, content } }),
   },
-  reports: {
-    overview: (classId: string, window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
-      invokeFunction<TeacherSingleClassroomReportPayload>('reports-overview', {
-        searchParams: {
-          classId,
-          window,
-          ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
-          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
-        },
-      }),
-    classDetail: (classId: string, window: TeacherReportsWindowKey, options?: { studentCursor?: string | null; pageSize?: number }) =>
-      invokeFunction<TeacherSingleClassroomReportPayload>('reports-class', {
-        searchParams: {
-          classId,
-          window,
-          ...(options?.studentCursor ? { cursor: options.studentCursor } : {}),
-          ...(options?.pageSize ? { pageSize: String(options.pageSize) } : {}),
-        },
-      }),
-  },
+  reports: reportApi,
 };
 
