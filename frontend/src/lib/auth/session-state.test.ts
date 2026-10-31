@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildAuthViewState, isAuthReadyForData } from './session-state';
+import { buildAuthViewState, isAuthReadyForData } from '@features/auth/model/session-state';
 import { profileFromAuthSession } from './profile';
 
 const teacher = { id: 'teacher-1', role: 'teacher' as const, full_name: 'Ana Teacher' };
