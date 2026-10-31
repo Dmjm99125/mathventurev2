@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 
-const source = await Deno.readTextFile(new URL("../../../src/pages/auth.tsx", import.meta.url));
+const source = await Deno.readTextFile(new URL("../../../src/features/public-site/auth.tsx", import.meta.url));
 
 Deno.test("login exposes only teacher credentials", () => {
   assertEquals(source.includes("studentSignIn"), false);

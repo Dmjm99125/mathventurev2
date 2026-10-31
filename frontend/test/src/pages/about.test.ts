@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 
 const aboutSource = await Deno.readTextFile(
-  new URL("../../../src/pages/about.tsx", import.meta.url),
+  new URL("../../../src/features/public-site/about.tsx", import.meta.url),
 );
 
 Deno.test("About The Researchers exposes legacy and current repository links", () => {

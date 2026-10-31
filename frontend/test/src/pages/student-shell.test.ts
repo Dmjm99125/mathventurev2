@@ -1,7 +1,10 @@
 import { assertEquals } from "jsr:@std/assert";
 
 const appSource = await Deno.readTextFile(new URL("../../../src/App.tsx", import.meta.url));
-const pageSource = await Deno.readTextFile(new URL("../../../src/pages/student.tsx", import.meta.url));
+const pageSource = (await Promise.all([
+  "dashboard.tsx",
+  "classroom.tsx",
+].map((file) => Deno.readTextFile(new URL(`../../../src/features/student/${file}`, import.meta.url))))).join("\n");
 const loadingSource = await Deno.readTextFile(new URL("../../../src/components/student/StudentPortalLoading.tsx", import.meta.url));
 const languageSource = await Deno.readTextFile(new URL("../../../src/lib/i18n/useLanguage.tsx", import.meta.url));
 const styleSource = [

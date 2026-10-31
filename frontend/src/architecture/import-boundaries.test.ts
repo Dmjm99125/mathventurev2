@@ -47,10 +47,15 @@ describe('frontend architecture boundaries', () => {
     expect(publicPages).not.toContain("from '@/pages/auth'");
     expect(publicPages).not.toContain("from '@/pages/landing'");
     expect(publicPages).not.toContain("from '@/pages/not-found'");
+    expect(existsSync(resolve(process.cwd(), 'src/pages/about.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/pages/auth.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/pages/landing.tsx'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/pages/not-found.tsx'))).toBe(false);
   });
 
   it('keeps student portal routes out of the legacy student page facade', () => {
     expect(source('features/student/pages.ts')).not.toContain("from '@/pages/student'");
+    expect(existsSync(resolve(process.cwd(), 'src/pages/student.tsx'))).toBe(false);
     expect(source('features/student/dashboard.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
     expect(source('features/student/classroom.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
   });
