@@ -54,4 +54,9 @@ describe('frontend architecture boundaries', () => {
     expect(source('features/student/dashboard.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
     expect(source('features/student/classroom.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
   });
+
+  it('keeps teacher settings out of the legacy teacher page facade', () => {
+    expect(source('features/teacher/pages.ts')).not.toContain('TeacherSettingsPage } from \'@/pages/teacher\'');
+    expect(source('features/teacher/settings.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
+  });
 });
