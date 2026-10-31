@@ -29,9 +29,7 @@ import {
 } from '../offline/classroom/quiz';
 import { readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster, readOfflineAssignments } from '../offline/classroom/queries';
 import {
-  buildOfflineStudentDashboard,
   buildOfflineTeacherClassReport,
-  buildOfflineTeacherDashboard,
   readOfflinePosts,
 } from '../offline/classroom/reports';
 import { recordFreePlayCompletion } from '../offline/classroom/freePlay';
@@ -42,6 +40,11 @@ import {
   postKeys,
   reportKeys,
 } from '@infrastructure/api/queryKeys';
+
+export {
+  useStudentDashboard,
+  useTeacherDashboard,
+} from '@features/dashboard/api/hooks';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -289,40 +292,6 @@ export function useCompleteAssignmentQuiz() {
       queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.student() });
     },
-  });
-}
-
-export function useStudentDashboard() {
-  const { user, isLoading } = useAuth();
-  const { repository } = useOfflineClassroom();
-
-  return useQuery({
-    queryKey: dashboardKeys.student(),
-    queryFn: async () => {
-      const attempts = await repository.readCollection('attempts');
-      if (attempts.length || browserIsOffline()) return buildOfflineStudentDashboard(attempts);
-      return api.dashboard.student();
-    },
-    enabled: isAuthReadyForData(isLoading, user),
-  });
-}
-
-export function useTeacherDashboard() {
-  const { user, isLoading } = useAuth();
-  const { repository } = useOfflineClassroom();
-
-  return useQuery({
-    queryKey: dashboardKeys.teacher(),
-    queryFn: async () => {
-      const [classrooms, students, attempts] = await Promise.all([
-        repository.readCollection('classrooms'),
-        repository.readCollection('classStudents'),
-        repository.readCollection('attempts'),
-      ]);
-      if (classrooms.length || browserIsOffline()) return buildOfflineTeacherDashboard(classrooms, students, attempts);
-      return api.dashboard.teacher();
-    },
-    enabled: isAuthReadyForData(isLoading, user),
   });
 }
 
