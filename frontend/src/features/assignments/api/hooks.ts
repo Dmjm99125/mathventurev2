@@ -17,6 +17,14 @@ import {
 } from '@/lib/offline/classroom/quiz';
 import { readOfflineAssignments } from '@/lib/offline/classroom/queries';
 import { assignmentKeys, classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
+import {
+  invalidateAssignmentChanged,
+  invalidateAssignmentCheckpointed,
+  invalidateAssignmentCompleted,
+  invalidateAssignmentCreated,
+  invalidateAssignmentStarted,
+  invalidateAttemptSubmitted,
+} from '@infrastructure/api/invalidation';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -70,8 +78,7 @@ export function useStartAssignmentQuiz() {
       return api.assignmentQuiz.start(assignmentId, lessonId);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.quiz(variables.assignmentId, variables.lessonId) });
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
+      invalidateAssignmentStarted(queryClient, variables.assignmentId, variables.lessonId);
     },
   });
 }
@@ -99,7 +106,7 @@ export function useCheckpointAssignmentQuiz() {
       return api.assignmentQuiz.checkpoint(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.quiz(variables.assignmentId, variables.lessonId) });
+      invalidateAssignmentCheckpointed(queryClient, variables.assignmentId, variables.lessonId);
     },
   });
 }
@@ -127,9 +134,7 @@ export function useCompleteAssignmentQuiz() {
       return api.assignmentQuiz.complete(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.quiz(variables.assignmentId, variables.lessonId) });
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.student() });
+      invalidateAssignmentCompleted(queryClient, variables.assignmentId, variables.lessonId);
     },
   });
 }
@@ -148,8 +153,7 @@ export function useCreateAssignment() {
       return api.assignments.create(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.list(variables.classId) });
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.list() });
+      invalidateAssignmentCreated(queryClient, variables.classId);
     },
   });
 }
@@ -168,9 +172,7 @@ export function useUpdateAssignment() {
       return api.assignments.update(input);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
+      invalidateAssignmentChanged(queryClient);
     },
   });
 }
@@ -189,9 +191,7 @@ export function useDeleteAssignment() {
       return api.assignments.delete(assignmentId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
+      invalidateAssignmentChanged(queryClient);
     },
   });
 }
@@ -219,8 +219,7 @@ export function useSubmitAttempt() {
       return api.attempts.submit(input);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.student() });
-      queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
+      invalidateAttemptSubmitted(queryClient);
     },
   });
 }

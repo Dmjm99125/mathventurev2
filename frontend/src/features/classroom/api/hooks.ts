@@ -17,6 +17,12 @@ import {
 } from '@/lib/offline/classroom/mutations';
 import { readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster } from '@/lib/offline/classroom/queries';
 import { classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
+import {
+  invalidateClassChanged,
+  invalidateClassCreated,
+  invalidateRosterChanged,
+  invalidateStudentJoined,
+} from '@infrastructure/api/invalidation';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -163,9 +169,7 @@ export function useCreateClass() {
       return api.classes.create(name);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: classroomKeys.teacher() });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
+      invalidateClassCreated(queryClient);
       void bootstrapNow().catch(() => {});
     },
   });
@@ -180,9 +184,7 @@ export function useUpdateClass() {
       return api.classes.update(input);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.teacher(variables.classId) });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
+      invalidateClassChanged(queryClient, variables.classId);
       void bootstrapNow().catch(() => {});
     },
   });
@@ -193,8 +195,7 @@ export function useJoinClass() {
   return useMutation({
     mutationFn: (joinCode: string) => api.classes.join(joinCode),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: classroomKeys.student() });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
+      invalidateStudentJoined(queryClient);
     },
   });
 }
@@ -213,10 +214,7 @@ export function useRemoveStudentFromClass() {
       return api.classes.removeStudent(classId, studentId);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
-      if (variables.classId) queryClient.invalidateQueries({ queryKey: classroomKeys.classesRoster(variables.classId) });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
+      invalidateRosterChanged(queryClient, variables.classId);
     },
   });
 }
@@ -236,10 +234,7 @@ export function useAddStudentsToClass() {
       return api.classes.addStudents(classId, students);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: classroomKeys.roster() });
-      if (variables.classId) queryClient.invalidateQueries({ queryKey: classroomKeys.classesRoster(variables.classId) });
-      queryClient.invalidateQueries({ queryKey: classroomKeys.all() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.teacher() });
+      invalidateRosterChanged(queryClient, variables.classId);
     },
   });
 }

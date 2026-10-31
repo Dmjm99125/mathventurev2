@@ -6,6 +6,7 @@ import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom
 import { createOfflinePost } from '@/lib/offline/classroom/mutations';
 import { readOfflinePosts } from '@/lib/offline/classroom/reports';
 import { postKeys } from '@infrastructure/api/queryKeys';
+import { invalidatePostCreated } from '@infrastructure/api/invalidation';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -40,7 +41,7 @@ export function useCreatePost() {
       return api.posts.create(classId, content);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: postKeys.list(variables.classId) });
+      invalidatePostCreated(queryClient, variables.classId);
     },
   });
 }
