@@ -3,7 +3,7 @@ import { useRoute, useSearch, useLocation } from 'wouter';
 import { allTopics } from '@/data';
 import { GAME_COUNT_BY_TOPIC, type TeacherTopicId } from '@/lib/games/catalog';
 
-import { lessonContent } from '@/data/lessonContent';
+import { lessonContent } from '@content/lessonContent';
 import { GameLayout } from '@/components/GameLayout';
 import { DepEdThemeTable } from '@/components/DepEdThemeTable';
 import { LessonSlideCard } from '@/components/LessonSlideCard';
@@ -108,7 +108,7 @@ import { buildStudentLessonExitHref } from '@/lib/student/portal';
 import { getFreePlayGameCount, isDrawingBoardAvailable } from '@/lib/games/free-play';
 import { useAuth } from '@/lib/auth';
 import { shouldRecordStandaloneAttempt } from '@/lib/quiz/recording';
-import { DEPED_THEMES } from '@/data/depedThemes';
+import { DEPED_THEMES } from '@content/depedThemes';
 
 type GameState = 'theme' | 'video' | 'lesson' | 'quiz-intro' | 'playing' | 'feedback' | 'completed';
 

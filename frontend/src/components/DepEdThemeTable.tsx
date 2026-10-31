@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui';
-import type { DepEdTheme } from '@/data/depedThemes';
+import type { DepEdTheme } from '@content/depedThemes';
 
 interface DepEdThemeTableProps {
   theme?: DepEdTheme;

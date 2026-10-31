@@ -1,4 +1,4 @@
-import type { LessonSlide } from '@/data/lessonContent';
+import type { LessonSlide } from '@content/lessonContent';
 import { AudioButton } from '@/components/AudioButton';
 import { Card } from '@/components/ui';
 
