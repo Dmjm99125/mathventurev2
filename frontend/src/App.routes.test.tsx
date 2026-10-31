@@ -55,7 +55,7 @@ vi.mock('@features/public-site/pages', () => ({
   PasswordReset: () => <Marker name="reset-password" />,
   Signup: () => <Marker name="signup" />,
 }));
-vi.mock('@/pages/student', () => ({
+vi.mock('@features/student/pages', () => ({
   StudentDashboard: () => <Marker name="student-dashboard" />,
   StudentClassroomPage: () => <Marker name="student-classroom" />,
 }));

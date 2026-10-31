@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/pages/student', () => ({
+vi.mock('./classroom', () => ({
   StudentClassroomPage: () => null,
+}));
+vi.mock('./dashboard', () => ({
   StudentDashboard: () => null,
 }));
 

@@ -1,4 +1,2 @@
-export {
-  StudentClassroomPage,
-  StudentDashboard,
-} from '@/pages/student';
+export { StudentClassroomPage } from './classroom';
+export { StudentDashboard } from './dashboard';
