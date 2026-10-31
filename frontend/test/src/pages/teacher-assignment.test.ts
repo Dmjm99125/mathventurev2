@@ -1,6 +1,6 @@
 import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
 
-const teacherPage = await Deno.readTextFile(new URL("../../../src/pages/teacher.tsx", import.meta.url));
+const teacherPage = await Deno.readTextFile(new URL("../../../src/features/teacher/assignments.tsx", import.meta.url));
 const assignmentDialog = await Deno.readTextFile(new URL("../../../src/components/teacher/TeacherAssignQuizDialog.tsx", import.meta.url));
 const assignedQuizzes = await Deno.readTextFile(new URL("../../../src/components/teacher/TeacherAssignedQuizzes.tsx", import.meta.url));
 const teacherStyles = await Deno.readTextFile(new URL("../../../src/styles/teacher.css", import.meta.url));

@@ -32,8 +32,8 @@ describe('frontend architecture boundaries', () => {
   });
 
   it('keeps teacher view models behind the teacher feature boundary', () => {
-    expect(source('pages/teacher.tsx')).toContain("from '@features/teacher/model/assignments'");
-    expect(source('pages/teacher.tsx')).toContain("from '@features/teacher/model/classes'");
+    expect(source('features/teacher/assignments.tsx')).toContain("from '@features/teacher/model/assignments'");
+    expect(source('features/teacher/assignments.tsx')).toContain("from '@features/teacher/model/classes'");
     expect(source('components/teacher/TeacherAssignedQuizzes.tsx'))
       .toContain("from '@features/teacher/model/assignments'");
     expect(source('components/teacher/TeacherClassCard.tsx'))

@@ -1,6 +1,13 @@
 import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
 
-const page = await Deno.readTextFile(new URL("../../../src/pages/teacher.tsx", import.meta.url));
+const page = (await Promise.all([
+  "pages.ts",
+  "today.tsx",
+  "students.tsx",
+  "assignments.tsx",
+  "reports.tsx",
+  "settings.tsx",
+].map((file) => Deno.readTextFile(new URL(`../../../src/features/teacher/${file}`, import.meta.url))))).join("\n");
 const app = await Deno.readTextFile(new URL("../../../src/App.tsx", import.meta.url));
 
 Deno.test("teacher pages expose one owner per feature", () => {

@@ -1,6 +1,6 @@
 import { assert, assertStringIncludes } from "jsr:@std/assert";
 
-const page = await Deno.readTextFile(new URL("../../../src/pages/teacher.tsx", import.meta.url));
+const page = await Deno.readTextFile(new URL("../../../src/features/teacher/settings.tsx", import.meta.url));
 const summary = await Deno.readTextFile(new URL("../../../src/components/teacher/reports/TeacherReportsClassroomSummary.tsx", import.meta.url));
 const styles = [
   await Deno.readTextFile(new URL("../../../src/index.css", import.meta.url)),

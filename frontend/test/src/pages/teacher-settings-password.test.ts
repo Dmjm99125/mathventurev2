@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 
 const source = await Deno.readTextFile(
-  new URL("../../../src/pages/teacher.tsx", import.meta.url),
+  new URL("../../../src/features/teacher/settings.tsx", import.meta.url),
 );
 
 Deno.test("teacher settings exposes all password fields", () => {

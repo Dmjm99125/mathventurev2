@@ -1,14 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/pages/teacher', () => ({
-  TeacherAssignmentsPage: () => null,
-  TeacherClassesPage: () => null,
-  TeacherClassWorkspacePage: () => null,
-  TeacherReportsPage: () => null,
-  TeacherSettingsPage: () => null,
-  TeacherStudentsPage: () => null,
-  TeacherTodayPage: () => null,
-}));
 vi.mock('./settings', () => ({ TeacherSettingsPage: () => null }));
 vi.mock('./classes', () => ({ TeacherClassesPage: () => null }));
 vi.mock('./assignments', () => ({ TeacherAssignmentsPage: () => null }));
