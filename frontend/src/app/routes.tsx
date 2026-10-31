@@ -11,7 +11,7 @@ import {
 } from '@features/public-site/pages';
 import { FreePlay } from '@/pages/free-play';
 import { QuizPage } from '@/pages/QuizPage';
-import { StudentClassroomPage, StudentDashboard } from '@/pages/student';
+import { StudentClassroomPage, StudentDashboard } from '@features/student/pages';
 import {
   TeacherAssignmentsPage,
   TeacherClassesPage,
