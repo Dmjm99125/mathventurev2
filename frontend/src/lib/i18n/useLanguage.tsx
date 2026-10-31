@@ -1,12 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-type Language = 'en' | 'tl';
-
-type LanguageContextType = {
-  lang: Language;
-  setLang: (lang: Language) => void;
-  t: (key: string) => string;
-};
+import React, { useState, useEffect } from 'react';
+import { LanguageContext, type Language } from '@features/i18n/context';
+export { useLanguage } from '@features/i18n/context';
+export type { Language, LanguageContextType } from '@features/i18n/context';
 
 const translations = {
   en: {
@@ -181,12 +176,6 @@ const translations = {
   }
 };
 
-const LanguageContext = createContext<LanguageContextType>({
-  lang: 'en',
-  setLang: () => { },
-  t: () => '',
-});
-
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLang] = useState<Language>('en');
 
@@ -213,6 +202,3 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useLanguage() {
-  return useContext(LanguageContext);
-}
