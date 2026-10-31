@@ -12,6 +12,7 @@ import { StudentPortalLoading } from '@/components/student/StudentPortalLoading'
 import { StudentPortalRail } from '@/components/student/StudentPortalRail';
 import { StudentShell } from '@/components/student/StudentShell';
 import { buildPortalTopicEntries, buildStudentLessonHref, summarizePortalRail } from '@features/student/model/portal';
+import { mapStudentAssignments, mapStudentClassroom, mapStudentDashboard } from '@features/student/model/dto';
 import { useLanguage } from '@features/i18n/context';
 import { useAuth } from '@/lib/auth';
 
@@ -29,29 +30,19 @@ export function StudentDashboard() {
 
   const assignments = (assignmentsData?.pages.flatMap((page) => page.assignments) || []) as AssignmentForStudent[];
   const classroom = (classroomData?.classroom ?? null) as StudentClassroomSummary | null;
-  const dashboardSummary = dashboard ?? {
-    completedLessons: 0,
-    streakDays: 0,
-    recentAttempts: [],
-  };
+  const portalAssignments = mapStudentAssignments(assignments);
+  const portalClassroom = mapStudentClassroom(classroom);
+  const dashboardSummary = mapStudentDashboard(dashboard ?? null);
   const showDashboardNotice = Boolean(dashboardError || assignmentsError || classesError || !dashboard);
   const topics = buildPortalTopicEntries({
-    assignments,
-    classes: classroom
-      ? [{ id: classroom.id, name: 'Classroom', teacherName: classroom.teacherName }]
-      : [],
-    recentAttempts: dashboardSummary.recentAttempts || [],
+    assignments: portalAssignments,
+    classes: portalClassroom ? [portalClassroom] : [],
+    recentAttempts: dashboardSummary.recentAttempts,
   });
   const railSummary = summarizePortalRail({
-    assignments,
-    classroom: classroom
-      ? { id: classroom.id, name: 'Classroom', teacherName: classroom.teacherName }
-      : null,
-    dashboard: {
-      completedLessons: dashboardSummary.completedLessons,
-      streakDays: dashboardSummary.streakDays,
-      recentAttempts: dashboardSummary.recentAttempts || [],
-    },
+    assignments: portalAssignments,
+    classroom: portalClassroom,
+    dashboard: dashboardSummary,
   });
   const highlightedLessonId =
     railSummary.nextAction.kind === 'assignment' ? railSummary.nextAction.lessonId : null;
