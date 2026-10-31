@@ -1,7 +1,7 @@
 import {
   isFreePlayMediaManifest,
   type FreePlayMediaManifest,
-} from './mediaManifest';
+} from '@infrastructure/offline/mediaManifest';
 import type { MediaDownloadStatus } from '@/pwa/mediaCache';
 import type { FreePlayOfflineClient, OfflineStatusListener } from './freePlayOfflineClient';
 

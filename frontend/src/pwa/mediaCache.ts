@@ -1,7 +1,7 @@
 import type {
   FreePlayMediaManifest,
   FreePlayMediaManifestEntry,
-} from '@/lib/offline/mediaManifest';
+} from '@infrastructure/offline/mediaManifest';
 
 export type MediaDownloadState = 'not-downloaded' | 'downloading' | 'ready' | 'update-available' | 'error';
 

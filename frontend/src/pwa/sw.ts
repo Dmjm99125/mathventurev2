@@ -13,7 +13,7 @@ import {
   isFreePlayMediaManifest,
   isFreePlayMediaUrl,
   type FreePlayMediaManifest,
-} from '@/lib/offline/mediaManifest';
+} from '@infrastructure/offline/mediaManifest';
 import {
   MEDIA_MANIFEST_URL,
   MEDIA_METADATA_DB,
