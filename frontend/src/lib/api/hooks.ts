@@ -10,7 +10,6 @@ import {
   api,
 } from './client';
 import type { TeacherAddStudentDraft } from '../teacher/add-students';
-import type { TeacherReportsWindowKey } from '../teacher/reports';
 import { useOfflineClassroom } from '../offline/classroom/useOfflineClassroom';
 import {
   addOfflineStudents,
@@ -29,7 +28,6 @@ import {
 } from '../offline/classroom/quiz';
 import { readOfflineClassroom, readOfflineTeacherClasses, readOfflineRoster, readOfflineAssignments } from '../offline/classroom/queries';
 import {
-  buildOfflineTeacherClassReport,
   readOfflinePosts,
 } from '../offline/classroom/reports';
 import { recordFreePlayCompletion } from '../offline/classroom/freePlay';
@@ -38,13 +36,17 @@ import {
   classroomKeys,
   dashboardKeys,
   postKeys,
-  reportKeys,
 } from '@infrastructure/api/queryKeys';
 
 export {
   useStudentDashboard,
   useTeacherDashboard,
 } from '@features/dashboard/api/hooks';
+
+export {
+  useTeacherReportsOverview,
+  useTeacherClassReport,
+} from '@features/reports/api/hooks';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -292,54 +294,6 @@ export function useCompleteAssignmentQuiz() {
       queryClient.invalidateQueries({ queryKey: assignmentKeys.all() });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.student() });
     },
-  });
-}
-
-export function useTeacherReportsOverview(classId: string, window: TeacherReportsWindowKey, studentCursor?: string | null) {
-  const { user, isLoading } = useAuth();
-  const { repository } = useOfflineClassroom();
-
-  return useQuery({
-    queryKey: reportKeys.overview(classId, window, studentCursor ?? null),
-    queryFn: async () => {
-      const [classrooms, students, gameResults] = await Promise.all([
-          repository.readCollection('classrooms'),
-          repository.readCollection('classStudents'),
-          repository.readCollection('attemptGameResults'),
-      ]);
-      if (classrooms.length || browserIsOffline()) {
-        return buildOfflineTeacherClassReport(
-          classrooms,
-          students,
-          gameResults,
-          classId,
-          window,
-        );
-      }
-      return api.reports.overview(classId, window, { studentCursor });
-    },
-    enabled: Boolean(classId) && isAuthReadyForData(isLoading, user),
-  });
-}
-
-export function useTeacherClassReport(classId: string, window: TeacherReportsWindowKey, studentCursor?: string | null) {
-  const { user, isLoading } = useAuth();
-  const { repository } = useOfflineClassroom();
-
-  return useQuery({
-    queryKey: reportKeys.class(classId, window, studentCursor ?? null),
-    queryFn: async () => {
-      const [classrooms, students, gameResults] = await Promise.all([
-          repository.readCollection('classrooms'),
-          repository.readCollection('classStudents'),
-          repository.readCollection('attemptGameResults'),
-      ]);
-      if (classrooms.length || browserIsOffline()) {
-        return buildOfflineTeacherClassReport(classrooms, students, gameResults, classId, window);
-      }
-      return api.reports.classDetail(classId, window, { studentCursor });
-    },
-    enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
 }
 
