@@ -90,4 +90,12 @@ describe('frontend architecture boundaries', () => {
     expect(source('features/teacher/pages.ts')).not.toContain("from '@/pages/teacher'");
     expect(source('features/teacher/workspace.tsx')).not.toMatch(/components\/games|lib\/games|pages\/games/);
   });
+
+  it('keeps migrated teacher models out of legacy utility facades', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/lib/teacher/assigned-quizzes.ts'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/lib/teacher/classes.ts'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'src/lib/teacher/navigation.ts'))).toBe(false);
+    expect(source('components/layout.tsx')).toContain("from '@features/teacher/model/navigation'");
+    expect(source('components/teacher/TeacherSidebar.tsx')).toContain("from '@features/teacher/model/navigation'");
+  });
 });
