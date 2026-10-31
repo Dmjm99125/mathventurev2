@@ -35,12 +35,12 @@ import { useTeacherReportsOverview } from '@features/reports/api/hooks';
 import { parseTeacherReportsWindow } from '@/lib/teacher/reports';
 import type { AssignmentForTeacher, TeacherClassStudent, TeacherClassroomSummary } from '@/lib/api';
 import { buildTeacherAssignedQuizzes } from '@features/teacher/model/assignments';
-import { isArchivedClass, teacherClassPath } from '@/lib/teacher/classes';
+import { isArchivedClass, teacherClassPath } from '@features/teacher/model/classes';
 import { useLanguage } from '@features/i18n/context';
 import { OfflineConflictPanel } from '@/components/offline/OfflineConflictPanel';
 import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
 import { TeacherClassList } from '@/components/teacher/TeacherClassList';
-import type { TeacherClassSection } from '@/lib/teacher/classes';
+import type { TeacherClassSection } from '@features/teacher/model/classes';
 
 function useTeacherStudentAccountActions() {
   const { viewStudentAccount, viewingStudent } = useAuth();

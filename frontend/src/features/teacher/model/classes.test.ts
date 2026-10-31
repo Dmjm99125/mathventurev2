@@ -5,7 +5,7 @@ import { isArchivedClass, splitTeacherClasses, teacherClassPath } from './classe
 const activeClass: TeacherClassSummary = {
   id: 'class-1',
   name: 'Room 1',
-  joinCode: 'ROOM1',
+  createdAt: '2026-01-01T00:00:00Z',
   archivedAt: null,
   studentCount: 2,
 };

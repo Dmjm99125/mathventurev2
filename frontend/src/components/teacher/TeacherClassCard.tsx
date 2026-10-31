@@ -2,7 +2,7 @@ import { Link } from 'wouter';
 import { Archive, ArchiveRestore, Pencil, Users } from 'lucide-react';
 import { Badge, Button, Card } from '@/components/ui';
 import type { TeacherClassSummary } from '@/lib/api';
-import { teacherClassPath, isArchivedClass } from '@/lib/teacher/classes';
+import { teacherClassPath, isArchivedClass } from '@features/teacher/model/classes';
 
 export function TeacherClassCard({
   classroom,
