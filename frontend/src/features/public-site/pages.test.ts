@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('./about', () => ({ About: () => null }));
-vi.mock('@/pages/auth', () => ({
+vi.mock('./auth', () => ({
   ForgotPassword: () => null,
   Login: () => null,
   PasswordReset: () => null,
