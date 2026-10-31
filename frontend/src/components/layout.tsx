@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 import { useLanguage } from '@features/i18n/context';
-import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@/lib/student/navigation';
+import { STUDENT_NAV_ITEMS, isStudentNavActive } from '@features/student/model/navigation';
 import { TEACHER_NAV_ITEMS, isTeacherNavActive } from '@features/teacher/model/navigation';
 import { signOut } from '@/lib/auth';
 import { Button, Input } from './ui';

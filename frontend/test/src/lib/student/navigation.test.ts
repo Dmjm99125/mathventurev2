@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { STUDENT_NAV_ITEMS, isStudentNavActive } from "../../../../src/lib/student/navigation.ts";
+import { STUDENT_NAV_ITEMS, isStudentNavActive } from "../../../../src/features/student/model/navigation.ts";
 
 Deno.test("student nav exposes lessons and classroom routes", () => {
   assertEquals(STUDENT_NAV_ITEMS, [

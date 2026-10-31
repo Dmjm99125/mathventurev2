@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { isStudentNavActive, STUDENT_NAV_ITEMS } from './navigation';
 
-describe('student navigation', () => {
-  it('keeps lessons active for the dashboard and lesson routes', () => {
+describe('student navigation model', () => {
+  it('keeps lessons active for dashboard and lesson routes', () => {
     for (const path of ['/student', '/student/lessons', '/student/lessons/colors?freePlay=1', '/student/lessons/shapes#quiz']) {
       expect(isStudentNavActive(path, STUDENT_NAV_ITEMS[0].href)).toBe(true);
     }

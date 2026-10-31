@@ -103,4 +103,10 @@ describe('frontend architecture boundaries', () => {
     expect(source('components/layout.tsx')).toContain("from '@features/teacher/model/navigation'");
     expect(source('components/teacher/TeacherSidebar.tsx')).toContain("from '@features/teacher/model/navigation'");
   });
+
+  it('keeps student navigation in the student feature model', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/lib/student/navigation.ts'))).toBe(false);
+    expect(source('components/layout.tsx')).toContain("from '@features/student/model/navigation'");
+    expect(source('components/student/StudentShell.tsx')).toContain("from \"@features/student/model/navigation\"");
+  });
 });

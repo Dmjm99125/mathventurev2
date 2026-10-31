@@ -3,7 +3,7 @@ import { BookOpen, Users } from "lucide-react";
 import { Link } from "wouter";
 
 import { useLanguage } from "@features/i18n/context";
-import { STUDENT_NAV_ITEMS } from "@/lib/student/navigation";
+import { STUDENT_NAV_ITEMS } from "@features/student/model/navigation";
 import { cn } from '@shared/utils';
 
 type StudentShellProps = {
