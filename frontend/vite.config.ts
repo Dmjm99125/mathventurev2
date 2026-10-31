@@ -38,7 +38,8 @@ function freePlayMediaManifestPlugin() {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
+  const envDir = path.resolve(import.meta.dirname, '..');
+  const env = loadEnv(mode, envDir, '');
   const isTauriBuild = Boolean(process.env.TAURI_ENV_PLATFORM || env.TAURI_ENV_PLATFORM);
   const port = Number(env.PORT || '5173');
   const basePath = isTauriBuild ? './' : env.BASE_PATH || '/';
@@ -85,6 +86,7 @@ export default defineConfig(({ mode }) => {
       exclude: ['@sqlite.org/sqlite-wasm'],
     },
     root: path.resolve(import.meta.dirname),
+    envDir,
     build: {
       outDir: path.resolve(import.meta.dirname, 'dist'),
       emptyOutDir: true,
