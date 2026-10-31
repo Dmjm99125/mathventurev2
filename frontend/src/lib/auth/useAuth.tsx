@@ -14,6 +14,7 @@ import {
 } from './auth';
 import { profileFromAuthSession, type UserProfile } from './profile';
 import { buildAuthViewState } from './session-state';
+import { loadAuthSession } from '@features/auth/session/service';
 
 export type AuthContextType = {
   user: UserProfile | null;
@@ -48,30 +49,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
-      if (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false) {
-        const offlineSession = await restoreOfflineSession({ online: false });
-        setTeacherUser(offlineSession);
-        setViewingStudent(null);
-        resetActiveAuthClient();
-        return;
-      }
-      const [profile, studentSessionResult, offlineSession] = await Promise.all([
-        getProfile(),
-        studentSupabase.auth.getSession(),
-        readOfflineSession().catch(() => null),
-      ]);
-      const teacherProfile = profile?.role === 'teacher' ? profile : offlineSession;
-      const studentProfile = profileFromAuthSession(studentSessionResult.data.session);
-      setTeacherUser(teacherProfile);
-      const activeStudent = teacherProfile && studentProfile?.role === 'student'
-        ? studentProfile
-        : null;
-      if (activeStudent) {
+      const session = await loadAuthSession({
+        isOffline: typeof navigator !== 'undefined'
+          && (navigator as Navigator & { onLine?: boolean }).onLine === false,
+        getProfile,
+        getStudentSession: async () => {
+          const result = await studentSupabase.auth.getSession();
+          return { session: result.data.session };
+        },
+        readOfflineSession: () => readOfflineSession().catch(() => null),
+        restoreOfflineSession,
+        profileFromSession: (session) => profileFromAuthSession(
+          session as Parameters<typeof profileFromAuthSession>[0],
+        ),
+      });
+      setTeacherUser(session.teacherUser);
+      setViewingStudent(session.viewingStudent);
+      if (session.useStudentAuthClient) {
         setActiveAuthClient(studentSupabase);
       } else {
         resetActiveAuthClient();
       }
-      setViewingStudent(activeStudent);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setTeacherUser(null);
