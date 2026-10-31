@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/pages/about', () => ({ About: () => null }));
+vi.mock('./about', () => ({ About: () => null }));
 vi.mock('@/pages/auth', () => ({
   ForgotPassword: () => null,
   Login: () => null,
   PasswordReset: () => null,
   Signup: () => null,
 }));
-vi.mock('@/pages/landing', () => ({ Landing: () => null }));
-vi.mock('@/pages/not-found', () => ({ default: () => null }));
+vi.mock('./landing', () => ({ Landing: () => null }));
+vi.mock('./not-found', () => ({ NotFound: () => null }));
 
 import {
   About,

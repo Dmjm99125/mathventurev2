@@ -1,9 +1,9 @@
-export { About } from '@/pages/about';
+export { About } from './about';
 export {
   ForgotPassword,
   Login,
   PasswordReset,
   Signup,
 } from '@/pages/auth';
-export { Landing } from '@/pages/landing';
-export { default as NotFound } from '@/pages/not-found';
+export { Landing } from './landing';
+export { NotFound } from './not-found';
