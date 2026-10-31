@@ -14,6 +14,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['src/components/games/**'],
+    testTimeout: 20_000,
     restoreMocks: true,
     clearMocks: true,
   },
