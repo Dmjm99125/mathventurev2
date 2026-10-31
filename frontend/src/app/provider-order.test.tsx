@@ -52,6 +52,13 @@ vi.mock('@/lib/i18n/useLanguage', () => ({
   },
 }));
 
+vi.mock('@features/i18n/provider', () => ({
+  LanguageProvider: ({ children }: { children: unknown }) => {
+    renderOrder.push('language');
+    return children;
+  },
+}));
+
 vi.mock('@app/routes', () => ({
   AppRoutes: () => {
     renderOrder.push('routes');
