@@ -10,6 +10,7 @@ import { LogOut, Globe, Compass, Users, LayoutDashboard, Settings, Map, Menu, Us
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@shared/utils';
+import { LogoutConfirmDialog } from '@/components/LogoutConfirmDialog';
 import { InstallAppAction } from '@/components/pwa/InstallAppAction';
 import { OfflineStatusIndicator } from '@/components/offline/OfflineStatusIndicator';
 
@@ -42,6 +43,8 @@ export function TopNav() {
   const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
   const [teacherPassword, setTeacherPassword] = useState('');
   const [returnError, setReturnError] = useState<string | null>(null);
+
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -205,7 +208,7 @@ export function TopNav() {
                   </div>
 
                   {!isViewingStudent && (
-                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-2">
+                    <DropdownMenuItem onClick={() => (user?.role === 'teacher' ? setIsLogoutDialogOpen(true) : handleSignOut())} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer flex items-center gap-2">
                       <LogOut className="h-4 w-4" />
                       {t('common.logout')}
                     </DropdownMenuItem>
@@ -216,6 +219,7 @@ export function TopNav() {
           )}
         </div>
       </div>
+      <LogoutConfirmDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen} onConfirm={handleSignOut} />
     </header>
   );
 }

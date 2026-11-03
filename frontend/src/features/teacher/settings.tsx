@@ -4,6 +4,7 @@ import { Button, Input, Label } from '@/components/ui';
 import { TeacherWorkspaceBoard } from '@/components/teacher/TeacherWorkspaceBoard';
 import { changeTeacherPassword, useAuth, signOut } from '@/lib/auth';
 import { useLanguage } from '@features/i18n/context';
+import { LogoutConfirmDialog } from '@/components/LogoutConfirmDialog';
 import { OfflineConflictPanel } from '@/components/offline/OfflineConflictPanel';
 import { OfflinePackPanel } from '@/components/offline/OfflinePackPanel';
 
@@ -27,6 +28,8 @@ export function TeacherSettingsPage() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -64,9 +67,10 @@ export function TeacherSettingsPage() {
           <dt className="text-sm font-bold text-[var(--teacher-ink)]/65">Role</dt>
           <dd className="font-semibold text-[var(--teacher-ink)]">Teacher</dd>
         </dl>
-        <Button type="button" variant="outline" className="mt-6 border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]" onClick={handleSignOut}>
+        <Button type="button" variant="outline" className="mt-6 border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]" onClick={() => setLogoutOpen(true)}>
           {t('common.logout')}
         </Button>
+        <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={handleSignOut} />
       </section>
 
       <div className="mt-6 grid max-w-2xl gap-4">

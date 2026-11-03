@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui';
 import { useAuth, signOut } from '@/lib/auth';
+import { LogoutConfirmDialog } from '@/components/LogoutConfirmDialog';
 import { useLanguage } from '@features/i18n/context';
 import { TEACHER_NAV_ITEMS, getTeacherWorkspaceNavItems, isTeacherNavActive } from '@features/teacher/model/navigation';
 import { cn } from '@shared/utils';
@@ -65,6 +66,8 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
     setMobileOpen(false);
   }, [location]);
 
+  const [logoutOpen, setLogoutOpen] = React.useState(false);
+
   const handleSignOut = async () => {
     await signOut();
     setLocation('/');
@@ -99,7 +102,7 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
           <button
             type="button"
             className="teacher-nav-item w-full text-[var(--teacher-ink)]/70 hover:text-[var(--teacher-ink)]"
-            onClick={handleSignOut}
+            onClick={() => setLogoutOpen(true)}
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {t('common.logout')}
@@ -153,7 +156,7 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
               <button
                 type="button"
                 className="teacher-nav-item w-full text-[var(--teacher-ink)]/70 hover:text-[var(--teacher-ink)]"
-                onClick={handleSignOut}
+                onClick={() => setLogoutOpen(true)}
               >
                 <LogOut className="h-4 w-4 shrink-0" />
                 {t('common.logout')}
@@ -162,6 +165,8 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
           </aside>
         </div>
       )}
+
+      <LogoutConfirmDialog open={logoutOpen} onOpenChange={setLogoutOpen} onConfirm={handleSignOut} />
     </>
   );
 }
