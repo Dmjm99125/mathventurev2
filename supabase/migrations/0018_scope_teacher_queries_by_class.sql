@@ -76,6 +76,8 @@ select jsonb_build_object(
 $$;
 
 drop function if exists public.get_teacher_report_summary(uuid, timestamptz, timestamptz, integer, uuid);
+drop function if exists public.get_teacher_report_summary(uuid, timestamptz, timestamptz, integer);
+drop function if exists public.get_teacher_report_summary(uuid, uuid, timestamptz, timestamptz, integer, uuid);
 
 create function public.get_teacher_report_summary(
   p_teacher_id uuid,
@@ -353,6 +355,7 @@ select jsonb_build_object(
 $$;
 
 drop function if exists public.get_teacher_roster_page(uuid, integer, timestamptz, uuid);
+drop function if exists public.get_teacher_roster_page(uuid, uuid, integer, timestamptz, uuid);
 
 create function public.get_teacher_roster_page(
   p_teacher_id uuid,

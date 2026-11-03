@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext, useEffect, useMemo, useReducer, useCallback, useState, type ReactNode } from 'react';
+import { createContext, createElement, useContext, useEffect, useMemo, useReducer, useRef, useCallback, useState, type ReactNode } from 'react';
 import { createOfflineRepository, type OfflineRepository } from './repository.ts';
 import { bootstrapRepository, downloadClassroomPack } from './bootstrap.ts';
 import { syncOfflineClassroom } from './index.ts';
@@ -24,6 +24,7 @@ type OfflineClassroomContextValue = OfflineLifecycleState & {
 };
 
 const OfflineClassroomContext = createContext<OfflineClassroomContextValue | null>(null);
+const AUTO_SYNC_INTERVAL_MS = 5000;
 
 export function OfflineClassroomProvider({ children, repository, invoke, teacherId = null }: {
   children: ReactNode;
@@ -34,6 +35,7 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
   const [applicationStorage, setApplicationStorage] = useState<ApplicationStorage | null>(null);
   const [storageError, setStorageError] = useState<Error | null>(null);
+  const syncInFlight = useRef<Promise<void> | null>(null);
   const resolvedRepository = useMemo(() => {
     if (repository) return repository;
     if (!applicationStorage) return null;
@@ -65,22 +67,33 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
   }, [applicationStorage, repository]);
   const syncNow = useCallback(async () => {
     if (!resolvedRepository) return;
+    if (syncInFlight.current) return syncInFlight.current;
+
     const activeRepository = resolvedRepository;
-    dispatch({ type: 'sync-start' });
+    const run = (async () => {
+      dispatch({ type: 'sync-start' });
+      try {
+        const request = invoke ?? (async (name, options) => {
+          const { invokeTeacherFunction } = await import('../../api/client.ts');
+          return invokeTeacherFunction<unknown>(name, options);
+        });
+        const progress = await syncOfflineClassroom(activeRepository, request);
+        const summary = await activeRepository.getSyncSummary();
+        dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
+        const leaseExpiresAt = await activeRepository.readMeta('offlineAccessUntil');
+        if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
+        void progress;
+      } catch (error) {
+        const summary = await activeRepository.getSyncSummary();
+        dispatch({ type: 'sync-error', pendingCount: summary.pendingCount, failedCount: summary.failedCount, error: error instanceof Error ? error.message : 'Sync failed.' });
+      }
+    })();
+
+    syncInFlight.current = run;
     try {
-      const request = invoke ?? (async (name, options) => {
-        const { invokeTeacherFunction } = await import('../../api/client.ts');
-        return invokeTeacherFunction<unknown>(name, options);
-      });
-      const progress = await syncOfflineClassroom(activeRepository, request);
-      const summary = await activeRepository.getSyncSummary();
-      dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
-      const leaseExpiresAt = await activeRepository.readMeta('offlineAccessUntil');
-      if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
-      void progress;
-    } catch (error) {
-      const summary = await activeRepository.getSyncSummary();
-      dispatch({ type: 'sync-error', pendingCount: summary.pendingCount, failedCount: summary.failedCount, error: error instanceof Error ? error.message : 'Sync failed.' });
+      await run;
+    } finally {
+      if (syncInFlight.current === run) syncInFlight.current = null;
     }
   }, [invoke, resolvedRepository]);
   const bootstrapNow = useCallback(async () => {
@@ -103,8 +116,10 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
     if (!resolvedRepository || !teacherId || (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false)) return;
     void bootstrapNow().catch((error: unknown) => {
       console.warn('Automatic offline classroom refresh skipped', error);
+    }).finally(() => {
+      void syncNow();
     });
-  }, [bootstrapNow, resolvedRepository, teacherId]);
+  }, [bootstrapNow, resolvedRepository, syncNow, teacherId]);
   useEffect(() => {
     if (!resolvedRepository) return;
     const activeRepository = resolvedRepository;
@@ -126,6 +141,20 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
       removeEventListener('offline', onOffline);
     };
   }, [bootstrapNow, resolvedRepository, syncNow]);
+  useEffect(() => {
+    if (!resolvedRepository || typeof window === 'undefined') return;
+    const activeRepository = resolvedRepository;
+    const retryPendingSync = () => {
+      if (typeof navigator !== 'undefined' && (navigator as Navigator & { onLine?: boolean }).onLine === false) return;
+      void activeRepository.getSyncSummary()
+        .then((summary) => {
+          if (summary.pendingCount > 0) void syncNow();
+        })
+        .catch(() => undefined);
+    };
+    const retryTimer = window.setInterval(retryPendingSync, AUTO_SYNC_INTERVAL_MS);
+    return () => window.clearInterval(retryTimer);
+  }, [resolvedRepository, syncNow]);
   if (!resolvedRepository) {
     return createElement(
       'div',

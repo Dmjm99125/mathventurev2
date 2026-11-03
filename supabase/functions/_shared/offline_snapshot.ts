@@ -68,7 +68,7 @@ export async function getOfflineTeacherSnapshot(
   const studentsResult = await adminClient
     .from("class_students")
     .select(
-      "class_id, student_id, joined_at, profiles!class_students_student_id_fkey(id, role, full_name)",
+      "class_id, student_id, joined_at, profiles!class_students_student_id_fkey(id, role, full_name, first_name, last_name)",
     )
     .in("class_id", classIds)
     .order("joined_at", { ascending: true });

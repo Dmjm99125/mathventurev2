@@ -3,6 +3,7 @@ import type { OfflineRepository } from './repository.ts';
 export async function resolveOfflineConflict(
   repository: Pick<OfflineRepository, 'resolveConflict'>,
   bootstrapNow: () => Promise<void>,
+  syncNow: () => Promise<void>,
   key: string,
   choice: 'local' | 'server',
 ): Promise<void> {
@@ -10,5 +11,7 @@ export async function resolveOfflineConflict(
 
   if (choice === 'server') {
     await bootstrapNow();
+  } else {
+    await syncNow();
   }
 }

@@ -13,6 +13,9 @@ Deno.test('server conflict resolution refreshes the local snapshot', async () =>
     async () => {
       events.push('bootstrap');
     },
+    async () => {
+      events.push('sync');
+    },
     'conflict-1',
     'server',
   );
@@ -32,9 +35,12 @@ Deno.test('local conflict resolution does not replace the optimistic snapshot', 
     async () => {
       events.push('bootstrap');
     },
+    async () => {
+      events.push('sync');
+    },
     'conflict-2',
     'local',
   );
 
-  assertEquals(events, ['resolve:conflict-2:local']);
+  assertEquals(events, ['resolve:conflict-2:local', 'sync']);
 });

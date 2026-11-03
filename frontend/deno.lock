@@ -29,6 +29,9 @@
         "npm:@tanstack/react-query@^5.64.0",
         "npm:@tauri-apps/api@2.9.1",
         "npm:@tauri-apps/plugin-sql@2.3.1",
+        "npm:@testing-library/jest-dom@^6.6.3",
+        "npm:@testing-library/react@^16.1.0",
+        "npm:@testing-library/user-event@^14.5.2",
         "npm:@types/canvas-confetti@^1.9.0",
         "npm:@types/node@^20.17.14",
         "npm:@types/react-dom@^19.0.3",
@@ -38,6 +41,7 @@
         "npm:class-variance-authority@~0.7.1",
         "npm:clsx@^2.1.1",
         "npm:framer-motion@^11.18.1",
+        "npm:jsdom@^25.0.1",
         "npm:jspdf-autotable@^5.0.8",
         "npm:jspdf@^4.2.1",
         "npm:lucide-react@0.473",
@@ -51,6 +55,7 @@
         "npm:vaul@^1.1.2",
         "npm:vite-plugin-pwa@~0.21.2",
         "npm:vite@^6.0.7",
+        "npm:vitest@^2.1.9",
         "npm:wouter@^3.3.5",
         "npm:xlsx@~0.18.5"
       ]

@@ -36,7 +36,7 @@ export function TeacherStudentListTable({
               <td className="whitespace-nowrap p-4 font-bold text-[var(--teacher-ink)]">{student.lastName ?? '--'}</td>
               <td className="whitespace-nowrap p-4 font-bold text-[var(--teacher-ink)]">{student.firstName}</td>
               <td className="whitespace-nowrap p-4 font-semibold tabular-nums text-[var(--teacher-ink)]/65">
-                {new Date(student.joinedAt).toLocaleDateString()}
+                {Number.isNaN(new Date(student.joinedAt).getTime()) ? '--' : new Date(student.joinedAt).toLocaleDateString()}
               </td>
               <td className="whitespace-nowrap p-4 text-right">
                 <div className="flex justify-end gap-2">

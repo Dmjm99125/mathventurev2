@@ -27,3 +27,8 @@ Deno.test('offline Free Play migration keeps progress separate from media metada
   assert(sql.includes('unique (profile_id, game_id)'));
   assert(sql.includes('enable row level security'));
 });
+
+Deno.test('offline snapshot includes the roster name fields needed by cached teacher views', async () => {
+  const source = await Deno.readTextFile('supabase/functions/_shared/offline_snapshot.ts');
+  assertStringIncludes(source, 'profiles!class_students_student_id_fkey(id, role, full_name, first_name, last_name)');
+});

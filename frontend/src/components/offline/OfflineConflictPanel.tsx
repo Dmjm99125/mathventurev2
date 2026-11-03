@@ -3,12 +3,12 @@ import { resolveOfflineConflict } from '@/lib/offline/classroom/conflictResoluti
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 
 export function OfflineConflictPanel() {
-  const { repository, bootstrapNow } = useOfflineClassroom();
+  const { repository, bootstrapNow, syncNow } = useOfflineClassroom();
   const [conflicts, setConflicts] = useState<Record<string, unknown>[]>([]);
   const refresh = async () => setConflicts(await repository.listConflicts());
   useEffect(() => { void refresh(); }, [repository]);
   const resolve = async (key: string, choice: 'local' | 'server') => {
-    await resolveOfflineConflict(repository, bootstrapNow, key, choice);
+    await resolveOfflineConflict(repository, bootstrapNow, syncNow, key, choice);
     await refresh();
   };
   const exportDiagnostics = async () => {

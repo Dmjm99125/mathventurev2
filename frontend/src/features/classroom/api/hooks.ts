@@ -136,8 +136,13 @@ export function useClassRoster(classId?: string) {
     queryKey: classroomKeys.roster(classId ?? null),
     queryFn: async ({ pageParam }) => {
       const cached = await readOfflineRoster(repository, classId);
-      if (cached.students.length || browserIsOffline()) return cached;
-      return api.classes.roster(classId!, { cursor: pageParam });
+      if (browserIsOffline()) return cached;
+      try {
+        return await api.classes.roster(classId!, { cursor: pageParam });
+      } catch (error) {
+        if (cached.students.length) return cached;
+        throw error;
+      }
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
@@ -153,8 +158,13 @@ export function useClassRosterStudent(classId?: string, studentId?: string | nul
     queryKey: classroomKeys.rosterStudent(classId ?? null, studentId),
     queryFn: async () => {
       const cached = (await readOfflineRoster(repository, classId)).students.filter((student) => student.id === studentId);
-      if (cached.length || browserIsOffline()) return { students: cached, page: { nextCursor: null, hasMore: false } };
-      return api.classes.rosterStudent(classId!, studentId!);
+      if (browserIsOffline()) return { students: cached, page: { nextCursor: null, hasMore: false } };
+      try {
+        return await api.classes.rosterStudent(classId!, studentId!);
+      } catch (error) {
+        if (cached.length) return { students: cached, page: { nextCursor: null, hasMore: false } };
+        throw error;
+      }
     },
     enabled: Boolean(classId && studentId) && isAuthReadyForData(isLoading, user),
   });

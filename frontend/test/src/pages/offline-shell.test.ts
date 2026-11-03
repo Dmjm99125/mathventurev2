@@ -2,8 +2,9 @@ import { assertStringIncludes } from 'jsr:@std/assert';
 
 Deno.test('app shell mounts the offline classroom provider and status indicator', async () => {
   const app = await Deno.readTextFile(new URL('../../../src/App.tsx', import.meta.url));
+  const providers = await Deno.readTextFile(new URL('../../../src/app/providers.tsx', import.meta.url));
   const layout = await Deno.readTextFile(new URL('../../../src/components/layout.tsx', import.meta.url));
-  assertStringIncludes(app, 'OfflineClassroomProvider');
+  assertStringIncludes(`${app}\n${providers}`, 'OfflineClassroomProvider');
   assertStringIncludes(layout, 'OfflineStatusIndicator');
 });
 
@@ -18,8 +19,18 @@ Deno.test('offline classroom provider declares callbacks before its loading retu
   const syncCallback = provider.indexOf('const syncNow = useCallback');
   const bootstrapCallback = provider.indexOf('const bootstrapNow = useCallback');
   const automaticBootstrap = provider.indexOf('Automatic offline classroom refresh skipped');
+  const initialEffectStart = provider.indexOf('if (!resolvedRepository || !teacherId');
+  const initialEffectEnd = provider.indexOf('  }, [bootstrapNow, resolvedRepository, teacherId]);', initialEffectStart);
+  const initialEffect = provider.slice(initialEffectStart, initialEffectEnd);
 
   if (loadingReturn < 0 || syncCallback < 0 || bootstrapCallback < 0 || automaticBootstrap < 0 || syncCallback > loadingReturn || bootstrapCallback > loadingReturn) {
     throw new Error('Offline callbacks must be declared before the provider loading return.');
+  }
+  if (!initialEffect.includes('.finally(() => { void syncNow(); })')) {
+    throw new Error('Automatic online startup must also flush the durable outbox.');
+  }
+  const retryEffect = provider.slice(provider.indexOf('const AUTO_SYNC_INTERVAL_MS'));
+  if (!retryEffect.includes('window.setInterval') || !retryEffect.includes('summary.pendingCount > 0')) {
+    throw new Error('Pending operations must be retried automatically while online.');
   }
 });
