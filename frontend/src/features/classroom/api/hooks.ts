@@ -218,7 +218,7 @@ export function useRemoveStudentFromClass() {
     mutationFn: async ({ classId, studentId }: { classId: string; studentId: string }) => {
       if (user) {
         const result = await removeOfflineStudent(repository, user.id, classId, studentId);
-        if (!browserIsOffline()) void syncNow();
+        if (!browserIsOffline()) await syncNow();
         return { removed: true as const, syncState: result.syncState };
       }
       return api.classes.removeStudent(classId, studentId);
@@ -237,8 +237,8 @@ export function useAddStudentsToClass() {
     mutationFn: ({ classId, students }: { classId: string; students: TeacherAddStudentDraft[] }) => {
       if (user) {
         return addOfflineStudents(repository, user.id, classId, students).then((result) => {
-          if (!browserIsOffline()) void syncNow();
-          return { createdCount: students.length, syncState: result.syncState };
+          if (browserIsOffline()) return { createdCount: students.length, syncState: result.syncState };
+          return syncNow().then(() => ({ createdCount: students.length, syncState: result.syncState }));
         });
       }
       return api.classes.addStudents(classId, students);

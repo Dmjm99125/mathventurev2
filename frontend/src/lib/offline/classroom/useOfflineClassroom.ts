@@ -20,7 +20,7 @@ const initialState: OfflineLifecycleState = {
 type OfflineClassroomContextValue = OfflineLifecycleState & {
   repository: OfflineRepository;
   bootstrapNow: () => Promise<void>;
-  syncNow: () => Promise<void>;
+  syncNow: () => Promise<{ completed: number; remaining: number; failed: number } | null>;
 };
 
 const OfflineClassroomContext = createContext<OfflineClassroomContextValue | null>(null);
@@ -35,7 +35,7 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
   const [state, dispatch] = useReducer(offlineStatusReducer, initialState);
   const [applicationStorage, setApplicationStorage] = useState<ApplicationStorage | null>(null);
   const [storageError, setStorageError] = useState<Error | null>(null);
-  const syncInFlight = useRef<Promise<void> | null>(null);
+  const syncInFlight = useRef<Promise<{ completed: number; remaining: number; failed: number } | null> | null>(null);
   const resolvedRepository = useMemo(() => {
     if (repository) return repository;
     if (!applicationStorage) return null;
@@ -65,8 +65,8 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
       void applicationStorage.close().finally(() => resetApplicationDatabaseForTests());
     };
   }, [applicationStorage, repository]);
-  const syncNow = useCallback(async () => {
-    if (!resolvedRepository) return;
+  const syncNow = useCallback(async (): Promise<{ completed: number; remaining: number; failed: number } | null> => {
+    if (!resolvedRepository) return null;
     if (syncInFlight.current) return syncInFlight.current;
 
     const activeRepository = resolvedRepository;
@@ -82,16 +82,17 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
         dispatch({ type: 'sync-success', pendingCount: summary.pendingCount, failedCount: summary.failedCount, lastSyncedAt: new Date().toISOString() });
         const leaseExpiresAt = await activeRepository.readMeta('offlineAccessUntil');
         if (typeof leaseExpiresAt === 'string') dispatch({ type: 'lease-update', leaseExpiresAt });
-        void progress;
+        return progress;
       } catch (error) {
         const summary = await activeRepository.getSyncSummary();
         dispatch({ type: 'sync-error', pendingCount: summary.pendingCount, failedCount: summary.failedCount, error: error instanceof Error ? error.message : 'Sync failed.' });
+        return { completed: 0, remaining: summary.pendingCount, failed: summary.failedCount };
       }
     })();
 
     syncInFlight.current = run;
     try {
-      await run;
+      return await run;
     } finally {
       if (syncInFlight.current === run) syncInFlight.current = null;
     }
