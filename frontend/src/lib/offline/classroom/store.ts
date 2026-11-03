@@ -1,7 +1,7 @@
 import type { OfflineEntityName } from './types.ts';
 
 export const OFFLINE_DB_NAME = 'mathventure-classroom';
-export const OFFLINE_DB_VERSION = 1;
+export const OFFLINE_DB_VERSION = 2;
 
 export const OFFLINE_STORE_NAMES: OfflineEntityName[] = [
   'profiles',
