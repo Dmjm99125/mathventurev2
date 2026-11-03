@@ -73,6 +73,18 @@ Deno.test("browser SQLite receives cross-origin isolation headers in Vite and Ne
   assertMatch(netlifyConfig, /Cross-Origin-Embedder-Policy\s*=\s*['"]require-corp['"]/);
 });
 
+Deno.test("build tooling is pinned to a Node.js release with the current security fixes", async () => {
+  const nodeVersion = (await readProjectFile("../.nvmrc")).trim();
+  const netlifyConfig = await readProjectFile("../netlify.toml");
+  const frontendNetlifyConfig = await readProjectFile("netlify.toml");
+  const ciConfig = await readProjectFile("../.github/workflows/ci.yml");
+
+  assertEquals(nodeVersion, "22.23.4");
+  assertMatch(netlifyConfig, /NODE_VERSION\s*=\s*[\"']22\.23\.4[\"']/);
+  assertMatch(frontendNetlifyConfig, /NODE_VERSION\s*=\s*[\"']22\.23\.4[\"']/);
+  assertEquals((ciConfig.match(/node-version:\s*22\.23\.4/g) ?? []).length, 3);
+});
+
 Deno.test("PWA worker has an app-shell precache entry point", async () => {
   const worker = await readProjectFile("src/pwa/sw.ts");
 

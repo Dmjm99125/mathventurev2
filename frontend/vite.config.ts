@@ -38,7 +38,7 @@ function freePlayMediaManifestPlugin() {
 }
 
 export default defineConfig(({ mode }) => {
-  const envDir = path.resolve(import.meta.dirname, '..');
+  const envDir = path.resolve(import.meta.dirname);
   const env = loadEnv(mode, envDir, '');
   const isTauriBuild = Boolean(process.env.TAURI_ENV_PLATFORM || env.TAURI_ENV_PLATFORM);
   const port = Number(env.PORT || '5173');

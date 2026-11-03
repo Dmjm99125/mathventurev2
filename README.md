@@ -66,7 +66,7 @@ mathventure/
 ## ⚙️ Getting Started
 
 ### 📋 Prerequisites
-*   Node.js (v18 or higher recommended)
+*   Node.js 22.23.4 (use the repository's `.nvmrc`)
 *   npm or Deno
 
 ### 🔧 Installation & Local Setup
@@ -111,7 +111,8 @@ also run frontend commands directly with `npm --prefix frontend run <script>`.
 
 ### Windows Tauri desktop build
 
-The current desktop target is Windows only. Install Node.js 22+, Rust with the
+The current desktop target is Windows only. Install the pinned Node.js version
+from `.nvmrc`, Rust with the
 MSVC toolchain, Microsoft C++ Build Tools, and WebView2. Then run from the
 repository root:
 

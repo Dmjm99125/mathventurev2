@@ -210,4 +210,55 @@ Examples include:
 * distributing MathVenture while purporting to eliminate these restrictions; or
 * violating applicable copyright notices.
 
-Upon termination, the Recipient must cease exercising permissions granted sol
+Upon termination, the Recipient must cease exercising permissions granted solely by this License.
+
+Termination does not eliminate rights or remedies that may exist under applicable law.
+
+## 15. Reinstatement
+
+Permissions may be reinstated at the discretion of the copyright holders after the violation has been corrected.
+
+Correction of a violation does not automatically waive claims arising from prior infringement or breach unless the copyright holders expressly agree otherwise.
+
+## 16. Contributions
+
+Unless otherwise agreed in writing, submitting a contribution to the official MathVenture project does not automatically make the contributor an Original Developer for purposes of the portfolio provisions of this License.
+
+The MathVenture Development Team may separately establish contribution terms or a Contributor License Agreement.
+
+Contributors retain whatever rights they possess in their own contributions subject to any agreement governing their submission.
+
+## 17. No Warranty
+
+MATHVENTURE IS PROVIDED “AS IS,” WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDERS AND ORIGINAL DEVELOPERS SHALL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, LOSS, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
+
+## 18. Interpretation
+
+If any provision of this License is determined to be unenforceable, the remaining provisions shall remain effective to the maximum extent permitted by applicable law.
+
+Nothing in this License shall be interpreted to restrict rights that cannot lawfully be restricted, including exceptions or limitations provided by applicable copyright law.
+
+## 19. Acceptance
+
+Exercise of permissions granted by this License constitutes acceptance of its applicable terms.
+
+Persons who do not accept these terms receive no permissions under this License beyond rights independently provided by applicable law.
+
+---
+
+## Required Attribution Notice
+
+When attribution is required under this License, use substantially the following notice:
+
+**Derived from MathVenture by the MathVenture Development Team.
+Original project: [CANONICAL REPOSITORY URL]**
+
+Additional attribution may be provided, but it MUST NOT contradict, conceal, or replace the required attribution above.
+
+---
+
+**License:** MathVenture Restricted Attribution License (MRAL) v1.0
+**Project:** MathVenture
+**Copyright:** © MathVenture Development Team. All rights reserved except as expressly granted herein.

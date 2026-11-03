@@ -5,7 +5,16 @@ import { useAuth, signOut } from '@/lib/auth';
 import { useLanguage } from '@features/i18n/context';
 import { TEACHER_NAV_ITEMS, getTeacherWorkspaceNavItems, isTeacherNavActive } from '@features/teacher/model/navigation';
 import { cn } from '@shared/utils';
-import { Menu, X } from 'lucide-react';
+import { BookOpen, ClipboardList, Home, LogOut, Menu, Settings, Users, X } from 'lucide-react';
+
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  'teacher.today': <Home className="h-4 w-4 shrink-0" />,
+  'teacher.students': <Users className="h-4 w-4 shrink-0" />,
+  'teacher.assignments': <ClipboardList className="h-4 w-4 shrink-0" />,
+  'teacher.reports': <BookOpen className="h-4 w-4 shrink-0" />,
+  'teacher.classes': <Home className="h-4 w-4 shrink-0" />,
+  'teacher.settings': <Settings className="h-4 w-4 shrink-0" />,
+};
 
 function TeacherNavLinks({
   location,
@@ -21,25 +30,27 @@ function TeacherNavLinks({
 
   return (
     <>
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={onNavigate}
-          className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <span
-            className={cn(
-              'block rounded-xl px-4 py-3 font-bold transition-colors',
-              isTeacherNavActive(location, item.href)
-                ? 'bg-[var(--teacher-moss)] text-[var(--teacher-sand)]'
-                : 'text-[var(--teacher-ink)] hover:bg-[var(--teacher-sage)]/30',
-            )}
+      {items.map((item) => {
+        const active = isTeacherNavActive(location, item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {t(item.labelKey)}
-          </span>
-        </Link>
-      ))}
+            <span
+              className={cn(
+                'teacher-nav-item',
+                active ? 'teacher-nav-item-active' : '',
+              )}
+            >
+              {NAV_ICONS[item.labelKey] ?? null}
+              {t(item.labelKey)}
+            </span>
+          </Link>
+        );
+      })}
     </>
   );
 }
@@ -59,14 +70,16 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
     setLocation('/');
   };
 
+  const initials = user?.full_name?.trim().slice(0, 2).toUpperCase() ?? 'T';
+
   const identity = (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--teacher-moss)]/30 bg-[var(--teacher-oat)] text-xl font-display font-bold text-[var(--teacher-moss)]">
-        {user?.full_name?.trim().slice(0, 1).toUpperCase() ?? 'T'}
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--teacher-moss)] text-sm font-extrabold tracking-wide text-[var(--teacher-sand)] shadow-sm">
+        {initials}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--teacher-moss)]/70">Teacher</p>
-        <p className="truncate font-display text-lg font-bold text-[var(--teacher-ink)]">
+        <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.16em] text-[var(--teacher-moss)]/70">Teacher</p>
+        <p className="truncate font-display text-base font-bold leading-tight text-[var(--teacher-ink)]">
           {user?.full_name ?? 'Teacher'}
         </p>
       </div>
@@ -75,19 +88,22 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
 
   return (
     <>
-      <aside className="fixed bottom-0 left-0 top-16 z-30 hidden w-[280px] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-6 lg:flex">
-        {identity}
-        <nav aria-label="Teacher navigation" className="mt-10 grid gap-2">
+      <aside className="fixed bottom-0 left-0 top-16 z-30 hidden w-[280px] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-5 lg:flex">
+        <div className="rounded-2xl border border-[var(--teacher-moss)]/15 bg-[var(--teacher-oat)]/30 px-4 py-3">
+          {identity}
+        </div>
+        <nav aria-label="Teacher navigation" className="mt-6 grid gap-1">
           <TeacherNavLinks location={location} classId={classId} />
         </nav>
-        <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-5">
-          <Button
-            variant="ghost"
-            className="w-full justify-start px-4 text-[var(--teacher-ink)] hover:bg-[var(--teacher-sage)]/30"
+        <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-4">
+          <button
+            type="button"
+            className="teacher-nav-item w-full text-[var(--teacher-ink)]/70 hover:text-[var(--teacher-ink)]"
             onClick={handleSignOut}
           >
+            <LogOut className="h-4 w-4 shrink-0" />
             {t('common.logout')}
-          </Button>
+          </button>
         </div>
       </aside>
 
@@ -117,7 +133,9 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
             className="relative flex h-full w-[min(88vw,22rem)] flex-col border-r border-[var(--teacher-moss)]/20 bg-[var(--teacher-sand)] p-5 shadow-xl"
           >
             <div className="flex items-center justify-between gap-4">
-              {identity}
+              <div className="rounded-2xl border border-[var(--teacher-moss)]/15 bg-[var(--teacher-oat)]/30 flex-1 px-4 py-3">
+                {identity}
+              </div>
               <Button
                 type="button"
                 variant="ghost"
@@ -128,17 +146,18 @@ export function TeacherSidebar({ classId }: { classId?: string }) {
                 <X />
               </Button>
             </div>
-            <nav aria-label="Teacher navigation" className="mt-8 grid gap-2">
+            <nav aria-label="Teacher navigation" className="mt-6 grid gap-1">
               <TeacherNavLinks location={location} classId={classId} onNavigate={() => setMobileOpen(false)} />
             </nav>
-            <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-5">
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-4 text-[var(--teacher-ink)]"
+            <div className="mt-auto border-t border-[var(--teacher-moss)]/20 pt-4">
+              <button
+                type="button"
+                className="teacher-nav-item w-full text-[var(--teacher-ink)]/70 hover:text-[var(--teacher-ink)]"
                 onClick={handleSignOut}
               >
+                <LogOut className="h-4 w-4 shrink-0" />
                 {t('common.logout')}
-              </Button>
+              </button>
             </div>
           </aside>
         </div>

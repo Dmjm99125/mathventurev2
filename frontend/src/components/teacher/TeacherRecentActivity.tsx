@@ -10,6 +10,12 @@ function formatDate(value: string) {
   });
 }
 
+function scoreColorClass(pct: number): string {
+  if (pct >= 80) return 'teacher-score-high';
+  if (pct >= 60) return 'teacher-score-mid';
+  return 'teacher-score-low';
+}
+
 export function TeacherRecentActivity({
   recentActivity,
 }: {
@@ -33,19 +39,32 @@ export function TeacherRecentActivity({
       ) : (
         <div className="mt-2 divide-y divide-[var(--teacher-moss)]/15">
           {recentActivity.recentPasses.map((pass) => (
-            <div key={`${pass.studentId}-${pass.gameId}-${pass.completedAt}`} className="grid gap-2 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-              <div className="min-w-0">
+            <div
+              key={`${pass.studentId}-${pass.gameId}-${pass.completedAt}`}
+              className="flex items-center gap-4 py-3.5"
+            >
+              {/* Score chip */}
+              <div className={`w-14 shrink-0 text-right font-display text-xl font-bold tabular-nums ${scoreColorClass(pass.scorePct)}`}>
+                {pass.scorePct}%
+              </div>
+
+              {/* Divider */}
+              <div className="h-8 w-px shrink-0 bg-[var(--teacher-moss)]/20" />
+
+              {/* Student + game */}
+              <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-[var(--teacher-ink)]">{pass.fullName}</p>
-                <p className="text-sm font-semibold text-[var(--teacher-ink)]/65">Completed {pass.gameTitle}</p>
+                <p className="truncate text-sm font-semibold text-[var(--teacher-ink)]/60">{pass.gameTitle}</p>
               </div>
-              <div className="text-left sm:text-right">
-                <p className="font-display text-xl font-bold tabular-nums text-[var(--teacher-moss)]">{pass.scorePct}%</p>
-                <p className="text-xs font-semibold text-[var(--teacher-ink)]/60">{formatDate(pass.completedAt)}</p>
-              </div>
+
+              {/* Date */}
+              <p className="shrink-0 text-xs font-semibold text-[var(--teacher-ink)]/50">
+                {formatDate(pass.completedAt)}
+              </p>
             </div>
           ))}
           {recentActivity.lastPlayedAt && (
-            <p className="py-4 text-sm font-semibold text-[var(--teacher-ink)]/65">
+            <p className="py-4 text-sm font-semibold text-[var(--teacher-ink)]/55">
               Last classroom activity: {formatDate(recentActivity.lastPlayedAt)}
             </p>
           )}

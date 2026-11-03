@@ -59,4 +59,75 @@
   .teacher-section {
     border-radius: 1.25rem;
   }
+
+  /* Metric card accent bar */
+  .teacher-metric-card {
+    border-left: 3px solid var(--teacher-sage);
+    padding-left: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Attention badge variants */
+  .teacher-badge-warning {
+    background-color: color-mix(in srgb, var(--teacher-ochre) 18%, transparent);
+    color: color-mix(in srgb, var(--teacher-ochre) 90%, var(--teacher-ink));
+    border: 1px solid color-mix(in srgb, var(--teacher-ochre) 28%, transparent);
+  }
+
+  .teacher-badge-alert {
+    background-color: color-mix(in srgb, var(--teacher-terracotta) 12%, transparent);
+    color: color-mix(in srgb, var(--teacher-terracotta) 85%, var(--teacher-ink));
+    border: 1px solid color-mix(in srgb, var(--teacher-terracotta) 28%, transparent);
+  }
+
+  /* Sidebar nav item active/hover */
+  .teacher-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border-radius: 0.75rem;
+    padding: 0.6rem 1rem;
+    font-weight: 700;
+    font-size: 0.925rem;
+    transition: background-color 0.15s, color 0.15s;
+    color: var(--teacher-ink);
+  }
+
+  .teacher-nav-item:hover {
+    background-color: color-mix(in srgb, var(--teacher-sage) 28%, transparent);
+  }
+
+  .teacher-nav-item-active {
+    background-color: var(--teacher-moss);
+    color: var(--teacher-sand);
+  }
+
+  .teacher-nav-item-active:hover {
+    background-color: color-mix(in srgb, var(--teacher-moss) 90%, var(--teacher-ink));
+  }
+
+  /* Differentiator: sections settle into the learning trail with a gentle staggered rise */
+  .teacher-trail-step,
+  .teacher-assignment-list > * {
+    animation: teacher-rise 450ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  .teacher-trail-step:nth-child(2) { animation-delay: 80ms; }
+  .teacher-trail-step:nth-child(3) { animation-delay: 160ms; }
+
+  @keyframes teacher-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .teacher-trail-step,
+    .teacher-assignment-list > * { animation: none; }
+  }
+
+  /* Pass score chip */
+  .teacher-score-high { color: var(--teacher-moss); }
+  .teacher-score-mid  { color: var(--teacher-ochre); }
+  .teacher-score-low  { color: var(--teacher-terracotta); }
 }

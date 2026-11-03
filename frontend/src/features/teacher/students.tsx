@@ -73,22 +73,34 @@ export function TeacherStudentsPage({ classId }: { classId: string }) {
         </Card>
       )}
 
-      <div role="tablist" aria-label="Student information" className="mb-6 flex w-fit flex-wrap gap-1 border-b border-[var(--teacher-moss)]/20">
+      {/* Pill-style tabs */}
+      <div
+        role="tablist"
+        aria-label="Student information"
+        className="mb-6 flex w-fit overflow-x-auto rounded-2xl border border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/30 p-1 gap-1"
+      >
         {([
           ['students', 'Student list'],
           ['progress', 'Student progress'],
-        ] as const).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === value}
-            className={`border-b-2 px-4 py-3 text-sm font-bold transition-colors ${activeTab === value ? 'border-[var(--teacher-terracotta)] text-[var(--teacher-ink)]' : 'border-transparent text-[var(--teacher-ink)]/60 hover:text-[var(--teacher-ink)]'}`}
-            onClick={() => setActiveTab(value)}
-          >
-            {label}
-          </button>
-        ))}
+        ] as const).map(([value, label]) => {
+          const active = activeTab === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={`shrink-0 rounded-xl px-5 py-2 text-sm font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
+                active
+                  ? 'bg-[var(--teacher-moss)] text-[var(--teacher-sand)] shadow-sm'
+                  : 'text-[var(--teacher-ink)]/65 hover:bg-[var(--teacher-sage)]/25 hover:text-[var(--teacher-ink)]'
+              }`}
+              onClick={() => setActiveTab(value)}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'students' ? (
@@ -117,7 +129,7 @@ export function TeacherStudentsPage({ classId }: { classId: string }) {
         </>
       ) : (
         <>
-        <TeacherStudentProgressTable students={students} classId={classId} />
+          <TeacherStudentProgressTable students={students} classId={classId} />
           {hasNextPage && (
             <div className="mt-4 flex justify-center">
               <Button
