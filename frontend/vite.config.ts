@@ -39,7 +39,15 @@ function freePlayMediaManifestPlugin() {
 
 export default defineConfig(({ mode }) => {
   const envDir = path.resolve(import.meta.dirname);
-  const env = loadEnv(mode, envDir, '');
+  const rootEnvDir = path.resolve(import.meta.dirname, '..');
+  // frontend/.env is primary; a repo-root .env is a fallback for VITE_* values.
+  const frontendViteEnv = loadEnv(mode, envDir, 'VITE_');
+  const rootOnlyDefines = Object.fromEntries(
+    Object.entries(loadEnv(mode, rootEnvDir, 'VITE_'))
+      .filter(([key]) => !(key in frontendViteEnv))
+      .map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value)]),
+  );
+  const env = { ...loadEnv(mode, rootEnvDir, ''), ...loadEnv(mode, envDir, '') };
   const isTauriBuild = Boolean(process.env.TAURI_ENV_PLATFORM || env.TAURI_ENV_PLATFORM);
   const port = Number(env.PORT || '5173');
   const basePath = isTauriBuild ? './' : env.BASE_PATH || '/';
@@ -87,6 +95,7 @@ export default defineConfig(({ mode }) => {
     },
     root: path.resolve(import.meta.dirname),
     envDir,
+    define: rootOnlyDefines,
     build: {
       outDir: path.resolve(import.meta.dirname, 'dist'),
       emptyOutDir: true,
