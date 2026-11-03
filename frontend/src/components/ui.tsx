@@ -2,6 +2,7 @@ import React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Eye, EyeOff } from 'lucide-react';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,16 +39,38 @@ export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
 Button.displayName = 'Button';
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => {
-    return (
+  ({ className, type, ...props }, ref) => {
+    const [showPassword, setShowPassword] = React.useState(false);
+    const isPassword = type === 'password';
+
+    const field = (
       <input
         ref={ref}
+        type={isPassword && showPassword ? 'text' : type}
         className={cn(
           "flex h-12 w-full rounded-xl border-2 border-input bg-background px-4 py-2 text-base font-medium ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          isPassword && 'pr-12',
           className
         )}
         {...props}
       />
+    );
+
+    if (!isPassword) return field;
+
+    return (
+      <div className="relative w-full">
+        {field}
+        <button
+          type="button"
+          className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+          aria-pressed={showPassword}
+          onClick={() => setShowPassword((shown) => !shown)}
+        >
+          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        </button>
+      </div>
     );
   }
 );
