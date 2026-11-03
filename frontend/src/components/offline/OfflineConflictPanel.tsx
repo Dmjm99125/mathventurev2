@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
+import { resolveOfflineConflict } from '@/lib/offline/classroom/conflictResolution';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 
 export function OfflineConflictPanel() {
-  const { repository } = useOfflineClassroom();
+  const { repository, bootstrapNow } = useOfflineClassroom();
   const [conflicts, setConflicts] = useState<Record<string, unknown>[]>([]);
   const refresh = async () => setConflicts(await repository.listConflicts());
   useEffect(() => { void refresh(); }, [repository]);
   const resolve = async (key: string, choice: 'local' | 'server') => {
-    await repository.resolveConflict(key, choice);
+    await resolveOfflineConflict(repository, bootstrapNow, key, choice);
     await refresh();
   };
   const exportDiagnostics = async () => {
