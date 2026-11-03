@@ -441,7 +441,7 @@ export type ActivityOperationPersistence = {
 };
 
 export type RosterOperationPersistence = {
-  getTeacherClassroom(teacherId: string): Promise<{ id: string; teacherId: string; name: string } | null>;
+  getTeacherClassroom(teacherId: string, classId: string): Promise<{ id: string; teacherId: string; name: string } | null>;
   hasStudentWithNormalizedName(normalizedLastName: string, normalizedFirstName: string): Promise<boolean>;
   provisionStudentForClass(input: {
     classId: string;
@@ -458,7 +458,11 @@ export function createRosterOperationApplier(
   persistence: RosterOperationPersistence,
 ): (teacherId: string, operation: OfflineOperation) => Promise<OfflineOperationExecution> {
   return async (teacherId, operation) => {
-    const classroom = await persistence.getTeacherClassroom(teacherId);
+    const classId = operation.type === "class.ensure"
+      ? payloadString(operation.payload, "classId") || operation.entityId
+      : payloadString(operation.payload, "classId");
+    if (!classId) return { status: "rejected", error: "classId is required." };
+    const classroom = await persistence.getTeacherClassroom(teacherId, classId);
     if (!classroom) return { status: "rejected", error: "Classroom not found." };
     if (operation.type === "class.ensure") {
       return { status: "accepted", result: { classroom } };
@@ -896,9 +900,9 @@ export async function applyOfflineOperation(
   if (operation.type === "class.ensure" || operation.type === "class.addStudents" || operation.type === "class.removeStudent") {
     const { adminClient } = await import("./client.ts");
     const persistence: RosterOperationPersistence = {
-      async getTeacherClassroom(ownerId) {
+      async getTeacherClassroom(ownerId, classId) {
         const { data, error } = await adminClient.from("classes")
-          .select("id, teacher_id, name").eq("teacher_id", ownerId).order("created_at", { ascending: true }).limit(1).maybeSingle();
+          .select("id, teacher_id, name").eq("id", classId).eq("teacher_id", ownerId).maybeSingle();
         if (error) throw error;
         return data ? { id: data.id, teacherId: data.teacher_id, name: data.name } : null;
       },

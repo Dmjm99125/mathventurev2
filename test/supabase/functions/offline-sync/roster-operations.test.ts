@@ -6,7 +6,9 @@ import {
 
 Deno.test('class.addStudents rejects duplicate normalized names in one offline batch', async () => {
   const persistence: RosterOperationPersistence = {
-    getTeacherClassroom: async () => ({ id: 'class-1', teacherId: 'teacher-1', name: 'Classroom' }),
+    getTeacherClassroom: async (_teacherId, classId?: string) => classId === 'class-1'
+      ? { id: 'class-1', teacherId: 'teacher-1', name: 'Classroom' }
+      : null,
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async () => ({ studentId: 'student-1', email: 'student@example.test' }),
     removeMembership: async () => {},
@@ -19,6 +21,7 @@ Deno.test('class.addStudents rejects duplicate normalized names in one offline b
     type: 'class.addStudents',
     entityId: 'batch-1',
     payload: {
+      classId: 'class-1',
       students: [
         { lastName: 'Santos', firstName: 'Ana' },
         { lastName: ' santos ', firstName: 'ANA' },
@@ -36,7 +39,9 @@ Deno.test('class.addStudents rejects duplicate normalized names in one offline b
 
 Deno.test('class.addStudents returns canonical server mappings for provisional students', async () => {
   const persistence: RosterOperationPersistence = {
-    getTeacherClassroom: async () => ({ id: 'class-1', teacherId: 'teacher-1', name: 'Classroom' }),
+    getTeacherClassroom: async (_teacherId, classId?: string) => classId === 'class-1'
+      ? { id: 'class-1', teacherId: 'teacher-1', name: 'Classroom' }
+      : null,
     hasStudentWithNormalizedName: async () => false,
     provisionStudentForClass: async ({ identity }) => ({ studentId: `server-${identity.normalizedFirstName}`, email: 'student@example.test' }),
     removeMembership: async () => {},
@@ -47,11 +52,93 @@ Deno.test('class.addStudents returns canonical server mappings for provisional s
     actorId: 'teacher-1',
     type: 'class.addStudents',
     entityId: 'local-student-1',
-    payload: { students: [{ localId: 'local-student-1', lastName: 'Santos', firstName: 'Ana' }] },
+    payload: { classId: 'class-1', students: [{ localId: 'local-student-1', lastName: 'Santos', firstName: 'Ana' }] },
     dependencies: [],
     createdAt: '2026-10-07T00:00:00.000Z',
   });
   assertEquals((result.result as { mappings: Array<{ entityType: string; localId: string; serverId: string }> }).mappings, [
     { entityType: 'student', localId: 'local-student-1', serverId: 'server-ANA' },
   ]);
+});
+
+Deno.test('class.addStudents provisions into the requested teacher-owned class', async () => {
+  let provisionedClassId = '';
+  const persistence: RosterOperationPersistence = {
+    getTeacherClassroom: async (_teacherId, classId?: string) => classId === 'class-beige'
+      ? { id: 'class-beige', teacherId: 'teacher-1', name: 'Beige PM' }
+      : null,
+    hasStudentWithNormalizedName: async () => false,
+    provisionStudentForClass: async ({ classId }) => {
+      provisionedClassId = classId;
+      return { studentId: 'student-1', email: 'student@example.test' };
+    },
+    removeMembership: async () => {},
+  };
+
+  const result = await createRosterOperationApplier(persistence)('teacher-1', {
+    operationId: 'operation-beige',
+    deviceId: 'device-1',
+    actorId: 'teacher-1',
+    type: 'class.addStudents',
+    entityId: 'batch-beige',
+    payload: { classId: 'class-beige', students: [{ localId: 'local-1', lastName: 'Santos', firstName: 'Ana' }] },
+    dependencies: [],
+    createdAt: '2026-10-07T00:00:00.000Z',
+  });
+
+  assertEquals(result.status, 'accepted');
+  assertEquals(provisionedClassId, 'class-beige');
+});
+
+Deno.test('class.addStudents rejects an operation without a target class before provisioning', async () => {
+  let provisioned = false;
+  const persistence: RosterOperationPersistence = {
+    getTeacherClassroom: async () => ({ id: 'class-1', teacherId: 'teacher-1', name: 'Classroom' }),
+    hasStudentWithNormalizedName: async () => false,
+    provisionStudentForClass: async () => {
+      provisioned = true;
+      return { studentId: 'student-1', email: 'student@example.test' };
+    },
+    removeMembership: async () => {},
+  };
+
+  const result = await createRosterOperationApplier(persistence)('teacher-1', {
+    operationId: 'operation-missing-class',
+    deviceId: 'device-1',
+    actorId: 'teacher-1',
+    type: 'class.addStudents',
+    entityId: 'batch-missing-class',
+    payload: { students: [{ localId: 'local-1', lastName: 'Santos', firstName: 'Ana' }] },
+    dependencies: [],
+    createdAt: '2026-10-07T00:00:00.000Z',
+  });
+
+  assertEquals(result, { status: 'rejected', error: 'classId is required.' });
+  assertEquals(provisioned, false);
+});
+
+Deno.test('class.removeStudent rejects a foreign class before removing membership', async () => {
+  let removed = false;
+  const persistence: RosterOperationPersistence = {
+    getTeacherClassroom: async (_teacherId, classId?: string) => classId === 'class-owned'
+      ? { id: 'class-owned', teacherId: 'teacher-1', name: 'Owned' }
+      : null,
+    hasStudentWithNormalizedName: async () => false,
+    provisionStudentForClass: async () => ({ studentId: 'student-1', email: 'student@example.test' }),
+    removeMembership: async () => { removed = true; },
+  };
+
+  const result = await createRosterOperationApplier(persistence)('teacher-1', {
+    operationId: 'operation-foreign-class',
+    deviceId: 'device-1',
+    actorId: 'teacher-1',
+    type: 'class.removeStudent',
+    entityId: 'student-1',
+    payload: { classId: 'class-foreign', studentId: 'student-1' },
+    dependencies: [],
+    createdAt: '2026-10-07T00:00:00.000Z',
+  });
+
+  assertEquals(result, { status: 'rejected', error: 'Classroom not found.' });
+  assertEquals(removed, false);
 });
