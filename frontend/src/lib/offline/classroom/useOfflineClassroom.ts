@@ -1,3 +1,4 @@
+import { AppLoadingScreen } from '@/components/AppLoadingScreen';
 import { createContext, createElement, useContext, useEffect, useMemo, useReducer, useRef, useCallback, useState, type ReactNode } from 'react';
 import { createOfflineRepository, type OfflineRepository } from './repository.ts';
 import { bootstrapRepository, downloadClassroomPack } from './bootstrap.ts';
@@ -157,12 +158,11 @@ export function OfflineClassroomProvider({ children, repository, invoke, teacher
     return () => window.clearInterval(retryTimer);
   }, [resolvedRepository, syncNow]);
   if (!resolvedRepository) {
+    if (!storageError) return createElement(AppLoadingScreen);
     return createElement(
       'div',
       { role: 'alert', className: 'min-h-[100dvh] bg-background p-6 text-center text-foreground' },
-      storageError
-        ? `Offline storage could not be prepared. ${storageError.message}`
-        : 'Preparing durable offline storage…',
+      `Offline storage could not be prepared. ${storageError.message}`,
     );
   }
   return createElement(OfflineClassroomContext.Provider, { value: { ...state, repository: resolvedRepository, bootstrapNow, syncNow } }, children);
