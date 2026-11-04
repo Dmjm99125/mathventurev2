@@ -18,3 +18,9 @@ Deno.test("teacher sidebar owns labeled navigation and mobile drawer state", () 
   assertStringIncludes(sidebarSource, "aria-controls");
   assertStringIncludes(sidebarSource, "teacher-mobile-nav");
 });
+
+Deno.test("teacher workspace board exposes return to class list control", () => {
+  assertStringIncludes(source, "classId");
+  assertStringIncludes(source, 'href="/teacher"');
+  assertStringIncludes(source, "teacher.returnToClasses");
+});

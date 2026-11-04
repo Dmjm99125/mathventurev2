@@ -14,7 +14,7 @@ describe('teacher navigation model', () => {
       '/teacher/classes/class%201/students',
       '/teacher/classes/class%201/assignments',
       '/teacher/classes/class%201/reports',
-      '/teacher',
+
       '/teacher/settings',
     ]);
   });

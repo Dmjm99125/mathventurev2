@@ -11,7 +11,7 @@ export function getTeacherWorkspaceNavItems(classId: string) {
     { href: teacherClassPath(classId, 'students'), labelKey: "teacher.students" },
     { href: teacherClassPath(classId, 'assignments'), labelKey: "teacher.assignments" },
     { href: teacherClassPath(classId, 'reports'), labelKey: "teacher.reports" },
-    ...TEACHER_NAV_ITEMS,
+    { href: "/teacher/settings", labelKey: "teacher.settings" },
   ] as const;
 }
 
@@ -22,7 +22,7 @@ export function isTeacherNavActive(pathname: string, href: string): boolean {
     return cleanPath === "/teacher";
   }
 
-  if (href === "/teacher") return cleanPath === "/teacher";
+
   if (href.startsWith("/teacher/classes/")) {
     return cleanPath === href || cleanPath.startsWith(`${href}/`);
   }
