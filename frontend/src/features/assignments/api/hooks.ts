@@ -18,6 +18,7 @@ import {
 import { readOfflineAssignments } from '@/lib/offline/classroom/queries';
 import { loadAssignmentsOnlineFirst, waitForOnlineAssignmentSync } from './online';
 import { assignmentKeys, classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
+import { loadOnlineFirst } from '@infrastructure/api/online-first';
 import {
   invalidateAssignmentChanged,
   invalidateAssignmentCheckpointed,
@@ -60,11 +61,15 @@ export function useAssignmentQuiz(assignmentId?: string, lessonId?: string) {
   return useQuery({
     queryKey: assignmentKeys.quiz(assignmentId, lessonId),
     queryFn: async () => {
-      if (user) {
-        const state = await readOfflineAssignmentQuiz(repository, user.id, assignmentId!, lessonId!);
-        if (state.attemptId || browserIsOffline()) return { state };
-      }
-      return api.assignmentQuiz.get(assignmentId!, lessonId!);
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          if (!user) return null;
+          const state = await readOfflineAssignmentQuiz(repository, user.id, assignmentId!, lessonId!);
+          return state.attemptId || browserIsOffline() ? { state } : null;
+        },
+        readServer: () => api.assignmentQuiz.get(assignmentId!, lessonId!),
+      });
     },
     enabled: Boolean(assignmentId && lessonId) && isAuthReadyForData(isLoading, user),
   });

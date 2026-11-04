@@ -6,6 +6,7 @@ import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom
 import { createOfflinePost } from '@/lib/offline/classroom/mutations';
 import { readOfflinePosts } from '@/lib/offline/classroom/reports';
 import { postKeys } from '@infrastructure/api/queryKeys';
+import { loadOnlineFirst } from '@infrastructure/api/online-first';
 import { invalidatePostCreated } from '@infrastructure/api/invalidation';
 
 function browserIsOffline(): boolean {
@@ -19,9 +20,15 @@ export function useClassPosts(classId: string) {
   return useQuery({
     queryKey: postKeys.list(classId),
     queryFn: async () => {
-      const posts = await readOfflinePosts(repository, classId);
-      if (posts.length || browserIsOffline()) return { posts };
-      return api.posts.list(classId);
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          const posts = await readOfflinePosts(repository, classId);
+          if (!posts.length && !browserIsOffline()) return null;
+          return { posts };
+        },
+        readServer: () => api.posts.list(classId),
+      });
     },
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });

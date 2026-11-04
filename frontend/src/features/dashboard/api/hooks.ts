@@ -9,6 +9,7 @@ import {
   buildOfflineTeacherDashboard,
 } from '@/lib/offline/classroom/reports';
 import { dashboardKeys } from '@infrastructure/api/queryKeys';
+import { loadOnlineFirst } from '@infrastructure/api/online-first';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -21,9 +22,15 @@ export function useStudentDashboard() {
   return useQuery<StudentDashboard>({
     queryKey: dashboardKeys.student(),
     queryFn: async () => {
-      const attempts = await repository.readCollection('attempts');
-      if (attempts.length || browserIsOffline()) return buildOfflineStudentDashboard(attempts);
-      return api.dashboard.student();
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          const attempts = await repository.readCollection('attempts');
+          if (!attempts.length && !browserIsOffline()) return null;
+          return buildOfflineStudentDashboard(attempts);
+        },
+        readServer: () => api.dashboard.student(),
+      });
     },
     enabled: isAuthReadyForData(isLoading, user),
   });
@@ -36,13 +43,19 @@ export function useTeacherDashboard() {
   return useQuery<TeacherDashboard>({
     queryKey: dashboardKeys.teacher(),
     queryFn: async () => {
-      const [classrooms, students, attempts] = await Promise.all([
-        repository.readCollection('classrooms'),
-        repository.readCollection('classStudents'),
-        repository.readCollection('attempts'),
-      ]);
-      if (classrooms.length || browserIsOffline()) return buildOfflineTeacherDashboard(classrooms, students, attempts);
-      return api.dashboard.teacher();
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          const [classrooms, students, attempts] = await Promise.all([
+            repository.readCollection('classrooms'),
+            repository.readCollection('classStudents'),
+            repository.readCollection('attempts'),
+          ]);
+          if (!classrooms.length && !browserIsOffline()) return null;
+          return buildOfflineTeacherDashboard(classrooms, students, attempts);
+        },
+        readServer: () => api.dashboard.teacher(),
+      });
     },
     enabled: isAuthReadyForData(isLoading, user),
   });

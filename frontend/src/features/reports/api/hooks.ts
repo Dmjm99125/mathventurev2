@@ -6,6 +6,7 @@ import type { TeacherReportsWindowKey } from '@/lib/teacher/reports';
 import { useOfflineClassroom } from '@/lib/offline/classroom/useOfflineClassroom';
 import { buildOfflineTeacherClassReport } from '@/lib/offline/classroom/reports';
 import { reportKeys } from '@infrastructure/api/queryKeys';
+import { loadOnlineFirst } from '@infrastructure/api/online-first';
 
 function browserIsOffline(): boolean {
   return typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -18,21 +19,25 @@ export function useTeacherReportsOverview(classId: string, window: TeacherReport
   return useQuery({
     queryKey: reportKeys.overview(classId, window, studentCursor ?? null),
     queryFn: async () => {
-      const [classrooms, students, gameResults] = await Promise.all([
-        repository.readCollection('classrooms'),
-        repository.readCollection('classStudents'),
-        repository.readCollection('attemptGameResults'),
-      ]);
-      if (classrooms.length || browserIsOffline()) {
-        return buildOfflineTeacherClassReport(
-          classrooms,
-          students,
-          gameResults,
-          classId,
-          window,
-        );
-      }
-      return api.reports.overview(classId, window, { studentCursor });
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          const [classrooms, students, gameResults] = await Promise.all([
+            repository.readCollection('classrooms'),
+            repository.readCollection('classStudents'),
+            repository.readCollection('attemptGameResults'),
+          ]);
+          if (!browserIsOffline() && !classrooms.some((classroom) => String(classroom.id) === classId)) return null;
+          return buildOfflineTeacherClassReport(
+            classrooms,
+            students,
+            gameResults,
+            classId,
+            window,
+          );
+        },
+        readServer: () => api.reports.overview(classId, window, { studentCursor }),
+      });
     },
     enabled: Boolean(classId) && isAuthReadyForData(isLoading, user),
   });
@@ -45,15 +50,19 @@ export function useTeacherClassReport(classId: string, window: TeacherReportsWin
   return useQuery({
     queryKey: reportKeys.class(classId, window, studentCursor ?? null),
     queryFn: async () => {
-      const [classrooms, students, gameResults] = await Promise.all([
-        repository.readCollection('classrooms'),
-        repository.readCollection('classStudents'),
-        repository.readCollection('attemptGameResults'),
-      ]);
-      if (classrooms.length || browserIsOffline()) {
-        return buildOfflineTeacherClassReport(classrooms, students, gameResults, classId, window);
-      }
-      return api.reports.classDetail(classId, window, { studentCursor });
+      return loadOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          const [classrooms, students, gameResults] = await Promise.all([
+            repository.readCollection('classrooms'),
+            repository.readCollection('classStudents'),
+            repository.readCollection('attemptGameResults'),
+          ]);
+          if (!browserIsOffline() && !classrooms.some((classroom) => String(classroom.id) === classId)) return null;
+          return buildOfflineTeacherClassReport(classrooms, students, gameResults, classId, window);
+        },
+        readServer: () => api.reports.classDetail(classId, window, { studentCursor }),
+      });
     },
     enabled: !!classId && isAuthReadyForData(isLoading, user),
   });
