@@ -1,8 +1,19 @@
 import { assertEquals } from 'jsr:@std/assert';
 import {
   createAssignmentOperationApplier,
+  lessonLookupCandidates,
   type AssignmentOperationPersistence,
 } from '../../../../supabase/functions/_shared/offline_operations.ts';
+
+Deno.test('assignment sync looks up hardcoded lesson slugs before legacy UUIDs', () => {
+  assertEquals(lessonLookupCandidates('sequencing'), [
+    { column: 'slug', value: 'sequencing' },
+  ]);
+  assertEquals(lessonLookupCandidates('13b5eb5b-a296-4d0b-8a5a-68c2410c0a03'), [
+    { column: 'slug', value: '13b5eb5b-a296-4d0b-8a5a-68c2410c0a03' },
+    { column: 'id', value: '13b5eb5b-a296-4d0b-8a5a-68c2410c0a03' },
+  ]);
+});
 
 const operation = {
   operationId: 'operation-1',

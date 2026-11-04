@@ -111,6 +111,16 @@ export type AssignmentOperationInput = {
   dueAt: string | null;
 };
 
+const LESSON_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function lessonLookupCandidates(lessonId: string): Array<{ column: "slug" | "id"; value: string }> {
+  const candidates: Array<{ column: "slug" | "id"; value: string }> = [
+    { column: "slug", value: lessonId },
+  ];
+  if (LESSON_UUID_PATTERN.test(lessonId)) candidates.push({ column: "id", value: lessonId });
+  return candidates;
+}
+
 export type AssignmentOperationPersistence = {
   isTeacherForClass(classId: string, teacherId: string): Promise<boolean>;
   lessonExists(lessonId: string): Promise<boolean>;
@@ -632,9 +642,16 @@ export async function applyOfflineOperation(
         return Boolean(data);
       },
       async lessonExists(lessonId) {
-        const { data, error } = await adminClient.from("lessons").select("id").eq("id", lessonId).maybeSingle();
-        if (error) throw error;
-        return Boolean(data);
+        for (const candidate of lessonLookupCandidates(lessonId)) {
+          const { data, error } = await adminClient
+            .from("lessons")
+            .select("id")
+            .eq(candidate.column, candidate.value)
+            .maybeSingle();
+          if (error) throw error;
+          if (data) return true;
+        }
+        return false;
       },
       async insertAssignment(input) {
         const { data, error } = await adminClient.from("assignments").insert({
