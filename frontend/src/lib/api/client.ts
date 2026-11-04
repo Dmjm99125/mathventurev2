@@ -86,6 +86,15 @@ export interface TeacherAssignmentScore {
   gameScores: TeacherGameScore[];
 }
 
+export interface TeacherAssignmentStudentScore {
+  studentId: string;
+  status: AssignmentQuizStatus;
+  overallScore: number | null;
+  overallMaxScore: number | null;
+  overallScorePct: number | null;
+  gameScores: TeacherGameScore[];
+}
+
 export interface TeacherClassStudent {
   id: string;
   fullName: string;
@@ -138,6 +147,7 @@ export interface AssignmentForTeacher {
   studentId: string | null;
   dueAt: string | null;
   createdAt: string;
+  studentScores?: TeacherAssignmentStudentScore[];
 }
 
 export interface ClassPost {

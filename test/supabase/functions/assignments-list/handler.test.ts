@@ -55,3 +55,61 @@ Deno.test("assignments-list keeps duplicate lesson assignments distinct for stud
     { id: "assignment-2", name: "Sequencing Retake", completed: false },
   ]);
 });
+
+Deno.test("assignments-list attaches class assignment scores for teacher pages", async () => {
+  const handler = createAssignmentsListHandler({
+    getAuthedProfile: async () => ({ id: "teacher-1", role: "teacher", full_name: "Teacher" }),
+    getTeacherClass: async () => ({
+      id: "class-1",
+      teacherId: "teacher-1",
+      name: "Classroom",
+      createdAt: "2026-08-01T00:00:00.000Z",
+      archivedAt: null,
+    }),
+    listTeacherAssignments: async () => [{
+      id: "assignment-1",
+      name: "Sequencing",
+      lessonId: "sequencing",
+      classId: "class-1",
+      studentId: null,
+      dueAt: null,
+      createdAt: "2026-08-01T00:00:00.000Z",
+    }],
+    listStudentAssignments: async () => [],
+    listAttempts: async () => new Map(),
+    listTeacherAssignmentScores: async () => new Map([
+      ["assignment-1", [{
+        studentId: "student-1",
+        status: "completed",
+        overallScore: 87,
+        overallMaxScore: 87,
+        overallScorePct: 100,
+        gameScores: [{
+          gameId: "sequencing:0",
+          score: 5,
+          maxScore: 5,
+          scorePct: 100,
+          completedAt: "2026-08-02T00:00:00.000Z",
+        }],
+      }]],
+    ]),
+  } as unknown as AssignmentsListDeps);
+
+  const response = await handler(new Request("http://local/assignments-list?classId=class-1"));
+  const json = await response.json();
+
+  assertEquals(json.assignments[0].studentScores, [{
+    studentId: "student-1",
+    status: "completed",
+    overallScore: 87,
+    overallMaxScore: 87,
+    overallScorePct: 100,
+    gameScores: [{
+      gameId: "sequencing:0",
+      score: 5,
+      maxScore: 5,
+      scorePct: 100,
+      completedAt: "2026-08-02T00:00:00.000Z",
+    }],
+  }]);
+});

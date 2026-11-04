@@ -72,4 +72,31 @@ describe('teacher assignment view model', () => {
     expect(getTeacherAssignedQuizName({ name: '  ', lessonId: 'addition' })).toBe('addition');
     expect(getTeacherAssignedQuizName({ name: 'My Quiz', lessonId: 'addition' })).toBe('My Quiz');
   });
+
+  it('uses assignment-level scores when the roster summary has no detail payload', () => {
+    const rosterStudent = { ...students[0], assignments: [] };
+    const assignmentWithScores = {
+      ...assignment,
+      studentScores: [{
+        studentId: 'student-1',
+        status: 'completed' as const,
+        overallScore: 87,
+        overallMaxScore: 87,
+        overallScorePct: 100,
+        gameScores: [{
+          gameId: 'addition:0',
+          score: 5,
+          maxScore: 5,
+          scorePct: 100,
+          completedAt: '2026-08-21T00:00:00Z',
+        }],
+      }],
+    } as AssignmentForTeacher;
+
+    const [quiz] = buildTeacherAssignedQuizzes([assignmentWithScores], [rosterStudent]);
+
+    expect(quiz.students[0].overallScore).toBe(87);
+    expect(quiz.students[0].overallScorePct).toBe(100);
+    expect(quiz.students[0].gameScores[0].gameId).toBe('addition:0');
+  });
 });

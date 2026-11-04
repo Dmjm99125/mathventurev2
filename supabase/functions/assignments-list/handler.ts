@@ -17,6 +17,24 @@ export type AssignmentListRecord = {
   className?: string | null;
   dueAt: string | null;
   createdAt: string;
+  studentScores?: TeacherAssignmentStudentScore[];
+};
+
+export type TeacherAssignmentStudentScore = {
+  studentId: string;
+  status: "in_progress" | "completed";
+  overallScore: number | null;
+  overallMaxScore: number | null;
+  overallScorePct: number | null;
+  gameScores: TeacherAssignmentGameScore[];
+};
+
+type TeacherAssignmentGameScore = {
+  gameId: string;
+  score: number;
+  maxScore: number;
+  scorePct: number;
+  completedAt: string;
 };
 
 export type AssignmentListAttempt = {
@@ -50,6 +68,10 @@ export type AssignmentsListDeps = {
     cursor?: string | null,
   ): Promise<AssignmentSource>;
   listAttempts(studentId: string, assignmentIds: string[]): Promise<Map<string, AssignmentListAttempt>>;
+  listTeacherAssignmentScores?: (
+    classId: string,
+    assignmentIds: string[],
+  ) => Promise<Map<string, TeacherAssignmentStudentScore[]>>;
 };
 
 type AssignmentQueryRow = {
@@ -66,6 +88,25 @@ type AssignmentQueryRow = {
 type AssignmentCursor = {
   createdAt: string;
   id: string;
+};
+
+type TeacherAttemptQueryRow = {
+  id: string;
+  assignment_id: string | null;
+  student_id: string;
+  status: "in_progress" | "completed";
+  score: number;
+  max_score: number;
+  updated_at: string;
+};
+
+type TeacherGameResultQueryRow = {
+  attempt_id: string;
+  game_id: string;
+  score: number;
+  max_score: number;
+  score_pct: number;
+  completed_at: string;
 };
 
 function mapAssignment(row: AssignmentQueryRow): AssignmentListRecord {
@@ -199,6 +240,70 @@ const defaultDeps: AssignmentsListDeps = {
     }
     return attemptsByAssignment;
   },
+  async listTeacherAssignmentScores(classId, assignmentIds) {
+    if (!assignmentIds.length) return new Map();
+
+    const { adminClient } = await import("../_shared/client.ts");
+    const { data: attemptData, error: attemptError } = await adminClient
+      .from("attempts")
+      .select("id, assignment_id, student_id, status, score, max_score, updated_at")
+      .eq("class_id", classId)
+      .in("assignment_id", assignmentIds)
+      .order("updated_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(Math.min(10000, assignmentIds.length * 200));
+    if (attemptError) throw attemptError;
+
+    const latestAttempts = new Map<string, TeacherAttemptQueryRow>();
+    for (const row of (attemptData ?? []) as TeacherAttemptQueryRow[]) {
+      if (!row.assignment_id) continue;
+      const key = `${row.assignment_id}:${row.student_id}`;
+      if (!latestAttempts.has(key)) latestAttempts.set(key, row);
+    }
+
+    const attemptIds = Array.from(latestAttempts.values()).map((row) => row.id);
+    const { data: resultData, error: resultError } = attemptIds.length
+      ? await adminClient
+        .from("attempt_game_results")
+        .select("attempt_id, game_id, score, max_score, score_pct, completed_at")
+        .in("attempt_id", attemptIds)
+        .order("completed_at", { ascending: false })
+      : { data: [], error: null };
+    if (resultError) throw resultError;
+
+    const gameScoresByAttempt = new Map<string, TeacherAssignmentGameScore[]>();
+    for (const row of (resultData ?? []) as TeacherGameResultQueryRow[]) {
+      const scores = gameScoresByAttempt.get(row.attempt_id) ?? [];
+      scores.push({
+        gameId: row.game_id,
+        score: row.score,
+        maxScore: row.max_score,
+        scorePct: row.max_score > 0 ? Math.round((row.score / row.max_score) * 100) : row.score_pct,
+        completedAt: row.completed_at,
+      });
+      gameScoresByAttempt.set(row.attempt_id, scores);
+    }
+
+    const scoresByAssignment = new Map<string, TeacherAssignmentStudentScore[]>();
+    for (const attempt of latestAttempts.values()) {
+      if (!attempt.assignment_id) continue;
+      const scores = scoresByAssignment.get(attempt.assignment_id) ?? [];
+      const isCompleted = attempt.status === "completed";
+      scores.push({
+        studentId: attempt.student_id,
+        status: attempt.status,
+        overallScore: isCompleted ? attempt.score : null,
+        overallMaxScore: isCompleted ? attempt.max_score : null,
+        overallScorePct: isCompleted && attempt.max_score > 0
+          ? Math.round((attempt.score / attempt.max_score) * 100)
+          : null,
+        gameScores: gameScoresByAttempt.get(attempt.id) ?? [],
+      });
+      scoresByAssignment.set(attempt.assignment_id, scores);
+    }
+
+    return scoresByAssignment;
+  },
 };
 
 export function createAssignmentsListHandler(deps: AssignmentsListDeps = defaultDeps) {
@@ -219,7 +324,16 @@ export function createAssignmentsListHandler(deps: AssignmentsListDeps = default
         }
         const source = await deps.listTeacherAssignments(profile.id, classId, pageSize, cursor);
         const page = normalizePage(source, pageSize);
-        return jsonResponse({ assignments: page.assignments, page: { nextCursor: page.nextCursor, hasMore: page.hasMore } });
+        const scoresByAssignment = deps.listTeacherAssignmentScores
+          ? await deps.listTeacherAssignmentScores(classId, page.assignments.map((assignment) => assignment.id))
+          : new Map<string, TeacherAssignmentStudentScore[]>();
+        return jsonResponse({
+          assignments: page.assignments.map((assignment) => ({
+            ...assignment,
+            studentScores: scoresByAssignment.get(assignment.id) ?? [],
+          })),
+          page: { nextCursor: page.nextCursor, hasMore: page.hasMore },
+        });
       }
 
       const source = await deps.listStudentAssignments(profile.id, pageSize, cursor);
