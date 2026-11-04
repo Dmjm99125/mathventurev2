@@ -77,6 +77,36 @@ Deno.test('offline sync permits a cached classroom student actor after teacher a
   assertEquals(body.results[0].status, 'accepted');
 });
 
+Deno.test('offline sync permits a student to sync their own assignment quiz progress', async () => {
+  let appliedActor = '';
+  const handler = createOfflineSyncHandler({
+    getAuthedProfile: async () => ({ id: 'student-1', role: 'student', full_name: 'Student' }),
+    readStoredOperation: async () => null,
+    applyOperation: async (_ownerId, operation) => {
+      appliedActor = operation.actorId;
+      return { status: 'accepted', result: { saved: true } };
+    },
+    recordOperation: async () => {},
+  });
+  const response = await handler(new Request('http://local/offline-sync', {
+    method: 'POST',
+    body: JSON.stringify({
+      deviceId: 'device-1',
+      operations: [{
+        operationId: 'student-quiz-operation-1', deviceId: 'device-1', actorId: 'student-1',
+        type: 'assignmentQuiz.start', entityId: 'attempt-1',
+        payload: { assignmentId: 'assignment-1', lessonId: 'lesson-1' },
+        dependencies: [], createdAt: '2026-10-07T00:00:00.000Z',
+      }],
+    }),
+  }));
+  const body = await response.json();
+
+  assertEquals(response.status, 200);
+  assertEquals(appliedActor, 'student-1');
+  assertEquals(body.results[0].status, 'accepted');
+});
+
 Deno.test('offline sync returns independent results for malformed and valid batch members', async () => {
   let applied = 0;
   const handler = createOfflineSyncHandler({

@@ -145,7 +145,9 @@ export function createOfflineSyncHandler(
 
     const profile = await dependencies.getAuthedProfile(request);
     if (!profile) return errorResponse("Unauthorized", 401);
-    if (profile.role !== "teacher") return errorResponse("Only teachers can sync classroom data", 403);
+    if (profile.role !== "teacher" && profile.role !== "student") {
+      return errorResponse("Only signed-in classroom users can sync data", 403);
+    }
 
     let body: unknown;
     try {

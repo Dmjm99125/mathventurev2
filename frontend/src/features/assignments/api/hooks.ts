@@ -16,6 +16,7 @@ import {
   submitOfflineAttempt,
 } from '@/lib/offline/classroom/quiz';
 import { readOfflineAssignments } from '@/lib/offline/classroom/queries';
+import { loadAssignmentsOnlineFirst, waitForOnlineAssignmentSync } from './online';
 import { assignmentKeys, classroomKeys, dashboardKeys } from '@infrastructure/api/queryKeys';
 import {
   invalidateAssignmentChanged,
@@ -37,9 +38,14 @@ export function useAssignments(classId?: string) {
   return useInfiniteQuery({
     queryKey: assignmentKeys.list(classId),
     queryFn: async ({ pageParam }) => {
-      const cached = await readOfflineAssignments(repository, classId, user?.role === 'student' ? user.id : null);
-      if (cached.length || browserIsOffline()) return { assignments: cached, page: { nextCursor: null, hasMore: false } };
-      return api.assignments.list(classId, { cursor: pageParam });
+      return loadAssignmentsOnlineFirst({
+        isOffline: browserIsOffline(),
+        readCache: async () => {
+          const cached = await readOfflineAssignments(repository, classId, user?.role === 'student' ? user.id : null);
+          return { assignments: cached, page: { nextCursor: null, hasMore: false } };
+        },
+        readServer: () => api.assignments.list(classId, { cursor: pageParam }),
+      });
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.page.hasMore ? lastPage.page.nextCursor : undefined,
@@ -72,7 +78,7 @@ export function useStartAssignmentQuiz() {
     mutationFn: async ({ assignmentId, lessonId }: { assignmentId: string; lessonId: string }) => {
       if (user) {
         const result = await startOfflineAssignmentQuiz(repository, user.id, assignmentId, lessonId);
-        if (!browserIsOffline()) void syncNow();
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
         return { state: result.state };
       }
       return api.assignmentQuiz.start(assignmentId, lessonId);
@@ -100,7 +106,7 @@ export function useCheckpointAssignmentQuiz() {
             attemptId: String(attempt.id),
           }),
         };
-        if (!browserIsOffline()) void syncNow();
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
         return result;
       }
       return api.assignmentQuiz.checkpoint(input);
@@ -128,7 +134,7 @@ export function useCompleteAssignmentQuiz() {
             attemptId: String(attempt.id),
           }),
         };
-        if (!browserIsOffline()) void syncNow();
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
         return result;
       }
       return api.assignmentQuiz.complete(input);
@@ -147,7 +153,7 @@ export function useCreateAssignment() {
     mutationFn: async (input: { lessonId: string; name?: string; classId?: string; studentId?: string; dueAt?: string }) => {
       if (user) {
         const result = await createOfflineAssignment(repository, user.id, input);
-        if (!browserIsOffline()) void syncNow();
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
         return { assignment: { id: result.id, ...input }, syncState: result.syncState };
       }
       return api.assignments.create(input);
@@ -166,7 +172,7 @@ export function useUpdateAssignment() {
     mutationFn: async (input: { assignmentId: string; lessonId: string; name?: string; classId?: string; dueAt?: string | null }) => {
       if (user) {
         const result = await updateOfflineAssignment(repository, user.id, input);
-        if (!browserIsOffline()) void syncNow();
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
         return { assignment: { id: result.id, ...input }, syncState: result.syncState };
       }
       return api.assignments.update(input);
@@ -185,7 +191,7 @@ export function useDeleteAssignment() {
     mutationFn: async ({ assignmentId }: { assignmentId: string; classId?: string }) => {
       if (user) {
         const result = await deleteOfflineAssignment(repository, user.id, assignmentId);
-        if (!browserIsOffline()) void syncNow();
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
         return { deleted: true as const, syncState: result.syncState };
       }
       return api.assignments.delete(assignmentId);
@@ -211,10 +217,9 @@ export function useSubmitAttempt() {
       gameResults?: AttemptGameResultInput[];
     }) => {
       if (user) {
-        return submitOfflineAttempt(repository, user.id, input).then((result) => {
-          if (!browserIsOffline()) void syncNow();
-          return { attempt: { id: result.id }, syncState: result.syncState };
-        });
+        const result = await submitOfflineAttempt(repository, user.id, input);
+        await waitForOnlineAssignmentSync(browserIsOffline(), syncNow);
+        return { attempt: { id: result.id }, syncState: result.syncState };
       }
       return api.attempts.submit(input);
     },
