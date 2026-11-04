@@ -18,6 +18,7 @@ export function TeacherTodayPage({ classId }: { classId: string }) {
     <>
       <TeacherToday
         classId={classId}
+        classroomName={classroom?.name}
         readOnly={Boolean(classroom && isArchivedClass(classroom))}
         onAddStudents={() => setIsAddStudentsOpen(true)}
         onAssignQuiz={() => setIsAssignQuizOpen(true)}

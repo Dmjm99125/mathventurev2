@@ -10,6 +10,7 @@ import { TeacherRecentActivity } from './TeacherRecentActivity';
 
 export function TeacherToday({
   classId,
+  classroomName,
   readOnly = false,
   onAddStudents,
   onAssignQuiz,
@@ -17,6 +18,7 @@ export function TeacherToday({
   viewError = null,
 }: {
   classId: string;
+  classroomName?: string;
   readOnly?: boolean;
   onAddStudents(): void;
   onAssignQuiz(): void;
@@ -26,6 +28,7 @@ export function TeacherToday({
   const classroomQuery = useTeacherClassroom(classId);
   const rosterQuery = useClassRoster(classId);
   const classroom = classroomQuery.data?.classroom as TeacherClassroomSummary | null | undefined;
+  const currentClassName = classroomName ?? classroom?.name ?? 'Classroom';
   const assignmentsQuery = useAssignments(classId);
   const reportsQuery = useTeacherReportsOverview(classId, '30d');
   const students = rosterQuery.data?.pages.flatMap((page) => page.students) ?? [];
@@ -47,7 +50,12 @@ export function TeacherToday({
   const heading = (
     <>
       <p className="teacher-eyebrow">MathVenture teacher workspace</p>
-      <h1 className="mt-2 font-display text-4xl font-bold tracking-tight text-[var(--teacher-ink)] sm:text-5xl">Today</h1>
+      <h1 className="mt-2 font-display text-4xl font-bold tracking-tight text-[var(--teacher-ink)] sm:text-5xl">
+        {currentClassName}
+      </h1>
+      <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[var(--teacher-ink)]/80 sm:text-3xl">
+        Today
+      </h2>
       <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-[var(--teacher-ink)]/70">
         See what needs your attention and choose the next step for your classroom.
       </p>

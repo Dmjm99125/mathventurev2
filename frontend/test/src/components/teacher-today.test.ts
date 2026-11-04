@@ -22,3 +22,10 @@ Deno.test("attention rail uses direct student actions", () => {
     assertStringIncludes(attention, required);
   }
 });
+
+Deno.test("Today heading renders class name larger than Today", () => {
+  assertStringIncludes(source, "currentClassName");
+  assertStringIncludes(source, "text-4xl font-bold tracking-tight text-[var(--teacher-ink)] sm:text-5xl");
+  assertStringIncludes(source, "Today");
+  assertStringIncludes(source, "text-2xl font-bold tracking-tight text-[var(--teacher-ink)]/80 sm:text-3xl");
+});
