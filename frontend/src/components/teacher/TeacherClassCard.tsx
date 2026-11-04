@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { Archive, ArchiveRestore, Calendar, Pencil, Users } from 'lucide-react';
+import { ArchiveRestore, Calendar, Users } from 'lucide-react';
 import { Badge, Button, Card } from '@/components/ui';
 import type { TeacherClassSummary } from '@/lib/api';
 import { teacherClassPath, isArchivedClass } from '@features/teacher/model/classes';
@@ -21,14 +21,10 @@ function classAccentColor(name: string) {
 export function TeacherClassCard({
   classroom,
   online,
-  onRename,
-  onArchive,
   onUnarchive,
 }: {
   classroom: TeacherClassSummary;
   online: boolean;
-  onRename(): void;
-  onArchive(): void;
   onUnarchive(): void;
 }) {
   const archived = isArchivedClass(classroom);
@@ -68,20 +64,7 @@ export function TeacherClassCard({
         <Button asChild size="sm" className="bg-[var(--teacher-terracotta)] text-[var(--teacher-sand)] hover:bg-[var(--teacher-terracotta)]/90">
           <Link href={teacherClassPath(classroom.id)}>Open class</Link>
         </Button>
-        {online && !archived && (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="border-[var(--teacher-moss)]/30 text-[var(--teacher-ink)]"
-            onClick={onRename}
-          >
-            <Pencil className="mr-1.5 h-3.5 w-3.5" />
-            Rename
-          </Button>
-        )}
-        {online && (
-          archived ? (
+        {online && archived && (
             <Button
               type="button"
               size="sm"
@@ -92,18 +75,6 @@ export function TeacherClassCard({
               <ArchiveRestore className="mr-1.5 h-3.5 w-3.5" />
               Unarchive
             </Button>
-          ) : (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="text-[var(--teacher-ink)]/70 hover:text-[var(--teacher-ink)]"
-              onClick={onArchive}
-            >
-              <Archive className="mr-1.5 h-3.5 w-3.5" />
-              Archive
-            </Button>
-          )
         )}
       </div>
     </Card>

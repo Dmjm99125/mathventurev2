@@ -63,7 +63,7 @@ export function AppRoutes() {
         {() => <Redirect to="/teacher" replace />}
       </Route>
       <Route path="/teacher/classes/:classId/:section">
-        {({ classId, section }) => <AppLayout sidebarMode="hidden"><TeacherClassWorkspacePage classId={classId} section={section as 'today' | 'students' | 'assignments' | 'reports'} /></AppLayout>}
+        {({ classId, section }) => <AppLayout sidebarMode="hidden"><TeacherClassWorkspacePage classId={classId} section={section as 'today' | 'students' | 'assignments' | 'reports' | 'settings'} /></AppLayout>}
       </Route>
       <Route path="/teacher/classes/:classId">
         {({ classId }) => <AppLayout sidebarMode="hidden"><TeacherClassWorkspacePage classId={classId} /></AppLayout>}

@@ -39,10 +39,6 @@ export function TeacherClassList() {
     }
   };
 
-  const archive = (classroom: TeacherClassSummary) => {
-    void updateClass.mutateAsync({ classId: classroom.id, action: 'archive' });
-  };
-
   const unarchive = (classroom: TeacherClassSummary) => {
     void updateClass.mutateAsync({ classId: classroom.id, action: 'unarchive' });
   };
@@ -76,9 +72,9 @@ export function TeacherClassList() {
               <div><p className="teacher-eyebrow">Current roster spaces</p><h2 id="active-classes-heading" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Active classes</h2></div>
               <span className="text-sm font-bold text-[var(--teacher-ink)]/60">{activeClasses.length} total</span>
             </div>
-            {activeClasses.length ? <div className="mt-5 grid gap-5 md:grid-cols-2">{activeClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} online={online} onRename={() => setManagement({ mode: 'rename', classroom })} onArchive={() => archive(classroom)} onUnarchive={() => unarchive(classroom)} />)}</div> : <Card className="mt-5 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]/70">No active classes yet. Create your first class to get started.</Card>}
+            {activeClasses.length ? <div className="mt-5 grid gap-5 md:grid-cols-2">{activeClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} online={online} onUnarchive={() => unarchive(classroom)} />)}</div> : <Card className="mt-5 border-[var(--teacher-moss)]/20 bg-[var(--teacher-oat)]/55 p-8 font-semibold text-[var(--teacher-ink)]/70">No active classes yet. Create your first class to get started.</Card>}
           </section>
-          {archivedClasses.length > 0 && <section aria-labelledby="archived-classes-heading"><div><p className="teacher-eyebrow">Kept for reference</p><h2 id="archived-classes-heading" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Archived classes</h2></div><div className="mt-5 grid gap-5 md:grid-cols-2">{archivedClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} online={online} onRename={() => setManagement({ mode: 'rename', classroom })} onArchive={() => archive(classroom)} onUnarchive={() => unarchive(classroom)} />)}</div></section>}
+          {archivedClasses.length > 0 && <section aria-labelledby="archived-classes-heading"><div><p className="teacher-eyebrow">Kept for reference</p><h2 id="archived-classes-heading" className="mt-2 font-display text-2xl font-bold text-[var(--teacher-ink)]">Archived classes</h2></div><div className="mt-5 grid gap-5 md:grid-cols-2">{archivedClasses.map((classroom) => <TeacherClassCard key={classroom.id} classroom={classroom} online={online} onUnarchive={() => unarchive(classroom)} />)}</div></section>}
         </div>
       )}
       <TeacherClassManagementDialog open={management !== null} mode={management?.mode ?? 'create'} classroom={management?.classroom} pending={createClass.isPending || updateClass.isPending} error={managementError instanceof Error ? managementError.message : null} onOpenChange={(open) => { if (!open) { createClass.reset(); updateClass.reset(); setManagement(null); } }} onSubmit={(name) => void submitName(name)} />

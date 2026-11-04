@@ -1,6 +1,6 @@
 import type { TeacherClassSummary } from '@/lib/api/client';
 
-export type TeacherClassSection = 'today' | 'students' | 'assignments' | 'reports';
+export type TeacherClassSection = 'today' | 'students' | 'assignments' | 'reports' | 'settings';
 
 export function teacherClassPath(
   classId: string,

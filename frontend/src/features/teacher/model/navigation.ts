@@ -11,7 +11,7 @@ export function getTeacherWorkspaceNavItems(classId: string) {
     { href: teacherClassPath(classId, 'students'), labelKey: "teacher.students" },
     { href: teacherClassPath(classId, 'assignments'), labelKey: "teacher.assignments" },
     { href: teacherClassPath(classId, 'reports'), labelKey: "teacher.reports" },
-    { href: "/teacher/settings", labelKey: "teacher.settings" },
+    { href: teacherClassPath(classId, 'settings'), labelKey: "teacher.settings" },
   ] as const;
 }
 
