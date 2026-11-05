@@ -7,19 +7,44 @@ interface Item {
   id: string;
   emoji: string;
   color: string;
+  assetSrc: string;
+  label: string;
   matched: boolean;
   quizWrong: boolean;
 }
 
-const EMOJI_POOL = [
+interface ColorMatchingPoolItem {
+  emoji: string;
+  color: string;
+  assetSrc: string;
+  label: string;
+}
+
+export const COLOR_MATCHING_POOL: ColorMatchingPoolItem[] = [
   // Red
-  { emoji: '🍓', color: 'red' }, { emoji: '🍎', color: 'red' }, { emoji: '🍅', color: 'red' }, { emoji: '🚗', color: 'red' }, { emoji: '🎈', color: 'red' },
+  { emoji: '🍓', color: 'red', assetSrc: '/assets/images/color-match-red-strawberry.png', label: 'red strawberry' },
+  { emoji: '🍎', color: 'red', assetSrc: '/assets/images/color-match-red-apple.png', label: 'red apple' },
+  { emoji: '🍅', color: 'red', assetSrc: '/assets/images/color-match-red-tomato.png', label: 'red tomato' },
+  { emoji: '🚗', color: 'red', assetSrc: '/assets/images/color-match-red-car.png', label: 'red car' },
+  { emoji: '🎈', color: 'red', assetSrc: '/assets/images/color-match-red-balloon.png', label: 'red balloon' },
   // Green
-  { emoji: '🍏', color: 'green' }, { emoji: '🌳', color: 'green' }, { emoji: '🐸', color: 'green' }, { emoji: '🐢', color: 'green' }, { emoji: '🍃', color: 'green' },
+  { emoji: '🍏', color: 'green', assetSrc: '/assets/images/color-match-green-apple.png', label: 'green apple' },
+  { emoji: '🌳', color: 'green', assetSrc: '/assets/images/color-match-green-tree.png', label: 'green tree' },
+  { emoji: '🐸', color: 'green', assetSrc: '/assets/images/color-match-green-frog.png', label: 'green frog' },
+  { emoji: '🐢', color: 'green', assetSrc: '/assets/images/color-match-green-turtle.png', label: 'green turtle' },
+  { emoji: '🍃', color: 'green', assetSrc: '/assets/images/color-match-green-leaf.png', label: 'green leaf' },
   // Yellow
-  { emoji: '🌞', color: 'yellow' }, { emoji: '🍌', color: 'yellow' }, { emoji: '🍋', color: 'yellow' }, { emoji: '🧀', color: 'yellow' }, { emoji: '🌻', color: 'yellow' },
+  { emoji: '🌞', color: 'yellow', assetSrc: '/assets/images/color-match-yellow-sun.png', label: 'yellow sun' },
+  { emoji: '🍌', color: 'yellow', assetSrc: '/assets/images/color-match-yellow-banana.png', label: 'yellow banana' },
+  { emoji: '🍋', color: 'yellow', assetSrc: '/assets/images/color-match-yellow-lemon.png', label: 'yellow lemon' },
+  { emoji: '🧀', color: 'yellow', assetSrc: '/assets/images/color-match-yellow-cheese.png', label: 'yellow cheese' },
+  { emoji: '🌻', color: 'yellow', assetSrc: '/assets/images/color-match-yellow-sunflower.png', label: 'yellow sunflower' },
   // Blue
-  { emoji: '💧', color: 'blue' }, { emoji: '🐞', color: 'red' }, { emoji: '🐟', color: 'blue' }, { emoji: '🧢', color: 'blue' }, { emoji: '🧊', color: 'blue' },
+  { emoji: '💧', color: 'blue', assetSrc: '/assets/images/color-match-blue-water-drop.png', label: 'blue water drop' },
+  { emoji: '🐞', color: 'red', assetSrc: '/assets/images/color-match-red-ladybug-v2.png', label: 'red ladybug' },
+  { emoji: '🐟', color: 'blue', assetSrc: '/assets/images/color-match-blue-fish.png', label: 'blue fish' },
+  { emoji: '🧢', color: 'blue', assetSrc: '/assets/images/color-match-blue-cap.png', label: 'blue cap' },
+  { emoji: '🧊', color: 'blue', assetSrc: '/assets/images/color-match-blue-ice-cube.png', label: 'blue ice cube' },
 ];
 
 const COLORS = [
@@ -31,15 +56,38 @@ const COLORS = [
 
 const generateRandomItems = (): Item[] => {
   // Pick 4 random items from the pool
-  const shuffled = [...EMOJI_POOL].sort(() => Math.random() - 0.5);
+  const shuffled = [...COLOR_MATCHING_POOL].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, 4).map((item, index) => ({
     id: `${item.color}-${index}`,
     emoji: item.emoji,
     color: item.color,
+    assetSrc: item.assetSrc,
+    label: item.label,
     matched: false,
     quizWrong: false,
   }));
 };
+
+function MatchingItemVisual({ item }: { item: Item }) {
+  const [showFallback, setShowFallback] = useState(false);
+
+  if (showFallback) {
+    return (
+      <span role="img" aria-label={item.label} className="text-5xl md:text-6xl">
+        {item.emoji}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={item.assetSrc}
+      alt={item.label}
+      className="h-20 w-20 object-contain md:h-24 md:w-24"
+      onError={() => setShowFallback(true)}
+    />
+  );
+}
 
 interface ColorMatchingGameProps {
   onComplete?: (score?: number, maxScore?: number) => void;
@@ -161,7 +209,7 @@ export function ColorMatchingGame({ onComplete, allowSkip = true }: ColorMatchin
               className={`w-24 h-24 md:w-28 md:h-28 flex items-center justify-center text-5xl md:text-6xl cursor-pointer transition-all ${isSelected ? 'ring-4 ring-primary scale-110 shadow-xl' : 'hover:scale-105 shadow-sm'
                 }`}
             >
-              {item.emoji}
+              <MatchingItemVisual item={item} />
             </Card>
           );
         })}
